@@ -60,7 +60,6 @@ class _SqaFieldState extends State<SqaField> {
   late ScrollController _verticalScrollController;
   late ScrollController _gutterScrollController;
 
-
   int get _lineCount => _internalController.text.split('\n').length;
 
   void _updateStickyOffset() {
@@ -134,7 +133,6 @@ class _SqaFieldState extends State<SqaField> {
     }
   }
 
-
   void _onControllerChanged() {
     if (widget.collapsedMaxLines != null) {
       // Rebuild to update hidden line count footer
@@ -169,7 +167,6 @@ class _SqaFieldState extends State<SqaField> {
     _stickyTopNotifier.dispose();
     super.dispose();
   }
-
 
   ScrollPosition? _scrollPosition;
 
@@ -264,8 +261,9 @@ class _SqaFieldState extends State<SqaField> {
                       decoration: BoxDecoration(
                         border: Border(
                           right: BorderSide(
-                            color: theme.colorScheme.outlineVariant
-                                .withValues(alpha: 0.3),
+                            color: theme.colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            ),
                             width: 1,
                           ),
                         ),
@@ -277,6 +275,7 @@ class _SqaFieldState extends State<SqaField> {
                 Padding(
                   padding: EdgeInsets.only(
                     bottom: (showFooter && _isExpanded) ? 40 : 0,
+                    right: widget.showCopyButton ? 44 : 0,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -295,15 +294,14 @@ class _SqaFieldState extends State<SqaField> {
                               onChanged: widget.onChanged,
                               scrollPhysics:
                                   (widget.collapsedMaxLines != null &&
-                                          !_isExpanded)
-                                      ? const NeverScrollableScrollPhysics()
-                                      : null,
-                              maxLines: (widget.collapsedMaxLines != null &&
+                                      !_isExpanded)
+                                  ? const NeverScrollableScrollPhysics()
+                                  : null,
+                              maxLines:
+                                  (widget.collapsedMaxLines != null &&
                                       !_isExpanded)
                                   ? widget.collapsedMaxLines
-                                  : (widget.isMultiline
-                                      ? widget.maxLines
-                                      : 1),
+                                  : (widget.isMultiline ? widget.maxLines : 1),
                               minLines: widget.minLines ?? 1,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 fontFamily: widget.isMonospace
@@ -323,7 +321,7 @@ class _SqaFieldState extends State<SqaField> {
                                 contentPadding: EdgeInsets.fromLTRB(
                                   widget.showLineNumbers ? 8 : 16,
                                   12,
-                                  48, // More right padding for floating button
+                                  16, // Standard horizontal padding
                                   12,
                                 ),
                               ),
@@ -332,7 +330,8 @@ class _SqaFieldState extends State<SqaField> {
 
                             final scrollConfiguration = ScrollConfiguration(
                               // Use custom behavior to hide scrollbars when collapsed
-                              behavior: (widget.collapsedMaxLines != null &&
+                              behavior:
+                                  (widget.collapsedMaxLines != null &&
                                       !_isExpanded)
                                   ? const _NoScrollbarBehavior()
                                   : ScrollConfiguration.of(context),
@@ -342,15 +341,13 @@ class _SqaFieldState extends State<SqaField> {
                             if (widget.horizontalScrollController != null &&
                                 !widget.wrap) {
                               return Scrollbar(
-                                controller:
-                                    widget.horizontalScrollController,
+                                controller: widget.horizontalScrollController,
                                 thumbVisibility: true,
                                 thickness: 4.0,
                                 radius: const Radius.circular(2),
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
-                                  controller:
-                                      widget.horizontalScrollController,
+                                  controller: widget.horizontalScrollController,
                                   child: IntrinsicWidth(
                                     child: scrollConfiguration,
                                   ),
@@ -423,13 +420,11 @@ class _SqaFieldState extends State<SqaField> {
           width: 40,
           padding: const EdgeInsets.only(top: 12),
           child: ScrollConfiguration(
-
             behavior: const _NoScrollbarBehavior(),
             child: SingleChildScrollView(
               controller: _gutterScrollController,
               physics: const NeverScrollableScrollPhysics(), // Sync only
               child: Column(
-
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: List.generate(lineCount, (index) {
                   return SizedBox(

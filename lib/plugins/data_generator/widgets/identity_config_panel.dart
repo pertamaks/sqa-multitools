@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../../core/utils/locale_names.dart';
 import '../../../ui/widgets/sqa_field.dart';
-import '../../../ui/widgets/sqa_settings_button.dart';
-import '../../../ui/widgets/sqa_button.dart';
+import '../../../ui/widgets/sqa_action_button_group.dart';
 import '../providers/identity_provider.dart';
 import '../models/identity_state.dart';
 
@@ -46,39 +45,14 @@ class _IdentityConfigPanelState extends ConsumerState<IdentityConfigPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Clear Button
-            IconButton(
-              icon: const Icon(Symbols.delete, size: 20),
-              onPressed: () => notifier.clear(),
-              style: IconButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.outline,
-                padding: const EdgeInsets.all(8),
-                minimumSize: const Size(40, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              tooltip: 'Clear Results',
-            ),
-            const SizedBox(width: 8),
-            // Generate Button
-            SqaButton.tonal(
-              label: 'Generate',
-              icon: Symbols.wand_stars,
-              onPressed: () => notifier.generate(),
-              width: 120, // Optional: fixed width for consistency
-            ),
-            const SizedBox(width: 8),
-            // Settings Gear
-            SqaSettingsButton(
-              sourcePluginId: 'com.sqa.data_generator',
-              tooltip:
-                  '${LocaleNames.getDisplayName(state.locale.name)}, ${state.quantity} items',
-            ),
-          ],
+        SqaActionButtonGroup(
+          onClear: () => notifier.clear(),
+          actionLabel: 'Generate',
+          actionIcon: Symbols.wand_stars,
+          onAction: () => notifier.generate(),
+          sourcePluginId: 'com.sqa.data_generator',
+          settingsTooltip:
+              '${LocaleNames.getDisplayName(state.locale.name)}, ${state.quantity} items',
         ),
         if (state.selectedType == IdentityType.email) ...[
           const SizedBox(height: 16),

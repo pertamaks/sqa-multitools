@@ -83,9 +83,9 @@ class _DataGeneratorSettingsPanel extends ConsumerWidget {
                 children: [
                   Text(
                     'LOCALE',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -105,9 +105,9 @@ class _DataGeneratorSettingsPanel extends ConsumerWidget {
                 children: [
                   Text(
                     'COUNT',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -126,10 +126,6 @@ class _DataGeneratorSettingsPanel extends ConsumerWidget {
         SqaSettingsTile(
           title: 'INCLUDE FORMATTING',
           subtitle: 'Prefix each result with a bullet point (•)',
-          titleStyle: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            fontSize: 11,
-          ),
           trailing: SqaSwitch(
             value: state.includeFormatting,
             onChanged: (val) => notifier.setIncludeFormatting(val),
@@ -138,10 +134,6 @@ class _DataGeneratorSettingsPanel extends ConsumerWidget {
         SqaSettingsTile(
           title: 'INCLUDE EXTENSION',
           subtitle: 'Include phone extensions (e.g. x123)',
-          titleStyle: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            fontSize: 11,
-          ),
           trailing: SqaSwitch(
             value: state.includeExtension,
             onChanged: (val) => notifier.setIncludeExtension(val),

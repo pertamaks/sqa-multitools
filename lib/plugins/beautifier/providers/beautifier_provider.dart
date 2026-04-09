@@ -7,6 +7,10 @@ import 'package:yaml_writer/yaml_writer.dart';
 import '../beautifier_plugin.dart';
 import '../models/beautifier_state.dart';
 import '../../../core/services/preferences_service.dart';
+import '../utils/sql_formatter.dart';
+import '../utils/html_formatter.dart';
+import '../utils/js_formatter.dart';
+import '../utils/css_formatter.dart';
 
 part 'beautifier_provider.g.dart';
 
@@ -24,6 +28,7 @@ class BeautifierNotifier extends _$BeautifierNotifier {
       autoFormat: prefs.getBeautifierAutoFormat(),
       inputWrapText: prefs.getBeautifierInputWrapText(),
       outputWrapText: prefs.getBeautifierOutputWrapText(),
+      indentWidth: prefs.getBeautifierIndentWidth(),
     );
   }
 
@@ -59,6 +64,18 @@ class BeautifierNotifier extends _$BeautifierNotifier {
     ref.read(preferencesServiceProvider).setBeautifierOutputWrapText(value);
   }
 
+  void setIndentWidth(int value) {
+    state = state.copyWith(indentWidth: value);
+    ref.read(preferencesServiceProvider).setBeautifierIndentWidth(value);
+    if (state.autoFormat) {
+      format();
+    }
+  }
+
+  void clear() {
+    state = state.copyWith(input: '', output: '');
+  }
+
   void format() {
     final input = state.input.trim();
     if (input.isEmpty) {
@@ -79,13 +96,30 @@ class BeautifierNotifier extends _$BeautifierNotifier {
           formatted = _dartFormatter.format(input);
           break;
         case BeautifierLanguage.xml:
-        case BeautifierLanguage.html:
           final document = XmlDocument.parse(input);
-          formatted = document.toXmlString(pretty: true, indent: '  ');
+          formatted = document.toXmlString(
+            pretty: true,
+            indent: ' ' * state.indentWidth,
+          );
+          break;
+        case BeautifierLanguage.html:
+          formatted = HtmlFormatter.format(
+            input,
+            indentWidth: state.indentWidth,
+          );
           break;
         case BeautifierLanguage.yaml:
           final dynamic yamlMap = loadYaml(input);
           formatted = _yamlWriter.write(yamlMap);
+          break;
+        case BeautifierLanguage.sql:
+          formatted = _formatSql(input);
+          break;
+        case BeautifierLanguage.javascript:
+          formatted = JsFormatter.format(input, indentWidth: state.indentWidth);
+          break;
+        case BeautifierLanguage.css:
+          formatted = CssFormatter.format(input, indentWidth: state.indentWidth);
           break;
         default:
           formatted = _simpleFormat(input, state.language);
@@ -97,6 +131,10 @@ class BeautifierNotifier extends _$BeautifierNotifier {
     }
 
     state = state.copyWith(output: formatted, error: error);
+  }
+
+  String _formatSql(String input) {
+    return SqlFormatter.format(input, indentWidth: state.indentWidth);
   }
 
   String _simpleFormat(String input, BeautifierLanguage lang) {

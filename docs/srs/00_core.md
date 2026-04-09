@@ -54,7 +54,7 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
   - **SqaTabBar:** Optimized navigation tabs for plugins.
   - **SqaSegmentedButton:** Standardized compact switchers.
   - **SqaField:** Unified input and copyable display field with optimized **1.3 line-height** for readability. Features include:
-    - **Smart Sticky Copy Button:** Keeps the copy action visible at the top-right of the viewport during scrolling.
+    - **Smart Sticky Copy Button:** Keeps the copy action visible at the top-right of the viewport during scrolling. Includes a **reserved 44px right gutter** to prevent text and horizontal scrollbars from passing under the button.
     - **Snap-Height Expansion:** Integrated toggle (Show All/Less) that snaps to `collapsedMaxLines` when minimized, featuring a gradient-fade footer.
     - **Horizontal Scroll:** Support for mandatory single-line horizontal scrolling via `horizontalScrollController`.
   - **SqaDropdown:** Standardized selection menus.

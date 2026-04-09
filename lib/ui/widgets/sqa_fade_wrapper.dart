@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
 
-/// A wrapper that applies a top and bottom fade effect based on scroll position.
+/// A wrapper that applies a sophisticated fade effect (top/bottom or left/right) 
+/// based on scroll position using high-performance ShaderMasking.
 ///
-/// This widget is used to provide a premium feel where content subtly fades
+/// This widget provides a premium feel where content subtly fades
 /// as it reaches the boundaries of a scrollable area.
 class SqaFadeWrapper extends StatefulWidget {
   final Widget child;
-  final Color? color;
   final Axis axis;
   final double threshold;
-  final EdgeInsets overlayPadding;
   final bool showStart;
   final bool showEnd;
 
   const SqaFadeWrapper({
     super.key,
     required this.child,
-    this.color,
     this.axis = Axis.vertical,
     this.threshold = 30.0,
-    this.overlayPadding = EdgeInsets.zero,
     this.showStart = true,
     this.showEnd = true,
   });
@@ -52,11 +49,18 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
   void _updateIntensity(ScrollMetrics metrics) {
     if (metrics.axis != widget.axis) return;
 
-    final start = (metrics.pixels / widget.threshold).clamp(0.0, 1.0);
-    final distToEnd = metrics.maxScrollExtent - metrics.pixels;
-    final end = metrics.maxScrollExtent > 1.0
-        ? (distToEnd / widget.threshold).clamp(0.0, 1.0)
-        : 0.0;
+    final double start;
+    final double end;
+
+    // We use a small buffer (5px) like in SegmentedButton to avoid jitter.
+    if (metrics.maxScrollExtent <= 5.0) {
+      start = 0.0;
+      end = 0.0;
+    } else {
+      // extentBefore and extentAfter naturally handle overscroll (becoming <= 0)
+      start = (metrics.extentBefore / widget.threshold).clamp(0.0, 1.0);
+      end = (metrics.extentAfter / widget.threshold).clamp(0.0, 1.0);
+    }
 
     if (start != _startIntensity || end != _endIntensity) {
       setState(() {
@@ -68,10 +72,6 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final fadeColor = widget.color ?? colorScheme.surfaceContainerLow;
-    final isVertical = widget.axis == Axis.vertical;
-
     return NotificationListener<Notification>(
       onNotification: (notification) {
         if (notification is ScrollNotification) {
@@ -81,120 +81,37 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
         }
         return false;
       },
-      child: Stack(
-        children: [
-          widget.child,
-          // Start Fade (Top or Left)
-          if (widget.showStart)
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                // Using Curves for a natural "Pulse" feel
-                final easedValue = Curves.easeInOut.transform(
-                  _pulseController.value,
-                );
-                final breath = widget.threshold + (10.0 * easedValue);
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          // Pulse oscillation for the "breathing" effect
+          final pulse = Curves.easeInOut.transform(_pulseController.value);
+          
+          return ShaderMask(
+            shaderCallback: (Rect rect) {
+              final isVertical = widget.axis == Axis.vertical;
+              
+              // We adjust the stops based on pulse to give it that "alive" look
+              // Standard edge is ~10%, pulsing adds up to 2% depth.
+              final startStop = 0.08 + (0.02 * pulse);
+              final endStop = 0.92 - (0.02 * pulse);
 
-                return Positioned(
-                  left: widget.overlayPadding.left,
-                  top: widget.overlayPadding.top,
-                  right: isVertical ? widget.overlayPadding.right : null,
-                  bottom: isVertical ? null : widget.overlayPadding.bottom,
-                  width: isVertical ? null : breath,
-                  height: isVertical ? breath : null,
-                  child: IgnorePointer(
-                    child: Opacity(
-                      opacity: _startIntensity,
-                      child: _GlowDecoration(
-                        color: fadeColor,
-                        axis: widget.axis,
-                        isStart: true,
-                        bloomIntensity: 0.0, // Neutral top fade
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          // End Fade (Bottom or Right)
-          if (widget.showEnd)
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                // Using Curves and Tweens for a premium feel
-                final easedValue = Curves.easeInOut.transform(
-                  _pulseController.value,
-                );
-
-                // Breath and Glow now pulse in sync but with different curves
-                final breath = widget.threshold + (10.0 * easedValue);
-                final bloom = 0.0; // Pulses from 0.10 to 0.25
-
-                return Positioned(
-                  right: widget.overlayPadding.right,
-                  bottom: widget.overlayPadding.bottom,
-                  left: isVertical ? widget.overlayPadding.left : null,
-                  top: isVertical ? null : widget.overlayPadding.top,
-                  width: isVertical ? null : breath,
-                  height: isVertical ? breath : null,
-                  child: IgnorePointer(
-                    child: Opacity(
-                      opacity: _endIntensity,
-                      child: _GlowDecoration(
-                        color: fadeColor,
-                        axis: widget.axis,
-                        isStart: false,
-                        bloomIntensity: bloom,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlowDecoration extends StatelessWidget {
-  final Color color;
-  final Axis axis;
-  final bool isStart;
-  final double bloomIntensity;
-
-  const _GlowDecoration({
-    required this.color,
-    required this.axis,
-    required this.isStart,
-    required this.bloomIntensity,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isVertical = axis == Axis.vertical;
-
-    // A slightly colored "Bloom" using the primary color
-    final bloomColor = Color.lerp(color, colorScheme.primary, bloomIntensity)!;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: isVertical
-              ? (isStart ? Alignment.topCenter : Alignment.bottomCenter)
-              : (isStart ? Alignment.centerLeft : Alignment.centerRight),
-          end: isVertical
-              ? (isStart ? Alignment.bottomCenter : Alignment.topCenter)
-              : (isStart ? Alignment.centerRight : Alignment.centerLeft),
-          colors: [
-            bloomColor,
-            color.withValues(alpha: 0.8),
-            color.withValues(alpha: 0.4),
-            color.withValues(alpha: 0),
-          ],
-          stops: const [0.0, 0.3, 0.7, 1.0],
-        ),
+              return LinearGradient(
+                begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,
+                end: isVertical ? Alignment.bottomCenter : Alignment.centerRight,
+                colors: [
+                  Colors.black.withValues(alpha: 1.0 - (widget.showStart ? _startIntensity : 0)),
+                  Colors.black,
+                  Colors.black,
+                  Colors.black.withValues(alpha: 1.0 - (widget.showEnd ? _endIntensity : 0)),
+                ],
+                stops: [0.0, startStop, endStop, 1.0],
+              ).createShader(rect);
+            },
+            blendMode: BlendMode.dstIn,
+            child: widget.child,
+          );
+        },
       ),
     );
   }

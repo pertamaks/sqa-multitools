@@ -19,7 +19,7 @@ class ColorPickerPlugin implements SqaPlugin {
   @override
   IconData get icon => Symbols.color_lens;
   @override
-  String? get badge => null;
+  String? get badge => 'ALPHA';
   @override
   List<PermissionRequirement> get requiredPermissions => [];
 

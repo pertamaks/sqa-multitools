@@ -28,6 +28,7 @@ class PreferencesService {
   static const String keyBeautifierInputWrapText = 'beautifier_input_wrap_text';
   static const String keyBeautifierOutputWrapText =
       'beautifier_output_wrap_text';
+  static const String keyBeautifierIndentWidth = 'beautifier_indent_width';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -123,6 +124,14 @@ class PreferencesService {
 
   Future<void> setBeautifierOutputWrapText(bool wrapText) async {
     await _prefs.setBool(keyBeautifierOutputWrapText, wrapText);
+  }
+
+  int getBeautifierIndentWidth() {
+    return _prefs.getInt(keyBeautifierIndentWidth) ?? 2;
+  }
+
+  Future<void> setBeautifierIndentWidth(int width) async {
+    await _prefs.setInt(keyBeautifierIndentWidth, width);
   }
 }
 

@@ -14,7 +14,7 @@ import '../plugins/screenshot/ui/screenshot_overlay.dart';
 import '../plugins/screenshot/providers/screenshot_provider.dart';
 import '../plugins/screen_recorder/ui/screen_recorder_overlay.dart';
 import '../plugins/screen_recorder/providers/screen_recorder_provider.dart';
-// Note: SqaFadeWrapper import removed as toolbar reverted to custom manual fades.
+import 'widgets/sqa_fade_wrapper.dart';
 
 /// The collapsed toolbar height (no plugin open).
 const double kToolbarWindowHeight = 56; // 56px target + 9px Windows offset
@@ -150,107 +150,67 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                       children: [
                         // Scrollable Plugin Icons
                         Positioned.fill(
-                          child: ClipRect(
-                            child: ScrollConfiguration(
-                              behavior: ScrollConfiguration.of(context)
-                                  .copyWith(
-                                    dragDevices: {
-                                      PointerDeviceKind.touch,
-                                      PointerDeviceKind.mouse,
-                                      PointerDeviceKind.trackpad,
-                                    },
-                                  ),
-                              child: SingleChildScrollView(
-                                controller: _scrollController,
-                                scrollDirection: Axis.horizontal,
-                                clipBehavior: Clip.none,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: enabledPlugins.asMap().entries.map((
-                                    entry,
-                                  ) {
-                                    final index = entry.key;
-                                    final plugin = entry.value;
-                                    final isActive =
-                                        activePlugin?.id == plugin.id;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 10.0,
-                                      ),
-                                      child: ToolIcon(
-                                        icon: plugin.icon,
-                                        tooltip: plugin.name,
-                                        isActive: isActive,
-                                        badge: _buildBadgeIcon(plugin),
-                                        badgeColor: _getBadgeColor(plugin),
-                                        onPressed: () => _togglePlugin(plugin),
-                                        onHover: (text) {
-                                          setState(() {
-                                            if (text == null) {
-                                              _hoveredTooltip = null;
-                                            } else {
-                                              _hoveredTooltip = _formatTooltip(
+                          child: SqaFadeWrapper(
+                            axis: Axis.horizontal,
+                            child: ClipRect(
+                              child: ScrollConfiguration(
+                                behavior: ScrollConfiguration.of(context)
+                                    .copyWith(
+                                      dragDevices: {
+                                        PointerDeviceKind.touch,
+                                        PointerDeviceKind.mouse,
+                                        PointerDeviceKind.trackpad,
+                                      },
+                                    ),
+                                child: SingleChildScrollView(
+                                  controller: _scrollController,
+                                  scrollDirection: Axis.horizontal,
+                                  clipBehavior: Clip.none,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children:
+                                        enabledPlugins.asMap().entries.map((
+                                          entry,
+                                        ) {
+                                          final index = entry.key;
+                                          final plugin = entry.value;
+                                          final isActive =
+                                              activePlugin?.id == plugin.id;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              right: 10.0,
+                                            ),
+                                            child: ToolIcon(
+                                              icon: plugin.icon,
+                                              tooltip: plugin.name,
+                                              isActive: isActive,
+                                              badge: _buildBadgeIcon(plugin),
+                                              badgeColor: _getBadgeColor(
                                                 plugin,
-                                                text,
-                                              );
-                                            }
-                                            _tooltipAlignLeft =
-                                                index >=
-                                                enabledPlugins.length / 2;
-                                          });
-                                        },
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Manual Custom Horizontal Fades (Left)
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 32,
-                          child: IgnorePointer(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    colorScheme.surfaceContainerLow,
-                                    colorScheme.surfaceContainerLow.withValues(
-                                      alpha: 0.0,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Manual Custom Horizontal Fades (Right)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 32,
-                          child: IgnorePointer(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerRight,
-                                  end: Alignment.centerLeft,
-                                  colors: [
-                                    colorScheme.surfaceContainerLow,
-                                    colorScheme.surfaceContainerLow.withValues(
-                                      alpha: 0.0,
-                                    ),
-                                  ],
+                                              ),
+                                              onPressed:
+                                                  () => _togglePlugin(plugin),
+                                              onHover: (text) {
+                                                setState(() {
+                                                  if (text == null) {
+                                                    _hoveredTooltip = null;
+                                                  } else {
+                                                    _hoveredTooltip =
+                                                        _formatTooltip(
+                                                          plugin,
+                                                          text,
+                                                        );
+                                                  }
+                                                  _tooltipAlignLeft =
+                                                      index >=
+                                                      enabledPlugins.length / 2;
+                                                });
+                                              },
+                                            ),
+                                          );
+                                        }).toList(),
+                                  ),
                                 ),
                               ),
                             ),

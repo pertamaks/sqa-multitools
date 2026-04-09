@@ -177,5 +177,32 @@ void main() {
       expect(scrollView.scrollDirection, Axis.horizontal);
       expect(scrollView.controller, scrollController);
     });
+
+    testWidgets('has reserved right margin when copy button is shown', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SqaField(label: 'Padding Test', showCopyButton: true),
+          ),
+        ),
+      );
+
+      // Find the row that contains the main content (prefix, numbers, text)
+      // We look for the Padding that is a direct child of the Stack
+      final paddingFinder = find
+          .descendant(of: find.byType(Stack), matching: find.byType(Padding))
+          .first;
+      final paddingWidget = tester.widget<Padding>(paddingFinder);
+
+      final padding = paddingWidget.padding as EdgeInsets;
+      expect(padding.right, 44.0);
+
+      // TextField should have standard horizontal padding (16)
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      final decoration = textField.decoration as InputDecoration;
+      expect(decoration.contentPadding?.horizontal, 32.0);
+    });
   });
 }

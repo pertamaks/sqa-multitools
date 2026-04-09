@@ -60,7 +60,7 @@ class SqaSettingsTile extends StatelessWidget {
                         titleStyle ??
                         theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: 11,
                         ),
                   ),
                   if (subtitle != null)

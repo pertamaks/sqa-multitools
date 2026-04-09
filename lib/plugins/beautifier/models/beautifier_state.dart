@@ -13,6 +13,7 @@ abstract class BeautifierState with _$BeautifierState {
     @Default(true) bool inputWrapText,
     @Default(true) bool outputWrapText,
     @Default(false) bool isLoading,
+    @Default(2) int indentWidth,
     String? error,
   }) = _BeautifierState;
 }

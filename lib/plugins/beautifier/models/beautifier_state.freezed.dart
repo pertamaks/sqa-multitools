@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BeautifierState {
 
- String get input; String get output; BeautifierLanguage get language; bool get autoFormat; bool get inputWrapText; bool get outputWrapText; bool get isLoading; String? get error;
+ String get input; String get output; BeautifierLanguage get language; bool get autoFormat; bool get inputWrapText; bool get outputWrapText; bool get isLoading; int get indentWidth; String? get error;
 /// Create a copy of BeautifierState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $BeautifierStateCopyWith<BeautifierState> get copyWith => _$BeautifierStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BeautifierState&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.language, language) || other.language == language)&&(identical(other.autoFormat, autoFormat) || other.autoFormat == autoFormat)&&(identical(other.inputWrapText, inputWrapText) || other.inputWrapText == inputWrapText)&&(identical(other.outputWrapText, outputWrapText) || other.outputWrapText == outputWrapText)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BeautifierState&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.language, language) || other.language == language)&&(identical(other.autoFormat, autoFormat) || other.autoFormat == autoFormat)&&(identical(other.inputWrapText, inputWrapText) || other.inputWrapText == inputWrapText)&&(identical(other.outputWrapText, outputWrapText) || other.outputWrapText == outputWrapText)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.indentWidth, indentWidth) || other.indentWidth == indentWidth)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,input,output,language,autoFormat,inputWrapText,outputWrapText,isLoading,error);
+int get hashCode => Object.hash(runtimeType,input,output,language,autoFormat,inputWrapText,outputWrapText,isLoading,indentWidth,error);
 
 @override
 String toString() {
-  return 'BeautifierState(input: $input, output: $output, language: $language, autoFormat: $autoFormat, inputWrapText: $inputWrapText, outputWrapText: $outputWrapText, isLoading: $isLoading, error: $error)';
+  return 'BeautifierState(input: $input, output: $output, language: $language, autoFormat: $autoFormat, inputWrapText: $inputWrapText, outputWrapText: $outputWrapText, isLoading: $isLoading, indentWidth: $indentWidth, error: $error)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $BeautifierStateCopyWith<$Res>  {
   factory $BeautifierStateCopyWith(BeautifierState value, $Res Function(BeautifierState) _then) = _$BeautifierStateCopyWithImpl;
 @useResult
 $Res call({
- String input, String output, BeautifierLanguage language, bool autoFormat, bool inputWrapText, bool outputWrapText, bool isLoading, String? error
+ String input, String output, BeautifierLanguage language, bool autoFormat, bool inputWrapText, bool outputWrapText, bool isLoading, int indentWidth, String? error
 });
 
 
@@ -62,7 +62,7 @@ class _$BeautifierStateCopyWithImpl<$Res>
 
 /// Create a copy of BeautifierState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? input = null,Object? output = null,Object? language = null,Object? autoFormat = null,Object? inputWrapText = null,Object? outputWrapText = null,Object? isLoading = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? input = null,Object? output = null,Object? language = null,Object? autoFormat = null,Object? inputWrapText = null,Object? outputWrapText = null,Object? isLoading = null,Object? indentWidth = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 input: null == input ? _self.input : input // ignore: cast_nullable_to_non_nullable
 as String,output: null == output ? _self.output : output // ignore: cast_nullable_to_non_nullable
@@ -71,7 +71,8 @@ as BeautifierLanguage,autoFormat: null == autoFormat ? _self.autoFormat : autoFo
 as bool,inputWrapText: null == inputWrapText ? _self.inputWrapText : inputWrapText // ignore: cast_nullable_to_non_nullable
 as bool,outputWrapText: null == outputWrapText ? _self.outputWrapText : outputWrapText // ignore: cast_nullable_to_non_nullable
 as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as bool,indentWidth: null == indentWidth ? _self.indentWidth : indentWidth // ignore: cast_nullable_to_non_nullable
+as int,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -157,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String input,  String output,  BeautifierLanguage language,  bool autoFormat,  bool inputWrapText,  bool outputWrapText,  bool isLoading,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String input,  String output,  BeautifierLanguage language,  bool autoFormat,  bool inputWrapText,  bool outputWrapText,  bool isLoading,  int indentWidth,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BeautifierState() when $default != null:
-return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.inputWrapText,_that.outputWrapText,_that.isLoading,_that.error);case _:
+return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.inputWrapText,_that.outputWrapText,_that.isLoading,_that.indentWidth,_that.error);case _:
   return orElse();
 
 }
@@ -178,10 +179,10 @@ return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.i
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String input,  String output,  BeautifierLanguage language,  bool autoFormat,  bool inputWrapText,  bool outputWrapText,  bool isLoading,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String input,  String output,  BeautifierLanguage language,  bool autoFormat,  bool inputWrapText,  bool outputWrapText,  bool isLoading,  int indentWidth,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _BeautifierState():
-return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.inputWrapText,_that.outputWrapText,_that.isLoading,_that.error);case _:
+return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.inputWrapText,_that.outputWrapText,_that.isLoading,_that.indentWidth,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +199,10 @@ return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.i
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String input,  String output,  BeautifierLanguage language,  bool autoFormat,  bool inputWrapText,  bool outputWrapText,  bool isLoading,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String input,  String output,  BeautifierLanguage language,  bool autoFormat,  bool inputWrapText,  bool outputWrapText,  bool isLoading,  int indentWidth,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _BeautifierState() when $default != null:
-return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.inputWrapText,_that.outputWrapText,_that.isLoading,_that.error);case _:
+return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.inputWrapText,_that.outputWrapText,_that.isLoading,_that.indentWidth,_that.error);case _:
   return null;
 
 }
@@ -213,7 +214,7 @@ return $default(_that.input,_that.output,_that.language,_that.autoFormat,_that.i
 
 
 class _BeautifierState implements BeautifierState {
-  const _BeautifierState({this.input = '', this.output = '', this.language = BeautifierLanguage.json, this.autoFormat = true, this.inputWrapText = true, this.outputWrapText = true, this.isLoading = false, this.error});
+  const _BeautifierState({this.input = '', this.output = '', this.language = BeautifierLanguage.json, this.autoFormat = true, this.inputWrapText = true, this.outputWrapText = true, this.isLoading = false, this.indentWidth = 2, this.error});
   
 
 @override@JsonKey() final  String input;
@@ -223,6 +224,7 @@ class _BeautifierState implements BeautifierState {
 @override@JsonKey() final  bool inputWrapText;
 @override@JsonKey() final  bool outputWrapText;
 @override@JsonKey() final  bool isLoading;
+@override@JsonKey() final  int indentWidth;
 @override final  String? error;
 
 /// Create a copy of BeautifierState
@@ -235,16 +237,16 @@ _$BeautifierStateCopyWith<_BeautifierState> get copyWith => __$BeautifierStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BeautifierState&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.language, language) || other.language == language)&&(identical(other.autoFormat, autoFormat) || other.autoFormat == autoFormat)&&(identical(other.inputWrapText, inputWrapText) || other.inputWrapText == inputWrapText)&&(identical(other.outputWrapText, outputWrapText) || other.outputWrapText == outputWrapText)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BeautifierState&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.language, language) || other.language == language)&&(identical(other.autoFormat, autoFormat) || other.autoFormat == autoFormat)&&(identical(other.inputWrapText, inputWrapText) || other.inputWrapText == inputWrapText)&&(identical(other.outputWrapText, outputWrapText) || other.outputWrapText == outputWrapText)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.indentWidth, indentWidth) || other.indentWidth == indentWidth)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,input,output,language,autoFormat,inputWrapText,outputWrapText,isLoading,error);
+int get hashCode => Object.hash(runtimeType,input,output,language,autoFormat,inputWrapText,outputWrapText,isLoading,indentWidth,error);
 
 @override
 String toString() {
-  return 'BeautifierState(input: $input, output: $output, language: $language, autoFormat: $autoFormat, inputWrapText: $inputWrapText, outputWrapText: $outputWrapText, isLoading: $isLoading, error: $error)';
+  return 'BeautifierState(input: $input, output: $output, language: $language, autoFormat: $autoFormat, inputWrapText: $inputWrapText, outputWrapText: $outputWrapText, isLoading: $isLoading, indentWidth: $indentWidth, error: $error)';
 }
 
 
@@ -255,7 +257,7 @@ abstract mixin class _$BeautifierStateCopyWith<$Res> implements $BeautifierState
   factory _$BeautifierStateCopyWith(_BeautifierState value, $Res Function(_BeautifierState) _then) = __$BeautifierStateCopyWithImpl;
 @override @useResult
 $Res call({
- String input, String output, BeautifierLanguage language, bool autoFormat, bool inputWrapText, bool outputWrapText, bool isLoading, String? error
+ String input, String output, BeautifierLanguage language, bool autoFormat, bool inputWrapText, bool outputWrapText, bool isLoading, int indentWidth, String? error
 });
 
 
@@ -272,7 +274,7 @@ class __$BeautifierStateCopyWithImpl<$Res>
 
 /// Create a copy of BeautifierState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? input = null,Object? output = null,Object? language = null,Object? autoFormat = null,Object? inputWrapText = null,Object? outputWrapText = null,Object? isLoading = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? input = null,Object? output = null,Object? language = null,Object? autoFormat = null,Object? inputWrapText = null,Object? outputWrapText = null,Object? isLoading = null,Object? indentWidth = null,Object? error = freezed,}) {
   return _then(_BeautifierState(
 input: null == input ? _self.input : input // ignore: cast_nullable_to_non_nullable
 as String,output: null == output ? _self.output : output // ignore: cast_nullable_to_non_nullable
@@ -281,7 +283,8 @@ as BeautifierLanguage,autoFormat: null == autoFormat ? _self.autoFormat : autoFo
 as bool,inputWrapText: null == inputWrapText ? _self.inputWrapText : inputWrapText // ignore: cast_nullable_to_non_nullable
 as bool,outputWrapText: null == outputWrapText ? _self.outputWrapText : outputWrapText // ignore: cast_nullable_to_non_nullable
 as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as bool,indentWidth: null == indentWidth ? _self.indentWidth : indentWidth // ignore: cast_nullable_to_non_nullable
+as int,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

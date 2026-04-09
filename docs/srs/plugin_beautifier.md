@@ -7,17 +7,19 @@ The **Code Beautifier** plugin is a utility for formatting raw code into a human
 
 ### 1. Language Support
 Manual selection of languages powered by `flutter_code_editor` and `highlight`:
-- **JSON**: Integrated `dart:convert` with custom indentation.
-- **XML/HTML**: Robust tree-based formatting using the `xml` package.
-- **SQL**: Syntax-aware highlighting with basic indentation.
+- **XML**: Strict tree-based formatting using the `xml` package.
+- **HTML**: Robust HTML5-compliant parsing and pretty-printing using the `html` package. Handles void elements, fragments, and doctypes correctly.
+- **SQL**: Professional token-based formatting with clause-aware layout and subquery nesting.
 - **YAML**: Powered by `yaml` and `yaml_writer` for clean normalization.
 - **Dart**: Official formatting using the `dart_style` package.
-- **JavaScript/CSS**: Syntax-highlighted editing with general indentation logic.
+- **JavaScript**: Professional token-based formatting with support for ES6+, arrow functions, template literals, and class structures.
+- **CSS**: Professional token-based formatting with support for media queries, variables, and minified expansion.
 
 ### 2. Formatting Logic
-- **Professional Engines**: Uses official Dart and XML/YAML libraries for reliable output.
+- **Professional Engines**: Uses official Dart and XML/YAML libraries, plus a custom Native-Dart Token Engine for SQL.
 - **Error Handling**: Gracefully handles invalid syntax and provides inline error feedback.
 - **Auto-Format**: Optional "Auto-format on change" setting, persisted across sessions.
+- **Parameterized Indentation**: Configurable indentation width (2, 4, or 8 spaces) for SQL and native formats.
 
 ### 3. UI Features
 - **Monospace Editor**: Uses `CodeField` for a professional IDE-like experience.

@@ -12,14 +12,16 @@ import 'package:highlight/languages/yaml.dart' as hl_yaml;
 import 'package:highlight/languages/javascript.dart' as hl_javascript;
 import 'package:highlight/languages/css.dart' as hl_css;
 
-import '../../core/models/sqa_plugin.dart';
-import '../../ui/widgets/sqa_plugin_layout.dart';
-import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import '../../ui/widgets/sqa_button.dart';
-import '../../ui/widgets/sqa_dropdown.dart';
-import '../../ui/widgets/sqa_settings_button.dart';
 import '../../ui/widgets/sqa_field.dart';
+import '../../ui/widgets/sqa_plugin_layout.dart';
+import '../../ui/widgets/sqa_dropdown.dart';
+import '../../ui/widgets/sqa_segmented_button.dart';
+import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_switch.dart';
+import '../../ui/widgets/sqa_toast.dart';
+import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
+import '../../ui/widgets/sqa_action_button_group.dart';
+import '../../core/models/sqa_plugin.dart';
 import './providers/beautifier_provider.dart';
 
 class BeautifierPlugin implements SqaPlugin {
@@ -32,7 +34,7 @@ class BeautifierPlugin implements SqaPlugin {
   @override
   IconData get icon => Symbols.code_blocks;
   @override
-  String? get badge => 'ALPHA';
+  String? get badge => null;
   @override
   List<PermissionRequirement> get requiredPermissions => [];
 
@@ -53,18 +55,19 @@ class BeautifierPlugin implements SqaPlugin {
 }
 
 enum BeautifierLanguage {
-  json('JSON', 'json'),
-  sql('SQL', 'sql'),
-  xml('XML', 'xml'),
-  html('HTML', 'xml'),
-  dart('Dart', 'dart'),
-  yaml('YAML', 'yaml'),
-  javascript('JavaScript', 'javascript'),
-  css('CSS', 'css');
+  json('JSON', 'json', Symbols.file_json),
+  sql('SQL', 'sql', Symbols.database),
+  xml('XML', 'xml', Symbols.code),
+  html('HTML', 'xml', Symbols.html),
+  dart('Dart', 'dart', Symbols.flutter),
+  yaml('YAML', 'yaml', Symbols.docs),
+  javascript('JavaScript', 'javascript', Symbols.javascript),
+  css('CSS', 'css', Symbols.css);
 
   final String label;
   final String highlightName;
-  const BeautifierLanguage(this.label, this.highlightName);
+  final IconData icon;
+  const BeautifierLanguage(this.label, this.highlightName, this.icon);
 
   dynamic get highlightMode {
     switch (this) {
@@ -133,36 +136,75 @@ class _BeautifierSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final autoFormat = ref.watch(
       beautifierProvider.select((s) => s.autoFormat),
     );
     final inputWrap = ref.watch(
       beautifierProvider.select((s) => s.inputWrapText),
     );
+    final indentWidth = ref.watch(
+      beautifierProvider.select((s) => s.indentWidth),
+    );
     final outputWrap = ref.watch(
       beautifierProvider.select((s) => s.outputWrapText),
     );
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SwitchListTile(
-          title: const Text('Auto-format on change'),
-          subtitle: const Text('Format code automatically as you type.'),
-          value: autoFormat,
-          onChanged: (val) =>
-              ref.read(beautifierProvider.notifier).setAutoFormat(val),
+        Text(
+          'BEAUTIFIER SETTINGS',
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
         ),
-        SwitchListTile(
-          title: const Text('Wrap Input Text'),
-          value: inputWrap,
-          onChanged: (val) =>
-              ref.read(beautifierProvider.notifier).setInputWrapText(val),
+        const SizedBox(height: 12),
+        SqaSettingsTile(
+          title: 'AUTO-FORMAT ON CHANGE',
+          subtitle: 'Format code automatically as you type.',
+          trailing: SqaSwitch(
+            value: autoFormat,
+            onChanged: (val) =>
+                ref.read(beautifierProvider.notifier).setAutoFormat(val),
+          ),
         ),
-        SwitchListTile(
-          title: const Text('Wrap Output Text'),
-          value: outputWrap,
-          onChanged: (val) =>
-              ref.read(beautifierProvider.notifier).setOutputWrapText(val),
+        SqaSettingsTile(
+          title: 'INDENTATION WIDTH',
+          subtitle: 'Number of spaces per indentation level.',
+          trailing: SizedBox(
+            width: 80,
+            child: SqaDropdown<int>(
+              value: indentWidth,
+              items: [2, 4, 8].map((w) {
+                return DropdownMenuItem(value: w, child: Text('$w'));
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  ref.read(beautifierProvider.notifier).setIndentWidth(val);
+                }
+              },
+            ),
+          ),
+        ),
+        SqaSettingsTile(
+          title: 'WRAP INPUT TEXT',
+          subtitle: 'Allow long lines to wrap in the raw input field.',
+          trailing: SqaSwitch(
+            value: inputWrap,
+            onChanged: (val) =>
+                ref.read(beautifierProvider.notifier).setInputWrapText(val),
+          ),
+        ),
+        SqaSettingsTile(
+          title: 'WRAP OUTPUT TEXT',
+          subtitle: 'Allow long lines to wrap in the beautified field.',
+          trailing: SqaSwitch(
+            value: outputWrap,
+            onChanged: (val) =>
+                ref.read(beautifierProvider.notifier).setOutputWrapText(val),
+          ),
         ),
       ],
     );
@@ -229,6 +271,12 @@ class _BeautifierViewState extends ConsumerState<_BeautifierView> {
     _inputController.theme = codeTheme;
     _outputController.theme = codeTheme;
 
+    ref.listen(beautifierProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        SqaToast.show(context, next.error!, type: SqaToastType.error);
+      }
+    });
+
     if (_outputController.text != state.output) {
       _outputController.text = state.output;
     }
@@ -258,27 +306,24 @@ class _BeautifierViewState extends ConsumerState<_BeautifierView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      SqaDropdown<BeautifierLanguage>(
-                        value: state.language,
-                        items: BeautifierLanguage.values.map((lang) {
-                          return DropdownMenuItem(
+                      SqaSegmentedButton<BeautifierLanguage>(
+                        segments: BeautifierLanguage.values.map((lang) {
+                          return ButtonSegment(
                             value: lang,
-                            child: Text(lang.label),
+                            label: Text(lang.label),
+                            icon: Icon(lang.icon),
                           );
                         }).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            ref
-                                .read(beautifierProvider.notifier)
-                                .setLanguage(val);
-                          }
+                        selected: {state.language},
+                        onSelectionChanged: (set) {
+                          ref
+                              .read(beautifierProvider.notifier)
+                              .setLanguage(set.first);
                         },
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                SqaSettingsButton(sourcePluginId: 'com.sqa.beautifier'),
               ],
             ),
             const SizedBox(height: 24),
@@ -293,7 +338,6 @@ class _BeautifierViewState extends ConsumerState<_BeautifierView> {
               horizontalScrollController: _inputHorizontalController,
               collapsedMaxLines: 15,
 
-
               trailing: _buildWrapToggle(
                 state.inputWrapText,
                 (val) =>
@@ -301,13 +345,13 @@ class _BeautifierViewState extends ConsumerState<_BeautifierView> {
               ),
             ),
             const SizedBox(height: 16),
-            Center(
-              child: SqaButton.tonal(
-                onPressed: () => ref.read(beautifierProvider.notifier).format(),
-                icon: Symbols.auto_fix,
-                label: 'Format Code',
-                width: 160,
-              ),
+            SqaActionButtonGroup(
+              onClear: _clearAll,
+              actionLabel: 'Format Code',
+              actionIcon: Symbols.auto_fix,
+              onAction: () => ref.read(beautifierProvider.notifier).format(),
+              sourcePluginId: 'com.sqa.beautifier',
+              actionWidth: 160,
             ),
             const SizedBox(height: 16),
             SqaField(
@@ -322,28 +366,22 @@ class _BeautifierViewState extends ConsumerState<_BeautifierView> {
               horizontalScrollController: _outputHorizontalController,
               collapsedMaxLines: 15,
               trailing: _buildWrapToggle(
-
-
                 state.outputWrapText,
                 (val) => ref
                     .read(beautifierProvider.notifier)
                     .setOutputWrapText(val),
               ),
             ),
-            if (state.error != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                state.error!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
           ],
         ),
       ),
     );
+  }
+
+  void _clearAll() {
+    ref.read(beautifierProvider.notifier).clear();
+    _inputController.clear();
+    _outputController.clear();
   }
 
   Widget _buildWrapToggle(bool value, ValueChanged<bool> onChanged) {

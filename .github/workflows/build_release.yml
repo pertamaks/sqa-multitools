@@ -1,0 +1,50 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Builds trigger when pushing a version tag
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install Dependencies
+        run: flutter pub get
+        
+      - name: Build Windows Executable
+        run: flutter build windows --release
+        
+      - name: Zip Bundle
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath sqa-tools-windows.zip
+        
+      - name: Upload Artifact Map
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: sqa-tools-windows.zip
+
+  create-release:
+    needs: [build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            sqa-tools-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

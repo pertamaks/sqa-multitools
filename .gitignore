@@ -1,0 +1,76 @@
+# =============================================================================
+# SQA-Multitools .gitignore
+# =============================================================================
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# =============================================================================
+# IDE / Editor
+# =============================================================================
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (uncomment to ignore)
+#.vscode/
+
+# =============================================================================
+# Flutter / Dart / Pub
+# =============================================================================
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+pubspec.lock
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# =============================================================================
+# Platform Build Artifacts
+# =============================================================================
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# =============================================================================
+# Agent / AI Tooling
+# =============================================================================
+.gemini/
+GEMINI.md
+.env
+
+# =============================================================================
+# Scratch / Debug Output (catch-all for temp dumps)
+# =============================================================================
+*.txt
+!README.txt
+!LICENSE.txt
+/tmp/
+scripts/generate_coffee_codes.dart

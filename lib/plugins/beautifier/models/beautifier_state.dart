@@ -1,0 +1,18 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import '../beautifier_plugin.dart';
+
+part 'beautifier_state.freezed.dart';
+
+@freezed
+abstract class BeautifierState with _$BeautifierState {
+  const factory BeautifierState({
+    @Default('') String input,
+    @Default('') String output,
+    @Default(BeautifierLanguage.json) BeautifierLanguage language,
+    @Default(true) bool autoFormat,
+    @Default(true) bool inputWrapText,
+    @Default(true) bool outputWrapText,
+    @Default(false) bool isLoading,
+    String? error,
+  }) = _BeautifierState;
+}

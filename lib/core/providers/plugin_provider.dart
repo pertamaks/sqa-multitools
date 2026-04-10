@@ -185,6 +185,9 @@ class NavigationService {
 
   /// Returns to the previous plugin if history exists, otherwise closes the active plugin
   void goBack() {
+    // Revert any theme previews when navigating back
+    _ref.read(themeSettingsProvider.notifier).resetToSaved();
+    
     final history = _ref.read(navigationHistoryProvider);
     if (history != null) {
       final allPlugins = _ref.read(availablePluginsProvider);

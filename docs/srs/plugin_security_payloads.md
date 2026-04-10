@@ -1,32 +1,37 @@
 # SRS: Security Payloads Plugin
 
 ## Overview
-The **Security Payloads** plugin is a dedicated tool for security testing and fuzzing. It provides a collection of common payloads for web and system-level vulnerability testing, along with utility tools for data manipulation (e.g., Base64).
+The **Security Payloads** plugin is an educational testing lab designed for QA testers and security researchers. Unlike a static list of scripts, it provides context, "How-to-test" guides, and success indicators for each payload, along with an interactive generator for Path Traversal vulnerabilities.
 
 ## Features
 
 ### 1. Web Payloads
-A collection of payloads for web-specific vulnerabilities:
-- **SQL Injection**: Payloads like `' OR 1=1 --`, `admin' --`, and union-based injections.
-- **XSS (Cross-Site Scripting)**: Payloads like `<script>alert(1)</script>`, `onerror` events, etc.
-- **Path Traversal**: Payloads like `../../../../etc/passwd`, `..\..\..\..\windows\win.ini`.
+A collection of payloads for web-specific vulnerabilities, each accompanied by an educational context panel:
+- **SQL Injection**: Payloads for auth bypass, error-based discovery, and union-based extraction.
+- **XSS (Cross-Site Scripting)**: Various vectors including `<script>`, `onerror`, and SVG-based injections.
+- **Path Traversal Generator**: An interactive tool that takes a target URL, parses its parameters, and automatically injects traversal strings (e.g., `../../etc/passwd`) for instant testing.
 
 ### 2. System Payloads
 Payloads for system-level testing:
-- **Command Injection**: Payloads like `; ls -la`, `| id`, `&& cat /etc/shadow`.
-- **Header Injection**: CRLF injections, host header manipulation.
+- **Command Injection**: Payloads utilizing piping (`;`), chaining (`&&`), and redirection.
+- **Header Injection**: Payloads for CRLF and Host header manipulation.
 
-### 3. Utils
-Utility tools for security-related data manipulation:
-- **Base64 Encode/Decode**: Straightforward conversion for encoded strings often found in security contexts.
+### 3. Educational Context (The "Lab" System)
+Every payload is contained within an expandable card that provides:
+- **Vulnerability Primer**: A high-level explanation of the vulnerability type.
+- **Technical Description**: What the specific payload string performs.
+- **How to Test**: Step-by-step instructions for the tester.
+- **Success Indicators**: Visual cues (e.g., alert boxes, system files) that signify a successful exploit.
+- **Risk Badges**: Color-coded severity indicators (Low to Critical).
 
 ## UI Standards
 - Use `SqaPluginLayout` for a consistent look.
-- Tabs for **Web**, **System**, and **Utils**.
-- Use `SqaField` for inputs and copyable outputs.
-- Category headers for clear grouping within tabs.
+- **Tabs**: Web and System.
+- **Vertical-First Design**: Optimized for 450px width using vertical expansion (Accordions) instead of side panels.
+- **Monospace Typography**: All payloads and injected URLs use monospace fonts for clarity.
+- **Zero Hacks**: Built strictly using `SqaCard`, `SqaField`, and `SqaInfoBanner`.
 
 ## Implementation Details
 - **ID**: `com.sqa.plugin.security_payloads`
-- **Icon**: `Symbols.security` or `Symbols.lock`.
-- **Badge**: `ALPHA` (initial version).
+- **Icon**: `Symbols.security`
+- **Badge**: `null` (Production ready)

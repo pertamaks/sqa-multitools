@@ -94,6 +94,7 @@ flutter:
   assets:
     - assets/app_icon.ico
     - assets/caterpillar.gif
+    - assets/bug_splat.png
     - assets/8ball.png
     - assets/sounds/
 

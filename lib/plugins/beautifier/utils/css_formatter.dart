@@ -73,7 +73,9 @@ class CssFormatter {
 
         // Pseudo-classes heuristic: colon followed by word then '{' or another selector char
         if (next != null && next.value == '{') isProperty = false;
-        if (i + 2 < tokens.length && tokens[i + 2].value == '{') isProperty = false;
+        if (i + 2 < tokens.length && tokens[i + 2].value == '{') {
+          isProperty = false;
+        }
 
         if (isProperty) {
           buffer.write(': ');
@@ -117,19 +119,40 @@ class CssFormatter {
   static bool _needsSpaceBetween(_Token prev, _Token current) {
     // Space before {
     if (current.value == '{') return true;
-    
+
     // Avoid space after dot, hash, etc. in selectors
-    if (prev.value == '.' || prev.value == '#' || prev.value == '[' || prev.value == '(' || prev.value == '@') return false;
-    if (current.value == '.' || current.value == '#' || current.value == '[' || current.value == ']' || current.value == ')' || current.value == '(') return false;
-    
+    if (prev.value == '.' ||
+        prev.value == '#' ||
+        prev.value == '[' ||
+        prev.value == '(' ||
+        prev.value == '@') {
+      return false;
+    }
+    if (current.value == '.' ||
+        current.value == '#' ||
+        current.value == '[' ||
+        current.value == ']' ||
+        current.value == ')' ||
+        current.value == '(') {
+      return false;
+    }
+
     // Space around combinators
-    if (current.value == '>' || current.value == '+' || current.value == '~') return true;
-    if (prev.value == '>' || prev.value == '+' || prev.value == '~') return true;
+    if (current.value == '>' || current.value == '+' || current.value == '~') {
+      return true;
+    }
+    if (prev.value == '>' || prev.value == '+' || prev.value == '~') {
+      return true;
+    }
 
     // Word/Keyword/String spacing (e.g. margin: 0 0 10px)
-    if (prev.type == _TokenType.word && current.type == _TokenType.word) return true;
-    if (prev.type == _TokenType.string || current.type == _TokenType.string) return true;
-    
+    if (prev.type == _TokenType.word && current.type == _TokenType.word) {
+      return true;
+    }
+    if (prev.type == _TokenType.string || current.type == _TokenType.string) {
+      return true;
+    }
+
     return false;
   }
 
@@ -190,18 +213,17 @@ class CssFormatter {
       if (char == '.' || char == '#' || char == '@') {
         i++;
       }
-      
+
       while (i < css.length && RegExp(r'[a-zA-Z0-9\-_%.]').hasMatch(css[i])) {
         // Only one dot allowed (for numbers), but in selectors multiple dots are separate
         // This is a simple lexer, so we just consume until we hit punctuation or whitespace
         i++;
       }
-      
+
       if (i > start) {
         tokens.add(_Token(_TokenType.word, css.substring(start, i)));
         continue;
       }
-
     }
 
     return tokens;

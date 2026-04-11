@@ -32,9 +32,4 @@ class SecurityPayload {
   });
 }
 
-enum PayloadRisk {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum PayloadRisk { low, medium, high, critical }

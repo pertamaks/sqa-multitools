@@ -70,10 +70,17 @@ class JsFormatter {
         inFor = true;
       } else if (token.value == '(') {
         if (prev != null) {
-           final keywords = {'if', 'for', 'while', 'switch', 'catch', 'function'};
-           if (!keywords.contains(prev.value)) {
-             _removeTrailingSpace(buffer);
-           }
+          final keywords = {
+            'if',
+            'for',
+            'while',
+            'switch',
+            'catch',
+            'function',
+          };
+          if (!keywords.contains(prev.value)) {
+            _removeTrailingSpace(buffer);
+          }
         }
         parenDepth++;
         buffer.write('(');
@@ -86,8 +93,8 @@ class JsFormatter {
         _removeTrailingSpace(buffer);
         buffer.write(': ');
       } else if (token.value == '++' || token.value == '--') {
-         _removeTrailingSpace(buffer);
-         buffer.write(token.value);
+        _removeTrailingSpace(buffer);
+        buffer.write(token.value);
       } else {
         if (prev != null && _needsSpaceBetween(prev, token)) {
           if (!buffer.toString().endsWith(' ') &&
@@ -110,7 +117,7 @@ class JsFormatter {
       buffer.write(trimmed);
     }
   }
-  
+
   static void _trimTrailingSpace(StringBuffer buffer) {
     String content = buffer.toString();
     String trimmed = content.trimRight();
@@ -125,22 +132,62 @@ class JsFormatter {
     if (current.value == '++' || current.value == '--') return false;
 
     final keywords = {
-      'const', 'let', 'var', 'function', 'class', 'static', 'return',
-      'if', 'else', 'while', 'do', 'import', 'export', 'from', 'as',
-      'new', 'throw', 'case', 'yield', 'await', 'async'
+      'const',
+      'let',
+      'var',
+      'function',
+      'class',
+      'static',
+      'return',
+      'if',
+      'else',
+      'while',
+      'do',
+      'import',
+      'export',
+      'from',
+      'as',
+      'new',
+      'throw',
+      'case',
+      'yield',
+      'await',
+      'async',
     };
 
     if (keywords.contains(prev.value)) return true;
     if (_isOperator(prev.value) || _isOperator(current.value)) return true;
-    if (prev.type == _TokenType.word && current.type == _TokenType.word) return true;
+    if (prev.type == _TokenType.word && current.type == _TokenType.word) {
+      return true;
+    }
 
     return false;
   }
 
   static bool _isOperator(String val) {
     return const [
-      '=', '=>', '+', '-', '*', '/', '>', '<', '>=', '<=', '==', '===', '!=',
-      '!==', '&&', '||', '?', '...', '+=', '-=', '*=', '/='
+      '=',
+      '=>',
+      '+',
+      '-',
+      '*',
+      '/',
+      '>',
+      '<',
+      '>=',
+      '<=',
+      '==',
+      '===',
+      '!=',
+      '!==',
+      '&&',
+      '||',
+      '?',
+      '...',
+      '+=',
+      '-=',
+      '*=',
+      '/=',
     ].contains(val);
   }
 
@@ -196,8 +243,21 @@ class JsFormatter {
         continue;
       }
       final next1 = i + 1 < js.length ? js.substring(i, i + 2) : '';
-      if (['++', '--', '=>', '==', '!=', '>=', '<=', '&&', '||', '+=', '-=', '*=', '/=']
-          .contains(next1)) {
+      if ([
+        '++',
+        '--',
+        '=>',
+        '==',
+        '!=',
+        '>=',
+        '<=',
+        '&&',
+        '||',
+        '+=',
+        '-=',
+        '*=',
+        '/=',
+      ].contains(next1)) {
         tokens.add(_Token(_TokenType.operator, next1));
         i += 2;
         continue;

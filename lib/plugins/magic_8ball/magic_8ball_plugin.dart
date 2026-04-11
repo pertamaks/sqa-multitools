@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'dart:math';
 import '../../core/models/sqa_plugin.dart';
+import '../../ui/widgets/sqa_toast.dart';
+import '../../ui/widgets/sqa_settings_tile.dart';
+import '../../ui/widgets/sqa_dropdown.dart';
+import '../../ui/widgets/sqa_card.dart';
+import 'providers/magic_8ball_provider.dart';
 
 class QaOraclePlugin implements SqaPlugin {
   @override
@@ -18,37 +25,14 @@ class QaOraclePlugin implements SqaPlugin {
   @override
   List<PermissionRequirement> get requiredPermissions => [];
 
-  final List<String> _responses = [
-    'Works on my machine™',
-    'Have you tried deleting node_modules?',
-    'Ship it. YOLO.',
-    'That\'s not a bug, it\'s a feature request.',
-    'Did you check the logs? ...me neither.',
-    'It\'s definitely a DNS issue.',
-    'LGTM, ship it.',
-    'Cannot reproduce. Closing.',
-    'It worked in staging...',
-    'Who wrote this? Oh, it was me.',
-    'Complexity: High. Confidence: Low.',
-    'Retesting won\'t fix it, but try anyway.',
-    'The requirements were ambiguous.',
-    'It\'s a caching issue. Probably.',
-    'The AI said it was fine.',
-    'I feel a P1 coming on.',
-    'Refresh and hope for the best.',
-    'The backend is down.',
-    'Have you tried turning it off and on?',
-    'It\'s fine. Everything is fine. 🔥',
-  ];
-
   @override
   Widget buildPluginWindow(BuildContext context) {
-    return _QaOracleWindow(responses: _responses);
+    return const _QaOracleWindow();
   }
 
   @override
   Widget buildSettingsPanel(BuildContext context) {
-    return const Center(child: Text('Consult the Oracle for guidance.'));
+    return const _QaOracleSettingsPanel();
   }
 
   @override
@@ -57,15 +41,46 @@ class QaOraclePlugin implements SqaPlugin {
   Future<void> dispose() async {}
 }
 
-class _QaOracleWindow extends StatefulWidget {
-  final List<String> responses;
-  const _QaOracleWindow({required this.responses});
+class _QaOracleSettingsPanel extends ConsumerWidget {
+  const _QaOracleSettingsPanel();
 
   @override
-  State<_QaOracleWindow> createState() => _QaOracleWindowState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(oracleSettingsProvider);
+
+    return SqaCard(
+      padding: EdgeInsets.zero,
+      child: SqaSettingsTile(
+        icon: Symbols.psychology,
+        title: 'Oracle Personality',
+        subtitle: 'Choose how the Oracle communicates with you.',
+        trailing: SqaDropdown<OracleMode>(
+          value: settings.mode,
+          items: OracleMode.values.map((mode) {
+            return DropdownMenuItem<OracleMode>(
+              value: mode,
+              child: Text(mode.label),
+            );
+          }).toList(),
+          onChanged: (OracleMode? mode) {
+            if (mode != null) {
+              ref.read(oracleSettingsProvider.notifier).setMode(mode);
+            }
+          },
+        ),
+      ),
+    );
+  }
 }
 
-class _QaOracleWindowState extends State<_QaOracleWindow>
+class _QaOracleWindow extends ConsumerStatefulWidget {
+  const _QaOracleWindow();
+
+  @override
+  ConsumerState<_QaOracleWindow> createState() => _QaOracleWindowState();
+}
+
+class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
     with SingleTickerProviderStateMixin {
   String _currentResponse = 'Ask your question and shake...';
   late AnimationController _controller;
@@ -90,24 +105,35 @@ class _QaOracleWindowState extends State<_QaOracleWindow>
     if (_controller.isAnimating) return;
 
     _controller.forward(from: 0).then((_) => _controller.reverse());
+    final responses = ref.read(oracleResponsesProvider);
     setState(() {
-      _currentResponse =
-          widget.responses[_random.nextInt(widget.responses.length)];
+      _currentResponse = responses[_random.nextInt(responses.length)];
     });
+  }
+
+  void _copyToClipboard() {
+    if (_currentResponse == 'Ask your question and shake...') return;
+
+    Clipboard.setData(ClipboardData(text: _currentResponse));
+    SqaToast.show(
+      context,
+      'Advice copied to clipboard!',
+      type: SqaToastType.success,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _shake,
-      child: Container(
-        padding: const EdgeInsets.all(24.0),
-        alignment: Alignment.center, // Center horizontally and vertically
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center, // Horizontal center
-          children: [
-            AnimatedBuilder(
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: _shake,
+            child: AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
                 final offset = sin(_controller.value * pi * 4) * 8;
@@ -118,24 +144,31 @@ class _QaOracleWindowState extends State<_QaOracleWindow>
               },
               child: Image.asset('assets/8ball.png', width: 120, height: 120),
             ),
-            const SizedBox(height: 32),
-            Text(
-              _currentResponse,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 32),
+          GestureDetector(
+            onTap: _copyToClipboard,
+            child: Tooltip(
+              message: 'Click to copy advice',
+              child: Text(
+                _currentResponse,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Tap to consult the Oracle',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Tap the Oracle to consult or text to copy',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

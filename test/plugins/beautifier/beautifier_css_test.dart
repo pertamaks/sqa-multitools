@@ -23,15 +23,16 @@ void main() {
 
   group('CSS Formatter Tests', () {
     test('formats complex one-line CSS snippet (User Example)', () {
-      const minified = ':root{--p:#007bff;--s:#6c757d;--f:16px}.btn{padding:10px;border-radius:4px;border:none;cursor:pointer}.btn-p{background:var(--p);color:#fff}.btn-s{background:var(--s);color:#fff}.card{border:1px solid #ddd;border-radius:8px;padding:15px}.card h2{margin:0 0 10px;color:var(--p)}@media(max-width:600px){.card{padding:10px}.btn{width:100%}}';
-      
+      const minified =
+          ':root{--p:#007bff;--s:#6c757d;--f:16px}.btn{padding:10px;border-radius:4px;border:none;cursor:pointer}.btn-p{background:var(--p);color:#fff}.btn-s{background:var(--s);color:#fff}.card{border:1px solid #ddd;border-radius:8px;padding:15px}.card h2{margin:0 0 10px;color:var(--p)}@media(max-width:600px){.card{padding:10px}.btn{width:100%}}';
+
       final notifier = container.read(beautifierProvider.notifier);
       notifier.setLanguage(BeautifierLanguage.css);
       notifier.updateInput(minified);
       notifier.format();
 
       final state = container.read(beautifierProvider);
-      
+
       // Verify structure
       expect(state.output, contains(':root {'));
       expect(state.output, contains('  --p: #007bff;'));
@@ -60,7 +61,7 @@ void main() {
     test('CSS Lexer Edge Cases', () {
       final notifier = container.read(beautifierProvider.notifier);
       notifier.setLanguage(BeautifierLanguage.css);
-      
+
       // Selectors with dots, hashes, colons
       notifier.updateInput('body.dark #main:hover{opacity:0.5}');
       notifier.format();

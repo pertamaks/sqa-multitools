@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// A wrapper that applies a sophisticated fade effect (top/bottom or left/right) 
+/// A wrapper that applies a sophisticated fade effect (top/bottom or left/right)
 /// based on scroll position using high-performance ShaderMasking.
 ///
 /// This widget provides a premium feel where content subtly fades
@@ -63,9 +63,15 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
     }
 
     if (start != _startIntensity || end != _endIntensity) {
-      setState(() {
-        _startIntensity = start;
-        _endIntensity = end;
+      // Defer state update to avoid 'dirty during layout' or 'mouse tracker' assertion errors.
+      // This is especially critical for ScrollMetricsNotification which fires during build/layout.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _startIntensity = start;
+            _endIntensity = end;
+          });
+        }
       });
     }
   }
@@ -86,11 +92,11 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
         builder: (context, child) {
           // Pulse oscillation for the "breathing" effect
           final pulse = Curves.easeInOut.transform(_pulseController.value);
-          
+
           return ShaderMask(
             shaderCallback: (Rect rect) {
               final isVertical = widget.axis == Axis.vertical;
-              
+
               // We adjust the stops based on pulse to give it that "alive" look
               // Standard edge is ~10%, pulsing adds up to 2% depth.
               final startStop = 0.08 + (0.02 * pulse);
@@ -98,12 +104,18 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
 
               return LinearGradient(
                 begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,
-                end: isVertical ? Alignment.bottomCenter : Alignment.centerRight,
+                end: isVertical
+                    ? Alignment.bottomCenter
+                    : Alignment.centerRight,
                 colors: [
-                  Colors.black.withValues(alpha: 1.0 - (widget.showStart ? _startIntensity : 0)),
+                  Colors.black.withValues(
+                    alpha: 1.0 - (widget.showStart ? _startIntensity : 0),
+                  ),
                   Colors.black,
                   Colors.black,
-                  Colors.black.withValues(alpha: 1.0 - (widget.showEnd ? _endIntensity : 0)),
+                  Colors.black.withValues(
+                    alpha: 1.0 - (widget.showEnd ? _endIntensity : 0),
+                  ),
                 ],
                 stops: [0.0, startStop, endStop, 1.0],
               ).createShader(rect);

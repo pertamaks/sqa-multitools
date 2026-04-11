@@ -34,7 +34,10 @@ void main() {
       final state = container.read(securityPayloadsProvider);
       expect(state.targetUrl, testUrl);
       expect(state.generatedPayloads, isNotEmpty);
-      expect(state.generatedPayloads[0], contains('..%2F..%2F..%2F..%2Fetc%2Fpasswd'));
+      expect(
+        state.generatedPayloads[0],
+        contains('..%2F..%2F..%2F..%2Fetc%2Fpasswd'),
+      );
       expect(state.generatedPayloads[0], contains('id='));
     });
 
@@ -52,8 +55,10 @@ void main() {
       container
           .read(securityPayloadsProvider.notifier)
           .updateUrl('https://example.com/api?id=1');
-      expect(container.read(securityPayloadsProvider).generatedPayloads,
-          isNotEmpty);
+      expect(
+        container.read(securityPayloadsProvider).generatedPayloads,
+        isNotEmpty,
+      );
 
       container.read(securityPayloadsProvider.notifier).updateUrl('');
       final state = container.read(securityPayloadsProvider);

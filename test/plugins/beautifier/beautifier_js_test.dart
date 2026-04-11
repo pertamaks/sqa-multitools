@@ -38,7 +38,10 @@ void main() {
       expect(state.output, contains('active: x.val > 50'));
       expect(state.output, contains('class Utils {'));
       expect(state.output, contains('static log(m) {'));
-      expect(state.output, contains('`[LOG \${new Date().toISOString()}] \${m}`'));
+      expect(
+        state.output,
+        contains('`[LOG \${new Date().toISOString()}] \${m}`'),
+      );
     });
 
     test('respects indentWidth for JS', () {
@@ -51,20 +54,23 @@ void main() {
       notifier.format();
 
       final state = container.read(beautifierProvider);
-      expect(state.output, contains('function test() {\n    console.log("hi");\n}'));
+      expect(
+        state.output,
+        contains('function test() {\n    console.log("hi");\n}'),
+      );
     });
-   group('JS Lexer Edge Cases', () {
+    group('JS Lexer Edge Cases', () {
       test('handles template literals and strings correctly', () {
-         final notifier = container.read(beautifierProvider.notifier);
-         notifier.setLanguage(BeautifierLanguage.javascript);
-         
-         const input = "const s = `multi\nline`; const s2 = 'don\\'t';";
-         notifier.updateInput(input);
-         notifier.format();
-         
-         final state = container.read(beautifierProvider);
-         expect(state.output, contains("const s = `multi\nline`;"));
-         expect(state.output, contains("const s2 = 'don\\'t';"));
+        final notifier = container.read(beautifierProvider.notifier);
+        notifier.setLanguage(BeautifierLanguage.javascript);
+
+        const input = "const s = `multi\nline`; const s2 = 'don\\'t';";
+        notifier.updateInput(input);
+        notifier.format();
+
+        final state = container.read(beautifierProvider);
+        expect(state.output, contains("const s = `multi\nline`;"));
+        expect(state.output, contains("const s2 = 'don\\'t';"));
       });
     });
   });

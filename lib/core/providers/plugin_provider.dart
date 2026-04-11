@@ -187,7 +187,7 @@ class NavigationService {
   void goBack() {
     // Revert any theme previews when navigating back
     _ref.read(themeSettingsProvider.notifier).resetToSaved();
-    
+
     final history = _ref.read(navigationHistoryProvider);
     if (history != null) {
       final allPlugins = _ref.read(availablePluginsProvider);

@@ -62,7 +62,7 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Initial sync from provider if URL was set (e.g. state restoration later)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _urlController.text = ref.read(securityPayloadsProvider).targetUrl;
@@ -78,7 +78,9 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
 
   @override
   Widget build(BuildContext context) {
-    final showDisclaimer = ref.watch(securityPayloadsProvider.select((s) => s.showDisclaimer));
+    final showDisclaimer = ref.watch(
+      securityPayloadsProvider.select((s) => s.showDisclaimer),
+    );
 
     return Stack(
       children: [
@@ -93,10 +95,7 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
           tabController: _tabController,
           child: TabBarView(
             controller: _tabController,
-            children: [
-              _buildWebTab(),
-              _buildSystemTab(),
-            ],
+            children: [_buildWebTab(), _buildSystemTab()],
           ),
         ),
         if (showDisclaimer) _buildFloatingDisclaimer(),
@@ -108,7 +107,9 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
     return SqaPluginScrollableContent(
       child: Column(
         children: [
-          ...SecurityPayloadData.webCategories.map((cat) => _buildCategory(cat)),
+          ...SecurityPayloadData.webCategories.map(
+            (cat) => _buildCategory(cat),
+          ),
           _buildPathTraversalSection(),
           const SizedBox(height: 24),
         ],
@@ -120,8 +121,9 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
     return SqaPluginScrollableContent(
       child: Column(
         children: [
-          ...SecurityPayloadData.systemCategories
-              .map((cat) => _buildCategory(cat)),
+          ...SecurityPayloadData.systemCategories.map(
+            (cat) => _buildCategory(cat),
+          ),
           const SizedBox(height: 24),
         ],
       ),
@@ -134,11 +136,7 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SqaInfoBanner(
-            title: cat.name,
-            text: cat.description,
-            icon: cat.icon,
-          ),
+          SqaInfoBanner(title: cat.name, text: cat.description, icon: cat.icon),
           const SizedBox(height: 12),
           ...cat.payloads.map((p) => _buildPayloadCard(p)),
         ],
@@ -181,8 +179,11 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
             const SizedBox(height: 8),
             _buildInfoRow('How to Test', p.howToTest),
             const SizedBox(height: 8),
-            _buildInfoRow('Success Indicator', p.successIndicator,
-                isHighlight: true),
+            _buildInfoRow(
+              'Success Indicator',
+              p.successIndicator,
+              isHighlight: true,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -191,10 +192,9 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 _buildRiskBadge(p.risk),
@@ -208,7 +208,9 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
 
   Widget _buildPathTraversalSection() {
     final colorScheme = Theme.of(context).colorScheme;
-    final generatedPTs = ref.watch(securityPayloadsProvider.select((s) => s.generatedPayloads));
+    final generatedPTs = ref.watch(
+      securityPayloadsProvider.select((s) => s.generatedPayloads),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +232,8 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
                 controller: _urlController,
                 hintText: 'https://example.com/api?file=test.png',
                 icon: Symbols.link,
-                onChanged: (val) => ref.read(securityPayloadsProvider.notifier).updateUrl(val),
+                onChanged: (val) =>
+                    ref.read(securityPayloadsProvider.notifier).updateUrl(val),
               ),
               if (generatedPTs.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -283,10 +286,7 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
         builder: (context, value, child) {
           return Transform.translate(
             offset: Offset(0, (1 - value) * 100),
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: child,
-            ),
+            child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
           );
         },
         child: SqaCard(
@@ -327,7 +327,9 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
                   height: 32,
                   child: SqaButton(
                     label: 'I UNDERSTAND',
-                    onPressed: () => ref.read(securityPayloadsProvider.notifier).dismissDisclaimer(),
+                    onPressed: () => ref
+                        .read(securityPayloadsProvider.notifier)
+                        .dismissDisclaimer(),
                   ),
                 ),
               ),

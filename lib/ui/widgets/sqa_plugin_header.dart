@@ -10,6 +10,7 @@ class SqaPluginHeader extends StatelessWidget {
   final Color? color;
   final Widget? trailing;
   final VoidCallback? onBack;
+  final VoidCallback? onIconTap;
 
   const SqaPluginHeader({
     super.key,
@@ -19,6 +20,7 @@ class SqaPluginHeader extends StatelessWidget {
     this.color,
     this.trailing,
     this.onBack,
+    this.onIconTap,
   });
 
   @override
@@ -44,13 +46,17 @@ class SqaPluginHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        SqaIconContainer(
-          icon: icon,
-          color: effectiveColor,
-          size: 40,
-          iconSize: 24,
-          isCircular: false,
-          borderRadius: SqaStyles.radiusLarge,
+        GestureDetector(
+          onTap: onIconTap,
+          behavior: HitTestBehavior.opaque,
+          child: SqaIconContainer(
+            icon: icon,
+            color: effectiveColor,
+            size: 40,
+            iconSize: 24,
+            isCircular: false,
+            borderRadius: SqaStyles.radiusLarge,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(

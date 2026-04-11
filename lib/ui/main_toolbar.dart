@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +5,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../core/models/sqa_plugin.dart';
 import '../core/providers/plugin_provider.dart';
-import '../core/providers/debug_provider.dart';
 import '../core/services/preferences_service.dart';
 import '../core/services/coffee_shop_service.dart';
 import 'widgets/sqa_styles.dart';
@@ -15,6 +13,7 @@ import '../plugins/screenshot/providers/screenshot_provider.dart';
 import '../plugins/screen_recorder/ui/screen_recorder_overlay.dart';
 import '../plugins/screen_recorder/providers/screen_recorder_provider.dart';
 import 'widgets/sqa_fade_wrapper.dart';
+import 'widgets/sqa_bug_squasher.dart';
 
 /// The collapsed toolbar height (no plugin open).
 const double kToolbarWindowHeight = 56; // 56px target + 9px Windows offset
@@ -36,8 +35,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   String? _hoveredTooltip;
   bool _tooltipAlignLeft = false;
   late final ScrollController _scrollController;
-  int _debugTapCount = 0;
-  DateTime _lastDebugTapTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   void initState() {
@@ -168,11 +165,12 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                   clipBehavior: Clip.none,
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children:
-                                        enabledPlugins.asMap().entries.map((
-                                          entry,
-                                        ) {
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: enabledPlugins
+                                        .asMap()
+                                        .entries
+                                        .map((entry) {
                                           final index = entry.key;
                                           final plugin = entry.value;
                                           final isActive =
@@ -189,8 +187,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                               badgeColor: _getBadgeColor(
                                                 plugin,
                                               ),
-                                              onPressed:
-                                                  () => _togglePlugin(plugin),
+                                              onPressed: () =>
+                                                  _togglePlugin(plugin),
                                               onHover: (text) {
                                                 setState(() {
                                                   if (text == null) {
@@ -209,7 +207,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                               },
                                             ),
                                           );
-                                        }).toList(),
+                                        })
+                                        .toList(),
                                   ),
                                 ),
                               ),
@@ -251,9 +250,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       color: colorScheme.onSurfaceVariant,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -365,27 +364,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   }
 
   void _handleSettingsPress(SqaPlugin settingsPlugin) {
-    final now = DateTime.now();
-    if (now.difference(_lastDebugTapTime).inSeconds > 2) {
-      _debugTapCount = 1;
-    } else {
-      _debugTapCount++;
-    }
-    _lastDebugTapTime = now;
-
-    if (_debugTapCount >= 5) {
-      final isDebug = ref.read(debugModeProvider);
-      ref.read(debugModeProvider.notifier).toggle();
-      _debugTapCount = 0;
-      setState(
-        () => _hoveredTooltip = !isDebug
-            ? 'DEVELOPER MODE ENABLED'
-            : 'DEVELOPER MODE DISABLED',
-      );
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) setState(() => _hoveredTooltip = null);
-      });
-    }
     _togglePlugin(settingsPlugin);
   }
 
@@ -457,250 +435,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   }
 }
 
-class SquashTheBugOverlay extends ConsumerStatefulWidget {
-  static final GlobalKey<SquashTheBugOverlayState> bugKey = GlobalKey();
-  const SquashTheBugOverlay({super.key});
-
-  @override
-  ConsumerState<SquashTheBugOverlay> createState() =>
-      SquashTheBugOverlayState();
-}
-
-class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  double _bugPositionX = 0.0;
-  double _bugPositionY = 0.0;
-  bool _isHorizontal = true;
-  Matrix4 _bugTransform = Matrix4.identity();
-  bool _isVisible = false;
-  bool _showSquashedText = false;
-  final _random = Random();
-
-  void triggerBug(int side) {
-    if (!mounted) return;
-    _runBug(isHorizontal: side < 2, isTopOrLeft: side == 0 || side == 2);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _controller =
-        AnimationController(duration: const Duration(seconds: 45), vsync: this)
-          ..addListener(() {
-            if (_isVisible) {
-              setState(() {
-                if (_isHorizontal) {
-                  _bugPositionX = _animation.value;
-                } else {
-                  _bugPositionY = _animation.value;
-                }
-              });
-            }
-          })
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) {
-              _hideBug();
-              _scheduleNextBug();
-            }
-          });
-
-    _animation = const AlwaysStoppedAnimation(0.0);
-    _scheduleNextBug();
-  }
-
-  void _scheduleNextBug() {
-    final delay = _random.nextInt(180) + 120;
-    Future.delayed(Duration(seconds: delay), () {
-      if (mounted) _showBug();
-    });
-  }
-
-  Future<void> _showBug() async {
-    if (!mounted) return;
-    if (!await windowManager.isVisible()) {
-      _scheduleNextBug();
-      return;
-    }
-    final activePlugin = ref.read(activePluginProvider);
-    final hasPlugin = activePlugin != null;
-    final bool isHorizontal = _random.nextBool();
-    final bool isTopOrLeft = _random.nextBool();
-    _runBug(
-      isHorizontal: isHorizontal,
-      isTopOrLeft: isTopOrLeft,
-      hasPlugin: hasPlugin,
-    );
-  }
-
-  void _runBug({
-    required bool isHorizontal,
-    required bool isTopOrLeft,
-    bool? hasPlugin,
-  }) {
-    if (!mounted) return;
-    final bool effectiveHasPlugin =
-        hasPlugin ?? ref.read(activePluginProvider) != null;
-    final double width = MediaQuery.of(context).size.width;
-    final double height = MediaQuery.of(context).size.height;
-
-    _isHorizontal = isHorizontal;
-    setState(() {
-      _isVisible = true;
-      if (_isHorizontal) {
-        final bool isToolbar = !effectiveHasPlugin || isTopOrLeft;
-        final isMovingRight = _random.nextBool();
-        _bugPositionY = isToolbar ? kToolbarWindowHeight - 19 : height - 19;
-        final double startX = isMovingRight ? -50.0 : width + 50.0;
-        final double endX = isMovingRight ? width + 50.0 : -50.0;
-        _bugPositionX = startX;
-        _bugTransform = Matrix4.identity();
-        if (isToolbar) {
-          if (isMovingRight) {
-            _bugTransform = Matrix4.diagonal3Values(-1.0, 1.0, 1.0);
-          } else {
-            _bugTransform = Matrix4.diagonal3Values(1.0, 1.0, 1.0);
-          }
-        } else {
-          if (isMovingRight) {
-            _bugTransform = Matrix4.diagonal3Values(-1.0, 1.0, 1.0);
-          } else {
-            _bugTransform = Matrix4.identity();
-          }
-        }
-        _animation = Tween<double>(
-          begin: startX,
-          end: endX,
-        ).animate(_controller);
-      } else {
-        final isLeftBorder = isTopOrLeft;
-        final isMovingDown = _random.nextBool();
-        _bugPositionX = isLeftBorder ? -13 : width - 19;
-        final double startY = isMovingDown ? -50.0 : height + 50.0;
-        final double endY = isMovingDown ? height + 50.0 : -50.0;
-        _bugPositionY = startY;
-        _bugTransform = Matrix4.identity();
-        if (isLeftBorder) {
-          if (isMovingDown) {
-            _bugTransform = Matrix4.rotationZ(pi / 2)
-              ..multiply(Matrix4.diagonal3Values(-1.0, 1.0, 1.0));
-          } else {
-            _bugTransform = Matrix4.rotationZ(pi / 2);
-          }
-        } else {
-          if (isMovingDown) {
-            _bugTransform = Matrix4.rotationZ(-pi / 2);
-          } else {
-            _bugTransform = Matrix4.rotationZ(-pi / 2)
-              ..multiply(Matrix4.diagonal3Values(-1.0, 1.0, 1.0));
-          }
-        }
-        _animation = Tween<double>(
-          begin: startY,
-          end: endY,
-        ).animate(_controller);
-      }
-    });
-    _controller.stop();
-    _controller.forward(from: 0);
-  }
-
-  void _hideBug() {
-    setState(() => _isVisible = false);
-    _controller.stop();
-  }
-
-  void _squash() async {
-    if (!_isVisible) return;
-    final prefs = ref.read(preferencesServiceProvider);
-    final count = prefs.getBugsSquashed();
-    await prefs.setBugsSquashed(count + 1);
-    _hideBug();
-    setState(() => _showSquashedText = true);
-    Future<void>.delayed(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _showSquashedText = false);
-    });
-    _scheduleNextBug();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final supporterTier = ref.watch(supporterTierProvider);
-    final isEnabled = ref.watch(bugSquashEnabledProvider);
-    if (supporterTier < 3 || !isEnabled) return const SizedBox.shrink();
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            if (_isVisible)
-              Positioned(
-                top: _bugPositionY,
-                left: _bugPositionX,
-                child: GestureDetector(
-                  onTap: _squash,
-                  child: Transform(
-                    transform: _bugTransform,
-                    alignment: Alignment.center,
-                    child: Image.asset(
-                      'assets/caterpillar.gif',
-                      width: 32,
-                      height: 32,
-                    ),
-                  ),
-                ),
-              ),
-            if (_showSquashedText)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 48.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Symbols.padel,
-                          color: Colors.white,
-                          size: 18,
-                          weight: 400,
-                        ),
-                        Text(
-                          ' SQUASHED!',
-                          style: TextStyle(color: Colors.white, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
 
 class ToolIcon extends ConsumerWidget {
   final IconData icon;

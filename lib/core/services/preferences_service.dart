@@ -29,6 +29,7 @@ class PreferencesService {
   static const String keyBeautifierOutputWrapText =
       'beautifier_output_wrap_text';
   static const String keyBeautifierIndentWidth = 'beautifier_indent_width';
+  static const String keyOracleMode = 'oracle_mode';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -132,6 +133,14 @@ class PreferencesService {
 
   Future<void> setBeautifierIndentWidth(int width) async {
     await _prefs.setInt(keyBeautifierIndentWidth, width);
+  }
+
+  int getOracleModeIndex() {
+    return _prefs.getInt(keyOracleMode) ?? 0; // 0 = Savage
+  }
+
+  Future<void> setOracleModeIndex(int index) async {
+    await _prefs.setInt(keyOracleMode, index);
   }
 }
 

@@ -21,6 +21,7 @@ import '../../ui/widgets/sqa_button.dart';
 import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../ui/widgets/sqa_styles.dart';
 import '../../ui/widgets/sqa_fade_wrapper.dart';
+import 'providers/settings_debug_provider.dart';
 
 class SettingsPlugin implements SqaPlugin {
   @override
@@ -72,10 +73,10 @@ class SettingsView extends ConsumerWidget {
         description: 'Personalize your SQA-Multitools experience.',
         onBack: history != null ? () => navService.goBack() : null,
         useMask: false, // Handle internal fading for specific tabs
-        tabs: const [
-          Tab(icon: Icon(Symbols.settings), text: 'General'),
-          Tab(icon: Icon(Symbols.extension), text: 'Plugins'),
-          Tab(icon: Icon(Symbols.coffee), text: 'Coffee Shop'),
+        tabs: [
+          const Tab(icon: Icon(Symbols.settings), text: 'General'),
+          const Tab(icon: Icon(Symbols.extension), text: 'Plugins'),
+          const Tab(icon: Icon(Symbols.coffee), text: 'Coffee Shop'),
         ],
         child: TabBarView(
           children: [
@@ -132,12 +133,6 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           ],
           const SizedBox(height: 32),
           _buildRedemptionSection(colorScheme, supporterTier),
-          if (supporterTier > 0) ...[
-            const SizedBox(height: 16),
-            // Only show Reset Donation in Debug Mode
-            if (ref.watch<bool>(debugModeProvider))
-              Center(child: _buildResetDonationButton(colorScheme)),
-          ],
         ],
       ),
     );
@@ -152,6 +147,18 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           title: 'The Coffee Shop',
           description: 'Fueling your QA workflow since 2026',
           color: Colors.brown,
+          onIconTap: () {
+            if (ref
+                .read(debugTapCounterProvider.notifier)
+                .incrementAndCheck()) {
+              final isDebug = ref.read(debugModeProvider);
+              SqaToast.show(
+                context,
+                isDebug ? 'DEVELOPER MODE ENABLED' : 'DEVELOPER MODE DISABLED',
+                type: isDebug ? SqaToastType.success : SqaToastType.info,
+              );
+            }
+          },
         ),
         const SizedBox(height: 20),
         const SqaInfoBanner(
@@ -227,8 +234,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
             ),
           ),
         ),
-        // Only show diagnostics if in Debug Mode
-        if (isEnabled && ref.watch<bool>(debugModeProvider)) ...[
+        if (ref.watch<bool>(debugModeProvider)) ...[
           const SizedBox(height: 8),
           _buildBugDiagnostics(colorScheme),
         ],
@@ -237,8 +243,10 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
   }
 
   Widget _buildBugDiagnostics(ColorScheme colorScheme) {
+    final isEnabled = ref.watch(bugSquashEnabledProvider);
+
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: SqaStyles.radiusLarge,
@@ -249,25 +257,48 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Diagnostic Triggers:',
+                'DEVELOPER DIAGNOSTICS',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 1.2,
+                  color: colorScheme.primary,
                 ),
               ),
-              const Icon(Symbols.labs, size: 12),
+              const Icon(Symbols.labs, size: 14),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _diagButton(0, Symbols.arrow_upward, 'Top', colorScheme),
-              _diagButton(1, Symbols.arrow_downward, 'Bottom', colorScheme),
-              _diagButton(2, Symbols.arrow_back, 'Left', colorScheme),
-              _diagButton(3, Symbols.arrow_forward, 'Right', colorScheme),
-            ],
+          if (isEnabled) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  'Bugs Triggers:',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _diagButton(0, Symbols.arrow_upward, 'Top', colorScheme),
+                _diagButton(1, Symbols.arrow_downward, 'Bottom', colorScheme),
+                _diagButton(2, Symbols.arrow_back, 'Left', colorScheme),
+                _diagButton(3, Symbols.arrow_forward, 'Right', colorScheme),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: _buildResetDonationButton(colorScheme),
           ),
         ],
       ),
@@ -285,14 +316,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
       child: IconButton(
         onPressed: () {
           try {
-            // Need to import main_toolbar.dart or handle this via a provider/callback
-            // For now, restoring the intent if SquashTheBugOverlay is available
-            // but the bugKey is in main_toolbar.dart
-            // (Assuming main_toolbar.dart is already in the project structure)
-            // final state = SquashTheBugOverlay.bugKey.currentState;
-            // if (state != null) {
-            //   state.triggerBug(side);
-            // }
+            ref.read(bugTriggerProvider.notifier).trigger(side);
           } catch (e) {
             // Overlay might not be active
           }
@@ -461,13 +485,11 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
   Widget _buildResetDonationButton(ColorScheme colorScheme) {
     return SqaButton.outlined(
       onPressed: () async {
-        final prefs = ref.read(preferencesServiceProvider);
-        await prefs.setSupporterTier(0);
-        await prefs.setBugsSquashed(0);
+        await ref.read(settingsDebugActionsProvider.notifier).resetLicense();
         if (mounted) {
           SqaToast.show(
             context,
-            'Donation status reset for testing.',
+            'Donation status and squashed bugs reset.',
             type: SqaToastType.info,
           );
         }
@@ -718,6 +740,10 @@ class GeneralSettingsView extends ConsumerWidget {
 
   static const List<Map<String, dynamic>> curatedColors = [
     {'name': 'Teal', 'color': Color(0xFF009688)},
+    {'name': 'Persimmon', 'color': Color(0xFFFF6B35)}, // 2026 Trend
+    {'name': 'Plum Noir', 'color': Color(0xFF543138)}, // 2026 Trend
+    {'name': 'Wasabi', 'color': Color(0xFF96B85D)}, // 2026 Trend
+    {'name': 'Jade', 'color': Color(0xFF00A86B)}, // 2026 Trend
     {'name': 'Coffee', 'color': Color(0xFF795548)},
     {'name': 'Ruby', 'color': Color(0xFFE91E63)},
     {'name': 'Amethyst', 'color': Color(0xFF673AB7)},

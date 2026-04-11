@@ -119,10 +119,10 @@ class BeautifierNotifier extends _$BeautifierNotifier {
           formatted = JsFormatter.format(input, indentWidth: state.indentWidth);
           break;
         case BeautifierLanguage.css:
-          formatted = CssFormatter.format(input, indentWidth: state.indentWidth);
-          break;
-        default:
-          formatted = _simpleFormat(input, state.language);
+          formatted = CssFormatter.format(
+            input,
+            indentWidth: state.indentWidth,
+          );
           break;
       }
     } catch (e) {
@@ -135,34 +135,5 @@ class BeautifierNotifier extends _$BeautifierNotifier {
 
   String _formatSql(String input) {
     return SqlFormatter.format(input, indentWidth: state.indentWidth);
-  }
-
-  String _simpleFormat(String input, BeautifierLanguage lang) {
-    int indent = 0;
-    final lines = input.split('\n');
-    final buffer = StringBuffer();
-
-    for (var line in lines) {
-      line = line.trim();
-      if (line.isEmpty) continue;
-
-      if (line.startsWith('}') ||
-          line.startsWith(']') ||
-          line.startsWith('</')) {
-        indent = (indent - 1).clamp(0, 20);
-      }
-
-      buffer.writeln('  ' * indent + line);
-
-      if (line.endsWith('{') ||
-          line.endsWith('[') ||
-          (line.contains('<') && !line.contains('</') && line.contains('>')) ||
-          (lang == BeautifierLanguage.sql &&
-              (line.endsWith(';') || line.contains('SELECT')))) {
-        // Very basic SQL nudge
-        if (line.endsWith('{') || line.endsWith('[')) indent++;
-      }
-    }
-    return buffer.toString().trim();
   }
 }

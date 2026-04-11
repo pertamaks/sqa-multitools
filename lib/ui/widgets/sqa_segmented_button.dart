@@ -7,10 +7,10 @@ import 'sqa_fade_wrapper.dart';
 class _SqaMouseDragScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
 }
 
 class SqaSegmentedButton<T> extends StatefulWidget {
@@ -62,22 +62,23 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       onSelectionChanged: widget.onSelectionChanged,
       showSelectedIcon: widget.showSelectedIcon,
       expandedInsets: shouldStretch ? EdgeInsets.zero : null,
-      style: SegmentedButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        textStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.5,
-        ),
-        selectedBackgroundColor: colorScheme.primaryContainer,
-        side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
-      ).copyWith(
-        shape: SqaStyles.buttonShape,
-        overlayColor: SqaStyles.buttonOverlay(context),
-      ),
+      style:
+          SegmentedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            textStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            selectedBackgroundColor: colorScheme.primaryContainer,
+            side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+          ).copyWith(
+            shape: SqaStyles.buttonShape,
+            overlayColor: SqaStyles.buttonOverlay(context),
+          ),
     );
 
     final effectivePadding =

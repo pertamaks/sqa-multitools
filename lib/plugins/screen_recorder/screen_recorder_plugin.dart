@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:file_selector/file_selector.dart';
 import '../../core/models/sqa_plugin.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
+import '../../ui/widgets/sqa_picker_dialog.dart';
 import '../../ui/widgets/sqa_segmented_button.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_switch.dart';
@@ -35,27 +38,167 @@ class ScreenRecorderPlugin implements SqaPlugin {
 
   @override
   Widget buildSettingsPanel(BuildContext context) {
-    return const Center(child: Text('Screen Recorder Settings'));
+    return const _ScreenRecorderSettings();
   }
 
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async {
+    // Force a monitor refresh on init
+    // notifier is not available here easily since it's an interface, 
+    // but the provider will do it on _checkEngine or we can leave it to the first load.
+  }
   @override
   Future<void> dispose() async {}
 }
 
-class _ScreenRecorderView extends ConsumerWidget {
-  const _ScreenRecorderView();
-
-  String _formatDuration(int seconds) {
-    final h = (seconds ~/ 3600).toString().padLeft(2, '0');
-    final m = ((seconds % 3600) ~/ 60).toString().padLeft(2, '0');
-    final s = (seconds % 60).toString().padLeft(2, '0');
-    return h == '00' ? '$m:$s' : '$h:$m:$s';
-  }
+class _ScreenRecorderSettings extends ConsumerWidget {
+  const _ScreenRecorderSettings();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(screenRecorderProvider);
+    final notifier = ref.read(screenRecorderProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SqaSettingsTile(
+          icon: Symbols.folder,
+          title: 'Save Path',
+          subtitle: state.saveDirectory ?? 'Default Videos Directory',
+          onTap: () async {
+            final directoryPath = await getDirectoryPath(
+              initialDirectory: state.saveDirectory,
+              confirmButtonText: 'Select Save Folder',
+            );
+            if (directoryPath != null) {
+              notifier.setSaveDirectory(directoryPath);
+            }
+          },
+          trailing: const Icon(Symbols.edit, size: 16),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScreenRecorderView extends ConsumerStatefulWidget {
+  const _ScreenRecorderView();
+
+  @override
+  ConsumerState<_ScreenRecorderView> createState() => _ScreenRecorderViewState();
+}
+
+class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
+  @override
+  void initState() {
+    super.initState();
+    // Register hotkeys when the user enters the screen recorder tool
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(screenRecorderProvider.notifier).registerGlobalHotkeys();
+      }
+    });
+  }
+
+  void _handleStart(BuildContext context) async {
+    final state = ref.read(screenRecorderProvider);
+    final notifier = ref.read(screenRecorderProvider.notifier);
+
+    if (state.engineDownloadProgress != null) {
+      // Already downloading
+      return;
+    }
+
+    if (!state.engineReady) {
+      // ... (Engine download logic remains the same)
+      final shouldDownload = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Download Engine Required'),
+          content: const Text(
+            'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function.\n\n'
+            'Do you want to download and install it now?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Download'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldDownload == true) {
+        try {
+          await notifier.installEngine();
+          // After engine is ready, continue to monitor selection
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Download failed: $e')));
+          }
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+
+    // Engine is ready, check for selection if needed
+    if (state.captureMode == CaptureMode.window) {
+      // Launch overlay in targeting mode
+      notifier.setTargetingWindow(true);
+      notifier.startOverlay();
+      return;
+    } else {
+      final displays = await screenRetriever.getAllDisplays();
+      if (displays.length > 1) {
+        if (!context.mounted) return;
+        // Refresh thumbnails before showing the picker
+        await ref.read(screenRecorderProvider.notifier).refreshThumbnails();
+        if (!context.mounted) return;
+        final currentState = ref.read(screenRecorderProvider);
+        final selectedDisplay = await showDialog<Display>(
+          context: context,
+          builder: (ctx) => SqaPickerDialog<Display>.tile(
+            title: 'Select Display',
+            items: currentState.availableDisplays,
+            onRefresh: () => ref.read(screenRecorderProvider.notifier).refreshThumbnails(),
+            tileBuilder: (display, index) => SqaPickerTile(
+              label: 'Display ${index + 1}',
+              imagePath: currentState.displayThumbnails[display.id],
+              badge: display.id == currentState.primaryDisplayId ? 'PRIMARY' : null,
+            ),
+          ),
+        );
+        if (selectedDisplay != null) {
+          // Safety delay to allow dialog to fully pop and native window to stabilize
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          
+          final bounds = Rect.fromLTWH(
+            selectedDisplay.visiblePosition?.dx ?? 0,
+            selectedDisplay.visiblePosition?.dy ?? 0,
+            selectedDisplay.size.width,
+            selectedDisplay.size.height,
+          );
+          notifier.startOverlay(bounds);
+        }
+        return;
+      }
+    }
+
+    // Single monitor or Window mode
+    notifier.startOverlay();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
     final theme = Theme.of(context);
@@ -64,6 +207,19 @@ class _ScreenRecorderView extends ConsumerWidget {
       icon: Symbols.videocam,
       title: 'Screen Recorder',
       description: 'Record your screen, camera, and audio inputs.',
+      // Mini download progress on the top icon if downloading
+      trailing: state.engineDownloadProgress != null
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                value: state.engineDownloadProgress! >= 0
+                    ? state.engineDownloadProgress
+                    : null,
+                strokeWidth: 2,
+              ),
+            )
+          : null,
       child: SqaPluginScrollableContent(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -72,12 +228,12 @@ class _ScreenRecorderView extends ConsumerWidget {
             // Primary Recording Card
             SqaCard(
               padding: const EdgeInsets.all(24.0),
-              backgroundColor: state.isRecording
-                  ? theme.colorScheme.errorContainer.withValues(alpha: 0.1)
+              backgroundColor: state.isOverlayVisible
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
                   : null,
-              borderSide: state.isRecording
+              borderSide: state.isOverlayVisible
                   ? BorderSide(
-                      color: theme.colorScheme.error.withValues(alpha: 0.3),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
                       width: 2,
                     )
                   : null,
@@ -90,22 +246,18 @@ class _ScreenRecorderView extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            state.isRecording
-                                ? (state.isPaused
-                                      ? 'RECORDING PAUSED'
-                                      : 'RECORDING...')
+                            state.isOverlayVisible
+                                ? 'OVERLAY ACTIVE'
                                 : 'READY TO RECORD',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: state.isRecording
-                                  ? theme.colorScheme.error
-                                  : theme.colorScheme.primary,
+                              color: theme.colorScheme.primary,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _formatDuration(state.durationSeconds),
+                            '00:00',
                             style: theme.textTheme.displaySmall?.copyWith(
                               fontFamily: 'monospace',
                               fontWeight: FontWeight.bold,
@@ -115,12 +267,8 @@ class _ScreenRecorderView extends ConsumerWidget {
                         ],
                       ),
                       SqaIconContainer(
-                        icon: state.isRecording
-                            ? Symbols.fiber_manual_record
-                            : Symbols.videocam,
-                        color: state.isRecording
-                            ? theme.colorScheme.error
-                            : theme.colorScheme.primary,
+                        icon: Symbols.videocam,
+                        color: theme.colorScheme.primary,
                         size: 56,
                         iconSize: 28,
                       ),
@@ -131,29 +279,28 @@ class _ScreenRecorderView extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: SqaButton.tonal(
-                          onPressed: () => notifier.toggleRecording(),
-                          icon: state.isRecording
-                              ? Symbols.stop
+                          onPressed: state.isOverlayVisible
+                              ? () => notifier.cancelOverlay()
+                              : () => _handleStart(context),
+                          icon: state.isOverlayVisible
+                              ? Symbols.close
                               : Symbols.play_arrow,
-                          label: state.isRecording
-                              ? 'Stop Recording'
-                              : 'Start Recording',
-                          color: state.isRecording
+                          label: state.engineDownloadProgress != null
+                              ? 'Downloading Engine...'
+                              : (state.isOverlayVisible
+                                    ? 'Cancel Overlay'
+                                    : 'Start Overlay'),
+                          color: state.isOverlayVisible
                               ? theme.colorScheme.error
                               : null,
                         ),
                       ),
-                      if (state.isRecording) ...[
+                      if (!state.isOverlayVisible) ...[
                         const SizedBox(width: 12),
-                        IconButton.filledTonal(
-                          onPressed: () => notifier.togglePause(),
-                          icon: Icon(
-                            state.isPaused ? Symbols.play_arrow : Symbols.pause,
-                          ),
-                          style: IconButton.styleFrom(
-                            padding: const EdgeInsets.all(16),
-                            minimumSize: const Size(48, 48),
-                          ),
+                        SqaButton.tonal(
+                          onPressed: () => notifier.openSaveDirectory(),
+                          icon: Symbols.folder_open,
+                          label: 'Folder',
                         ),
                       ],
                     ],
@@ -192,55 +339,8 @@ class _ScreenRecorderView extends ConsumerWidget {
                 ),
               ],
               selected: {state.captureMode},
-              onSelectionChanged: (set) => notifier.setCaptureMode(set.first),
+              onSelectionChanged: (Set<CaptureMode> set) => notifier.setCaptureMode(set.first),
             ),
-
-            if (state.captureMode == CaptureMode.window) ...[
-              const SizedBox(height: 16),
-              SqaCard(
-                padding: EdgeInsets.zero,
-                child: SqaSettingsTile(
-                  icon: Symbols.desktop_windows,
-                  title: 'Target Window',
-                  subtitle: state.targetWindowName,
-                  trailing: const Icon(Symbols.expand_more, size: 20),
-                  onTap: () {
-                    if (state.targetWindowName == 'Visual Studio Code') {
-                      notifier.setTargetWindow('Google Chrome');
-                    } else {
-                      notifier.setTargetWindow('Visual Studio Code');
-                    }
-                  },
-                ),
-              ),
-            ],
-
-            if (state.captureMode == CaptureMode.area) ...[
-              const SizedBox(height: 16),
-              SqaCard(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Symbols.info, size: 20),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'A transparent overlay will appear to select the capture area.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    SqaButton.tonal(
-                      onPressed: () => notifier.startAreaSelection(),
-                      label: 'Define Area',
-                      width: 110,
-                    ),
-                  ],
-                ),
-              ),
-            ],
 
             const SizedBox(height: 32),
 
@@ -261,20 +361,10 @@ class _ScreenRecorderView extends ConsumerWidget {
                   SqaSettingsTile(
                     icon: Symbols.mic,
                     title: 'Microphone',
-                    subtitle: 'Capture voice and external audio',
+                    subtitle: 'Capture voice input',
                     trailing: SqaSwitch(
                       value: state.microphoneEnabled,
-                      onChanged: (v) => notifier.setMicrophone(v),
-                    ),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  SqaSettingsTile(
-                    icon: Symbols.volume_up,
-                    title: 'System Audio',
-                    subtitle: 'Capture application sounds',
-                    trailing: SqaSwitch(
-                      value: state.systemAudioEnabled,
-                      onChanged: (v) => notifier.setSystemAudio(v),
+                      onChanged: (bool v) => notifier.setMicrophone(v),
                     ),
                   ),
                   const Divider(height: 1, indent: 56),
@@ -284,7 +374,7 @@ class _ScreenRecorderView extends ConsumerWidget {
                     subtitle: 'Highlight mouse clicks and movement',
                     trailing: SqaSwitch(
                       value: state.showCursor,
-                      onChanged: (v) => notifier.setShowCursor(v),
+                      onChanged: (bool v) => notifier.setShowCursor(v),
                     ),
                   ),
                   const Divider(height: 1, indent: 56),
@@ -294,7 +384,7 @@ class _ScreenRecorderView extends ConsumerWidget {
                     subtitle: 'Target recording quality',
                     trailing: SqaDropdown<String>(
                       value: state.resolution,
-                      onChanged: (val) => notifier.setResolution(val!),
+                      onChanged: (String? val) => notifier.setResolution(val!),
                       items: ['1080p', '720p']
                           .map(
                             (e) => DropdownMenuItem(value: e, child: Text(e)),
@@ -304,15 +394,18 @@ class _ScreenRecorderView extends ConsumerWidget {
                   ),
                   const Divider(height: 1, indent: 56),
                   SqaSettingsTile(
-                    icon: Symbols.movie,
-                    title: 'Format',
-                    subtitle: 'Output video file format',
-                    trailing: SqaDropdown<String>(
-                      value: state.format,
-                      onChanged: (val) => notifier.setFormat(val!),
-                      items: ['MP4', 'MKV']
+                    icon: Symbols.speed,
+                    title: 'Framerate',
+                    subtitle: 'Target frames per second',
+                    trailing: SqaDropdown<int>(
+                      value: state.framerate,
+                      onChanged: (int? val) => notifier.setFramerate(val!),
+                      items: [60, 30]
                           .map(
-                            (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text('${e}fps'),
+                            ),
                           )
                           .toList(),
                     ),
@@ -324,7 +417,7 @@ class _ScreenRecorderView extends ConsumerWidget {
                     subtitle: 'Timer before recording starts',
                     trailing: SqaDropdown<int>(
                       value: state.delaySeconds,
-                      onChanged: (val) => notifier.setDelay(val!),
+                      onChanged: (int? val) => notifier.setDelay(val!),
                       items: [0, 2, 5, 10]
                           .map(
                             (e) => DropdownMenuItem(

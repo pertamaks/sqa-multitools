@@ -9,6 +9,8 @@ import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/audio_service.dart';
 import 'ui/main_toolbar.dart';
+import 'plugins/screen_recorder/providers/screen_recorder_provider.dart';
+import 'plugins/screenshot/providers/screenshot_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,16 +32,18 @@ void main() async {
     },
   );
 
+  final alwaysOnTop = prefs.getBool('always_on_top') ?? true;
+
   const windowOptions = WindowOptions(
     size: Size(kDefaultWindowWidth, kToolbarWindowHeight),
     center: true,
-    backgroundColor: Color(0xFF1C1B1F),
+    backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    alwaysOnTop: true,
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setAlwaysOnTop(alwaysOnTop);
     await windowManager.setMinimumSize(
       const Size(kDefaultWindowWidth, kToolbarWindowHeight),
     );
@@ -123,7 +127,16 @@ class SqaMultitoolsApp extends ConsumerWidget {
             pageTransitionsTheme: noTransitions,
           ),
           builder: (context, child) {
-            return Material(child: child ?? const SizedBox.shrink());
+            final isScreenshotVisible =
+                ref.watch(screenshotProvider).isOverlayVisible;
+            final isRecorderVisible =
+                ref.watch(screenRecorderProvider).isOverlayVisible;
+            final isOverlayActive = isScreenshotVisible || isRecorderVisible;
+
+            return Material(
+              color: isOverlayActive ? Colors.transparent : null,
+              child: child ?? const SizedBox.shrink(),
+            );
           },
           home: const MainToolbar(),
         );

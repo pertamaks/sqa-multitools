@@ -4,6 +4,8 @@ import 'capture_mode.dart';
 import '../../screenshot/models/annotation.dart';
 import '../../screenshot/models/screenshot_tool.dart';
 
+import 'package:screen_retriever/screen_retriever.dart';
+
 part 'screen_recorder_state.freezed.dart';
 
 @freezed
@@ -20,10 +22,24 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(CaptureMode.fullScreen) CaptureMode captureMode,
     @Default('Active Window') String targetWindowName,
     @Default(false) bool isOverlayVisible,
+    @Default(false) bool isTargetingWindow,
+    Rect? targetedWindowRect,
     @Default([]) List<Annotation> annotations,
     @Default(ScreenshotTool.pen) ScreenshotTool currentTool,
     @Default(Colors.red) Color annotationColor,
     @Default(0) int delaySeconds,
+    @Default(0) int countdownSeconds, // Live countdown before recording starts
+    @Default(30) int framerate,
+    double? engineDownloadProgress,
+    @Default(false) bool engineReady,
+    String? saveDirectory,
+    Size? previousWindowSize,
+    Offset? previousWindowPos,
     Rect? selectionRect,
+    Rect? captureRect,
+    @Default([]) List<Display> availableDisplays,
+    @Default({}) Map<String, String> monitorNames, // id -> friendlyName
+    @Default({}) Map<String, String> displayThumbnails, // id -> filePath
+    String? primaryDisplayId,
   }) = _ScreenRecorderState;
 }

@@ -996,6 +996,39 @@ class GeneralSettingsView extends ConsumerWidget {
                       ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                // Always on Top Toggle
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Always on Top',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Keep the toolbar above all other windows.',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SqaSwitch(
+                      value: themeSettings.alwaysOnTop,
+                      onChanged: (v) {
+                        ref
+                            .read(themeSettingsProvider.notifier)
+                            .setAlwaysOnTop(v);
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

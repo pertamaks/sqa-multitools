@@ -9,17 +9,19 @@ The tool is called **Screen Recorder**. It captures screen video for bug reports
 
 ### Definitions & Abbreviations
 - **TBD:** To Be Defined.
+- **JIT:** Just-In-Time download.
 
 ### References
 - [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
+- [Agent Guidelines (GEMINI.md)](file:///e:/Github/sqa-multitools/GEMINI.md)
 
 ## 2. Overall Description
 ### Product Perspective
 This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` interface.
 
 ### Product Functions
-- **Capture:** Recording selecting window areas.
-- **Export:** Saving video files locally.
+- **Capture:** Recording selecting window areas or full screen.
+- **Export:** Saving video files locally to a user-selectable directory.
 
 ### User Classes & Characteristics
 - **Standard User:** QA Engineers recording bugs for developers.
@@ -35,55 +37,46 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 ### Capture Modes
 - **Full Screen**: Capture the entire primary monitor.
 - **Selected Area**: User-defined rectangular region of the screen.
-- **Selected Window**: Specific application window identified by its handle (HWND).
+- **Selected Window**: Specific application window (planned/supported via ffmpeg title match).
 
 ### Recording Controls
-- **Description**: Standard Start, Stop, and Pause controls.
-- **Inputs**: User interaction via primary action button.
-- **Processing**: Real-time encoding of screen frames.
+- **Description**: Standard Start, Stop, and Pause controls. Use of a Draggable Floating Bar during active recording.
+- **Inputs**: User interaction via primary action button or floating bar.
+- **Processing**: Real-time encoding of screen frames via FFmpeg.
 - **Outputs**: MP4 or MKV local video file.
 
 ### Recording Settings
-- **Audio**: Optional capture of Microphone and System Audio.
-- **Visuals**: Toggle visibility of the mouse cursor and click highlights.
-- **Quality**: Resolution selection (1080p, 720p) and format selection (MP4, MKV).
+- **Audio**: Capture of Microphone inputs.
+- **Visuals**: Toggle visibility of the mouse cursor and **global click feedback** (visual ripples on click).
+- **Quality**: Resolution selection (1080p, 720p) and Framerate (60fps, 30fps).
+- **Save Path**: Custom directory selection utilizing native Windows folder picker.
+- **Window Targeting**: High-fidelity window discovery with searching and "System Junk" filtering.
 
 ## 4. Implementation Strategy (Technical Analysis)
 ### Capture Mechanism
-- **Full Screen / Area**: Implementation via **FFmpeg** bundled with the application.
-  - Full Screen: `ffmpeg -f gdigrab -i desktop ...`
-  - Area: `ffmpeg -f gdigrab -offset_x [X] -offset_y [Y] -video_size [WxH] -i desktop ...`
-- **Windows Capture**: Modern **Windows Graphics Capture API** or Win32 `PrintWindow`/`BitBlt` for targeted window recording.
+- **Full Screen / Area**: Implementation via **FFmpeg**.
+- **Window Selection**: Uses PowerShell-based discovery to fetch friendly window names and process handles, filtered to exclude system processes. UI is presented in a searchable `SqaPickerDialog`.
+- **Global Input Feedback**: Uses `win32` `GetAsyncKeyState` polling to detect system-wide mouse clicks and render visual ripple animations (`ClickRipple`) in the transparent overlay, even when clicking through to other applications.
 
 ### UI Integration
-- **Area Selection**: A transparent, borderless Flutter window will be used as an overlay to allow users to drag and define the capture region.
-- **Window Picker**: Enumeration of active windows using Win32 API (`EnumWindows`) to provide a list of targets.
+- **Area Selection (Desktop-Wide Overlay)**: The existing `MainToolbar` window is temporarily set to borderless and fully transparent, artificially stretching across the bounds of all connected desktop monitors (via `screen_retriever`). 
+- **Draggable Floating Controller**: Upon selecting an area or starting a full screen record, the transparent boundary stays full-screen to allow for desktop-wide annotations while showing the `SqaFloatingBar` at a user-draggable position.
+- **Click-Through Logic**: The overlay intelligently toggles its own hit-test visibility (`setIgnoreMouseEvents`) based on whether the user's cursor is hovering over the floating toolbar. This ensures underlying applications remain interactable while recording.
+- **Live Annotations**: Annotations made via the floating bar are rendered over the recorded zone.
 
 ## 5. External Interface Requirements
 ### User Interfaces (UI)
-- **Style**: Material 3 recording controls.
-- **Floating Bar**: Use `SqaFloatingBar` to control active sessions and monitor status.
+- **Style**: Fluent Design / Material 3 recording controls.
+- **Floating Bar**: Use `SqaFloatingBar` to control active sessions and monitor status. Now draggable via a dedicated drag handle.
 - **Layout**: Use `SqaPluginScrollableContent` to vertically center the recording configuration and primary status card.
-- **Status Indicator**: Uses a high-contrast Red color with **Pulsing Pulse Effect** during recording.
-- **Settings**: Moved configuration (audio, cursor, quality) to a dedicated settings panel in the `Settings` plugin.
-- **Mode Selection**: `SqaSegmentedButton` for switching between Full Screen, Area, and Window modes.
-
-### Hardware Interfaces
-- **Direct Link**: GPU acceleration (nvenc/qsv/vaapi) for encoding where available.
 
 ### Software Interfaces
-- **API**: Platform-specific Windows capture APIs and FFmpeg CLI wrapper.
+- **API**: Platform-specific Windows capture APIs and FFmpeg CLI wrapper managed by the internal `FfmpegEngine` class.
 
 ## 6. Non-Functional Requirements (Quality Attributes)
 ### Performance
-- Frame Rate: Stable 30fps minimum at 1080p.
-- CPU Usage: Minimized through hardware acceleration.
+- Frame Rate: Stable 30fps or 60fps at 1080p/720p.
+- CPU Usage: Minimized via x264 defaults.
 
 ### Safety & Security
-- Data privacy: All recordings are stored locally; no cloud transmission.
-
-### Reliability
-- File Integrity: Guaranteed on save, with temporary file recovery (MKV).
-
-### Maintainability
-- Isolated plugin structure with decoupled capture logic.
+- Data privacy: All recordings are stored locally; no cloud transmission. Downloads happen safely via HTTPS with explicit UI consent.

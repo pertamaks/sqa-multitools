@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
+  file_selector_linux
   hotkey_manager_linux
   irondash_engine_context
   screen_retriever_linux

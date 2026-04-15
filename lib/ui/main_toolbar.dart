@@ -374,13 +374,16 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final settingsPlugin = ref.watch(settingsPluginProvider);
     final supporterTier = ref.watch(supporterTierProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final isScreenshotVisible = ref.watch(screenshotProvider).isOverlayVisible;
+    final isRecorderVisible = ref.watch(screenRecorderProvider).isOverlayVisible;
+    final isOverlayActive = isScreenshotVisible || isRecorderVisible;
     final hasPlugin = activePlugin != null;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          if (hasPlugin)
+          if (hasPlugin && !isOverlayActive)
             Padding(
               padding: const EdgeInsets.only(top: kToolbarWindowHeight),
               child: Container(
@@ -410,24 +413,25 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 ),
               ),
             ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: kToolbarWindowHeight,
-            child: _buildToolbarBar(
-              colorScheme,
-              enabledPlugins,
-              activePlugin,
-              settingsPlugin,
-              supporterTier,
+          if (!isOverlayActive)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: kToolbarWindowHeight,
+              child: _buildToolbarBar(
+                colorScheme,
+                enabledPlugins,
+                activePlugin,
+                settingsPlugin,
+                supporterTier,
+              ),
             ),
-          ),
-          if (supporterTier >= 3 && ref.watch(bugSquashEnabledProvider))
+          if (!isOverlayActive && supporterTier >= 3 && ref.watch(bugSquashEnabledProvider))
             SquashTheBugOverlay(key: SquashTheBugOverlay.bugKey),
-          if (ref.watch(screenshotProvider).isOverlayVisible)
+          if (isScreenshotVisible)
             const Positioned.fill(child: ScreenshotOverlay()),
-          if (ref.watch(screenRecorderProvider).isOverlayVisible)
+          if (isRecorderVisible)
             const Positioned.fill(child: ScreenRecorderOverlay()),
         ],
       ),

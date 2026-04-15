@@ -17,6 +17,18 @@ class ScreenshotOverlay extends ConsumerStatefulWidget {
 class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
   Offset? _startPos;
   Offset? _currentPos;
+  Offset? _barOffset;
+
+  Offset _clampOffset(Offset offset, Size screenSize) {
+    const double barWidth = 650.0;
+    const double barHeight = 60.0;
+    const double padding = 12.0;
+
+    return Offset(
+      offset.dx.clamp(padding, math.max(padding, screenSize.width - barWidth - padding)),
+      offset.dy.clamp(padding, math.max(padding, screenSize.height - barHeight - padding)),
+    );
+  }
 
   void _onPanStart(DragStartDetails details) {
     final state = ref.read(screenshotProvider);
@@ -60,6 +72,18 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
         ref.read(screenshotProvider.notifier).setSelection(rect);
+        // Initial placement of bar near the selection
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            final size = MediaQuery.of(context).size;
+            setState(() {
+              _barOffset = _clampOffset(
+                Offset(rect.right - 650, rect.bottom + 12),
+                size,
+              );
+            });
+          }
+        });
       }
       setState(() {
         _startPos = null;
@@ -73,6 +97,8 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     final state = ref.watch(screenshotProvider);
     final notifier = ref.read(screenshotProvider.notifier);
     if (!state.isOverlayVisible) return const SizedBox.shrink();
+
+    final barPosition = _barOffset ?? Offset.zero;
 
     return Material(
       color: Colors.transparent,
@@ -98,62 +124,73 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
 
           // Combined Floating Toolbar with Centralized SqaFloatingBar
           if (state.selectionRect != null)
-            SqaFloatingBar(
-              selectionRect: state.selectionRect,
-              children: [
-                ...[
-                  (ScreenshotTool.pen, Symbols.edit, 'Pen'),
-                  (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
-                  (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
-                  (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
-                  (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
-                  (ScreenshotTool.text, Symbols.text_fields, 'Text'),
-                ].map(
-                  (t) => SqaFloatingBarButton(
-                    icon: t.$2,
-                    tooltip: t.$3,
-                    isSelected: state.currentTool == t.$1,
-                    onPressed: () => notifier.setTool(t.$1),
+            Positioned(
+              left: barPosition.dx,
+              top: barPosition.dy,
+              child: SqaFloatingBar(
+                children: [
+                  SqaFloatingBarDragHandle(
+                    onDragUpdate: (delta) {
+                      setState(() {
+                        final size = MediaQuery.of(context).size;
+                        _barOffset = _clampOffset(barPosition + delta, size);
+                      });
+                    },
                   ),
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.delete_sweep,
-                  tooltip: 'Clear All',
-                  onPressed: notifier.clearAnnotations,
-                ),
-
-                const SqaFloatingBarDivider(),
-
-                // Colors (Selected 4)
-                ...[Colors.red, Colors.green, Colors.blue, Colors.white].map(
-                  (c) => SqaFloatingBarColorPicker(
-                    color: c,
-                    isSelected: state.annotationColor == c,
-                    onTap: () => notifier.setColor(c),
+                  ...[
+                    (ScreenshotTool.pen, Symbols.edit, 'Pen'),
+                    (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
+                    (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
+                    (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
+                    (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
+                    (ScreenshotTool.text, Symbols.text_fields, 'Text'),
+                  ].map(
+                    (t) => SqaFloatingBarButton(
+                      icon: t.$2,
+                      tooltip: t.$3,
+                      isSelected: state.currentTool == t.$1,
+                      onPressed: () => notifier.setTool(t.$1),
+                    ),
                   ),
-                ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.delete_sweep,
+                    tooltip: 'Clear All',
+                    onPressed: notifier.clearAnnotations,
+                  ),
 
-                const SqaFloatingBarDivider(),
+                  const SqaFloatingBarDivider(),
 
-                // Final Actions
-                SqaFloatingBarButton(
-                  icon: Symbols.content_copy,
-                  tooltip: 'Copy to Clipboard',
-                  onPressed: () => notifier.finalize(shouldCopy: true),
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.save,
-                  tooltip: 'Save Screenshot',
-                  onPressed: () => notifier.finalize(),
-                  isPrimary: true,
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.close,
-                  tooltip: 'Cancel',
-                  onPressed: notifier.stopCapture,
-                  color: Colors.red,
-                ),
-              ],
+                  // Colors (Selected 4)
+                  ...[Colors.red, Colors.green, Colors.blue, Colors.white].map(
+                    (c) => SqaFloatingBarColorPicker(
+                      color: c,
+                      isSelected: state.annotationColor == c,
+                      onTap: () => notifier.setColor(c),
+                    ),
+                  ),
+
+                  const SqaFloatingBarDivider(),
+
+                  // Final Actions
+                  SqaFloatingBarButton(
+                    icon: Symbols.content_copy,
+                    tooltip: 'Copy to Clipboard',
+                    onPressed: () => notifier.finalize(shouldCopy: true),
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.save,
+                    tooltip: 'Save Screenshot',
+                    onPressed: () => notifier.finalize(),
+                    isPrimary: true,
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.close,
+                    tooltip: 'Cancel',
+                    onPressed: notifier.stopCapture,
+                    color: Colors.red,
+                  ),
+                ],
+              ),
             ),
 
           // Instructions

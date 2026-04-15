@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:file_selector/file_selector.dart';
 import '../../core/models/sqa_plugin.dart';
-import 'package:screen_retriever/screen_retriever.dart';
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
-import '../../ui/widgets/sqa_picker_dialog.dart';
 import '../../ui/widgets/sqa_segmented_button.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_switch.dart';
@@ -14,7 +12,7 @@ import '../../ui/widgets/sqa_dropdown.dart';
 import '../../ui/widgets/sqa_plugin_layout.dart';
 import '../../ui/widgets/sqa_button.dart';
 import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import 'models/capture_mode.dart';
+import '../../core/models/capture_mode.dart';
 import 'providers/screen_recorder_provider.dart';
 
 class ScreenRecorderPlugin implements SqaPlugin {
@@ -150,50 +148,10 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
       }
     }
 
-    // Engine is ready, check for selection if needed
+    // Seamless Entry: Skip monitor picker for all modes.
     if (state.captureMode == CaptureMode.window) {
-      // Launch overlay in targeting mode
       notifier.setTargetingWindow(true);
-      notifier.startOverlay();
-      return;
-    } else {
-      final displays = await screenRetriever.getAllDisplays();
-      if (displays.length > 1) {
-        if (!context.mounted) return;
-        // Refresh thumbnails before showing the picker
-        await ref.read(screenRecorderProvider.notifier).refreshThumbnails();
-        if (!context.mounted) return;
-        final currentState = ref.read(screenRecorderProvider);
-        final selectedDisplay = await showDialog<Display>(
-          context: context,
-          builder: (ctx) => SqaPickerDialog<Display>.tile(
-            title: 'Select Display',
-            items: currentState.availableDisplays,
-            onRefresh: () => ref.read(screenRecorderProvider.notifier).refreshThumbnails(),
-            tileBuilder: (display, index) => SqaPickerTile(
-              label: 'Display ${index + 1}',
-              imagePath: currentState.displayThumbnails[display.id],
-              badge: display.id == currentState.primaryDisplayId ? 'PRIMARY' : null,
-            ),
-          ),
-        );
-        if (selectedDisplay != null) {
-          // Safety delay to allow dialog to fully pop and native window to stabilize
-          await Future<void>.delayed(const Duration(milliseconds: 100));
-          
-          final bounds = Rect.fromLTWH(
-            selectedDisplay.visiblePosition?.dx ?? 0,
-            selectedDisplay.visiblePosition?.dy ?? 0,
-            selectedDisplay.size.width,
-            selectedDisplay.size.height,
-          );
-          notifier.startOverlay(bounds);
-        }
-        return;
-      }
     }
-
-    // Single monitor or Window mode
     notifier.startOverlay();
   }
 

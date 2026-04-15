@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:sqa_multitools/plugins/screen_recorder/engine/ffmpeg_engine.dart';
 import 'package:sqa_multitools/plugins/screen_recorder/models/screen_recorder_state.dart';
-import 'package:sqa_multitools/plugins/screen_recorder/models/capture_mode.dart';
+import 'package:sqa_multitools/core/models/capture_mode.dart';
 
 void main() {
   late FfmpegEngine engine;

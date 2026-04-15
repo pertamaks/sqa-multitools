@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'capture_mode.dart';
-import '../../screenshot/models/annotation.dart';
-import '../../screenshot/models/screenshot_tool.dart';
+import '../../../core/models/capture_mode.dart';
+import '../../../core/models/annotation.dart';
+import '../../../core/models/screenshot_tool.dart';
 
 import 'package:screen_retriever/screen_retriever.dart';
 
@@ -24,6 +24,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(false) bool isOverlayVisible,
     @Default(false) bool isTargetingWindow,
     Rect? targetedWindowRect,
+    int? targetedWindowHwnd,
     @Default([]) List<Annotation> annotations,
     @Default(ScreenshotTool.pen) ScreenshotTool currentTool,
     @Default(Colors.red) Color annotationColor,

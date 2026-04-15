@@ -9,14 +9,14 @@ import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/screen_recorder_state.dart';
-import '../models/capture_mode.dart';
-import '../../screenshot/models/annotation.dart';
-import '../../screenshot/models/screenshot_tool.dart';
+import '../../../core/models/capture_mode.dart';
+import '../../../core/models/annotation.dart';
+import '../../../core/models/screenshot_tool.dart';
 import '../engine/ffmpeg_engine.dart';
 import '../../../core/services/preferences_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
-import '../engine/window_utils.dart';
+import '../../../core/window/window_utils.dart';
 
 part 'screen_recorder_provider.g.dart';
 
@@ -124,13 +124,21 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final currentSize = await windowManager.getSize();
     final currentPos = await windowManager.getPosition();
 
-    // Determine target bounds (Virtual Desktop: union of all displays)
+    // Determine target bounds
     final displays = await screenRetriever.getAllDisplays();
-    Rect virtualRect;
+    
+    // overlayRect: the physical Flutter window bounds (covers all monitors for Window/Area)
+    // captureRect: the intended recording region (single monitor for fullScreen, null until selection for others)
+    Rect overlayRect;
+    Rect? captureRect;
     
     if (targetBounds != null) {
-      virtualRect = targetBounds;
+      // A specific monitor was selected (fullScreen/area from picker dialog)
+      overlayRect = targetBounds;
+      captureRect = targetBounds;
     } else {
+      // No target specified — span the entire virtual desktop
+      // This allows Window/Area mode to target windows on any monitor
       double minX = 0;
       double minY = 0;
       double maxX = 0;
@@ -144,7 +152,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         maxX = math.max(maxX, pos.dx + size.width);
         maxY = math.max(maxY, pos.dy + size.height);
       }
-      virtualRect = Rect.fromLTRB(minX, minY, maxX, maxY);
+      overlayRect = Rect.fromLTRB(minX, minY, maxX, maxY);
+      // captureRect stays null — it will be set when the user selects a window or draws an area
     }
 
     // 1. Hide the window to prevent intermediate redraw artifacts during transition
@@ -152,8 +161,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     await windowManager.hide();
 
     // 2. Move to target virtual bounds FIRST while hidden.
-    debugPrint('[ScreenRecorder] Expanding overlay to virtual desktop: $virtualRect');
-    await windowManager.setBounds(virtualRect);
+    debugPrint('[ScreenRecorder] Moving window to: $overlayRect');
+    await windowManager.setBounds(overlayRect);
     
     // 3. Wait for the OS to settle the DPI/Monitor shift
     debugPrint('[ScreenRecorder] Waiting for OS to settle...');
@@ -181,7 +190,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       previousWindowPos: currentPos,
       isOverlayVisible: true,
       selectionRect: null,
-      captureRect: virtualRect,
+      captureRect: captureRect,
       availableDisplays: displays,
     );
 
@@ -272,12 +281,35 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Future<void> _startRecording() async {
     // Finalize capture bounds based on mode
     Rect? finalRect;
+    final windowPos = await windowManager.getPosition();
+
     if (state.captureMode == CaptureMode.area && state.selectionRect != null) {
-      // IMPORTANT: selectionRect is local to the overlay window (one monitor).
-      // We must shift it by the monitor's global logical origin to get virtual desktop coordinates.
-      finalRect = state.selectionRect!.shift(state.captureRect?.topLeft ?? Offset.zero);
+      // selectionRect is in LOCAL overlay coordinates.
+      // Shift by the window's actual position to get global logical coords.
+      finalRect = state.selectionRect!.shift(Offset(windowPos.dx, windowPos.dy));
+    } else if ((state.captureMode == CaptureMode.window || state.captureMode == CaptureMode.fullScreen) && state.selectionRect != null) {
+      // Use the spatially confirmed region (from shaded window or monitor selection)
+      finalRect = state.selectionRect!.shift(Offset(windowPos.dx, windowPos.dy));
     } else if (state.captureMode == CaptureMode.fullScreen) {
-      finalRect = state.captureRect;
+      // Fallback for picker-based or direct targeting
+      if (state.captureRect != null) {
+        finalRect = state.captureRect;
+      } else {
+        // Fallback: primary display
+        final displays = await screenRetriever.getAllDisplays();
+        final primary = displays.cast<Display?>().firstWhere(
+          (d) => d?.visiblePosition?.dx == 0 && d?.visiblePosition?.dy == 0,
+          orElse: () => displays.isNotEmpty ? displays.first : null,
+        );
+        if (primary != null) {
+          finalRect = Rect.fromLTWH(
+            primary.visiblePosition?.dx ?? 0,
+            primary.visiblePosition?.dy ?? 0,
+            primary.size.width,
+            primary.size.height,
+          );
+        }
+      }
     }
 
     state = state.copyWith(
@@ -426,20 +458,27 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     state = state.copyWith(isTargetingWindow: value);
   }
 
-  void updateTargetedWindow(Rect? rect, String? name) {
+  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) {
     state = state.copyWith(
       targetedWindowRect: rect,
       targetWindowName: name ?? 'Active Window',
+      targetedWindowHwnd: hwnd,
     );
   }
 
   Future<void> confirmTargetWindow(Rect rect, String title) async {
+    final hwnd = state.targetedWindowHwnd;
+    
     state = state.copyWith(
       isTargetingWindow: false,
       selectionRect: rect,
       targetWindowName: title,
-      captureMode: CaptureMode.area, // Switch to area mode with the window's rect
     );
+
+    // Bring the window to front
+    if (hwnd != null && hwnd != 0) {
+      WindowUtils.focusWindow(hwnd);
+    }
   }
 
   void startAreaSelection() {

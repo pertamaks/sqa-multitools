@@ -140,8 +140,8 @@ class SqaFloatingBarColorPicker extends StatelessWidget {
 
 /// A standardized drag handle for the SqaFloatingBar.
 class SqaFloatingBarDragHandle extends StatelessWidget {
-  final void Function(Offset delta)? onDragUpdate;
-  final VoidCallback? onDragStart;
+  final void Function(DragUpdateDetails details)? onDragUpdate;
+  final void Function(DragStartDetails details)? onDragStart;
   final VoidCallback? onDragEnd;
 
   const SqaFloatingBarDragHandle({
@@ -154,8 +154,8 @@ class SqaFloatingBarDragHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onPanStart: onDragStart != null ? (_) => onDragStart!() : null,
-      onPanUpdate: onDragUpdate != null ? (d) => onDragUpdate!(d.delta) : null,
+      onPanStart: onDragStart,
+      onPanUpdate: onDragUpdate,
       onPanEnd: onDragEnd != null ? (_) => onDragEnd!() : null,
       behavior: HitTestBehavior.opaque,
       child: MouseRegion(

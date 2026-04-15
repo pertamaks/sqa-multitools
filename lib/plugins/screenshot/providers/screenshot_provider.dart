@@ -1,9 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter/material.dart' show Color, Rect;
 import '../models/screenshot_state.dart';
-import '../models/capture_mode.dart';
-import '../models/screenshot_tool.dart';
-import '../models/annotation.dart';
+import '../../../core/models/capture_mode.dart';
+import '../../../core/models/screenshot_tool.dart';
+import '../../../core/models/annotation.dart';
+
 
 part 'screenshot_provider.g.dart';
 
@@ -43,6 +44,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isOverlayVisible: true,
       annotations: [],
       selectionRect: null,
+      isTargetingWindow: state.captureMode == CaptureMode.window,
     );
   }
 
@@ -84,5 +86,25 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   Future<void> capture() async {
     startCapture();
+  }
+
+  // Window Targeting
+  void setTargetingWindow(bool value) {
+    state = state.copyWith(isTargetingWindow: value);
+  }
+
+  void updateTargetedWindow(Rect? rect, String? name) {
+    state = state.copyWith(
+      targetedWindowRect: rect,
+      targetWindowName: name ?? 'Active Window',
+    );
+  }
+
+  void confirmTargetWindow(Rect rect, String title) {
+    state = state.copyWith(
+      isTargetingWindow: false,
+      selectionRect: rect,
+      targetWindowName: title,
+    );
   }
 }

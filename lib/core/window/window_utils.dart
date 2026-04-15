@@ -42,32 +42,72 @@ class WindowUtils {
     return [];
   }
 
-  /// Finds the top-level window at the given screen coordinates and returns its info.
-  static WindowInfo? getWindowInfoAt(Offset screenPosition) {
+  /// Finds the top-level window at the current mouse position and returns its info,
+  /// skipping windows from our own process (the overlay).
+  static WindowInfo? getWindowInfoAt() {
     if (!Platform.isWindows) return null;
 
     final point = calloc<POINT>();
-    point.ref.x = screenPosition.dx.toInt();
-    point.ref.y = screenPosition.dy.toInt();
+    GetCursorPos(point);
+
+    final myPid = GetCurrentProcessId();
+    final lpdwProcessId = calloc<Uint32>();
+    final rectPointer = calloc<RECT>();
+    final classNameBuffer = calloc<Uint16>(256).cast<Utf16>();
+    
+    int targetHwnd = 0;
 
     try {
-      final hwnd = WindowFromPoint(point.ref);
-      if (hwnd == 0) return null;
+      // Start from the very first (top-most) child of the Desktop
+      int hwnd = GetWindow(GetDesktopWindow(), GW_CHILD);
 
-      // Get the top-level root window
-      final rootHwnd = GetAncestor(hwnd, GA_ROOT);
-      if (rootHwnd == 0) return null;
+      while (hwnd != 0) {
+        // 1. Must be visible
+        if (IsWindowVisible(hwnd) != 0) {
+          // 2. Window Rect must contain the point (physical pixels)
+          GetWindowRect(hwnd, rectPointer);
+          if (point.ref.x >= rectPointer.ref.left &&
+              point.ref.x < rectPointer.ref.right &&
+              point.ref.y >= rectPointer.ref.top &&
+              point.ref.y < rectPointer.ref.bottom) {
+            
+            // 3. Check Process ID
+            GetWindowThreadProcessId(hwnd, lpdwProcessId);
+            if (lpdwProcessId.value != myPid) {
+              // 4. Filter out system background windows
+              GetClassName(hwnd, classNameBuffer, 256);
+              final className = classNameBuffer.toDartString();
+              
+              final ignoreClasses = [
+                'Progman',
+                'WorkerW',
+                'Shell_TrayWnd',
+                'Shell_SecondaryTrayWnd',
+              ];
+              
+              if (!ignoreClasses.contains(className)) {
+                // Found it! This is the top-most app window under our overlay
+                targetHwnd = hwnd;
+                break;
+              }
+            }
+          }
+        }
+        // Move to the next window down in the Z-order stack
+        hwnd = GetWindow(hwnd, GW_HWNDNEXT);
+      }
+
+      if (targetHwnd == 0) return null;
 
       // Get Title
       final textBuffer = calloc<Uint16>(256).cast<Utf16>();
-      GetWindowText(rootHwnd, textBuffer, 256);
+      GetWindowText(targetHwnd, textBuffer, 256);
       final title = textBuffer.toDartString();
       calloc.free(textBuffer);
 
-      // Get precise bounds (DWM aware)
-      final rectPointer = calloc<RECT>();
+      // Get Precise Bounds (DWM aware)
       final hr = DwmGetWindowAttribute(
-        rootHwnd,
+        targetHwnd,
         DWMWA_EXTENDED_FRAME_BOUNDS,
         rectPointer,
         sizeOf<RECT>(),
@@ -82,8 +122,7 @@ class WindowUtils {
           rectPointer.ref.bottom.toDouble(),
         );
       } else {
-        // Fallback to basic window rect if DWM call fails
-        GetWindowRect(rootHwnd, rectPointer);
+        // Fallback to basic window rect
         rect = Rect.fromLTRB(
           rectPointer.ref.left.toDouble(),
           rectPointer.ref.top.toDouble(),
@@ -91,17 +130,14 @@ class WindowUtils {
           rectPointer.ref.bottom.toDouble(),
         );
       }
-      
-      calloc.free(rectPointer);
 
       // Convert Physical Rect (Windows API) to Logical Rect (Flutter)
-      // Using the DPI of the specific window for maximum accuracy.
-      final dpi = GetDpiForWindow(rootHwnd);
+      final dpi = GetDpiForWindow(targetHwnd);
       final scaleFactor = dpi / 96.0;
 
       return WindowInfo(
-        hwnd: rootHwnd, 
-        title: title, 
+        hwnd: targetHwnd,
+        title: title,
         rect: Rect.fromLTRB(
           rect.left / scaleFactor,
           rect.top / scaleFactor,
@@ -111,6 +147,9 @@ class WindowUtils {
       );
     } finally {
       calloc.free(point);
+      calloc.free(lpdwProcessId);
+      calloc.free(rectPointer);
+      calloc.free(classNameBuffer);
     }
   }
 
@@ -137,5 +176,32 @@ class WindowUtils {
     } catch (_) {}
 
     return [];
+  }
+
+  /// Brings the given window to the front and focuses it.
+  static void focusWindow(int hwnd) {
+    if (!Platform.isWindows || hwnd == 0) return;
+    
+    // Check if minimized
+    if (IsIconic(hwnd) != 0) {
+      ShowWindow(hwnd, SW_RESTORE);
+    } else {
+      ShowWindow(hwnd, SW_SHOW);
+    }
+    
+    // Bring to top and focus
+    SetForegroundWindow(hwnd);
+  }
+
+  /// Checks if the left mouse button is currently pressed.
+  static bool isLeftMouseDown() {
+    if (!Platform.isWindows) return false;
+    return (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+  }
+
+  /// Checks if the right mouse button is currently pressed.
+  static bool isRightMouseDown() {
+    if (!Platform.isWindows) return false;
+    return (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
   }
 }

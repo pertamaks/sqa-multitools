@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqa_multitools/plugins/screen_recorder/models/capture_mode.dart';
+import 'package:sqa_multitools/core/models/capture_mode.dart';
 import 'package:sqa_multitools/plugins/screen_recorder/providers/screen_recorder_provider.dart';
 
 void main() {

@@ -6,7 +6,7 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import '../models/screen_recorder_state.dart';
-import '../models/capture_mode.dart';
+import '../../../core/models/capture_mode.dart';
 
 class FfmpegEngine {
   static const String _downloadUrl =
@@ -138,90 +138,71 @@ class FfmpegEngine {
       args.addAll(['-draw_mouse', '0']);
     }
 
-    // Modes
-    if (state.captureMode == CaptureMode.window) {
-      args.addAll(['-i', 'title="${state.targetWindowName}"']);
-    } else if (state.captureRect != null) {
+    // Build Filter Chain
+    final filters = <String>[];
+    if (state.captureMode == CaptureMode.window || state.captureRect != null) {
       final rect = state.captureRect!;
       
-      // 1. Find the display that primarily contains this capture rect
+      // 1. Calculate Virtual Desktop logical bounds (Origin)
+      double globalMinX = 0;
+      double globalMinY = 0;
+      for (final d in displays) {
+        final pos = d.visiblePosition ?? Offset.zero;
+        if (pos.dx < globalMinX) globalMinX = pos.dx;
+        if (pos.dy < globalMinY) globalMinY = pos.dy;
+      }
+
+      // 2. Find target display and origin
       Display? targetDisplay;
       double maxOverlap = -1.0;
-      
       for (final d in displays) {
-        final dRect = Rect.fromLTWH(
-          d.visiblePosition?.dx ?? 0,
-          d.visiblePosition?.dy ?? 0,
-          d.size.width,
-          d.size.height,
-        );
-        final intersection = dRect.intersect(rect);
-        final area = intersection.width * intersection.height;
-        if (area > maxOverlap) {
-          maxOverlap = area;
-          targetDisplay = d;
+        final dRect = Rect.fromLTWH(d.visiblePosition?.dx ?? 0, d.visiblePosition?.dy ?? 0, d.size.width, d.size.height);
+        final intersect = dRect.intersect(rect);
+        if (intersect.width > 0 && intersect.height > 0) {
+          final area = intersect.width * intersect.height;
+          if (area > maxOverlap) { maxOverlap = area; targetDisplay = d; }
         }
       }
-
-      // 2. Fallback to first display if not found
       targetDisplay ??= displays.first;
-      final ratio = (targetDisplay.scaleFactor ?? 1.0).toDouble();
-      final displayOrigin = targetDisplay.visiblePosition ?? Offset.zero;
+      final targetScale = (targetDisplay.scaleFactor ?? 1.0).toDouble();
+      final targetOrigin = targetDisplay.visiblePosition ?? Offset.zero;
 
-      // 3. Calculate Global Physical Origin for this display
-      // On Windows, the virtual desktop bitmap is a collage of physical pixels.
-      // We calculate the physical offset by summing physical widths/heights of monitors 
-      // that are strictly to the left or above the target monitor.
-      double physicalOffsetX = 0;
-      double physicalOffsetY = 0;
-
+      // 3. Absolute Physical Offsets
+      double absOriginX = 0;
+      double absOriginY = 0;
       for (final d in displays) {
         final dPos = d.visiblePosition ?? Offset.zero;
-        if (dPos.dx < displayOrigin.dx) {
-          physicalOffsetX += d.size.width * (d.scaleFactor ?? 1.0);
-        }
-        if (dPos.dy < displayOrigin.dy) {
-          physicalOffsetY += d.size.height * (d.scaleFactor ?? 1.0);
-        }
+        final dScale = (d.scaleFactor ?? 1.0).toDouble();
+        if (dPos.dx < targetOrigin.dx) absOriginX += d.size.width * dScale;
+        if (dPos.dy < targetOrigin.dy) absOriginY += d.size.height * dScale;
       }
 
-      // 4. Calculate Primary Physical Offset
-      // We need to shift everything relative to the Primary monitor's top-left (logical 0,0)
-      double primaryPhysicalOffsetX = 0;
-      double primaryPhysicalOffsetY = 0;
-      for (final d in displays) {
-        final dPos = d.visiblePosition ?? Offset.zero;
-        if (dPos.dx < 0) {
-          primaryPhysicalOffsetX += d.size.width * (d.scaleFactor ?? 1.0);
-        }
-        if (dPos.dy < 0) {
-          primaryPhysicalOffsetY += d.size.height * (d.scaleFactor ?? 1.0);
-        }
-      }
+      int x = (absOriginX + (rect.left - targetOrigin.dx) * targetScale).toInt();
+      int y = (absOriginY + (rect.top - targetOrigin.dy) * targetScale).toInt();
+      int w = (rect.width * targetScale).toInt();
+      int h = (rect.height * targetScale).toInt();
+      if (w % 2 != 0) w -= 1;
+      if (h % 2 != 0) h -= 1;
 
-      // 5. Calculate Final Coordinates
-      // Result = (TotalPhysicalFromLeft - PrimaryPhysicalFromLeft)
-      int x = (((rect.left - displayOrigin.dx) * ratio + physicalOffsetX) - primaryPhysicalOffsetX).toInt();
-      int y = (((rect.top - displayOrigin.dy) * ratio + physicalOffsetY) - primaryPhysicalOffsetY).toInt();
-      int width = (rect.width * ratio).toInt();
-      int height = (rect.height * ratio).toInt();
-
-      // libx264 (yuv420p) requires even dimensions
-      if (width % 2 != 0) width -= 1;
-      if (height % 2 != 0) height -= 1;
-
-      args.addAll([
-        '-offset_x', '$x',
-        '-offset_y', '$y',
-        '-video_size', '${width}x$height',
-        '-i', 'desktop',
-      ]);
-    } else {
-      // Fallback
-      args.addAll(['-i', 'desktop']);
+      filters.add('crop=$w:$h:$x:$y');
     }
 
-    // Output encoding settings
+    // Scale resolution if needed
+    if (state.resolution == '720p') {
+      filters.add('scale=-2:720');
+    } else if (state.resolution == '1080p') {
+      filters.add('scale=-2:1080');
+    }
+
+    // 5. Input Assignment (MUST follow input options like -framerate)
+    args.addAll(['-i', 'desktop']);
+
+    // 6. Filter Chain (MUST follow the input stream)
+    if (filters.isNotEmpty) {
+      args.addAll(['-vf', filters.join(',')]);
+    }
+
+    // 7. Output Encoding Settings
     args.addAll([
       '-c:v', 'libx264',
       '-preset', 'veryfast',
@@ -229,14 +210,7 @@ class FfmpegEngine {
       '-pix_fmt', 'yuv420p',
     ]);
 
-    // Scale resolution if needed (1080p / 720p)
-    if (state.resolution == '720p') {
-      args.addAll(['-vf', 'scale=-2:720']); // Ensures width is divisible by 2
-    } else if (state.resolution == '1080p') {
-      args.addAll(['-vf', 'scale=-2:1080']);
-    }
-
-    // Output path
+    // 8. Output Path
     args.add(outputPath);
 
     return args;

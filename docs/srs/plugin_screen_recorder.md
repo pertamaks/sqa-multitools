@@ -35,9 +35,9 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 
 ## 3. System Features (Functional Requirements)
 ### Capture Modes
-- **Full Screen**: Capture the entire primary monitor.
-- **Selected Area**: User-defined rectangular region of the screen.
-- **Selected Window**: Specific application window (planned/supported via ffmpeg title match).
+- **Full Screen**: Capture any selected monitor in its entirety.
+- **Selected Area**: User-defined rectangular region of the desktop.
+- **Selected Window**: Specific application window, captured via spatial coordinate mapping (highly stable).
 
 ### Recording Controls
 - **Description**: Standard Start, Stop, and Pause controls. Use of a Draggable Floating Bar during active recording.
@@ -54,9 +54,11 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 
 ## 4. Implementation Strategy (Technical Analysis)
 ### Capture Mechanism
-- **Full Screen / Area**: Implementation via **FFmpeg**.
-- **Window Selection**: Uses PowerShell-based discovery to fetch friendly window names and process handles, filtered to exclude system processes. UI is presented in a searchable `SqaPickerDialog`.
-- **Global Input Feedback**: Uses `win32` `GetAsyncKeyState` polling to detect system-wide mouse clicks and render visual ripple animations (`ClickRipple`) in the transparent overlay, even when clicking through to other applications.
+- **Engine**: Implementation via JIT-downloaded **FFmpeg**.
+- **Absolute Coordinate Mapping**: Uses an absolute physical mapping system relative to the virtual desktop origin (top-left-most monitor). This ensures 100% precision for secondary monitors and negative logical offsets.
+- **Spatial Targetting**: All capture modes (Full Screen, Area, Window) resolve to a global logical `Rect`. Window mode uses spatial confirmation via a blue shade overlay instead of brittle title matching, ensuring stability even if window titles change.
+- **Crop Filter Strategy**: Uses the FFmpeg `crop` video filter to extract the target region from the global virtual desktop buffer, providing robust performance across mixed-DPI arrangements.
+- **Global Input Feedback**: Uses `win32` polling to detect system-wide mouse clicks and render visual ripple animations (`ClickRipple`) in the transparent overlay, even when clicking through to other applications.
 
 ### UI Integration
 - **Area Selection (Desktop-Wide Overlay)**: The existing `MainToolbar` window is temporarily set to borderless and fully transparent, artificially stretching across the bounds of all connected desktop monitors (via `screen_retriever`). 

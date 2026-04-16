@@ -12,6 +12,7 @@ import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_selection_painter.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 
 class ScreenshotOverlay extends ConsumerStatefulWidget {
   const ScreenshotOverlay({super.key});
@@ -104,9 +105,56 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
             if (state.targetedWindowRect != localRect) {
               ref
                   .read(screenshotProvider.notifier)
-                  .updateTargetedWindow(localRect, winInfo.title);
+                  .updateTargetedWindow(localRect, winInfo.title, winInfo.hwnd);
             }
           } else if (state.targetedWindowRect != null) {
+            ref
+                .read(screenshotProvider.notifier)
+                .updateTargetedWindow(null, null);
+          }
+        } else if (state.captureMode == CaptureMode.fullScreen &&
+            state.selectionRect == null) {
+          // Monitor Targeting Discovery
+          final cursor = await screenRetriever.getCursorScreenPoint();
+          final displays = state.availableDisplays;
+
+          Display? targetDisplay;
+          for (final d in displays) {
+            final rect = Rect.fromLTWH(
+              d.visiblePosition?.dx ?? 0,
+              d.visiblePosition?.dy ?? 0,
+              d.size.width,
+              d.size.height,
+            );
+            if (rect.contains(cursor)) {
+              targetDisplay = d;
+              break;
+            }
+          }
+
+          if (targetDisplay != null) {
+            final windowPos = await windowManager.getPosition();
+            final localRect = Rect.fromLTWH(
+              (targetDisplay.visiblePosition?.dx ?? 0) - windowPos.dx,
+              (targetDisplay.visiblePosition?.dy ?? 0) - windowPos.dy,
+              targetDisplay.size.width,
+              targetDisplay.size.height,
+            );
+
+            if (state.targetedWindowRect != localRect) {
+              ref.read(screenshotProvider.notifier).updateTargetedWindow(
+                    localRect,
+                    'Display ${displays.indexOf(targetDisplay) + 1}',
+                  );
+            }
+          } else if (state.targetedWindowRect != null) {
+            ref
+                .read(screenshotProvider.notifier)
+                .updateTargetedWindow(null, null);
+          }
+        } else {
+          // Area mode or already selected: clear discovery rect
+          if (state.targetedWindowRect != null) {
             ref
                 .read(screenshotProvider.notifier)
                 .updateTargetedWindow(null, null);
@@ -304,18 +352,19 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
                     SqaFloatingBarButton(
                       icon: Symbols.content_copy,
                       tooltip: 'Copy to Clipboard',
+                      isLoading: state.isCapturing,
                       onPressed: () => notifier.finalize(shouldCopy: true),
                     ),
                     SqaFloatingBarButton(
                       icon: Symbols.save,
                       tooltip: 'Save Screenshot',
+                      isLoading: state.isCapturing,
                       onPressed: () => notifier.finalize(),
-                      isPrimary: true,
                     ),
                     SqaFloatingBarButton(
                       icon: Symbols.close,
                       tooltip: 'Cancel',
-                      onPressed: notifier.stopCapture,
+                      onPressed: state.isCapturing ? null : notifier.stopCapture,
                       color: Colors.red,
                     ),
                   ],
@@ -324,17 +373,50 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
             },
           ),
 
+          // Capture Processing Overlay (Dim only, no spinner)
+          if (state.isCapturing)
+            Container(
+              color: Colors.black.withValues(alpha: 0.2),
+            ),
+
           // Instructions
-          if (state.selectionRect == null)
-            const Center(
-              child: Text(
-                'Drag to select a region',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  shadows: [Shadow(blurRadius: 10)],
-                ),
+          if (state.selectionRect == null && !state.isCapturing)
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Icon(
+                    switch(state.captureMode) {
+                      CaptureMode.fullScreen => Symbols.fullscreen,
+                      CaptureMode.area => Symbols.crop_free,
+                      CaptureMode.window => Symbols.window,
+                    },
+                    size: 64,
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    switch(state.captureMode) {
+                      CaptureMode.fullScreen => 'Click anywhere to capture full screen',
+                      CaptureMode.area => 'Drag to select capture area',
+                      CaptureMode.window => 'Click a window to capture',
+                    },
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      shadows: [Shadow(blurRadius: 12, color: Colors.black54)],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Esc to cancel',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],

@@ -398,4 +398,99 @@ class FfmpegEngine {
 
     return null;
   }
+
+  /// Takes a high-resolution screenshot of a display region.
+  static Future<File?> takeScreenshot({
+    required Rect logicalBounds,
+    required List<Display> displays,
+    required String format,
+    required String savePath,
+  }) async {
+    if (!await isEngineAvailable() || _resolvedExecutable == null) return null;
+
+    // 1. Find the target display
+    Display? targetDisplay;
+    double maxOverlap = -1.0;
+    for (final d in displays) {
+      final dRect = Rect.fromLTWH(
+        d.visiblePosition?.dx ?? 0,
+        d.visiblePosition?.dy ?? 0,
+        d.size.width,
+        d.size.height,
+      );
+      final intersection = dRect.intersect(logicalBounds);
+      final area = intersection.width * intersection.height;
+      if (area > maxOverlap) {
+        maxOverlap = area;
+        targetDisplay = d;
+      }
+    }
+    targetDisplay ??= displays.first;
+    final ratio = (targetDisplay.scaleFactor ?? 1.0).toDouble();
+    final displayOrigin = targetDisplay.visiblePosition ?? Offset.zero;
+
+    // 2. Calculate physical origin relative to Virtual Desktop
+    // (This matches the logic in ScreenRecorder for consistency)
+    double physicalOffsetX = 0;
+    double physicalOffsetY = 0;
+    for (final d in displays) {
+      final dPos = d.visiblePosition ?? Offset.zero;
+      if (dPos.dx < displayOrigin.dx) {
+        physicalOffsetX += d.size.width * (d.scaleFactor ?? 1.0);
+      }
+      if (dPos.dy < displayOrigin.dy) {
+        physicalOffsetY += d.size.height * (d.scaleFactor ?? 1.0);
+      }
+    }
+
+    // 3. Calculate physical coordinates
+    int x = ((logicalBounds.left - displayOrigin.dx) * ratio + physicalOffsetX)
+        .toInt();
+    int y = ((logicalBounds.top - displayOrigin.dy) * ratio + physicalOffsetY)
+        .toInt();
+    int w = (logicalBounds.width * ratio).toInt();
+    int h = (logicalBounds.height * ratio).toInt();
+
+    // ffmpeg filters usually require even dimensions for some encoders,
+    // although for static images it's less strict, we keep it for safety.
+    if (w % 2 != 0) w -= 1;
+    if (h % 2 != 0) h -= 1;
+
+    final args = [
+      '-f',
+      'gdigrab',
+      '-offset_x',
+      '$x',
+      '-offset_y',
+      '$y',
+      '-video_size',
+      '${w}x$h',
+      '-draw_mouse',
+      '0',
+      '-i',
+      'desktop',
+      '-frames:v',
+      '1',
+      // No scaling for screenshots!
+      '-y',
+      savePath,
+    ];
+
+    try {
+      final result = await Process.run(
+        _resolvedExecutable!,
+        args,
+      ).timeout(const Duration(seconds: 10));
+
+      if (result.exitCode == 0) {
+        return File(savePath);
+      } else {
+        debugPrint('[FfmpegEngine] Screenshot failed: ${result.stderr}');
+      }
+    } catch (e) {
+      debugPrint('[FfmpegEngine] Screenshot exception: $e');
+    }
+
+    return null;
+  }
 }

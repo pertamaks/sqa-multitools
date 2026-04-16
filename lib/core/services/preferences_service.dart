@@ -36,6 +36,11 @@ class PreferencesService {
   static const String keyAlwaysOnTop = 'always_on_top';
   static const String keyHotkeyShowToolbar = 'hotkey_show_toolbar';
   static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
+  static const String keyHotkeyScreenshotToggle = 'hotkey_screenshot_toggle';
+
+  static const String keyScreenshotSaveDir = 'screenshot_save_dir';
+  static const String keyScreenshotFormat = 'screenshot_format';
+  static const String keyScreenshotDelay = 'screenshot_delay';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -161,7 +166,11 @@ class PreferencesService {
     final jsonStr = _prefs.getString(key);
     if (jsonStr == null) return null;
     try {
-      return HotkeyInfo.fromJson(jsonDecode(jsonStr));
+      final decoded = jsonDecode(jsonStr);
+      if (decoded is Map<String, dynamic>) {
+        return HotkeyInfo.fromJson(decoded);
+      }
+      return null;
     } catch (e) {
       return null;
     }

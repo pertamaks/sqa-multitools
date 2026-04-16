@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import 'dart:convert';
+import '../models/hotkey_info.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError(
@@ -32,6 +34,8 @@ class PreferencesService {
   static const String keyBeautifierIndentWidth = 'beautifier_indent_width';
   static const String keyOracleMode = 'oracle_mode';
   static const String keyAlwaysOnTop = 'always_on_top';
+  static const String keyHotkeyShowToolbar = 'hotkey_show_toolbar';
+  static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -151,6 +155,24 @@ class PreferencesService {
 
   Future<void> setAlwaysOnTop(bool value) async {
     await _prefs.setBool(keyAlwaysOnTop, value);
+  }
+
+  HotkeyInfo? getHotkey(String key) {
+    final jsonStr = _prefs.getString(key);
+    if (jsonStr == null) return null;
+    try {
+      return HotkeyInfo.fromJson(jsonDecode(jsonStr));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> setHotkey(String key, HotkeyInfo? info) async {
+    if (info == null) {
+      await _prefs.remove(key);
+    } else {
+      await _prefs.setString(key, jsonEncode(info.toJson()));
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../core/models/capture_mode.dart';
@@ -25,6 +26,10 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(false) bool isTargetingWindow,
     Rect? targetedWindowRect,
     int? targetedWindowHwnd,
+    @Default([]) List<String> availableAudioDevices,
+    String? selectedAudioDevice,
+    @Default(Colors.white) Color clickFeedbackColor,
+    @Default(Colors.amber) Color rightClickFeedbackColor,
     @Default([]) List<Annotation> annotations,
     @Default(ScreenshotTool.pen) ScreenshotTool currentTool,
     @Default(Colors.red) Color annotationColor,
@@ -42,5 +47,15 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default({}) Map<String, String> monitorNames, // id -> friendlyName
     @Default({}) Map<String, String> displayThumbnails, // id -> filePath
     String? primaryDisplayId,
+    @Default([]) List<RecordingInfo> recentRecordings,
   }) = _ScreenRecorderState;
+}
+
+@freezed
+abstract class RecordingInfo with _$RecordingInfo {
+  const factory RecordingInfo({
+    required File file,
+    required int size,
+    required DateTime modified,
+  }) = _RecordingInfo;
 }

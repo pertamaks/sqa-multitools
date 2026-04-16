@@ -19,20 +19,19 @@ class WindowUtils {
     if (!Platform.isWindows) return [];
 
     try {
-      final result = await Process.run(
-        'powershell',
-        [
-          '-Command',
-          r'Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -and $_.ProcessName -notmatch "InputApp|ShellExperienceHost|StartMenuExperienceHost|TextInputHost" } | Select-Object -ExpandProperty MainWindowTitle',
-        ],
-      );
+      final result = await Process.run('powershell', [
+        '-Command',
+        r'Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -and $_.ProcessName -notmatch "InputApp|ShellExperienceHost|StartMenuExperienceHost|TextInputHost" } | Select-Object -ExpandProperty MainWindowTitle',
+      ]);
 
       if (result.exitCode == 0) {
         final titles = const LineSplitter()
             .convert(result.stdout.toString())
             .map((e) => e.trim())
-            .where((e) => e.isNotEmpty && !e.contains('sqa-multitools')) // Exclude ourselves
-            .toSet() 
+            .where(
+              (e) => e.isNotEmpty && !e.contains('sqa-multitools'),
+            ) // Exclude ourselves
+            .toSet()
             .toList();
         titles.sort();
         return titles;
@@ -54,7 +53,7 @@ class WindowUtils {
     final lpdwProcessId = calloc<Uint32>();
     final rectPointer = calloc<RECT>();
     final classNameBuffer = calloc<Uint16>(256).cast<Utf16>();
-    
+
     int targetHwnd = 0;
 
     try {
@@ -70,21 +69,20 @@ class WindowUtils {
               point.ref.x < rectPointer.ref.right &&
               point.ref.y >= rectPointer.ref.top &&
               point.ref.y < rectPointer.ref.bottom) {
-            
             // 3. Check Process ID
             GetWindowThreadProcessId(hwnd, lpdwProcessId);
             if (lpdwProcessId.value != myPid) {
               // 4. Filter out system background windows
               GetClassName(hwnd, classNameBuffer, 256);
               final className = classNameBuffer.toDartString();
-              
+
               final ignoreClasses = [
                 'Progman',
                 'WorkerW',
                 'Shell_TrayWnd',
                 'Shell_SecondaryTrayWnd',
               ];
-              
+
               if (!ignoreClasses.contains(className)) {
                 // Found it! This is the top-most app window under our overlay
                 targetHwnd = hwnd;
@@ -158,13 +156,10 @@ class WindowUtils {
     if (!Platform.isWindows) return [];
 
     try {
-      final result = await Process.run(
-        'powershell',
-        [
-          '-Command',
-          '(Get-CimInstance Win32_PnPEntity | Where-Object { \$_.Service -eq "monitor" }).Name',
-        ],
-      );
+      final result = await Process.run('powershell', [
+        '-Command',
+        '(Get-CimInstance Win32_PnPEntity | Where-Object { \$_.Service -eq "monitor" }).Name',
+      ]);
 
       if (result.exitCode == 0) {
         return const LineSplitter()
@@ -181,14 +176,14 @@ class WindowUtils {
   /// Brings the given window to the front and focuses it.
   static void focusWindow(int hwnd) {
     if (!Platform.isWindows || hwnd == 0) return;
-    
+
     // Check if minimized
     if (IsIconic(hwnd) != 0) {
       ShowWindow(hwnd, SW_RESTORE);
     } else {
       ShowWindow(hwnd, SW_SHOW);
     }
-    
+
     // Bring to top and focus
     SetForegroundWindow(hwnd);
   }

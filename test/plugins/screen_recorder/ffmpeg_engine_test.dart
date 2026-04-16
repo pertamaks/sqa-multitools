@@ -37,8 +37,16 @@ void main() {
       );
 
       final displays = [
-        createDisplay(id: '1', position: Offset.zero, size: const Size(1920, 1080)),
-        createDisplay(id: '2', position: const Offset(1920, 0), size: const Size(1920, 1080)),
+        createDisplay(
+          id: '1',
+          position: Offset.zero,
+          size: const Size(1920, 1080),
+        ),
+        createDisplay(
+          id: '2',
+          position: const Offset(1920, 0),
+          size: const Size(1920, 1080),
+        ),
       ];
 
       final args = engine.buildArguments(state, 'output.mp4', displays);
@@ -54,12 +62,25 @@ void main() {
     test('Area mode uses captureRect (selectionRect mapped)', () {
       final state = ScreenRecorderState(
         captureMode: CaptureMode.area,
-        captureRect: const Rect.fromLTWH(2020, 100, 500, 400), // Selection on Monitor 2
+        captureRect: const Rect.fromLTWH(
+          2020,
+          100,
+          500,
+          400,
+        ), // Selection on Monitor 2
       );
 
       final displays = [
-        createDisplay(id: '1', position: Offset.zero, size: const Size(1920, 1080)),
-        createDisplay(id: '2', position: const Offset(1920, 0), size: const Size(1920, 1080)),
+        createDisplay(
+          id: '1',
+          position: Offset.zero,
+          size: const Size(1920, 1080),
+        ),
+        createDisplay(
+          id: '2',
+          position: const Offset(1920, 0),
+          size: const Size(1920, 1080),
+        ),
       ];
 
       final args = engine.buildArguments(state, 'output.mp4', displays);
@@ -76,7 +97,11 @@ void main() {
       );
 
       final displays = [
-        createDisplay(id: '1', position: Offset.zero, size: const Size(1920, 1080)),
+        createDisplay(
+          id: '1',
+          position: Offset.zero,
+          size: const Size(1920, 1080),
+        ),
       ];
 
       final args = engine.buildArguments(state, 'output.mp4', displays);
@@ -103,7 +128,12 @@ void main() {
       );
 
       final displays = [
-        createDisplay(id: '1', position: Offset.zero, size: const Size(1920, 1080), ratio: 1.5),
+        createDisplay(
+          id: '1',
+          position: Offset.zero,
+          size: const Size(1920, 1080),
+          ratio: 1.5,
+        ),
       ];
 
       final args = engine.buildArguments(state, 'output.mp4', displays);
@@ -117,13 +147,28 @@ void main() {
       // Monitor 1: 1920 wide, 150% scaling => 2880 physical width
       // Monitor 2: 1920 wide, 100% scaling => 1920 physical width
       final displays = [
-        createDisplay(id: '1', position: Offset.zero, size: const Size(1920, 1080), ratio: 1.5),
-        createDisplay(id: '2', position: const Offset(1920, 0), size: const Size(1920, 1080), ratio: 1.0),
+        createDisplay(
+          id: '1',
+          position: Offset.zero,
+          size: const Size(1920, 1080),
+          ratio: 1.5,
+        ),
+        createDisplay(
+          id: '2',
+          position: const Offset(1920, 0),
+          size: const Size(1920, 1080),
+          ratio: 1.0,
+        ),
       ];
 
       final state = ScreenRecorderState(
         captureMode: CaptureMode.area,
-        captureRect: const Rect.fromLTWH(2000, 100, 200, 200), // Logical 80px into Monitor 2
+        captureRect: const Rect.fromLTWH(
+          2000,
+          100,
+          200,
+          200,
+        ), // Logical 80px into Monitor 2
       );
 
       final args = engine.buildArguments(state, 'output.mp4', displays);

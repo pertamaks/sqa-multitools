@@ -64,14 +64,15 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
             }
           });
 
-    _splatController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() => _isSplatted = false);
-      }
-    });
+    _splatController =
+        AnimationController(
+          duration: const Duration(milliseconds: 1000),
+          vsync: this,
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            setState(() => _isSplatted = false);
+          }
+        });
 
     _splatScaleDown = CurvedAnimation(
       parent: _splatController,

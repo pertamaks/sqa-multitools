@@ -375,7 +375,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final supporterTier = ref.watch(supporterTierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final isScreenshotVisible = ref.watch(screenshotProvider).isOverlayVisible;
-    final isRecorderVisible = ref.watch(screenRecorderProvider).isOverlayVisible;
+    final isRecorderVisible = ref
+        .watch(screenRecorderProvider)
+        .isOverlayVisible;
     final isOverlayActive = isScreenshotVisible || isRecorderVisible;
     final hasPlugin = activePlugin != null;
 
@@ -427,7 +429,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 supporterTier,
               ),
             ),
-          if (!isOverlayActive && supporterTier >= 3 && ref.watch(bugSquashEnabledProvider))
+          if (!isOverlayActive &&
+              supporterTier >= 3 &&
+              ref.watch(bugSquashEnabledProvider))
             SquashTheBugOverlay(key: SquashTheBugOverlay.bugKey),
           if (isScreenshotVisible)
             const Positioned.fill(child: ScreenshotOverlay()),
@@ -438,7 +442,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     );
   }
 }
-
 
 class ToolIcon extends ConsumerWidget {
   final IconData icon;

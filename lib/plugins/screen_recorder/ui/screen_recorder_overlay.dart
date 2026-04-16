@@ -17,7 +17,6 @@ import '../../../ui/widgets/sqa_selection_painter.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_dropdown.dart';
 
-
 class ScreenRecorderOverlay extends ConsumerStatefulWidget {
   const ScreenRecorderOverlay({super.key});
 
@@ -31,12 +30,14 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
   late AnimationController _animationController;
   Offset? _startPos;
   Offset? _currentPos;
-  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(null);
+  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(
+    null,
+  );
   Timer? _mousePollingTimer;
   bool _isIgnoring = false;
   bool _isDragging = false;
   Offset _dragGrabOffset = Offset.zero;
-  
+
   // Click Feedback State
   final List<ClickRipple> _ripples = [];
   bool _leftMouseDownLast = false;
@@ -61,11 +62,12 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
   }
 
   void _startMousePolling() {
-    _mousePollingTimer =
-        Timer.periodic(const Duration(milliseconds: 20), (_) async {
+    _mousePollingTimer = Timer.periodic(const Duration(milliseconds: 20), (
+      _,
+    ) async {
       final state = ref.read(screenRecorderProvider);
-      
-      // OPTIMIZATION: If we are dragging the toolbar, skip polling to prioritize 
+
+      // OPTIMIZATION: If we are dragging the toolbar, skip polling to prioritize
       // movement performance and prevent state competition.
       if (_isDragging) return;
       // 1. Global Click Detection (Win32 - Windows only)
@@ -73,10 +75,11 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
         final leftDown = WindowUtils.isLeftMouseDown();
         final rightDown = WindowUtils.isRightMouseDown();
 
-        if ((leftDown && !_leftMouseDownLast) || (rightDown && !_rightMouseDownLast)) {
+        if ((leftDown && !_leftMouseDownLast) ||
+            (rightDown && !_rightMouseDownLast)) {
           final cursor = await screenRetriever.getCursorScreenPoint();
           final windowPos = await windowManager.getPosition();
-          
+
           // Convert screen coordinates to window-local coordinates
           final localPos = Offset(
             cursor.dx - windowPos.dx,
@@ -84,36 +87,43 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
           );
 
           // Handle Target Confirmation Click
-          if ((state.isTargetingWindow || (state.captureMode == CaptureMode.fullScreen && state.selectionRect == null)) && 
-              leftDown && !_leftMouseDownLast && state.targetedWindowRect != null) {
+          if ((state.isTargetingWindow ||
+                  (state.captureMode == CaptureMode.fullScreen &&
+                      state.selectionRect == null)) &&
+              leftDown &&
+              !_leftMouseDownLast &&
+              state.targetedWindowRect != null) {
             final targetRect = state.targetedWindowRect!;
             _teleportBarToRect(targetRect);
-            ref.read(screenRecorderProvider.notifier).confirmTargetWindow(
-              targetRect,
-              state.targetWindowName,
-            );
+            ref
+                .read(screenRecorderProvider.notifier)
+                .confirmTargetWindow(targetRect, state.targetWindowName);
           }
 
           setState(() {
-            _ripples.add(ClickRipple(
-              position: localPos, 
-              timestamp: DateTime.now(),
-              isRightClick: !leftDown && rightDown,
-            ));
+            _ripples.add(
+              ClickRipple(
+                position: localPos,
+                timestamp: DateTime.now(),
+                isRightClick: !leftDown && rightDown,
+              ),
+            );
           });
 
           // Auto-cleanup after 600ms
           Future.delayed(const Duration(milliseconds: 600), () {
             if (mounted) {
               setState(() {
-                _ripples.removeWhere((r) => 
-                  DateTime.now().difference(r.timestamp).inMilliseconds > 500
+                _ripples.removeWhere(
+                  (r) =>
+                      DateTime.now().difference(r.timestamp).inMilliseconds >
+                      500,
                 );
               });
             }
           });
         }
-        
+
         _leftMouseDownLast = leftDown;
         _rightMouseDownLast = rightDown;
 
@@ -130,12 +140,14 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
             );
 
             if (state.targetedWindowRect != localRect) {
-              ref.read(screenRecorderProvider.notifier).updateTargetedWindow(
-                  localRect, winInfo.title, winInfo.hwnd);
+              ref
+                  .read(screenRecorderProvider.notifier)
+                  .updateTargetedWindow(localRect, winInfo.title, winInfo.hwnd);
             }
           } else if (state.targetedWindowRect != null) {
-            ref.read(screenRecorderProvider.notifier).updateTargetedWindow(
-                null, null);
+            ref
+                .read(screenRecorderProvider.notifier)
+                .updateTargetedWindow(null, null);
           }
         } else if (state.captureMode == CaptureMode.fullScreen &&
             state.selectionRect == null) {
@@ -167,20 +179,24 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
             );
 
             if (state.targetedWindowRect != localRect) {
-              ref.read(screenRecorderProvider.notifier).updateTargetedWindow(
+              ref
+                  .read(screenRecorderProvider.notifier)
+                  .updateTargetedWindow(
                     localRect,
                     'Display ${displays.indexOf(targetDisplay) + 1}',
                   );
             }
           } else if (state.targetedWindowRect != null) {
-            ref.read(screenRecorderProvider.notifier).updateTargetedWindow(
-                null, null);
+            ref
+                .read(screenRecorderProvider.notifier)
+                .updateTargetedWindow(null, null);
           }
         } else {
           // Default: Clear any hover highlights (crucial for Area Mode logic)
           if (state.targetedWindowRect != null) {
-            ref.read(screenRecorderProvider.notifier).updateTargetedWindow(
-                null, null);
+            ref
+                .read(screenRecorderProvider.notifier)
+                .updateTargetedWindow(null, null);
           }
         }
       }
@@ -194,12 +210,17 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
   }
 
   Future<void> _handleIgnoreLogic(ScreenRecorderState state) async {
-    // Safety Guard: If we are not recording or the overlay is closing, 
+    // Safety Guard: If we are not recording or the overlay is closing,
     // ALWAYS ensure we are NOT ignoring mouse events and exit.
-    if (!state.isRecording || !state.isOverlayVisible || !mounted || state.isTargetingWindow) {
+    if (!state.isRecording ||
+        !state.isOverlayVisible ||
+        !mounted ||
+        state.isTargetingWindow) {
       if (_isIgnoring) {
         _isIgnoring = false;
-        await ref.read(screenRecorderProvider.notifier).setIgnoreMouseEvents(false);
+        await ref
+            .read(screenRecorderProvider.notifier)
+            .setIgnoreMouseEvents(false);
       }
       return;
     }
@@ -269,8 +290,14 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
     const double padding = 12.0;
 
     return Offset(
-      offset.dx.clamp(padding, math.max(padding, screenSize.width - barWidth - padding)),
-      offset.dy.clamp(padding, math.max(padding, screenSize.height - barHeight - padding)),
+      offset.dx.clamp(
+        padding,
+        math.max(padding, screenSize.width - barWidth - padding),
+      ),
+      offset.dy.clamp(
+        padding,
+        math.max(padding, screenSize.height - barHeight - padding),
+      ),
     );
   }
 
@@ -280,13 +307,13 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
     if (_barOffsetNotifier.value == null) {
       final size = MediaQuery.of(context).size;
       final state = ref.read(screenRecorderProvider);
-      
+
       // If captureRect is set (single monitor selected), center toolbar on it.
-      // Otherwise (virtual desktop spanning all monitors), center on the primary 
+      // Otherwise (virtual desktop spanning all monitors), center on the primary
       // monitor's local coordinates within the overlay.
       double centerX;
       double bottomY;
-      
+
       if (state.captureRect != null) {
         // captureRect is in global logical coords; convert to local overlay coords
         // by subtracting the overlay window's origin (which may be negative on multi-mon).
@@ -294,15 +321,19 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
         centerX = state.captureRect!.width / 2;
         bottomY = state.captureRect!.height - 150;
       } else {
-        // Virtual desktop mode — find the primary display (position 0,0) and 
+        // Virtual desktop mode — find the primary display (position 0,0) and
         // compute its local offset within the overlay.
         // The overlay window starts at (minX, minY) of the virtual desktop.
         // Primary monitor is at logical (0, 0), so its local offset is (-minX, -minY).
         // For a typical right-extended setup: minX=0, so primary local is (0, 0, 1920, 1080).
-        final primaryDisplay = state.availableDisplays.cast<Display?>().firstWhere(
-          (d) => d?.visiblePosition?.dx == 0 && d?.visiblePosition?.dy == 0,
-          orElse: () => state.availableDisplays.isNotEmpty ? state.availableDisplays.first : null,
-        );
+        final primaryDisplay = state.availableDisplays
+            .cast<Display?>()
+            .firstWhere(
+              (d) => d?.visiblePosition?.dx == 0 && d?.visiblePosition?.dy == 0,
+              orElse: () => state.availableDisplays.isNotEmpty
+                  ? state.availableDisplays.first
+                  : null,
+            );
         if (primaryDisplay != null) {
           // Compute where the primary monitor starts in local overlay coordinates
           // If overlay starts at minX (e.g. -1920 for left-extended), primary local X = 0 - minX = 1920
@@ -314,8 +345,10 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
             if (pos.dx < minX) minX = pos.dx;
             if (pos.dy < minY) minY = pos.dy;
           }
-          final localPrimaryX = (primaryDisplay.visiblePosition?.dx ?? 0) - minX;
-          final localPrimaryY = (primaryDisplay.visiblePosition?.dy ?? 0) - minY;
+          final localPrimaryX =
+              (primaryDisplay.visiblePosition?.dx ?? 0) - minX;
+          final localPrimaryY =
+              (primaryDisplay.visiblePosition?.dy ?? 0) - minY;
           centerX = localPrimaryX + primaryDisplay.size.width / 2;
           bottomY = localPrimaryY + primaryDisplay.size.height - 150;
         } else {
@@ -323,7 +356,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
           bottomY = size.height - 150;
         }
       }
-      
+
       _barOffsetNotifier.value = _clampOffset(
         Offset(centerX - 310, bottomY),
         size,
@@ -360,6 +393,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
       // Drawing annotation
       final annotation = Annotation(
         points: [details.localPosition],
+        pointTimestamps: [DateTime.now()],
         tool: state.currentTool,
         color: state.annotationColor,
       );
@@ -379,6 +413,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
       final last = state.annotations.last;
       final updated = last.copyWith(
         points: [...last.points, details.localPosition],
+        pointTimestamps: [...last.pointTimestamps, DateTime.now()],
       );
       ref.read(screenRecorderProvider.notifier).updateLastAnnotation(updated);
     }
@@ -446,11 +481,16 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
 
       final targetOffset = Offset(
         localTargetMonitorX + (activeDisplay.size.width / 2) - (barWidth / 2),
-        localTargetMonitorY + activeDisplay.size.height - barHeight - paddingBottom,
+        localTargetMonitorY +
+            activeDisplay.size.height -
+            barHeight -
+            paddingBottom,
       );
 
-      _barOffsetNotifier.value =
-          _clampOffset(targetOffset, MediaQuery.of(context).size);
+      _barOffsetNotifier.value = _clampOffset(
+        targetOffset,
+        MediaQuery.of(context).size,
+      );
     }
   }
 
@@ -460,8 +500,11 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
     final notifier = ref.read(screenRecorderProvider.notifier);
     if (!state.isOverlayVisible) return const SizedBox.shrink();
     // Live selection rect for visual feedback during dragging
-    final selectionRect = state.selectionRect ?? 
-        (_startPos != null && _currentPos != null ? Rect.fromPoints(_startPos!, _currentPos!) : null);
+    final selectionRect =
+        state.selectionRect ??
+        (_startPos != null && _currentPos != null
+            ? Rect.fromPoints(_startPos!, _currentPos!)
+            : null);
 
     final showInstruction =
         !state.isRecording &&
@@ -487,6 +530,8 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
                   isRecording: state.isRecording,
                   animationValue: _animationController.value,
                   ripples: _ripples,
+                  clickFeedbackColor: state.clickFeedbackColor,
+                  rightClickFeedbackColor: state.rightClickFeedbackColor,
                   repaint: _animationController,
                 ),
               ),
@@ -498,8 +543,9 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
             valueListenable: _barOffsetNotifier,
             builder: (context, barPosition, _) {
               if (barPosition == null) return const SizedBox.shrink();
-              
-              final showBar = state.isRecording ||
+
+              final showBar =
+                  state.isRecording ||
                   (!state.isTargetingWindow &&
                       (state.captureMode == CaptureMode.fullScreen ||
                           state.selectionRect != null));
@@ -523,154 +569,191 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
                           onDragUpdate: (details) {
                             // Absolute Pinning: Position = GlobalMouse - GrabOffset
                             _barOffsetNotifier.value = _clampOffset(
-                                details.globalPosition - _dragGrabOffset, 
-                                MediaQuery.of(context).size,
+                              details.globalPosition - _dragGrabOffset,
+                              MediaQuery.of(context).size,
                             );
                           },
                           onDragEnd: () {
                             setState(() => _isDragging = false);
                           },
                         ),
-                    // Timer & Status
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (state.isRecording && !state.isPaused)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          if (state.countdownSeconds > 0)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: Colors.orange,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.orange.withValues(alpha: 0.5),
-                                    blurRadius: 6,
+                        // Timer & Status
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (state.isRecording && !state.isPaused)
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
                                   ),
-                                ],
+                                ),
+                              if (state.countdownSeconds > 0)
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.orange.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              const SizedBox(width: 8),
+                              Text(
+                                state.countdownSeconds > 0
+                                    ? '${state.countdownSeconds}'
+                                    : _formatDuration(state.durationSeconds),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                  color: state.countdownSeconds > 0
+                                      ? Colors.orange
+                                      : null,
+                                ),
                               ),
-                            ),
-                          const SizedBox(width: 8),
-                          Text(
-                            state.countdownSeconds > 0
-                                ? '${state.countdownSeconds}'
-                                : _formatDuration(state.durationSeconds),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
-                              color: state.countdownSeconds > 0
-                                  ? Colors.orange
-                                  : null,
-                            ),
+                            ],
+                          ),
+                        ),
+
+                        const SqaFloatingBarDivider(),
+
+                        // Controls
+                        SqaFloatingBarButton(
+                          icon: state.isRecording
+                              ? Symbols.stop_circle
+                              : Symbols.play_arrow,
+                          tooltip: state.isRecording ? 'Stop & Save' : 'Start',
+                          onPressed: () => notifier.toggleRecording(),
+                          isPrimary: !state.isRecording,
+                          color: state.isRecording ? Colors.red : null,
+                        ),
+
+                        if (!state.isRecording)
+                          SqaFloatingBarButton(
+                            icon: Symbols.close,
+                            tooltip: state.countdownSeconds > 0
+                                ? 'Cancel Countdown'
+                                : 'Cancel Overlay',
+                            onPressed: () {
+                              if (state.countdownSeconds > 0) {
+                                notifier.cancelCountdown();
+                              } else {
+                                notifier.cancelOverlay();
+                              }
+                            },
+                            color: Colors.red,
+                          ),
+
+                        const SqaFloatingBarDivider(),
+
+                        // Mic Toggle
+                        SqaFloatingBarButton(
+                          icon: state.microphoneEnabled
+                              ? Symbols.mic
+                              : Symbols.mic_off,
+                          tooltip: 'Toggle Microphone',
+                          onPressed: state.isRecording
+                              ? null
+                              : () => notifier.toggleMicrophone(),
+                          isSelected: state.microphoneEnabled,
+                        ),
+
+                        // Delay selector (only before recording)
+                        if (!state.isRecording) ...[
+                          const SqaFloatingBarDivider(),
+                          SqaDropdown<int>(
+                            value: state.delaySeconds,
+                            onChanged: (val) {
+                              if (val != null) notifier.setDelay(val);
+                            },
+                            items: [0, 2, 5, 10]
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text('${e}s'),
+                                  ),
+                                )
+                                .toList(),
                           ),
                         ],
-                      ),
+
+                        const SqaFloatingBarDivider(),
+
+                        // Annotation Tools
+                        ...[
+                          (ScreenshotTool.pointer, Symbols.near_me, 'Pointer'),
+                          (ScreenshotTool.pen, Symbols.edit, 'Pen'),
+                          (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
+                          (
+                            ScreenshotTool.arrow,
+                            Symbols.arrow_outward,
+                            'Arrow',
+                          ),
+                          (
+                            ScreenshotTool.rectangle,
+                            Symbols.rectangle,
+                            'Rectangle',
+                          ),
+                          (
+                            ScreenshotTool.laser,
+                            Symbols.stylus_laser_pointer,
+                            'Laser Pointer',
+                          ),
+                        ].map(
+                          (t) => SqaFloatingBarButton(
+                            icon: t.$2,
+                            tooltip: t.$3,
+                            isSelected: state.currentTool == t.$1,
+                            onPressed: () => notifier.setTool(t.$1),
+                          ),
+                        ),
+
+                        const SqaFloatingBarDivider(),
+
+                        // Colors
+                        ...[
+                          Colors.red,
+                          Colors.green,
+                          Colors.blue,
+                          Colors.white,
+                        ].map(
+                          (c) => SqaFloatingBarColorPicker(
+                            color: c,
+                            isSelected: state.annotationColor == c,
+                            onTap: () => notifier.setColor(c),
+                          ),
+                        ),
+
+                        const SqaFloatingBarDivider(),
+
+                        // Clear button
+                        SqaFloatingBarButton(
+                          icon: Symbols.delete_sweep,
+                          tooltip: 'Clear Annotations',
+                          onPressed: () => notifier.clearAnnotations(),
+                        ),
+                      ],
                     ),
-
-                    const SqaFloatingBarDivider(),
-
-                    // Controls
-                    SqaFloatingBarButton(
-                      icon: state.isRecording
-                          ? Symbols.stop_circle
-                          : Symbols.play_arrow,
-                      tooltip: state.isRecording ? 'Stop & Save' : 'Start',
-                      onPressed: () => notifier.toggleRecording(),
-                      isPrimary: !state.isRecording,
-                      color: state.isRecording ? Colors.red : null,
-                    ),
-
-                    if (!state.isRecording)
-                      SqaFloatingBarButton(
-                        icon: Symbols.close,
-                        tooltip: state.countdownSeconds > 0
-                            ? 'Cancel Countdown'
-                            : 'Cancel Overlay',
-                        onPressed: () {
-                          if (state.countdownSeconds > 0) {
-                            notifier.cancelCountdown();
-                          } else {
-                            notifier.cancelOverlay();
-                          }
-                        },
-                        color: Colors.red,
-                      ),
-
-                    // Delay selector (only before recording)
-                    if (!state.isRecording) ...[
-                      const SqaFloatingBarDivider(),
-                      SqaDropdown<int>(
-                        value: state.delaySeconds,
-                        onChanged: (val) {
-                          if (val != null) notifier.setDelay(val);
-                        },
-                        items: [0, 2, 5, 10]
-                            .map((e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text('${e}s'),
-                                ))
-                            .toList(),
-                      ),
-                    ],
-
-                    const SqaFloatingBarDivider(),
-
-                    // Annotation Tools
-                    ...[
-                      (ScreenshotTool.pointer, Symbols.near_me, 'Pointer'),
-                      (ScreenshotTool.pen, Symbols.edit, 'Pen'),
-                      (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
-                      (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
-                      (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
-                    ].map(
-                      (t) => SqaFloatingBarButton(
-                        icon: t.$2,
-                        tooltip: t.$3,
-                        isSelected: state.currentTool == t.$1,
-                        onPressed: () => notifier.setTool(t.$1),
-                      ),
-                    ),
-
-                    const SqaFloatingBarDivider(),
-
-                    // Colors
-                    ...[Colors.red, Colors.green, Colors.blue, Colors.white].map(
-                      (c) => SqaFloatingBarColorPicker(
-                        color: c,
-                        isSelected: state.annotationColor == c,
-                        onTap: () => notifier.setColor(c),
-                      ),
-                    ),
-
-                    const SqaFloatingBarDivider(),
-
-                    // Clear button
-                    SqaFloatingBarButton(
-                      icon: Symbols.delete_sweep,
-                      tooltip: 'Clear Annotations',
-                      onPressed: () => notifier.clearAnnotations(),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
 
           // Mirrored Instructions (Visible on all displays)
-          if (showInstruction || (state.isTargetingWindow && state.isOverlayVisible))
+          if (showInstruction ||
+              (state.isTargetingWindow && state.isOverlayVisible))
             ...() {
               double minX = 0;
               double minY = 0;
@@ -684,7 +767,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
                 final displayPos = display.visiblePosition ?? Offset.zero;
                 final localX = displayPos.dx - minX;
                 final localY = displayPos.dy - minY;
-                
+
                 return Positioned(
                   left: localX,
                   top: localY,
@@ -692,11 +775,16 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
                   height: display.size.height,
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Text(
                         state.isTargetingWindow
@@ -718,4 +806,3 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay>
     );
   }
 }
-

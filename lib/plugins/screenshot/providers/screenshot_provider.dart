@@ -5,7 +5,6 @@ import '../../../core/models/capture_mode.dart';
 import '../../../core/models/screenshot_tool.dart';
 import '../../../core/models/annotation.dart';
 
-
 part 'screenshot_provider.g.dart';
 
 @riverpod

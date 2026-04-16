@@ -12,11 +12,7 @@ class SqaFloatingBar extends StatelessWidget {
   /// Optional callback when the drag handle is dragged.
   final Offset? position;
 
-  const SqaFloatingBar({
-    super.key,
-    required this.children,
-    this.position,
-  });
+  const SqaFloatingBar({super.key, required this.children, this.position});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +29,7 @@ class SqaFloatingBar extends StatelessWidget {
 class SqaFloatingBarButton extends StatelessWidget {
   final IconData icon;
   final String? tooltip;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isSelected;
   final bool isPrimary;
   final Color? color;
@@ -43,7 +39,7 @@ class SqaFloatingBarButton extends StatelessWidget {
     super.key,
     required this.icon,
     this.tooltip,
-    required this.onPressed,
+    this.onPressed,
     this.isSelected = false,
     this.isPrimary = false,
     this.color,
@@ -165,7 +161,9 @@ class SqaFloatingBarDragHandle extends StatelessWidget {
           child: Icon(
             Icons.drag_indicator,
             size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
         ),
       ),

@@ -25,7 +25,9 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
   late AnimationController _animationController;
   Offset? _startPos;
   Offset? _currentPos;
-  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(null);
+  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(
+    null,
+  );
   Timer? _mousePollingTimer;
   bool _isDragging = false;
   Offset _dragGrabOffset = Offset.zero;
@@ -54,7 +56,9 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
 
   void _startMousePolling() {
     _mousePollingTimer?.cancel();
-    _mousePollingTimer = Timer.periodic(const Duration(milliseconds: 30), (_) async {
+    _mousePollingTimer = Timer.periodic(const Duration(milliseconds: 30), (
+      _,
+    ) async {
       if (!mounted) return;
       final state = ref.read(screenshotProvider);
       if (!state.isOverlayVisible || _isDragging) return;
@@ -64,17 +68,23 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
 
       // Using the now centralized WindowUtils
       // (targeting logic follows)
-      
+
       // We only use win32 polls for button states to trigger confirmation
       // However, we can use screen_retriever's mouse state if preferred.
       // For simplicity, let's stick to the same pattern as recorder.
       final leftDown = WindowUtils.isLeftMouseDown();
-      
-      if (state.isTargetingWindow || (state.captureMode == CaptureMode.fullScreen && state.selectionRect == null)) {
-        if (leftDown && !_leftMouseDownLast && state.targetedWindowRect != null) {
+
+      if (state.isTargetingWindow ||
+          (state.captureMode == CaptureMode.fullScreen &&
+              state.selectionRect == null)) {
+        if (leftDown &&
+            !_leftMouseDownLast &&
+            state.targetedWindowRect != null) {
           final targetRect = state.targetedWindowRect!;
           _teleportBarToRect(targetRect);
-          ref.read(screenshotProvider.notifier).confirmTargetWindow(
+          ref
+              .read(screenshotProvider.notifier)
+              .confirmTargetWindow(
                 targetRect,
                 state.targetWindowName ?? 'Active Window',
               );
@@ -92,10 +102,14 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
               winInfo.rect.height,
             );
             if (state.targetedWindowRect != localRect) {
-              ref.read(screenshotProvider.notifier).updateTargetedWindow(localRect, winInfo.title);
+              ref
+                  .read(screenshotProvider.notifier)
+                  .updateTargetedWindow(localRect, winInfo.title);
             }
           } else if (state.targetedWindowRect != null) {
-            ref.read(screenshotProvider.notifier).updateTargetedWindow(null, null);
+            ref
+                .read(screenshotProvider.notifier)
+                .updateTargetedWindow(null, null);
           }
         }
       }
@@ -111,9 +125,13 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
 
     return Offset(
       offset.dx.clamp(
-          padding, math.max(padding, screenSize.width - barWidth - padding)),
+        padding,
+        math.max(padding, screenSize.width - barWidth - padding),
+      ),
       offset.dy.clamp(
-          padding, math.max(padding, screenSize.height - barHeight - padding)),
+        padding,
+        math.max(padding, screenSize.height - barHeight - padding),
+      ),
     );
   }
 
@@ -185,7 +203,6 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
     final notifier = ref.read(screenshotProvider.notifier);
     if (!state.isOverlayVisible) return const SizedBox.shrink();
 
-
     return Material(
       color: Colors.transparent,
       child: Stack(
@@ -199,7 +216,8 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
               child: CustomPaint(
                 size: Size.infinite,
                 painter: SqaSelectionPainter(
-                  selectionRect: state.selectionRect ??
+                  selectionRect:
+                      state.selectionRect ??
                       (_startPos != null && _currentPos != null
                           ? Rect.fromPoints(_startPos!, _currentPos!)
                           : null),
@@ -217,7 +235,7 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
             builder: (BuildContext context, Offset? barOffset, Widget? child) {
               final barPosition = barOffset ?? Offset.zero;
               if (state.selectionRect == null) return const SizedBox.shrink();
-              
+
               return Positioned(
                 left: barPosition.dx,
                 top: barPosition.dy,
@@ -239,63 +257,72 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
                         _isDragging = false;
                       },
                     ),
-                  ...[
-                    (ScreenshotTool.pen, Symbols.edit, 'Pen'),
-                    (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
-                    (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
-                    (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
-                    (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
-                    (ScreenshotTool.text, Symbols.text_fields, 'Text'),
-                  ].map(
-                    (t) => SqaFloatingBarButton(
-                      icon: t.$2,
-                      tooltip: t.$3,
-                      isSelected: state.currentTool == t.$1,
-                      onPressed: () => notifier.setTool(t.$1),
+                    ...[
+                      (ScreenshotTool.pen, Symbols.edit, 'Pen'),
+                      (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
+                      (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
+                      (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
+                      (
+                        ScreenshotTool.rectangle,
+                        Symbols.rectangle,
+                        'Rectangle',
+                      ),
+                      (ScreenshotTool.text, Symbols.text_fields, 'Text'),
+                    ].map(
+                      (t) => SqaFloatingBarButton(
+                        icon: t.$2,
+                        tooltip: t.$3,
+                        isSelected: state.currentTool == t.$1,
+                        onPressed: () => notifier.setTool(t.$1),
+                      ),
                     ),
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.delete_sweep,
-                    tooltip: 'Clear All',
-                    onPressed: notifier.clearAnnotations,
-                  ),
-
-                  const SqaFloatingBarDivider(),
-
-                  // Colors (Selected 4)
-                  ...[Colors.red, Colors.green, Colors.blue, Colors.white].map(
-                    (c) => SqaFloatingBarColorPicker(
-                      color: c,
-                      isSelected: state.annotationColor == c,
-                      onTap: () => notifier.setColor(c),
+                    SqaFloatingBarButton(
+                      icon: Symbols.delete_sweep,
+                      tooltip: 'Clear All',
+                      onPressed: notifier.clearAnnotations,
                     ),
-                  ),
 
-                  const SqaFloatingBarDivider(),
+                    const SqaFloatingBarDivider(),
 
-                  // Final Actions
-                  SqaFloatingBarButton(
-                    icon: Symbols.content_copy,
-                    tooltip: 'Copy to Clipboard',
-                    onPressed: () => notifier.finalize(shouldCopy: true),
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.save,
-                    tooltip: 'Save Screenshot',
-                    onPressed: () => notifier.finalize(),
-                    isPrimary: true,
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.close,
-                    tooltip: 'Cancel',
-                    onPressed: notifier.stopCapture,
-                    color: Colors.red,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                    // Colors (Selected 4)
+                    ...[
+                      Colors.red,
+                      Colors.green,
+                      Colors.blue,
+                      Colors.white,
+                    ].map(
+                      (c) => SqaFloatingBarColorPicker(
+                        color: c,
+                        isSelected: state.annotationColor == c,
+                        onTap: () => notifier.setColor(c),
+                      ),
+                    ),
+
+                    const SqaFloatingBarDivider(),
+
+                    // Final Actions
+                    SqaFloatingBarButton(
+                      icon: Symbols.content_copy,
+                      tooltip: 'Copy to Clipboard',
+                      onPressed: () => notifier.finalize(shouldCopy: true),
+                    ),
+                    SqaFloatingBarButton(
+                      icon: Symbols.save,
+                      tooltip: 'Save Screenshot',
+                      onPressed: () => notifier.finalize(),
+                      isPrimary: true,
+                    ),
+                    SqaFloatingBarButton(
+                      icon: Symbols.close,
+                      tooltip: 'Cancel',
+                      onPressed: notifier.stopCapture,
+                      color: Colors.red,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
 
           // Instructions
           if (state.selectionRect == null)
@@ -315,4 +342,3 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
     );
   }
 }
-

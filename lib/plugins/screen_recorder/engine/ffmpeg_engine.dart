@@ -123,8 +123,51 @@ class FfmpegEngine {
     extractFileToDisk(zipPath, destPath);
   }
 
+  /// Lists available audio input devices using FFmpeg's dshow.
+  static Future<List<String>> listAudioDevices() async {
+    if (!await isEngineAvailable() || _resolvedExecutable == null) return [];
+
+    try {
+      final result = await Process.run(_resolvedExecutable!, [
+        '-f',
+        'dshow',
+        '-list_devices',
+        'true',
+        '-i',
+        'dummy',
+      ]);
+
+      // FFmpeg outputs device lists to stderr
+      final output = result.stderr as String;
+      final lines = output.split('\n');
+      final devices = <String>[];
+
+      // Regex to match: [dshow @ 000001f3e58f3dc0] "Microphone (Realtek High Definition Audio)" (audio)
+      final deviceRegex = RegExp(r'\[dshow @ .*\] "(.*)" \(audio\)');
+
+      for (final line in lines) {
+        final match = deviceRegex.firstMatch(line);
+        if (match != null) {
+          final deviceName = match.group(1);
+          if (deviceName != null) {
+            devices.add(deviceName);
+          }
+        }
+      }
+
+      return devices;
+    } catch (e) {
+      debugPrint('[ScreenRecorder] Failed to list audio devices: $e');
+      return [];
+    }
+  }
+
   /// Builds the argument list for FFmpeg.
-  List<String> buildArguments(ScreenRecorderState state, String outputPath, List<Display> displays) {
+  List<String> buildArguments(
+    ScreenRecorderState state,
+    String outputPath,
+    List<Display> displays,
+  ) {
     final args = <String>[];
 
     // Global flags
@@ -132,7 +175,7 @@ class FfmpegEngine {
 
     // Input configuration
     args.addAll(['-f', 'gdigrab', '-framerate', '${state.framerate}']);
-    
+
     // Hide cursor if requested
     if (state.showCursor == false) {
       args.addAll(['-draw_mouse', '0']);
@@ -142,7 +185,7 @@ class FfmpegEngine {
     final filters = <String>[];
     if (state.captureMode == CaptureMode.window || state.captureRect != null) {
       final rect = state.captureRect!;
-      
+
       // 1. Calculate Virtual Desktop logical bounds (Origin)
       double globalMinX = 0;
       double globalMinY = 0;
@@ -156,11 +199,19 @@ class FfmpegEngine {
       Display? targetDisplay;
       double maxOverlap = -1.0;
       for (final d in displays) {
-        final dRect = Rect.fromLTWH(d.visiblePosition?.dx ?? 0, d.visiblePosition?.dy ?? 0, d.size.width, d.size.height);
+        final dRect = Rect.fromLTWH(
+          d.visiblePosition?.dx ?? 0,
+          d.visiblePosition?.dy ?? 0,
+          d.size.width,
+          d.size.height,
+        );
         final intersect = dRect.intersect(rect);
         if (intersect.width > 0 && intersect.height > 0) {
           final area = intersect.width * intersect.height;
-          if (area > maxOverlap) { maxOverlap = area; targetDisplay = d; }
+          if (area > maxOverlap) {
+            maxOverlap = area;
+            targetDisplay = d;
+          }
         }
       }
       targetDisplay ??= displays.first;
@@ -177,7 +228,8 @@ class FfmpegEngine {
         if (dPos.dy < targetOrigin.dy) absOriginY += d.size.height * dScale;
       }
 
-      int x = (absOriginX + (rect.left - targetOrigin.dx) * targetScale).toInt();
+      int x = (absOriginX + (rect.left - targetOrigin.dx) * targetScale)
+          .toInt();
       int y = (absOriginY + (rect.top - targetOrigin.dy) * targetScale).toInt();
       int w = (rect.width * targetScale).toInt();
       int h = (rect.height * targetScale).toInt();
@@ -192,10 +244,19 @@ class FfmpegEngine {
       filters.add('scale=-2:720');
     } else if (state.resolution == '1080p') {
       filters.add('scale=-2:1080');
+    } else if (state.resolution == '480p') {
+      filters.add('scale=-2:480');
+    } else if (state.resolution == '360p') {
+      filters.add('scale=-2:360');
     }
 
     // 5. Input Assignment (MUST follow input options like -framerate)
     args.addAll(['-i', 'desktop']);
+
+    // 5.1 Additional Audio Input (Microphone)
+    if (state.microphoneEnabled && state.selectedAudioDevice != null) {
+      args.addAll(['-f', 'dshow', '-i', 'audio=${state.selectedAudioDevice}']);
+    }
 
     // 6. Filter Chain (MUST follow the input stream)
     if (filters.isNotEmpty) {
@@ -204,11 +265,19 @@ class FfmpegEngine {
 
     // 7. Output Encoding Settings
     args.addAll([
-      '-c:v', 'libx264',
-      '-preset', 'veryfast',
-      '-crf', '28',
-      '-pix_fmt', 'yuv420p',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '28',
+      '-pix_fmt',
+      'yuv420p',
     ]);
+
+    if (state.microphoneEnabled && state.selectedAudioDevice != null) {
+      args.addAll(['-c:a', 'aac']);
+    }
 
     // 8. Output Path
     args.add(outputPath);
@@ -227,7 +296,9 @@ class FfmpegEngine {
     }
 
     final args = buildArguments(state, savePath, displays);
-    debugPrint('[ScreenRecorder] FFmpeg Command: $_resolvedExecutable ${args.join(' ')}');
+    /* debugPrint(
+      '[ScreenRecorder] FFmpeg Command: $_resolvedExecutable ${args.join(' ')}',
+    ); */
 
     // Using Process.start
     final process = await Process.start(_resolvedExecutable!, args);
@@ -245,11 +316,15 @@ class FfmpegEngine {
   }
 
   /// Captures a quick low-res thumbnail of a display region.
-  static Future<File?> captureDisplayThumbnail(Rect bounds, List<Display> displays) async {
+  static Future<File?> captureDisplayThumbnail(
+    Rect bounds,
+    List<Display> displays,
+  ) async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return null;
 
     final tempDir = await getTemporaryDirectory();
-    final outputPath = '${tempDir.path}\\sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg';
+    final outputPath =
+        '${tempDir.path}\\sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg';
 
     // 1. Find the target display
     Display? targetDisplay;
@@ -286,7 +361,8 @@ class FfmpegEngine {
     }
 
     // 3. Calculate physical coordinates
-    int x = ((bounds.left - displayOrigin.dx) * ratio + physicalOffsetX).toInt();
+    int x = ((bounds.left - displayOrigin.dx) * ratio + physicalOffsetX)
+        .toInt();
     int y = ((bounds.top - displayOrigin.dy) * ratio + physicalOffsetY).toInt();
     int w = (bounds.width * ratio).toInt();
     int h = (bounds.height * ratio).toInt();
@@ -302,13 +378,17 @@ class FfmpegEngine {
       '-video_size', '${w}x$h',
       '-i', 'desktop',
       '-frames:v', '1',
-      '-vf', 'scale=320:-2', // Small thumbnail with aspect ratio preserved (even width)
+      '-vf',
+      'scale=320:-2', // Small thumbnail with aspect ratio preserved (even width)
       '-y',
       outputPath,
     ];
 
     try {
-      final result = await Process.run(_resolvedExecutable!, args).timeout(const Duration(seconds: 5));
+      final result = await Process.run(
+        _resolvedExecutable!,
+        args,
+      ).timeout(const Duration(seconds: 5));
       if (result.exitCode == 0) {
         return File(outputPath);
       }

@@ -1,5 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:window_manager/window_manager.dart';
+import 'dart:convert';
+import '../models/hotkey_info.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError(
@@ -30,6 +33,9 @@ class PreferencesService {
       'beautifier_output_wrap_text';
   static const String keyBeautifierIndentWidth = 'beautifier_indent_width';
   static const String keyOracleMode = 'oracle_mode';
+  static const String keyAlwaysOnTop = 'always_on_top';
+  static const String keyHotkeyShowToolbar = 'hotkey_show_toolbar';
+  static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -142,6 +148,32 @@ class PreferencesService {
   Future<void> setOracleModeIndex(int index) async {
     await _prefs.setInt(keyOracleMode, index);
   }
+
+  bool getAlwaysOnTop() {
+    return _prefs.getBool(keyAlwaysOnTop) ?? true;
+  }
+
+  Future<void> setAlwaysOnTop(bool value) async {
+    await _prefs.setBool(keyAlwaysOnTop, value);
+  }
+
+  HotkeyInfo? getHotkey(String key) {
+    final jsonStr = _prefs.getString(key);
+    if (jsonStr == null) return null;
+    try {
+      return HotkeyInfo.fromJson(jsonDecode(jsonStr));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> setHotkey(String key, HotkeyInfo? info) async {
+    if (info == null) {
+      await _prefs.remove(key);
+    } else {
+      await _prefs.setString(key, jsonEncode(info.toJson()));
+    }
+  }
 }
 
 final preferencesServiceProvider = Provider<PreferencesService>((ref) {
@@ -152,22 +184,26 @@ class ThemeSettings {
   final int modeIndex;
   final int seedColorValue;
   final bool useDynamicColor;
+  final bool alwaysOnTop;
 
   const ThemeSettings({
     required this.modeIndex,
     required this.seedColorValue,
     required this.useDynamicColor,
+    required this.alwaysOnTop,
   });
 
   ThemeSettings copyWith({
     int? modeIndex,
     int? seedColorValue,
     bool? useDynamicColor,
+    bool? alwaysOnTop,
   }) {
     return ThemeSettings(
       modeIndex: modeIndex ?? this.modeIndex,
       seedColorValue: seedColorValue ?? this.seedColorValue,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
+      alwaysOnTop: alwaysOnTop ?? this.alwaysOnTop,
     );
   }
 }
@@ -180,6 +216,7 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
+      alwaysOnTop: service.getAlwaysOnTop(),
     );
   }
 
@@ -198,6 +235,12 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
     ref.read(preferencesServiceProvider).setUseDynamicColor(useDynamic);
   }
 
+  void setAlwaysOnTop(bool value) {
+    state = state.copyWith(alwaysOnTop: value);
+    ref.read(preferencesServiceProvider).setAlwaysOnTop(value);
+    windowManager.setAlwaysOnTop(value);
+  }
+
   // Temporary preview method (not saved to prefs)
   void previewSeedColor(int colorValue) {
     state = state.copyWith(seedColorValue: colorValue);
@@ -210,6 +253,7 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
+      alwaysOnTop: service.getAlwaysOnTop(),
     );
   }
 }

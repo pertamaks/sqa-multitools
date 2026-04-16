@@ -36,8 +36,8 @@ class OracleSettingsNotifier extends Notifier<OracleSettings> {
 
 final oracleSettingsProvider =
     NotifierProvider<OracleSettingsNotifier, OracleSettings>(() {
-  return OracleSettingsNotifier();
-});
+      return OracleSettingsNotifier();
+    });
 
 final oracleResponsesProvider = Provider<List<String>>((ref) {
   final mode = ref.watch(oracleSettingsProvider).mode;

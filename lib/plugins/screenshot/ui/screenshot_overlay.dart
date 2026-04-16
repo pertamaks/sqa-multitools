@@ -1,11 +1,17 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
-import '../models/screenshot_tool.dart';
-import '../models/annotation.dart';
+import '../../../core/models/screenshot_tool.dart';
+import '../../../core/models/annotation.dart';
+import '../../../core/models/capture_mode.dart';
+import '../../../core/window/window_utils.dart';
 import '../providers/screenshot_provider.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
+import '../../../ui/widgets/sqa_selection_painter.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:window_manager/window_manager.dart';
 
 class ScreenshotOverlay extends ConsumerStatefulWidget {
   const ScreenshotOverlay({super.key});
@@ -14,9 +20,131 @@ class ScreenshotOverlay extends ConsumerStatefulWidget {
   ConsumerState<ScreenshotOverlay> createState() => _ScreenshotOverlayState();
 }
 
-class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
+class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
   Offset? _startPos;
   Offset? _currentPos;
+  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(
+    null,
+  );
+  Timer? _mousePollingTimer;
+  bool _isDragging = false;
+  Offset _dragGrabOffset = Offset.zero;
+
+  // Track last mouse buttons
+  bool _leftMouseDownLast = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _startMousePolling();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _mousePollingTimer?.cancel();
+    _barOffsetNotifier.dispose();
+    super.dispose();
+  }
+
+  void _startMousePolling() {
+    _mousePollingTimer?.cancel();
+    _mousePollingTimer = Timer.periodic(const Duration(milliseconds: 30), (
+      _,
+    ) async {
+      if (!mounted) return;
+      final state = ref.read(screenshotProvider);
+      if (!state.isOverlayVisible || _isDragging) return;
+
+      final win32 = Platform.isWindows;
+      if (!win32) return;
+
+      // Using the now centralized WindowUtils
+      // (targeting logic follows)
+
+      // We only use win32 polls for button states to trigger confirmation
+      // However, we can use screen_retriever's mouse state if preferred.
+      // For simplicity, let's stick to the same pattern as recorder.
+      final leftDown = WindowUtils.isLeftMouseDown();
+
+      if (state.isTargetingWindow ||
+          (state.captureMode == CaptureMode.fullScreen &&
+              state.selectionRect == null)) {
+        if (leftDown &&
+            !_leftMouseDownLast &&
+            state.targetedWindowRect != null) {
+          final targetRect = state.targetedWindowRect!;
+          _teleportBarToRect(targetRect);
+          ref
+              .read(screenshotProvider.notifier)
+              .confirmTargetWindow(
+                targetRect,
+                state.targetWindowName ?? 'Active Window',
+              );
+        }
+
+        // Window/Monitor targeting discovery
+        if (state.isTargetingWindow) {
+          final winInfo = WindowUtils.getWindowInfoAt();
+          if (winInfo != null) {
+            final windowPos = await windowManager.getPosition();
+            final localRect = Rect.fromLTWH(
+              winInfo.rect.left - windowPos.dx,
+              winInfo.rect.top - windowPos.dy,
+              winInfo.rect.width,
+              winInfo.rect.height,
+            );
+            if (state.targetedWindowRect != localRect) {
+              ref
+                  .read(screenshotProvider.notifier)
+                  .updateTargetedWindow(localRect, winInfo.title);
+            }
+          } else if (state.targetedWindowRect != null) {
+            ref
+                .read(screenshotProvider.notifier)
+                .updateTargetedWindow(null, null);
+          }
+        }
+      }
+
+      _leftMouseDownLast = leftDown;
+    });
+  }
+
+  Offset _clampOffset(Offset offset, Size screenSize) {
+    const double barWidth = 650.0;
+    const double barHeight = 60.0;
+    const double padding = 12.0;
+
+    return Offset(
+      offset.dx.clamp(
+        padding,
+        math.max(padding, screenSize.width - barWidth - padding),
+      ),
+      offset.dy.clamp(
+        padding,
+        math.max(padding, screenSize.height - barHeight - padding),
+      ),
+    );
+  }
+
+  void _teleportBarToRect(Rect targetRect) {
+    if (!mounted) return;
+    // ... Logic matches Screen Recorder for consistency ...
+    final size = MediaQuery.of(context).size;
+    final targetOffset = Offset(
+      targetRect.center.dx - 325, // center horizontally
+      targetRect.bottom + 20,
+    );
+    _barOffsetNotifier.value = _clampOffset(targetOffset, size);
+  }
 
   void _onPanStart(DragStartDetails details) {
     final state = ref.read(screenshotProvider);
@@ -59,6 +187,7 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
         _currentPos != null) {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
+        _teleportBarToRect(rect);
         ref.read(screenshotProvider.notifier).setSelection(rect);
       }
       setState(() {
@@ -83,78 +212,117 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
             onPanStart: _onPanStart,
             onPanUpdate: _onPanUpdate,
             onPanEnd: _onPanEnd,
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: _OverlayPainter(
-                selectionRect:
-                    state.selectionRect ??
-                    (_startPos != null && _currentPos != null
-                        ? Rect.fromPoints(_startPos!, _currentPos!)
-                        : null),
-                annotations: state.annotations,
+            child: RepaintBoundary(
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: SqaSelectionPainter(
+                  selectionRect:
+                      state.selectionRect ??
+                      (_startPos != null && _currentPos != null
+                          ? Rect.fromPoints(_startPos!, _currentPos!)
+                          : null),
+                  targetedWindowRect: state.targetedWindowRect,
+                  annotations: state.annotations,
+                  animationValue: _animationController.value,
+                  repaint: _animationController,
+                ),
               ),
             ),
           ),
 
-          // Combined Floating Toolbar with Centralized SqaFloatingBar
-          if (state.selectionRect != null)
-            SqaFloatingBar(
-              selectionRect: state.selectionRect,
-              children: [
-                ...[
-                  (ScreenshotTool.pen, Symbols.edit, 'Pen'),
-                  (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
-                  (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
-                  (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
-                  (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
-                  (ScreenshotTool.text, Symbols.text_fields, 'Text'),
-                ].map(
-                  (t) => SqaFloatingBarButton(
-                    icon: t.$2,
-                    tooltip: t.$3,
-                    isSelected: state.currentTool == t.$1,
-                    onPressed: () => notifier.setTool(t.$1),
-                  ),
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.delete_sweep,
-                  tooltip: 'Clear All',
-                  onPressed: notifier.clearAnnotations,
-                ),
+          ValueListenableBuilder<Offset?>(
+            valueListenable: _barOffsetNotifier,
+            builder: (BuildContext context, Offset? barOffset, Widget? child) {
+              final barPosition = barOffset ?? Offset.zero;
+              if (state.selectionRect == null) return const SizedBox.shrink();
 
-                const SqaFloatingBarDivider(),
+              return Positioned(
+                left: barPosition.dx,
+                top: barPosition.dy,
+                child: SqaFloatingBar(
+                  children: [
+                    SqaFloatingBarDragHandle(
+                      onDragStart: (details) {
+                        _isDragging = true;
+                        _dragGrabOffset = details.localPosition;
+                      },
+                      onDragUpdate: (details) {
+                        final size = MediaQuery.of(context).size;
+                        _barOffsetNotifier.value = _clampOffset(
+                          details.globalPosition - _dragGrabOffset,
+                          size,
+                        );
+                      },
+                      onDragEnd: () {
+                        _isDragging = false;
+                      },
+                    ),
+                    ...[
+                      (ScreenshotTool.pen, Symbols.edit, 'Pen'),
+                      (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
+                      (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
+                      (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
+                      (
+                        ScreenshotTool.rectangle,
+                        Symbols.rectangle,
+                        'Rectangle',
+                      ),
+                      (ScreenshotTool.text, Symbols.text_fields, 'Text'),
+                    ].map(
+                      (t) => SqaFloatingBarButton(
+                        icon: t.$2,
+                        tooltip: t.$3,
+                        isSelected: state.currentTool == t.$1,
+                        onPressed: () => notifier.setTool(t.$1),
+                      ),
+                    ),
+                    SqaFloatingBarButton(
+                      icon: Symbols.delete_sweep,
+                      tooltip: 'Clear All',
+                      onPressed: notifier.clearAnnotations,
+                    ),
 
-                // Colors (Selected 4)
-                ...[Colors.red, Colors.green, Colors.blue, Colors.white].map(
-                  (c) => SqaFloatingBarColorPicker(
-                    color: c,
-                    isSelected: state.annotationColor == c,
-                    onTap: () => notifier.setColor(c),
-                  ),
-                ),
+                    const SqaFloatingBarDivider(),
 
-                const SqaFloatingBarDivider(),
+                    // Colors (Selected 4)
+                    ...[
+                      Colors.red,
+                      Colors.green,
+                      Colors.blue,
+                      Colors.white,
+                    ].map(
+                      (c) => SqaFloatingBarColorPicker(
+                        color: c,
+                        isSelected: state.annotationColor == c,
+                        onTap: () => notifier.setColor(c),
+                      ),
+                    ),
 
-                // Final Actions
-                SqaFloatingBarButton(
-                  icon: Symbols.content_copy,
-                  tooltip: 'Copy to Clipboard',
-                  onPressed: () => notifier.finalize(shouldCopy: true),
+                    const SqaFloatingBarDivider(),
+
+                    // Final Actions
+                    SqaFloatingBarButton(
+                      icon: Symbols.content_copy,
+                      tooltip: 'Copy to Clipboard',
+                      onPressed: () => notifier.finalize(shouldCopy: true),
+                    ),
+                    SqaFloatingBarButton(
+                      icon: Symbols.save,
+                      tooltip: 'Save Screenshot',
+                      onPressed: () => notifier.finalize(),
+                      isPrimary: true,
+                    ),
+                    SqaFloatingBarButton(
+                      icon: Symbols.close,
+                      tooltip: 'Cancel',
+                      onPressed: notifier.stopCapture,
+                      color: Colors.red,
+                    ),
+                  ],
                 ),
-                SqaFloatingBarButton(
-                  icon: Symbols.save,
-                  tooltip: 'Save Screenshot',
-                  onPressed: () => notifier.finalize(),
-                  isPrimary: true,
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.close,
-                  tooltip: 'Cancel',
-                  onPressed: notifier.stopCapture,
-                  color: Colors.red,
-                ),
-              ],
-            ),
+              );
+            },
+          ),
 
           // Instructions
           if (state.selectionRect == null)
@@ -173,113 +341,4 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
       ),
     );
   }
-}
-
-class _OverlayPainter extends CustomPainter {
-  final Rect? selectionRect;
-  final List<Annotation> annotations;
-
-  _OverlayPainter({this.selectionRect, required this.annotations});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.5);
-
-    if (selectionRect == null) {
-      canvas.drawRect(Offset.zero & size, backgroundPaint);
-    } else {
-      // Draw dim background with cutout
-      final path = Path()
-        ..addRect(Offset.zero & size)
-        ..addRect(selectionRect!)
-        ..fillType = PathFillType.evenOdd;
-      canvas.drawPath(path, backgroundPaint);
-
-      // Draw selection border
-      final borderPaint = Paint()
-        ..color = Colors.blue
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
-      canvas.drawRect(selectionRect!, borderPaint);
-
-      // Draw corner handles (optional for mock)
-    }
-
-    // Draw annotations
-    for (final ann in annotations) {
-      final paint = Paint()
-        ..color = ann.color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = ann.strokeWidth
-        ..strokeCap = StrokeCap.round;
-
-      if (ann.points.length < 2) continue;
-
-      if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
-        if (ann.tool == ScreenshotTool.marker) {
-          paint.color = ann.color.withValues(alpha: 0.4);
-        }
-        final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
-        for (var i = 1; i < ann.points.length; i++) {
-          path.lineTo(ann.points[i].dx, ann.points[i].dy);
-        }
-        canvas.drawPath(path, paint);
-      } else if (ann.tool == ScreenshotTool.line) {
-        canvas.drawLine(ann.points.first, ann.points.last, paint);
-      } else if (ann.tool == ScreenshotTool.rectangle) {
-        canvas.drawRect(
-          Rect.fromPoints(ann.points.first, ann.points.last),
-          paint,
-        );
-      } else if (ann.tool == ScreenshotTool.arrow) {
-        final start = ann.points.first;
-        final end = ann.points.last;
-        canvas.drawLine(start, end, paint);
-
-        // Draw arrow head
-        final dX = end.dx - start.dx;
-        final dY = end.dy - start.dy;
-        final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
-        const double arrowSize = 12;
-        const double arrowAngle = 0.5;
-
-        // Better arrow head calculation
-        final headPath = Path()
-          ..moveTo(end.dx, end.dy)
-          ..lineTo(
-            end.dx - arrowSize * math.cos(angle - arrowAngle),
-            end.dy - arrowSize * math.sin(angle - arrowAngle),
-          )
-          ..lineTo(
-            end.dx - arrowSize * math.cos(angle + arrowAngle),
-            end.dy - arrowSize * math.sin(angle + arrowAngle),
-          )
-          ..close();
-
-        final fillPaint = Paint()
-          ..color = ann.color
-          ..style = PaintingStyle.fill;
-        canvas.drawPath(headPath, fillPaint);
-      } else if (ann.tool == ScreenshotTool.text) {
-        // Mock text rendering
-        final textPainter = TextPainter(
-          text: TextSpan(
-            text: 'Text Annotation',
-            style: TextStyle(
-              color: ann.color,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-        textPainter.paint(canvas, ann.points.first);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

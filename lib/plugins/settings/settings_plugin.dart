@@ -8,6 +8,7 @@ import '../../core/providers/plugin_provider.dart';
 import '../../core/services/preferences_service.dart';
 import '../../core/services/coffee_shop_service.dart';
 import '../../core/providers/debug_provider.dart';
+import '../../core/providers/hotkey_provider.dart';
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_segmented_button.dart';
@@ -18,6 +19,7 @@ import '../../ui/widgets/sqa_switch.dart';
 import '../../ui/widgets/sqa_plugin_header.dart';
 import '../../ui/widgets/sqa_plugin_layout.dart';
 import '../../ui/widgets/sqa_button.dart';
+import '../../ui/widgets/sqa_hotkey_field.dart';
 import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../ui/widgets/sqa_styles.dart';
 import '../../ui/widgets/sqa_fade_wrapper.dart';
@@ -996,6 +998,39 @@ class GeneralSettingsView extends ConsumerWidget {
                       ),
                   ],
                 ),
+                const SizedBox(height: 24),
+                // Always on Top Toggle
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Always on Top',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Keep the toolbar above all other windows.',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SqaSwitch(
+                      value: themeSettings.alwaysOnTop,
+                      onChanged: (v) {
+                        ref
+                            .read(themeSettingsProvider.notifier)
+                            .setAlwaysOnTop(v);
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -1021,16 +1056,20 @@ class GeneralSettingsView extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Show Toolbar:',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    SqaButton.outlined(onPressed: () {}, label: 'Alt + Space'),
-                  ],
+                SqaHotkeyField(
+                  label: 'Universal Toolbar Shortcut',
+                  value: ref.watch(hotkeySettingsProvider).showToolbar,
+                  onSave: (info) {
+                    final error = ref.read(hotkeySettingsProvider.notifier).updateHotkey(
+                      PreferencesService.keyHotkeyShowToolbar,
+                      info,
+                    );
+                    if (error != null) {
+                      SqaToast.show(context, error, type: SqaToastType.error);
+                    } else {
+                      SqaToast.show(context, 'Toolbar shortcut updated!', type: SqaToastType.success);
+                    }
+                  },
                 ),
               ],
             ),

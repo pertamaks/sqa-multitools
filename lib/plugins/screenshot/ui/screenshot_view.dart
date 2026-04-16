@@ -9,7 +9,7 @@ import '../../../ui/widgets/sqa_dropdown.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import '../models/capture_mode.dart';
+import '../../../core/models/capture_mode.dart';
 import '../providers/screenshot_provider.dart';
 
 class ScreenshotView extends ConsumerWidget {

@@ -1,0 +1,202 @@
+import 'dart:io';
+import 'dart:convert';
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+import 'package:win32/win32.dart';
+import 'package:flutter/material.dart';
+
+class WindowInfo {
+  final int hwnd;
+  final String title;
+  final Rect rect;
+
+  WindowInfo({required this.hwnd, required this.title, required this.rect});
+}
+
+class WindowUtils {
+  /// Fetches a list of active window titles on Windows using PowerShell.
+  static Future<List<String>> getActiveWindowTitles() async {
+    if (!Platform.isWindows) return [];
+
+    try {
+      final result = await Process.run('powershell', [
+        '-Command',
+        r'Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -and $_.ProcessName -notmatch "InputApp|ShellExperienceHost|StartMenuExperienceHost|TextInputHost" } | Select-Object -ExpandProperty MainWindowTitle',
+      ]);
+
+      if (result.exitCode == 0) {
+        final titles = const LineSplitter()
+            .convert(result.stdout.toString())
+            .map((e) => e.trim())
+            .where(
+              (e) => e.isNotEmpty && !e.contains('sqa-multitools'),
+            ) // Exclude ourselves
+            .toSet()
+            .toList();
+        titles.sort();
+        return titles;
+      }
+    } catch (_) {}
+
+    return [];
+  }
+
+  /// Finds the top-level window at the current mouse position and returns its info,
+  /// skipping windows from our own process (the overlay).
+  static WindowInfo? getWindowInfoAt() {
+    if (!Platform.isWindows) return null;
+
+    final point = calloc<POINT>();
+    GetCursorPos(point);
+
+    final myPid = GetCurrentProcessId();
+    final lpdwProcessId = calloc<Uint32>();
+    final rectPointer = calloc<RECT>();
+    final classNameBuffer = calloc<Uint16>(256).cast<Utf16>();
+
+    int targetHwnd = 0;
+
+    try {
+      // Start from the very first (top-most) child of the Desktop
+      int hwnd = GetWindow(GetDesktopWindow(), GW_CHILD);
+
+      while (hwnd != 0) {
+        // 1. Must be visible
+        if (IsWindowVisible(hwnd) != 0) {
+          // 2. Window Rect must contain the point (physical pixels)
+          GetWindowRect(hwnd, rectPointer);
+          if (point.ref.x >= rectPointer.ref.left &&
+              point.ref.x < rectPointer.ref.right &&
+              point.ref.y >= rectPointer.ref.top &&
+              point.ref.y < rectPointer.ref.bottom) {
+            // 3. Check Process ID
+            GetWindowThreadProcessId(hwnd, lpdwProcessId);
+            if (lpdwProcessId.value != myPid) {
+              // 4. Filter out system background windows
+              GetClassName(hwnd, classNameBuffer, 256);
+              final className = classNameBuffer.toDartString();
+
+              final ignoreClasses = [
+                'Progman',
+                'WorkerW',
+                'Shell_TrayWnd',
+                'Shell_SecondaryTrayWnd',
+              ];
+
+              if (!ignoreClasses.contains(className)) {
+                // Found it! This is the top-most app window under our overlay
+                targetHwnd = hwnd;
+                break;
+              }
+            }
+          }
+        }
+        // Move to the next window down in the Z-order stack
+        hwnd = GetWindow(hwnd, GW_HWNDNEXT);
+      }
+
+      if (targetHwnd == 0) return null;
+
+      // Get Title
+      final textBuffer = calloc<Uint16>(256).cast<Utf16>();
+      GetWindowText(targetHwnd, textBuffer, 256);
+      final title = textBuffer.toDartString();
+      calloc.free(textBuffer);
+
+      // Get Precise Bounds (DWM aware)
+      final hr = DwmGetWindowAttribute(
+        targetHwnd,
+        DWMWA_EXTENDED_FRAME_BOUNDS,
+        rectPointer,
+        sizeOf<RECT>(),
+      );
+
+      Rect rect;
+      if (hr == 0) {
+        rect = Rect.fromLTRB(
+          rectPointer.ref.left.toDouble(),
+          rectPointer.ref.top.toDouble(),
+          rectPointer.ref.right.toDouble(),
+          rectPointer.ref.bottom.toDouble(),
+        );
+      } else {
+        // Fallback to basic window rect
+        rect = Rect.fromLTRB(
+          rectPointer.ref.left.toDouble(),
+          rectPointer.ref.top.toDouble(),
+          rectPointer.ref.right.toDouble(),
+          rectPointer.ref.bottom.toDouble(),
+        );
+      }
+
+      // Convert Physical Rect (Windows API) to Logical Rect (Flutter)
+      final dpi = GetDpiForWindow(targetHwnd);
+      final scaleFactor = dpi / 96.0;
+
+      return WindowInfo(
+        hwnd: targetHwnd,
+        title: title,
+        rect: Rect.fromLTRB(
+          rect.left / scaleFactor,
+          rect.top / scaleFactor,
+          rect.right / scaleFactor,
+          rect.bottom / scaleFactor,
+        ),
+      );
+    } finally {
+      calloc.free(point);
+      calloc.free(lpdwProcessId);
+      calloc.free(rectPointer);
+      calloc.free(classNameBuffer);
+    }
+  }
+
+  /// Fetches human-readable monitor names (e.g., "BenQ RL2455") using PowerShell.
+  static Future<List<String>> getFriendlyMonitorNames() async {
+    if (!Platform.isWindows) return [];
+
+    try {
+      final result = await Process.run('powershell', [
+        '-Command',
+        '(Get-CimInstance Win32_PnPEntity | Where-Object { \$_.Service -eq "monitor" }).Name',
+      ]);
+
+      if (result.exitCode == 0) {
+        return const LineSplitter()
+            .convert(result.stdout.toString())
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
+    } catch (_) {}
+
+    return [];
+  }
+
+  /// Brings the given window to the front and focuses it.
+  static void focusWindow(int hwnd) {
+    if (!Platform.isWindows || hwnd == 0) return;
+
+    // Check if minimized
+    if (IsIconic(hwnd) != 0) {
+      ShowWindow(hwnd, SW_RESTORE);
+    } else {
+      ShowWindow(hwnd, SW_SHOW);
+    }
+
+    // Bring to top and focus
+    SetForegroundWindow(hwnd);
+  }
+
+  /// Checks if the left mouse button is currently pressed.
+  static bool isLeftMouseDown() {
+    if (!Platform.isWindows) return false;
+    return (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+  }
+
+  /// Checks if the right mouse button is currently pressed.
+  static bool isRightMouseDown() {
+    if (!Platform.isWindows) return false;
+    return (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+  }
+}

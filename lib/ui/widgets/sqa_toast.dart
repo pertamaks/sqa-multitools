@@ -41,14 +41,13 @@ class SqaToast {
     messenger.hideCurrentSnackBar();
 
     // Adhere to GEMINI.md: Labels should be 11px labelSmall bold
-    final textStyle = theme.textTheme.labelSmall?.copyWith(
-      color: colorScheme.onSurface,
-      fontWeight: FontWeight.bold,
-      fontSize: 11,
-    ) ?? const TextStyle(
-      fontSize: 11,
-      fontWeight: FontWeight.bold,
-    );
+    final textStyle =
+        theme.textTheme.labelSmall?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ) ??
+        const TextStyle(fontSize: 11, fontWeight: FontWeight.bold);
 
     final textPainter = TextPainter(
       text: TextSpan(text: message, style: textStyle),
@@ -67,7 +66,9 @@ class SqaToast {
         behavior: SnackBarBehavior.floating,
         duration: duration,
         // Translucent "Glassmorphism" background for less intrusion
-        backgroundColor: colorScheme.surfaceContainerHigh.withValues(alpha: 0.9),
+        backgroundColor: colorScheme.surfaceContainerHigh.withValues(
+          alpha: 0.9,
+        ),
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(

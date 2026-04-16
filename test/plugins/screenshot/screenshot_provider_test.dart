@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart' show Colors;
-import 'package:sqa_multitools/plugins/screenshot/models/capture_mode.dart';
-import 'package:sqa_multitools/plugins/screenshot/models/screenshot_tool.dart';
+import 'package:sqa_multitools/core/models/capture_mode.dart';
+import 'package:sqa_multitools/core/models/screenshot_tool.dart';
 import 'package:sqa_multitools/plugins/screenshot/providers/screenshot_provider.dart';
 
 void main() {

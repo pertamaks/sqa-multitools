@@ -42,7 +42,7 @@ final class ScreenRecorderNotifierProvider
 }
 
 String _$screenRecorderNotifierHash() =>
-    r'db7d8077d458cbc70a5ad4fe99e4a7e522823e31';
+    r'dec251b0b728b7f8add52847bb235bb857b218ff';
 
 abstract class _$ScreenRecorderNotifier extends $Notifier<ScreenRecorderState> {
   ScreenRecorderState build();

@@ -80,9 +80,10 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
   Widget build(BuildContext context) {
     return NotificationListener<Notification>(
       onNotification: (notification) {
-        if (notification is ScrollNotification) {
+        if (notification is ScrollNotification && notification.depth == 0) {
           _updateIntensity(notification.metrics);
-        } else if (notification is ScrollMetricsNotification) {
+        } else if (notification is ScrollMetricsNotification &&
+            notification.depth == 0) {
           _updateIntensity(notification.metrics);
         }
         return false;

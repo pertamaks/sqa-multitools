@@ -32,6 +32,7 @@ class SqaFloatingBarButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isSelected;
   final bool isPrimary;
+  final bool isLoading;
   final Color? color;
   final double iconSize;
 
@@ -42,6 +43,7 @@ class SqaFloatingBarButton extends StatelessWidget {
     this.onPressed,
     this.isSelected = false,
     this.isPrimary = false,
+    this.isLoading = false,
     this.color,
     this.iconSize = 20.0,
   });
@@ -51,28 +53,35 @@ class SqaFloatingBarButton extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    Widget content = Icon(icon, size: iconSize);
+    if (isLoading) {
+      content = SizedBox(
+        width: iconSize,
+        height: iconSize,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+        ),
+      );
+    }
+
     Widget button = IconButton(
-      icon: Icon(icon, size: iconSize),
-      onPressed: onPressed,
-      style:
-          IconButton.styleFrom(
-            backgroundColor: isPrimary
-                ? colorScheme.primary
-                : (isSelected ? colorScheme.primaryContainer : null),
-            foregroundColor: isPrimary
-                ? colorScheme.onPrimary
-                : (isSelected
-                      ? colorScheme.onPrimaryContainer
-                      : color ?? colorScheme.onSurface),
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-            minimumSize: const Size(36, 36),
-            padding: EdgeInsets.zero,
-          ).copyWith(
-            overlayColor: SqaStyles.buttonOverlay(context, baseColor: color),
-          ),
+      icon: content,
+      onPressed: isLoading ? null : onPressed,
+      style: IconButton.styleFrom(
+        backgroundColor: isSelected ? colorScheme.primaryContainer : null,
+        foregroundColor: isSelected
+            ? colorScheme.onPrimaryContainer
+            : color ?? colorScheme.onSurface,
+        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+        minimumSize: const Size(36, 36),
+        padding: EdgeInsets.zero,
+      ).copyWith(
+        overlayColor: SqaStyles.buttonOverlay(context, baseColor: color),
+      ),
     );
 
-    if (tooltip != null) {
+    if (tooltip != null && !isLoading) {
       button = Tooltip(message: tooltip!, child: button);
     }
 

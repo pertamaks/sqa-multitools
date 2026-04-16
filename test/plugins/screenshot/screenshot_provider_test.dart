@@ -26,7 +26,7 @@ void main() {
       expect(state.includeCursor, true);
       expect(state.isCapturing, false);
       expect(state.isOverlayVisible, false);
-      expect(state.currentTool, ScreenshotTool.pen);
+      expect(state.currentTool, ScreenshotTool.pointer);
       expect(state.annotationColor, Colors.red);
       expect(state.annotations, isEmpty);
     });
@@ -51,7 +51,7 @@ void main() {
 
     test('finalize updates isCapturing and hides overlay', () async {
       final notifier = container.read(screenshotProvider.notifier);
-      notifier.startCapture();
+      notifier.startOverlay();
 
       final future = notifier.finalize();
       expect(container.read(screenshotProvider).isCapturing, true);
@@ -65,7 +65,7 @@ void main() {
 
     test('stopCapture hides overlay', () {
       final notifier = container.read(screenshotProvider.notifier);
-      notifier.startCapture();
+      notifier.startOverlay();
       notifier.stopCapture();
 
       expect(container.read(screenshotProvider).isOverlayVisible, false);

@@ -105,7 +105,7 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
     }
 
     final double calculatedMax = estimatedMax + 43.0;
-    final double maxWidth = calculatedMax.clamp(60.0, 180.0);
+    final double maxWidth = calculatedMax.clamp(100.0, 180.0); // Slightly larger min width
 
     return MenuAnchor(
       controller: _menuController,
@@ -144,15 +144,15 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                     ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
                     : null,
           ),
-          child: DefaultTextStyle.merge(
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color:
-                  isSelected
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface,
-            ),
+            child: DefaultTextStyle.merge(
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11, // Unified to 11px
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color:
+                    isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface,
+              ),
             child: item.child,
           ),
         );

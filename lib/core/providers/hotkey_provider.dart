@@ -7,19 +7,23 @@ import '../services/preferences_service.dart';
 class HotkeySettings {
   final HotkeyInfo showToolbar;
   final HotkeyInfo recordToggle;
+  final HotkeyInfo screenshotToggle;
 
   const HotkeySettings({
     required this.showToolbar,
     required this.recordToggle,
+    required this.screenshotToggle,
   });
 
   HotkeySettings copyWith({
     HotkeyInfo? showToolbar,
     HotkeyInfo? recordToggle,
+    HotkeyInfo? screenshotToggle,
   }) {
     return HotkeySettings(
       showToolbar: showToolbar ?? this.showToolbar,
       recordToggle: recordToggle ?? this.recordToggle,
+      screenshotToggle: screenshotToggle ?? this.screenshotToggle,
     );
   }
 }
@@ -45,9 +49,17 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
           modifierIndices: [HotKeyModifier.alt.index],
         ); // Alt + R
 
+    final screenshot = 
+        prefs.getHotkey(PreferencesService.keyHotkeyScreenshotToggle) ??
+        HotkeyInfo(
+          keyCode: LogicalKeyboardKey.keyS.keyId,
+          modifierIndices: [HotKeyModifier.alt.index],
+        ); // Alt + S
+
     final settings = HotkeySettings(
       showToolbar: toolbar,
       recordToggle: recorder,
+      screenshotToggle: screenshot,
     );
 
     // Initial registration after building
@@ -92,8 +104,10 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
 
     if (key == PreferencesService.keyHotkeyShowToolbar) {
       state = state.copyWith(showToolbar: info);
-    } else {
+    } else if (key == PreferencesService.keyHotkeyRecordToggle) {
       state = state.copyWith(recordToggle: info);
+    } else if (key == PreferencesService.keyHotkeyScreenshotToggle) {
+      state = state.copyWith(screenshotToggle: info);
     }
 
     _registerAll(state);
@@ -107,13 +121,14 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
     }
 
     if (key == PreferencesService.keyHotkeyShowToolbar) {
-      if (info == state.recordToggle) {
-        return 'Conflict: This shortcut is already assigned to Screen Recorder.';
-      }
+      if (info == state.recordToggle) return 'Conflict: Shortcut already assigned to Screen Recorder.';
+      if (info == state.screenshotToggle) return 'Conflict: Shortcut already assigned to Screenshot.';
     } else if (key == PreferencesService.keyHotkeyRecordToggle) {
-      if (info == state.showToolbar) {
-        return 'Conflict: This shortcut is already assigned to Show Toolbar.';
-      }
+      if (info == state.showToolbar) return 'Conflict: Shortcut already assigned to Show Toolbar.';
+      if (info == state.screenshotToggle) return 'Conflict: Shortcut already assigned to Screenshot.';
+    } else if (key == PreferencesService.keyHotkeyScreenshotToggle) {
+      if (info == state.showToolbar) return 'Conflict: Shortcut already assigned to Show Toolbar.';
+      if (info == state.recordToggle) return 'Conflict: Shortcut already assigned to Screen Recorder.';
     }
     return null;
   }

@@ -49,7 +49,8 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 ## 4. External Interface Requirements
 ### User Interfaces (UI)
 - **Style:** Material 3 capture interface/overlay.
-- **Capture Overlay**: Use `SqaFloatingBar` to draw and export.
+- **Capture Overlay**: Built on the core `SqaCaptureOverlay` component for high-performance selection and flicker-free transitions. Includes `SqaFloatingBar` for annotation tool selection and export actions.
+
 - **Layout**: Use `SqaPluginScrollableContent` to vertically center the capture mode selection and configuration cards.
 - **Action Button**: Primary action for capturing with an integrated loading state.
 - **Settings:** Moved configuration (format, quality, shortcut) to a dedicated settings panel accessed via the `Settings` plugin.

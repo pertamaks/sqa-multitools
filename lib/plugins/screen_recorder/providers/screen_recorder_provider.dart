@@ -16,6 +16,8 @@ import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import '../../../core/window/window_utils.dart';
+import '../../../core/window/window_transition_coordinator.dart';
+
 
 part 'screen_recorder_provider.g.dart';
 
@@ -182,9 +184,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       // captureRect stays null — it will be set when the user selects a window or draws an area
     }
 
+    final coordinator = ref.read(windowTransitionProvider);
+
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await coordinator.waitForSync(resize: false, move: false);
 
     // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
@@ -205,8 +209,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       registeredHotKey: registeredHotKey,
     );
 
-    // Brief delay to let Flutter commit the first frame of the overlay
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Wait for Flutter to commit the first frame of the overlay
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
 
     // 4. Expand the window while it is ghosted and Flutter is ready
     await windowManager.setBounds(overlayRect);
@@ -214,7 +218,14 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     await windowManager.setIgnoreMouseEvents(false);
 
     // 5. Robust sync delay for Windows DWM buffer allocation
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: overlayRect.size,
+      targetOffset: overlayRect.topLeft,
+    );
+
 
     // Register hotkey with the stored instance
     await hotKeyManager.register(
@@ -440,6 +451,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
             validInfo.length > 10 ? validInfo.sublist(0, 10) : validInfo,
       );
     } catch (e) {
+      // Silent catch for unexpected file system errors
     }
   }
 
@@ -468,10 +480,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   Future<void> cancelOverlay() async {
+    final coordinator = ref.read(windowTransitionProvider);
+
     // 1. Ghost the window instantly as the absolute FIRST step
     // Use 0.01 temporarily to keep the layered context warm
     await windowManager.setOpacity(0.01);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    await coordinator.waitForSync(resize: false, move: false);
+
 
     // 2. Perform background cleanup while invisible
     // (WE DEFER setIgnoreMouseEvents(false) to the very end)
@@ -487,6 +502,16 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 4. Physically restore window bounds BEFORE switching UI state
     await _restoreWindowInternal();
+    final targetSize = state.previousWindowSize ?? const Size(450, 500);
+    final targetPos = state.previousWindowPos ?? const Offset(100, 100);
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: targetSize,
+      targetOffset: targetPos,
+    );
+
 
     // 5. NOW switch the UI state to Toolbar mode
     state = state.copyWith(
@@ -500,8 +525,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       annotations: [],
     );
 
-    // 6. Brief delay to let Flutter commit the first frame of the Small UI
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    // 6. Wait for Flutter to commit the first frame of the Small UI
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
     final theme = ref.read(themeSettingsProvider);
 
     // 7. Finally restore attributes, reveal and focus
@@ -523,9 +548,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // Structural Move Only (Isolate from attribute changes to prevent flicker)
     await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
-
-    // Give DWM time to settle the new buffer size
-    await Future<void>.delayed(const Duration(milliseconds: 250));
   }
 
   void togglePause() {

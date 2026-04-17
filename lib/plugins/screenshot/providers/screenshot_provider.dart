@@ -16,6 +16,8 @@ import '../../screen_recorder/engine/ffmpeg_engine.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/window/window_utils.dart';
+import '../../../core/window/window_transition_coordinator.dart';
+
 
 part 'screenshot_provider.g.dart';
 
@@ -125,9 +127,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
     final overlayRect = Rect.fromLTRB(minX, minY, maxX, maxY);
 
+    final coordinator = ref.read(windowTransitionProvider);
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await coordinator.waitForSync(resize: false, move: false);
 
     // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
@@ -147,8 +150,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isTargetingWindow: state.captureMode == CaptureMode.window,
     );
 
-    // Brief delay to let Flutter commit the first frame of the overlay
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Wait for Flutter to commit the first frame of the overlay
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
 
     // 4. Expand the window while it is ghosted and Flutter is ready
     await windowManager.setBounds(overlayRect);
@@ -156,7 +159,14 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setIgnoreMouseEvents(false);
 
     // 5. Robust sync delay for Windows DWM buffer allocation
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: overlayRect.size,
+      targetOffset: overlayRect.topLeft,
+    );
+
 
     // 6. Finally reveal and focus
     await windowManager.setOpacity(1.0);
@@ -164,13 +174,23 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> stopCapture() async {
+    final coordinator = ref.read(windowTransitionProvider);
+
     // 1. Ghost the window instantly as the absolute FIRST step
     // Use 0.01 to keep the layered window context active during transformation
     await windowManager.setOpacity(0.01);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    await coordinator.waitForSync(resize: false, move: false);
 
     // 2. Physically restore window bounds BEFORE switching UI state
     await _restoreWindowInternal();
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: state.previousWindowSize,
+      targetOffset: state.previousWindowPos,
+    );
+
 
     // 3. NOW switch UI to Toolbar mode
     state = state.copyWith(
@@ -180,8 +200,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       annotations: [],
     );
 
-    // 4. Brief delay for Flutter render to commit the Toolbar frame
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    // 4. Wait for Flutter render to commit the Toolbar frame
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
     final theme = ref.read(themeSettingsProvider);
 
     // 5. Finally restore native attributes, reveal and focus
@@ -203,9 +223,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     // Structural Move Only (Isolate from attribute changes to prevent flicker)
     await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
-
-    // Give DWM time to settle the new buffer size
-    await Future<void>.delayed(const Duration(milliseconds: 250));
   }
 
   void setSelection(Rect? rect) {
@@ -230,12 +247,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (state.selectionRect == null && state.captureMode != CaptureMode.fullScreen) return;
 
     state = state.copyWith(isCapturing: true);
+    final coordinator = ref.read(windowTransitionProvider);
     
     // 1. Ghost the window instantly as the absolute FIRST step
     // This makes the UI feel responsive and ensures the overlay doesn't appear in the screenshot
     await windowManager.setOpacity(0.01);
+    
     // Give Flutter and DWM a moment to hide the window
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    await coordinator.waitForSync(resize: false, move: false);
+
 
     // Calculate final capture rect
     Rect finalRect;
@@ -269,7 +289,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     try {
       // (Visual ghosting already handled above)
       // Just a tiny extra buffer for the Flutter UI state change to propagate
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await coordinator.waitForSync(resize: false, move: false, frame: true);
 
       // 2. Perform the actual capture
       final file = await FfmpegEngine.takeScreenshot(
@@ -291,12 +311,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     } catch (e) {
       // Finalize failed silently
     } finally {
+      final coordinator = ref.read(windowTransitionProvider);
+
       // 1. Ghost instantly (already nearly invisible from isCapturing, but set 0.01 for structural move)
       await windowManager.setOpacity(0.01);
-      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await coordinator.waitForSync(resize: false, move: false);
 
       // 2. Perform background structural restoration while invisible
       await _restoreWindowInternal();
+      await coordinator.waitForSync(resize: true, move: false, frame: false);
 
       // 3. NOW switch the UI state to Toolbar mode
       state = state.copyWith(
@@ -307,8 +330,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         annotations: [],
       );
 
-      // 4. Brief delay for Flutter to commit the Toolbar frame
-      await Future<void>.delayed(const Duration(milliseconds: 250));
+      // 4. Wait for Flutter to commit the Toolbar frame
+      await coordinator.waitForSync(resize: false, move: false, frame: true);
       final theme = ref.read(themeSettingsProvider);
 
       // 5. Finally restore attributes, reveal and focus

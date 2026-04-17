@@ -59,7 +59,9 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
     - **Horizontal Scroll:** Support for mandatory single-line horizontal scrolling via `horizontalScrollController`.
   - **SqaDropdown:** Standardized selection menus.
   - **SqaFloatingBar:** Centralized draggable controls for capture tools.
+  - **SqaCaptureOverlay:** Centralized foundation for high-performance, flicker-free capture tools (Screenshot, Screen Recorder). Implements the "Passive Exit" pattern for stable transitions.
   - **SqaPluginLayout:** Standardized window architecture (header + tabs + body).
+
   - **SqaSettingsButton:** Quick-access gear icons for plugin-specific settings.
   - **SqaSettingsTile:** Standardized rows for configuration panels.
   - **SqaSwitch:** Unified 0.6 scale toggles for preferences.
@@ -97,3 +99,9 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 
 ### Maintainability
 - Modular design with isolated plugin logic to allow independent updates.
+
+## 6. Optimization & Robustness
+### Window Transition Synchronization
+- **Description:** Centralized mechanism (`WindowTransitionCoordinator`) to manage complex window state changes.
+- **Strategy:** Replaces hardcoded delays with event-driven synchronization (native OS events + Flutter frame callbacks).
+- **Core Benefit:** Eliminates flickering and visual artifacts during large-scale structural window moves.

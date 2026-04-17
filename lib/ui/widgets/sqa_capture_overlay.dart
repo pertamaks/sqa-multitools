@@ -49,6 +49,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   bool _rightMouseDownLast = false;
   bool _isIgnoring = false;
   bool _isPollingProcessing = false;
+  final FocusNode _focusNode = FocusNode();
+
 
   @override
   void initState() {
@@ -67,7 +69,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       _mousePollingTimer?.cancel();
     } else if (!oldWidget.delegate.isOverlayVisible && widget.delegate.isOverlayVisible) {
       _startMousePolling();
+      _focusNode.requestFocus();
     }
+
   }
 
   @override
@@ -75,6 +79,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     _mousePollingTimer?.cancel();
     _animationController.dispose();
     _barOffsetNotifier.dispose();
+    _focusNode.dispose();
+
     super.dispose();
   }
 
@@ -389,17 +395,18 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     return DefaultTextStyle(
       style: const TextStyle(color: Colors.white, fontFamily: 'Inter'),
       child: Focus(
+        focusNode: _focusNode,
         autofocus: true,
-        child: KeyboardListener(
-          focusNode: FocusNode(),
-          onKeyEvent: (event) {
-            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
-              // Call cancel via delegate (which eventually calls cancelOverlay/stopCapture)
-              // We use canCancel internally if available or assume cancelOverlay
-              widget.delegate.cancelOverlay();
-            }
-          },
-          child: Stack(
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+            // Call cancel via delegate (which eventually calls cancelOverlay/stopCapture)
+            widget.delegate.cancelOverlay();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: Stack(
+
             children: [
               // Custom Paint Surface
               GestureDetector(
@@ -426,16 +433,10 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 ),
               ),
 
-          // Instruction Overlay (Centered)
+          // Multi-monitor Instructions
           if (showInstruction && !delegate.isCapturing)
-            Center(
-              child: widget.instructionBuilder?.call(context, delegate.captureMode) ??
-                  _DefaultInstruction(mode: delegate.captureMode, targeting: delegate.isTargetingWindow),
-            ),
-
-          // Multi-monitor Mirroring of target instructions
-          if (delegate.isTargetingWindow || (delegate.captureMode == CaptureMode.fullScreen && delegate.selectionRect == null))
             ..._buildMultiMonitorInstructions(),
+
 
           // Floating Bar
           ValueListenableBuilder<Offset?>(
@@ -488,8 +489,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
           // Processing indicator removed to prevent dimming in screenshot results
         ],
       ),
-    ),),);
-  }
+    ),
+  );
+}
 
   Widget _buildTimerDisplay(CaptureOverlayDelegate delegate) {
     return Padding(
@@ -537,18 +539,11 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         width: display.size.width,
         height: display.size.height,
         child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-            ),
-            child: Text(
-              delegate.isTargetingWindow ? 'Click a window to select it' : 'Click to select screen',
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-          ),
+          child: widget.instructionBuilder?.call(context, delegate.captureMode) ??
+              _DefaultInstruction(
+                mode: delegate.captureMode,
+                targeting: delegate.isTargetingWindow,
+              ),
         ),
       );
     }).toList();

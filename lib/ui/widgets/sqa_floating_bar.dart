@@ -76,8 +76,9 @@ class SqaFloatingBarButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
         minimumSize: const Size(36, 36),
         padding: EdgeInsets.zero,
+        splashFactory: NoSplash.splashFactory,
       ).copyWith(
-        overlayColor: SqaStyles.buttonOverlay(context, baseColor: color),
+        overlayColor: SqaStyles.buttonOverlay(context, baseColor: color, silent: true),
       ),
     );
 

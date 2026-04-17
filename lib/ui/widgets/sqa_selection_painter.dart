@@ -11,6 +11,7 @@ class SqaSelectionPainter extends CustomPainter {
   final Rect? targetedWindowRect;
   final List<Annotation> annotations;
   final bool isRecording;
+  final bool isCapturing;
   final double animationValue; // 0.0 to 1.0, used for breathing effects
   final List<ClickRipple> ripples;
   final Color clickFeedbackColor;
@@ -20,8 +21,9 @@ class SqaSelectionPainter extends CustomPainter {
     this.selectionRect,
     this.targetedWindowRect,
     required this.annotations,
-    this.isRecording = false,
-    this.animationValue = 0.0,
+    required this.isRecording,
+    required this.isCapturing,
+    required this.animationValue,
     this.ripples = const [],
     this.clickFeedbackColor = Colors.white,
     this.rightClickFeedbackColor = Colors.amber,
@@ -30,20 +32,23 @@ class SqaSelectionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.5);
+    // 1. Draw Dimming Layer (Spotlight)
+    // We hide this entirely during capture so the resulting image is clean
+    if (!isCapturing) {
+      final backgroundPaint = Paint()
+        ..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
 
-    // 1. Handle Background Dimming & Cutout (Spotlight)
-    if (selectionRect != null) {
-      final path = Path()
-        ..addRect(Offset.zero & size)
-        ..addRect(selectionRect!)
-        ..fillType = PathFillType.evenOdd;
-      canvas.drawPath(path, backgroundPaint);
+      if (selectionRect != null) {
+        final path = Path()
+          ..addRect(Offset.zero & size)
+          ..addRect(selectionRect!)
+          ..fillType = PathFillType.evenOdd;
+        canvas.drawPath(path, backgroundPaint);
+      }
     }
 
     // 2. Window/Monitor Hover Highlight
-    if (targetedWindowRect != null && selectionRect == null) {
+    if (!isCapturing && targetedWindowRect != null && selectionRect == null) {
       final targetPaint = Paint()
         ..color = Colors.blue.withValues(alpha: 0.2)
         ..style = PaintingStyle.fill;
@@ -61,7 +66,7 @@ class SqaSelectionPainter extends CustomPainter {
         RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
         borderPaint,
       );
-    } else if (selectionRect != null) {
+    } else if (!isCapturing && selectionRect != null) {
       // 3. Draw Active Selection Border (Glow & Brackets)
       final color = isRecording ? Colors.red : Colors.blue;
       final breathe = animationValue;

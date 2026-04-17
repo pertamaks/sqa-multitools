@@ -36,12 +36,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final prefs = ref.read(preferencesServiceProvider);
     final saveDir = prefs.rawPrefs.getString(PreferencesService.keyScreenshotSaveDir);
     final format = prefs.rawPrefs.getString(PreferencesService.keyScreenshotFormat) ?? 'PNG';
-    final delay = prefs.rawPrefs.getInt(PreferencesService.keyScreenshotDelay) ?? 0;
-
     state = state.copyWith(
       saveDirectory: saveDir,
       format: format,
-      delaySeconds: delay,
     );
   }
 
@@ -128,15 +125,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
     final overlayRect = Rect.fromLTRB(minX, minY, maxX, maxY);
 
-    await windowManager.hide();
-    await windowManager.setBounds(overlayRect);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    // 1. Ghost the window instantly and wait for OS commitment
+    await windowManager.setOpacity(0.0);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
     await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
-    await windowManager.setAlwaysOnTop(true);
-    await windowManager.setIgnoreMouseEvents(false);
 
+    // 3. Update state early so Flutter starts building the transparent overlay UI
     state = state.copyWith(
       previousWindowSize: currentSize,
       previousWindowPos: currentPos,
@@ -149,26 +147,65 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isTargetingWindow: state.captureMode == CaptureMode.window,
     );
 
-    await windowManager.show();
+    // Brief delay to let Flutter commit the first frame of the overlay
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    // 4. Expand the window while it is ghosted and Flutter is ready
+    await windowManager.setBounds(overlayRect);
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setIgnoreMouseEvents(false);
+
+    // 5. Robust sync delay for Windows DWM buffer allocation
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+
+    // 6. Finally reveal and focus
+    await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
 
   Future<void> stopCapture() async {
-    state = state.copyWith(isOverlayVisible: false);
-    await _restoreWindow();
+    // 1. Ghost the window instantly as the absolute FIRST step
+    // Use 0.01 to keep the layered window context active during transformation
+    await windowManager.setOpacity(0.01);
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+
+    // 2. Physically restore window bounds BEFORE switching UI state
+    await _restoreWindowInternal();
+
+    // 3. NOW switch UI to Toolbar mode
+    state = state.copyWith(
+      isOverlayVisible: false,
+      selectionRect: null,
+      targetedWindowRect: null,
+      annotations: [],
+    );
+
+    // 4. Brief delay for Flutter render to commit the Toolbar frame
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final theme = ref.read(themeSettingsProvider);
+
+    // 5. Finally restore native attributes, reveal and focus
+    // Move all attribute changes here to prevent DWM flushes on giant window
+    await Future.wait([
+      windowManager.setHasShadow(true),
+      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAlwaysOnTop(theme.alwaysOnTop),
+      windowManager.setIgnoreMouseEvents(false),
+    ]);
+
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
   }
 
-  Future<void> _restoreWindow() async {
+  Future<void> _restoreWindowInternal() async {
     final size = state.previousWindowSize ?? const Size(450, 500);
     final pos = state.previousWindowPos ?? const Offset(100, 100);
 
-    await windowManager.setHasShadow(true);
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-    
-    final alwaysOnTop = ref.read(themeSettingsProvider).alwaysOnTop;
-    await windowManager.setAlwaysOnTop(alwaysOnTop);
+    // Structural Move Only (Isolate from attribute changes to prevent flicker)
     await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
-    await windowManager.setIgnoreMouseEvents(false);
+
+    // Give DWM time to settle the new buffer size
+    await Future<void>.delayed(const Duration(milliseconds: 250));
   }
 
   void setSelection(Rect? rect) {
@@ -193,6 +230,12 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (state.selectionRect == null && state.captureMode != CaptureMode.fullScreen) return;
 
     state = state.copyWith(isCapturing: true);
+    
+    // 1. Ghost the window instantly as the absolute FIRST step
+    // This makes the UI feel responsive and ensures the overlay doesn't appear in the screenshot
+    await windowManager.setOpacity(0.01);
+    // Give Flutter and DWM a moment to hide the window
+    await Future<void>.delayed(const Duration(milliseconds: 150));
 
     // Calculate final capture rect
     Rect finalRect;
@@ -224,7 +267,11 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final savePath = '${saveDir.path}\\$filename';
 
     try {
-      // Capture
+      // (Visual ghosting already handled above)
+      // Just a tiny extra buffer for the Flutter UI state change to propagate
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // 2. Perform the actual capture
       final file = await FfmpegEngine.takeScreenshot(
         logicalBounds: finalRect,
         displays: state.availableDisplays,
@@ -242,10 +289,40 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         ]);
       }
     } catch (e) {
-      debugPrint('[Screenshot] Finalize failed: $e');
+      // Finalize failed silently
     } finally {
-      state = state.copyWith(isCapturing: false, isOverlayVisible: false);
-      await _restoreWindow();
+      // 1. Ghost instantly (already nearly invisible from isCapturing, but set 0.01 for structural move)
+      await windowManager.setOpacity(0.01);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+
+      // 2. Perform background structural restoration while invisible
+      await _restoreWindowInternal();
+
+      // 3. NOW switch the UI state to Toolbar mode
+      state = state.copyWith(
+        isCapturing: false, 
+        isOverlayVisible: false,
+        selectionRect: null,
+        targetedWindowRect: null,
+        annotations: [],
+      );
+
+      // 4. Brief delay for Flutter to commit the Toolbar frame
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      final theme = ref.read(themeSettingsProvider);
+
+      // 5. Finally restore attributes, reveal and focus
+      // Move all attribute changes here to prevent DWM flushes on giant window
+      await Future.wait([
+        windowManager.setHasShadow(true),
+        windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+        windowManager.setAlwaysOnTop(theme.alwaysOnTop),
+        windowManager.setIgnoreMouseEvents(false),
+      ]);
+
+      await windowManager.setOpacity(1.0);
+      await windowManager.focus();
+      
       refreshRecentCaptures();
     }
   }

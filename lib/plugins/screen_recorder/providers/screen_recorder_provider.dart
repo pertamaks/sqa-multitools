@@ -182,20 +182,19 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       // captureRect stays null — it will be set when the user selects a window or draws an area
     }
 
-    // 1. Hide the window to prevent intermediate redraw artifacts during transition
-    await windowManager.hide();
-    await windowManager.setBounds(overlayRect);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    // 1. Ghost the window instantly and wait for OS commitment
+    await windowManager.setOpacity(0.0);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
-    await Future<void>.delayed(const Duration(milliseconds: 50));
     await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    await windowManager.setAlwaysOnTop(true);
-    await windowManager.setIgnoreMouseEvents(false);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    // 5. Update state to trigger UI rendering
+    // 3. Update state early so Flutter starts building the transparent overlay UI
+    final hotkeyInfo = ref.read(hotkeySettingsProvider).recordToggle;
+    final registeredHotKey = hotkeyInfo.toHotKey();
+
     state = state.copyWith(
       previousWindowSize: currentSize,
       previousWindowPos: currentPos,
@@ -203,8 +202,28 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       selectionRect: null,
       captureRect: captureRect,
       availableDisplays: displays,
+      registeredHotKey: registeredHotKey,
     );
-    await windowManager.show();
+
+    // Brief delay to let Flutter commit the first frame of the overlay
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    // 4. Expand the window while it is ghosted and Flutter is ready
+    await windowManager.setBounds(overlayRect);
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setIgnoreMouseEvents(false);
+
+    // 5. Robust sync delay for Windows DWM buffer allocation
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+
+    // Register hotkey with the stored instance
+    await hotKeyManager.register(
+      registeredHotKey,
+      keyDownHandler: (hk) => toggleRecording(),
+    );
+
+    // 6. Finally reveal and focus
+    await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
 
@@ -230,22 +249,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   /// Used to allow clicking THROUGH the overlay to reach underlying apps.
   Future<void> setIgnoreMouseEvents(bool ignore) async {
     await windowManager.setIgnoreMouseEvents(ignore);
-  }
-
-  Future<void> _restoreWindow() async {
-    final size = state.previousWindowSize ?? const Size(450, 500);
-    final pos = state.previousWindowPos ?? const Offset(100, 100);
-
-    // Restore standard window decorations to ensure rounded corners on Windows 11
-    await windowManager.setHasShadow(true);
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-
-    final alwaysOnTop = ref.read(themeSettingsProvider).alwaysOnTop;
-    await windowManager.setAlwaysOnTop(alwaysOnTop);
-    await windowManager.setBounds(
-      Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height),
-    );
-    await windowManager.setIgnoreMouseEvents(false);
   }
 
   Future<void> toggleRecording() async {
@@ -353,6 +356,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         }
       });
     } catch (e) {
+      await _restoreWindowInternal();
       state = state.copyWith(isRecording: false);
       throw 'Failed to start recording: $e';
     }
@@ -381,17 +385,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       }
     } finally {
       _isStopping = false;
-      // 3. Always reset state and restore window even if ffmpeg fails
-      state = state.copyWith(
-        isRecording: false,
-        isPaused: false,
-        durationSeconds: 0,
-        isOverlayVisible: false,
-        annotations: [],
-      );
-
-      await _restoreWindow();
-      await setIgnoreMouseEvents(false); // Hard reset last
+      // Use the hardened Ghost-First sequence for a clean transition back to toolbar
+      await cancelOverlay();
       refreshRecentRecordings();
     }
   }
@@ -445,7 +440,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
             validInfo.length > 10 ? validInfo.sublist(0, 10) : validInfo,
       );
     } catch (e) {
-      debugPrint('[ScreenRecorder] Failed to refresh recordings: $e');
     }
   }
 
@@ -474,13 +468,64 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   Future<void> cancelOverlay() async {
-    // Unregister recorder hotkey only
-    final hotkeyInfo = ref.read(hotkeySettingsProvider).recordToggle;
-    await hotKeyManager.unregister(hotkeyInfo.toHotKey());
+    // 1. Ghost the window instantly as the absolute FIRST step
+    // Use 0.01 temporarily to keep the layered context warm
+    await windowManager.setOpacity(0.01);
+    await Future<void>.delayed(const Duration(milliseconds: 150));
 
-    state = state.copyWith(isOverlayVisible: false, selectionRect: null);
-    await setIgnoreMouseEvents(false);
-    await _restoreWindow();
+    // 2. Perform background cleanup while invisible
+    // (WE DEFER setIgnoreMouseEvents(false) to the very end)
+
+    // 3. Unregister recorder hotkey immediately (using MATCHED instance)
+    if (state.registeredHotKey != null) {
+      try {
+        await hotKeyManager.unregister(state.registeredHotKey!);
+      } catch (e) {
+        // Silent catch for hotkey cleanup
+      }
+    }
+
+    // 4. Physically restore window bounds BEFORE switching UI state
+    await _restoreWindowInternal();
+
+    // 5. NOW switch the UI state to Toolbar mode
+    state = state.copyWith(
+      isOverlayVisible: false,
+      selectionRect: null,
+      targetedWindowRect: null,
+      registeredHotKey: null,
+      isRecording: false,
+      isPaused: false,
+      durationSeconds: 0,
+      annotations: [],
+    );
+
+    // 6. Brief delay to let Flutter commit the first frame of the Small UI
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    final theme = ref.read(themeSettingsProvider);
+
+    // 7. Finally restore attributes, reveal and focus
+    // Move all attribute changes here to prevent DWM flushes on giant window
+    await Future.wait([
+      windowManager.setHasShadow(true),
+      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAlwaysOnTop(theme.alwaysOnTop),
+      setIgnoreMouseEvents(false),
+    ]);
+    
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
+  }
+
+  Future<void> _restoreWindowInternal() async {
+    final size = state.previousWindowSize ?? const Size(450, 500);
+    final pos = state.previousWindowPos ?? const Offset(100, 100);
+
+    // Structural Move Only (Isolate from attribute changes to prevent flicker)
+    await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
+
+    // Give DWM time to settle the new buffer size
+    await Future<void>.delayed(const Duration(milliseconds: 250));
   }
 
   void togglePause() {

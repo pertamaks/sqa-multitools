@@ -5,6 +5,7 @@ import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
 
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 
 part 'screen_recorder_state.freezed.dart';
@@ -48,6 +49,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default({}) Map<String, String> displayThumbnails, // id -> filePath
     String? primaryDisplayId,
     @Default([]) List<RecordingInfo> recentRecordings,
+    @JsonKey(includeFromJson: false, includeToJson: false) HotKey? registeredHotKey,
   }) = _ScreenRecorderState;
 }
 

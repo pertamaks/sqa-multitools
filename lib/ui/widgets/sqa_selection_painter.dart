@@ -17,6 +17,12 @@ class SqaSelectionPainter extends CustomPainter {
   final Color clickFeedbackColor;
   final Color rightClickFeedbackColor;
 
+  // Active Drawing State (for zero-rebuild loop)
+  final List<Offset> activePoints;
+  final List<DateTime> activeTimestamps;
+  final ScreenshotTool? activeTool;
+  final Color? activeColor;
+
   SqaSelectionPainter({
     this.selectionRect,
     this.targetedWindowRect,
@@ -27,16 +33,18 @@ class SqaSelectionPainter extends CustomPainter {
     this.ripples = const [],
     this.clickFeedbackColor = Colors.white,
     this.rightClickFeedbackColor = Colors.amber,
+    this.activePoints = const [],
+    this.activeTimestamps = const [],
+    this.activeTool,
+    this.activeColor,
     super.repaint,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     // 1. Draw Dimming Layer (Spotlight)
-    // We hide this entirely during capture so the resulting image is clean
     if (!isCapturing) {
-      final backgroundPaint = Paint()
-        ..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
+      final backgroundPaint = Paint()..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
 
       if (selectionRect != null) {
         final path = Path()
@@ -58,37 +66,24 @@ class SqaSelectionPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
-        targetPaint,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
-        borderPaint,
-      );
+      canvas.drawRRect(RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)), targetPaint);
+      canvas.drawRRect(RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)), borderPaint);
     } else if (!isCapturing && selectionRect != null) {
       // 3. Draw Active Selection Border (Glow & Brackets)
       final color = isRecording ? Colors.red : Colors.blue;
       final breathe = animationValue;
 
-      // Outer Glow
       final glowPaint = Paint()
-        ..color = color.withValues(
-          alpha: isRecording ? (0.2 + breathe * 0.3) : 0.2,
-        )
+        ..color = color.withValues(alpha: isRecording ? (0.2 + breathe * 0.3) : 0.2)
         ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 8.0);
       canvas.drawRect(selectionRect!, glowPaint);
 
-      // Main thin border (outset by 4px)
       final borderPaint = Paint()
-        ..color = color.withValues(
-          alpha: isRecording ? (0.8 + breathe * 0.2) : 0.8,
-        )
+        ..color = color.withValues(alpha: isRecording ? (0.8 + breathe * 0.2) : 0.8)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
       canvas.drawRect(selectionRect!.inflate(4.0), borderPaint);
 
-      // High-Fidelity Corner Brackets
       final bracketPaint = Paint()
         ..color = color
         ..style = PaintingStyle.stroke
@@ -98,101 +93,31 @@ class SqaSelectionPainter extends CustomPainter {
       const double bracketSize = 20.0;
       final r = selectionRect!.inflate(4.0);
 
-      // Top Left
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.left, r.top + bracketSize)
-          ..lineTo(r.left, r.top)
-          ..lineTo(r.left + bracketSize, r.top),
-        bracketPaint,
-      );
-      // Top Right
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.right - bracketSize, r.top)
-          ..lineTo(r.right, r.top)
-          ..lineTo(r.right, r.top + bracketSize),
-        bracketPaint,
-      );
-      // Bottom Right
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.right, r.bottom - bracketSize)
-          ..lineTo(r.right, r.bottom)
-          ..lineTo(r.right - bracketSize, r.bottom),
-        bracketPaint,
-      );
-      // Bottom Left
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.left + bracketSize, r.bottom)
-          ..lineTo(r.left, r.bottom)
-          ..lineTo(r.left, r.bottom - bracketSize),
-        bracketPaint,
-      );
-    } else if (selectionRect == null && targetedWindowRect == null) {
-      // Clear background if not selecting/targeting
-      if (!isRecording) {
-        // No-op or draw clear dim if desired. Here we follow 'Clear Targeting' rule.
-      }
+      canvas.drawPath(Path()..moveTo(r.left, r.top + bracketSize)..lineTo(r.left, r.top)..lineTo(r.left + bracketSize, r.top), bracketPaint);
+      canvas.drawPath(Path()..moveTo(r.right - bracketSize, r.top)..lineTo(r.right, r.top)..lineTo(r.right, r.top + bracketSize), bracketPaint);
+      canvas.drawPath(Path()..moveTo(r.right, r.bottom - bracketSize)..lineTo(r.right, r.bottom)..lineTo(r.right - bracketSize, r.bottom), bracketPaint);
+      canvas.drawPath(Path()..moveTo(r.left + bracketSize, r.bottom)..lineTo(r.left, r.bottom)..lineTo(r.left, r.bottom - bracketSize), bracketPaint);
     }
 
-    // 4. Draw Annotations
+    // 4. Draw Existing Annotations
     for (final ann in annotations) {
-      final paint = Paint()
-        ..color = ann.color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = ann.strokeWidth
-        ..strokeCap = StrokeCap.round;
-
-      if (ann.points.length < 2) continue;
-
-      if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
-        if (ann.tool == ScreenshotTool.marker) {
-          paint.color = ann.color.withValues(alpha: 0.4);
-        }
-        final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
-        for (var i = 1; i < ann.points.length; i++) {
-          path.lineTo(ann.points[i].dx, ann.points[i].dy);
-        }
-        canvas.drawPath(path, paint);
-      } else if (ann.tool == ScreenshotTool.laser) {
-        // Laser effect: Thick glowing path
-        final laserPaint = Paint()
-          ..color = ann.color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4.0
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
-
-        final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
-        for (var i = 1; i < ann.points.length; i++) {
-          path.lineTo(ann.points[i].dx, ann.points[i].dy);
-        }
-        canvas.drawPath(path, laserPaint);
-
-        // Core of the laser (sharper)
-        final corePaint = Paint()
-          ..color = Colors.white.withValues(alpha: 0.8)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5
-          ..strokeCap = StrokeCap.round;
-        canvas.drawPath(path, corePaint);
-      } else if (ann.tool == ScreenshotTool.line) {
-        canvas.drawLine(ann.points.first, ann.points.last, paint);
-      } else if (ann.tool == ScreenshotTool.rectangle) {
-        canvas.drawRect(
-          Rect.fromPoints(ann.points.first, ann.points.last),
-          paint,
-        );
-      } else if (ann.tool == ScreenshotTool.arrow) {
-        _drawArrow(canvas, ann.points.first, ann.points.last, paint, ann.color);
-      } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
-        _drawText(canvas, ann.points.first, ann.text!, ann.color);
-      }
+      _drawSingleAnnotation(canvas, ann);
     }
 
-    // 5. Draw Click Ripples
+    // 5. Draw Active Stroke (the line currently being drawn)
+    if (activePoints.length >= 2 && activeTool != null && activeColor != null) {
+      _drawSingleAnnotation(
+        canvas,
+        Annotation(
+          points: activePoints,
+          pointTimestamps: activeTimestamps,
+          tool: activeTool!,
+          color: activeColor!,
+        ),
+      );
+    }
+
+    // 6. Draw Click Ripples
     final now = DateTime.now();
     for (final ripple in ripples) {
       final progress = ripple.getProgress(now);
@@ -202,30 +127,83 @@ class SqaSelectionPainter extends CustomPainter {
       final radius = ripple.maxRadius * progress;
 
       final ripplePaint = Paint()
-        ..color = ripple.isRightClick
-            ? rightClickFeedbackColor.withValues(alpha: opacity * 0.6)
-            : clickFeedbackColor.withValues(alpha: opacity * 0.6)
+        ..color = ripple.isRightClick ? rightClickFeedbackColor.withValues(alpha: opacity * 0.6) : clickFeedbackColor.withValues(alpha: opacity * 0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
       canvas.drawCircle(ripple.position, radius, ripplePaint);
 
       final corePaint = Paint()
-        ..color = ripple.isRightClick
-            ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8)
-            : clickFeedbackColor.withValues(alpha: opacity * 0.8)
+        ..color = ripple.isRightClick ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8) : clickFeedbackColor.withValues(alpha: opacity * 0.8)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(ripple.position, 4.0 * (1.0 - progress), corePaint);
     }
   }
 
-  void _drawArrow(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    Paint paint,
-    Color color,
-  ) {
+  void _drawSingleAnnotation(Canvas canvas, Annotation ann) {
+    if (ann.points.length < 2 && ann.tool != ScreenshotTool.text) return;
+
+    final paint = Paint()
+      ..color = ann.color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = ann.strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
+      if (ann.tool == ScreenshotTool.marker) {
+        paint.color = ann.color.withValues(alpha: 0.4);
+      }
+      final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
+      for (var i = 1; i < ann.points.length; i++) {
+        path.lineTo(ann.points[i].dx, ann.points[i].dy);
+      }
+      canvas.drawPath(path, paint);
+    } else if (ann.tool == ScreenshotTool.laser) {
+      final now = DateTime.now();
+      const fadeDuration = 1000; // ms
+
+      for (var i = 0; i < ann.points.length - 1; i++) {
+        final p1 = ann.points[i];
+        final p2 = ann.points[i + 1];
+        
+        // Calculate opacity based on point age
+        double opacity = 1.0;
+        if (ann.pointTimestamps.length > i) {
+          final age = now.difference(ann.pointTimestamps[i]).inMilliseconds;
+          opacity = (1.0 - (age / fadeDuration)).clamp(0.0, 1.0);
+        }
+
+        if (opacity <= 0) continue;
+
+        // Draw Glow
+        final laserPaint = Paint()
+          ..color = ann.color.withValues(alpha: opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4.0
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
+        canvas.drawLine(p1, p2, laserPaint);
+
+        // Draw Core
+        final corePaint = Paint()
+          ..color = Colors.white.withValues(alpha: opacity * 0.8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(p1, p2, corePaint);
+      }
+    } else if (ann.tool == ScreenshotTool.line) {
+      canvas.drawLine(ann.points.first, ann.points.last, paint);
+    } else if (ann.tool == ScreenshotTool.rectangle) {
+      canvas.drawRect(Rect.fromPoints(ann.points.first, ann.points.last), paint);
+    } else if (ann.tool == ScreenshotTool.arrow) {
+      _drawArrow(canvas, ann.points.first, ann.points.last, paint, ann.color);
+    } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
+      _drawText(canvas, ann.points.first, ann.text!, ann.color);
+    }
+  }
+
+  void _drawArrow(Canvas canvas, Offset start, Offset end, Paint paint, Color color) {
     canvas.drawLine(start, end, paint);
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
@@ -235,14 +213,8 @@ class SqaSelectionPainter extends CustomPainter {
 
     final headPath = Path()
       ..moveTo(end.dx, end.dy)
-      ..lineTo(
-        end.dx - arrowSize * math.cos(angle - arrowAngle),
-        end.dy - arrowSize * math.sin(angle - arrowAngle),
-      )
-      ..lineTo(
-        end.dx - arrowSize * math.cos(angle + arrowAngle),
-        end.dy - arrowSize * math.sin(angle + arrowAngle),
-      )
+      ..lineTo(end.dx - arrowSize * math.cos(angle - arrowAngle), end.dy - arrowSize * math.sin(angle - arrowAngle))
+      ..lineTo(end.dx - arrowSize * math.cos(angle + arrowAngle), end.dy - arrowSize * math.sin(angle + arrowAngle))
       ..close();
 
     final fillPaint = Paint()
@@ -255,11 +227,7 @@ class SqaSelectionPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,
     );

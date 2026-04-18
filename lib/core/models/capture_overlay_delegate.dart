@@ -13,6 +13,7 @@ abstract class CaptureOverlayDelegate {
   Rect? get targetedWindowRect;
   String? get targetWindowName;
   List<Annotation> get annotations;
+  Listenable? get annotationsChanged;
   Color get annotationColor;
   ScreenshotTool get currentTool;
   List<Display> get availableDisplays;

@@ -15,6 +15,44 @@ import '../../core/window/window_utils.dart';
 import 'sqa_selection_painter.dart';
 import 'sqa_floating_bar.dart';
 
+/// Internal controller for high-performance drawing.
+/// Bypasses the widget rebuild cycle for real-time annotation feedback.
+class _DrawingController extends ChangeNotifier {
+  List<Offset> _points = [];
+  List<DateTime> _timestamps = [];
+
+  List<Offset> get points => _points;
+  List<DateTime> get timestamps => _timestamps;
+
+  void start() {
+    _points = [];
+    _timestamps = [];
+    notifyListeners();
+  }
+
+  void add(Offset point) {
+    _points.add(point);
+    _timestamps.add(DateTime.now());
+    notifyListeners();
+  }
+
+  void prune(DateTime limit) {
+    while (_timestamps.isNotEmpty && _timestamps.first.isBefore(limit)) {
+      _points.removeAt(0);
+      _timestamps.removeAt(0);
+    }
+    if (_points.isNotEmpty || _timestamps.isEmpty) {
+      notifyListeners();
+    }
+  }
+
+  void clear() {
+    _points = [];
+    _timestamps = [];
+    notifyListeners();
+  }
+}
+
 class SqaCaptureOverlay extends ConsumerStatefulWidget {
   final CaptureOverlayDelegate delegate;
   final List<Widget> Function(BuildContext context) toolbarBuilder;
@@ -36,10 +74,12 @@ class SqaCaptureOverlay extends ConsumerStatefulWidget {
 class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
+  final _DrawingController _drawingController = _DrawingController();
   Offset? _startPos;
   Offset? _currentPos;
   final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(null);
   Timer? _mousePollingTimer;
+  Timer? _laserPruneTimer;
   bool _isDragging = false;
   Offset _dragGrabOffset = Offset.zero;
 
@@ -77,9 +117,11 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   @override
   void dispose() {
     _mousePollingTimer?.cancel();
+    _laserPruneTimer?.cancel();
     _animationController.dispose();
     _barOffsetNotifier.dispose();
     _focusNode.dispose();
+    _drawingController.dispose();
 
     super.dispose();
   }
@@ -330,13 +372,12 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
   void _onPanStart(DragStartDetails details) {
     if (widget.delegate.isRecording || widget.delegate.selectionRect != null) {
-      final annotation = Annotation(
-        points: [details.localPosition],
-        pointTimestamps: [DateTime.now()],
-        tool: widget.delegate.currentTool,
-        color: widget.delegate.annotationColor,
-      );
-      widget.delegate.addAnnotation(annotation);
+      _drawingController.start();
+      _drawingController.add(details.localPosition);
+
+      if (widget.delegate.currentTool == ScreenshotTool.laser) {
+        _startLaserPruning();
+      }
     } else if (widget.delegate.captureMode == CaptureMode.area) {
       setState(() {
         _startPos = details.localPosition;
@@ -345,15 +386,26 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
   }
 
+  void _startLaserPruning() {
+    _laserPruneTimer?.cancel();
+    _laserPruneTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (widget.delegate.currentTool != ScreenshotTool.laser) {
+        _stopLaserPruning();
+        return;
+      }
+      _drawingController.prune(DateTime.now().subtract(const Duration(milliseconds: 1000)));
+    });
+  }
+
+  void _stopLaserPruning() {
+    _laserPruneTimer?.cancel();
+    _laserPruneTimer = null;
+  }
+
   void _onPanUpdate(DragUpdateDetails details) {
     if ((widget.delegate.isRecording || widget.delegate.selectionRect != null) &&
-        widget.delegate.annotations.isNotEmpty) {
-      final last = widget.delegate.annotations.last;
-      final updated = last.copyWith(
-        points: [...last.points, details.localPosition],
-        pointTimestamps: [...last.pointTimestamps, DateTime.now()],
-      );
-      widget.delegate.updateLastAnnotation(updated);
+        widget.delegate.currentTool != ScreenshotTool.pointer) {
+      _drawingController.add(details.localPosition);
     } else if (widget.delegate.captureMode == CaptureMode.area) {
       setState(() {
         _currentPos = details.localPosition;
@@ -362,7 +414,19 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onPanEnd(DragEndDetails details) {
-    if (widget.delegate.selectionRect == null && _startPos != null && _currentPos != null) {
+    _stopLaserPruning();
+    if (widget.delegate.isRecording || widget.delegate.selectionRect != null) {
+      if (_drawingController.points.isNotEmpty) {
+        final annotation = Annotation(
+          points: List.from(_drawingController.points),
+          pointTimestamps: List.from(_drawingController.timestamps),
+          tool: widget.delegate.currentTool,
+          color: widget.delegate.annotationColor,
+        );
+        widget.delegate.addAnnotation(annotation);
+        _drawingController.clear();
+      }
+    } else if (widget.delegate.selectionRect == null && _startPos != null && _currentPos != null) {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
         _teleportBarToRect(rect);
@@ -427,7 +491,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                       ripples: _ripples,
                       clickFeedbackColor: delegate.clickFeedbackColor,
                       rightClickFeedbackColor: delegate.rightClickFeedbackColor,
-                      repaint: _animationController,
+                      activePoints: _drawingController.points,
+                      activeTimestamps: _drawingController.timestamps,
+                      activeTool: delegate.currentTool,
+                      activeColor: delegate.annotationColor,
+                      repaint: Listenable.merge([
+                        _animationController,
+                        _drawingController,
+                        if (widget.delegate.annotationsChanged != null) widget.delegate.annotationsChanged!,
+                      ]),
                     ),
                   ),
                 ),

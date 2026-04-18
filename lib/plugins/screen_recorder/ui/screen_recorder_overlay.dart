@@ -12,36 +12,78 @@ import '../../../ui/widgets/sqa_capture_overlay.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_dropdown.dart';
 
-class ScreenRecorderOverlay extends ConsumerWidget {
+class ScreenRecorderOverlay extends ConsumerStatefulWidget {
   const ScreenRecorderOverlay({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(screenRecorderProvider);
+  ConsumerState<ScreenRecorderOverlay> createState() => _ScreenRecorderOverlayState();
+}
+
+class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
+  final ValueNotifier<List<Annotation>> _annotationsNotifier = ValueNotifier([]);
+
+  @override
+  void dispose() {
+    _annotationsNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 1. Structural properties that should trigger a full rebuild
+    final isVisible = ref.watch(screenRecorderProvider.select((s) => s.isOverlayVisible));
+    if (!isVisible) return const SizedBox.shrink();
+
+    final isRecording = ref.watch(screenRecorderProvider.select((s) => s.isRecording));
+    final currentTool = ref.watch(screenRecorderProvider.select((s) => s.currentTool));
+    final annotationColor = ref.watch(screenRecorderProvider.select((s) => s.annotationColor));
+    final countdownSeconds = ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
+    final delaySeconds = ref.watch(screenRecorderProvider.select((s) => s.delaySeconds));
+    final microphoneEnabled = ref.watch(screenRecorderProvider.select((s) => s.microphoneEnabled));
+    
+    // UI structural changes that must trigger a rebuild
+    ref.watch(screenRecorderProvider.select((s) => s.durationSeconds));
+    ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
+    ref.watch(screenRecorderProvider.select((s) => s.selectionRect));
+    ref.watch(screenRecorderProvider.select((s) => s.targetedWindowRect));
+    ref.watch(screenRecorderProvider.select((s) => s.captureMode));
+    ref.watch(screenRecorderProvider.select((s) => s.availableDisplays));
+
+    // 2. Listen to annotations to update the notifier WITHOUT rebuilding the skeleton
+    ref.listen(screenRecorderProvider.select((s) => s.annotations), (prev, next) {
+      if (prev != next) {
+        _annotationsNotifier.value = next;
+      }
+    });
+
+    final state = ref.read(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
 
-    if (!state.isOverlayVisible) return const SizedBox.shrink();
+    // Initialize with current state if needed
+    if (_annotationsNotifier.value != state.annotations) {
+      _annotationsNotifier.value = state.annotations;
+    }
 
     return SqaCaptureOverlay(
-      delegate: _RecorderDelegate(state, notifier),
+      delegate: _RecorderDelegate(state, notifier, _annotationsNotifier),
       toolbarBuilder: (context) => [
         // Record/Stop button
         SqaFloatingBarButton(
-          icon: state.isRecording ? Symbols.stop_circle : Symbols.play_arrow,
-          tooltip: state.isRecording ? 'Stop & Save' : 'Start',
+          icon: isRecording ? Symbols.stop_circle : Symbols.play_arrow,
+          tooltip: isRecording ? 'Stop & Save' : 'Start',
           onPressed: () {
             notifier.toggleRecording();
           },
-          isPrimary: !state.isRecording,
-          color: state.isRecording ? Colors.red : null,
+          isPrimary: !isRecording,
+          color: isRecording ? Colors.red : null,
         ),
 
-        if (!state.isRecording)
+        if (!isRecording)
           SqaFloatingBarButton(
             icon: Symbols.close,
-            tooltip: state.countdownSeconds > 0 ? 'Cancel Countdown' : 'Cancel Overlay',
+            tooltip: countdownSeconds > 0 ? 'Cancel Countdown' : 'Cancel Overlay',
             onPressed: () {
-              if (state.countdownSeconds > 0) {
+              if (countdownSeconds > 0) {
                 notifier.cancelCountdown();
               } else {
                 notifier.cancelOverlay();
@@ -54,17 +96,17 @@ class ScreenRecorderOverlay extends ConsumerWidget {
 
         // Mic Toggle
         SqaFloatingBarButton(
-          icon: state.microphoneEnabled ? Symbols.mic : Symbols.mic_off,
+          icon: microphoneEnabled ? Symbols.mic : Symbols.mic_off,
           tooltip: 'Toggle Microphone',
-          onPressed: state.isRecording ? null : () => notifier.toggleMicrophone(),
-          isSelected: state.microphoneEnabled,
+          onPressed: isRecording ? null : () => notifier.toggleMicrophone(),
+          isSelected: microphoneEnabled,
         ),
 
         // Delay selector (only before recording)
-        if (!state.isRecording) ...[
+        if (!isRecording) ...[
           const SqaFloatingBarDivider(),
           SqaDropdown<int>(
-            value: state.delaySeconds,
+            value: delaySeconds,
             onChanged: (val) {
               if (val != null) notifier.setDelay(val);
             },
@@ -93,7 +135,7 @@ class ScreenRecorderOverlay extends ConsumerWidget {
           (t) => SqaFloatingBarButton(
             icon: t.$2,
             tooltip: t.$3,
-            isSelected: state.currentTool == t.$1,
+            isSelected: currentTool == t.$1,
             onPressed: () => notifier.setTool(t.$1),
           ),
         ),
@@ -109,7 +151,7 @@ class ScreenRecorderOverlay extends ConsumerWidget {
         ].map(
           (c) => SqaFloatingBarColorPicker(
             color: c,
-            isSelected: state.annotationColor == c,
+            isSelected: annotationColor == c,
             onTap: () => notifier.setColor(c),
           ),
         ),
@@ -130,8 +172,9 @@ class ScreenRecorderOverlay extends ConsumerWidget {
 class _RecorderDelegate implements CaptureOverlayDelegate {
   final ScreenRecorderState _state;
   final ScreenRecorderNotifier _notifier;
+  final ValueNotifier<List<Annotation>> _annotationsNotifier;
 
-  _RecorderDelegate(this._state, this._notifier);
+  _RecorderDelegate(this._state, this._notifier, this._annotationsNotifier);
 
   @override bool get isOverlayVisible => _state.isOverlayVisible;
   @override bool get isTargetingWindow => _state.isTargetingWindow;
@@ -139,7 +182,8 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override Rect? get selectionRect => _state.selectionRect;
   @override Rect? get targetedWindowRect => _state.targetedWindowRect;
   @override String? get targetWindowName => _state.targetWindowName;
-  @override List<Annotation> get annotations => _state.annotations;
+  @override List<Annotation> get annotations => _annotationsNotifier.value;
+  @override Listenable? get annotationsChanged => _annotationsNotifier;
   @override Color get annotationColor => _state.annotationColor;
   @override ScreenshotTool get currentTool => _state.currentTool;
   @override List<Display> get availableDisplays => _state.availableDisplays;
@@ -159,7 +203,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
+  @override confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
 
   @override
   Future<void> setIgnoreMouseEvents(bool ignore) => _notifier.setIgnoreMouseEvents(ignore);

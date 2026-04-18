@@ -58,7 +58,7 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
     - **Snap-Height Expansion:** Integrated toggle (Show All/Less) that snaps to `collapsedMaxLines` when minimized, featuring a gradient-fade footer.
     - **Horizontal Scroll:** Support for mandatory single-line horizontal scrolling via `horizontalScrollController`.
   - **SqaDropdown:** Standardized selection menus.
-  - **SqaFloatingBar:** Centralized draggable controls for capture tools.
+  - **SqaFloatingBar:** Centralized draggable controls for capture tools. Features theme-aware styling for all internal components (e.g., recording timers) to ensure maximum legibility in both light and dark modes.
   - **SqaCaptureOverlay:** Centralized foundation for high-performance, flicker-free capture tools (Screenshot, Screen Recorder). Implements the "Passive Exit" pattern for stable transitions.
   - **SqaPluginLayout:** Standardized window architecture (header + tabs + body).
 

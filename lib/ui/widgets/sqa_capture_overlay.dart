@@ -494,24 +494,58 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 }
 
   Widget _buildTimerDisplay(CaptureOverlayDelegate delegate) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (delegate.isRecording && !delegate.isPaused)
-            Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+            ),
           if (delegate.countdownSeconds > 0)
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle, boxShadow: [
-              BoxShadow(color: Colors.orange.withValues(alpha: 0.5), blurRadius: 6),
-            ])),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withValues(alpha: 0.5),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(width: 8),
           Text(
-            delegate.countdownSeconds > 0 ? '${delegate.countdownSeconds}' : _formatDuration(delegate.durationSeconds),
+            delegate.countdownSeconds > 0
+                ? '${delegate.countdownSeconds}'
+                : _formatDuration(delegate.durationSeconds),
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'monospace',
-              color: delegate.countdownSeconds > 0 ? Colors.orange : null,
+              fontSize: 14,
+              color: delegate.countdownSeconds > 0
+                  ? Colors.orangeAccent
+                  : colorScheme.onSurface,
+              shadows: delegate.countdownSeconds > 0
+                  ? [
+                      Shadow(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                      ),
+                    ]
+                  : null,
             ),
           ),
         ],

@@ -214,22 +214,43 @@ class WindowUtils {
     return (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
   }
 
+  static int _cachedAppHwnd = 0;
+
   /// Fetches the current application window's position synchronously.
-  /// Bypasses plugin calls to avoid native race conditions during transitions.
+  /// Bypasses focus dependency by searching for our process window if needed.
   static Offset getAppWindowPosition() {
     if (!Platform.isWindows) return Offset.zero;
 
     final rectPointer = calloc<RECT>();
+    final lpdwProcessId = calloc<Uint32>();
+
     try {
-      /* debugPrint('[WindowUtils] getAppWindowPosition: GetActiveWindow'); */
-      final hwnd = GetActiveWindow();
+      // 1. Try Cached Handle first for performance
+      int hwnd = _cachedAppHwnd;
+
+      // 2. Validate or find new handle if missing/invalid
+      if (hwnd == 0 || IsWindow(hwnd) == 0 || IsWindowVisible(hwnd) == 0) {
+        final myPid = GetCurrentProcessId();
+        int searchHwnd = GetWindow(GetDesktopWindow(), GW_CHILD);
+
+        while (searchHwnd != 0) {
+          if (IsWindowVisible(searchHwnd) != 0) {
+            GetWindowThreadProcessId(searchHwnd, lpdwProcessId);
+            if (lpdwProcessId.value == myPid) {
+              hwnd = searchHwnd;
+              _cachedAppHwnd = hwnd;
+              break;
+            }
+          }
+          searchHwnd = GetWindow(searchHwnd, GW_HWNDNEXT);
+        }
+      }
+
       if (hwnd == 0) return Offset.zero;
 
-      /* debugPrint('[WindowUtils] getAppWindowPosition: GetWindowRect on $hwnd'); */
       GetWindowRect(hwnd, rectPointer);
 
       // Convert Physical to Logical
-      /* debugPrint('[WindowUtils] getAppWindowPosition: GetDpiForWindow'); */
       final dpi = GetDpiForWindow(hwnd);
       final scaleFactor = (dpi > 0) ? dpi / 96.0 : 1.0;
 
@@ -242,6 +263,8 @@ class WindowUtils {
       return Offset.zero;
     } finally {
       calloc.free(rectPointer);
+      calloc.free(lpdwProcessId);
     }
   }
 }
+

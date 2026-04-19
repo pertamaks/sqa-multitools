@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   hotkey_manager_linux
   irondash_engine_context
-  screen_capturer_linux
   screen_retriever_linux
   super_native_extensions
   system_tray
@@ -16,6 +15,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

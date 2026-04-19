@@ -10,6 +10,7 @@ import '../providers/screenshot_provider.dart';
 import '../models/screenshot_state.dart';
 import '../../../ui/widgets/sqa_capture_overlay.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
+import '../../../ui/widgets/sqa_annotation_toolbar.dart';
 
 class ScreenshotOverlay extends ConsumerStatefulWidget {
   const ScreenshotOverlay({super.key});
@@ -61,25 +62,20 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     return SqaCaptureOverlay(
       delegate: _ScreenshotDelegate(state, notifier, _annotationsNotifier),
       toolbarBuilder: (context) => [
-        ...[
-          (ScreenshotTool.pen, Symbols.edit, 'Pen'),
-          (ScreenshotTool.line, Symbols.horizontal_rule, 'Line'),
-          (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
-          (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
-          (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
-          (ScreenshotTool.text, Symbols.text_fields, 'Text'),
-        ].map(
-          (t) => SqaFloatingBarButton(
-            icon: t.$2,
-            tooltip: t.$3,
-            isSelected: currentTool == t.$1,
-            onPressed: () => notifier.setTool(t.$1),
-          ),
-        ),
-        SqaFloatingBarButton(
-          icon: Symbols.delete_sweep,
-          tooltip: 'Clear All',
-          onPressed: notifier.clearAnnotations,
+        SqaAnnotationToolbar(
+          enabledTools: const [
+            ScreenshotTool.pen,
+            ScreenshotTool.line,
+            ScreenshotTool.arrow,
+            ScreenshotTool.marker,
+            ScreenshotTool.rectangle,
+            ScreenshotTool.text,
+          ],
+          currentTool: currentTool,
+          onToolSelected: notifier.setTool,
+          currentColor: annotationColor,
+          onColorSelected: notifier.setColor,
+          onClear: notifier.clearAnnotations,
         ),
         const SqaFloatingBarDivider(),
         ...[

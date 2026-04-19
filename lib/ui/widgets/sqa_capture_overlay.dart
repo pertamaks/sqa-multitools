@@ -123,6 +123,17 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       });
     }
 
+    // Handle Bar Re-teleport when selectionRect changes (including coordinate remap)
+    // _lockToMonitor physically moves the window and remaps selectionRect twice:
+    //   1. null → spanning-window rect (initial setSelection)
+    //   2. spanning-window rect → remapped local rect (after physical move)
+    // Both transitions must trigger a re-teleport.
+    if (oldWidget.delegate.selectionRect != widget.delegate.selectionRect &&
+        widget.delegate.selectionRect != null &&
+        widget.delegate.lockedDisplay != null) {
+      _teleportBarToRect(widget.delegate.selectionRect!);
+    }
+
   }
 
   @override

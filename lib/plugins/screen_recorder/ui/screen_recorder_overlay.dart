@@ -11,6 +11,7 @@ import '../models/screen_recorder_state.dart';
 import '../../../ui/widgets/sqa_capture_overlay.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_dropdown.dart';
+import '../../../ui/widgets/sqa_annotation_toolbar.dart';
 
 class ScreenRecorderOverlay extends ConsumerStatefulWidget {
   const ScreenRecorderOverlay({super.key});
@@ -123,51 +124,27 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
 
         const SqaFloatingBarDivider(),
 
-        // Annotation Tools
-        ...[
-          (ScreenshotTool.pointer, Symbols.near_me, 'Pointer'),
-          (ScreenshotTool.pen, Symbols.edit, 'Pen'),
-          (ScreenshotTool.marker, Symbols.brush, 'Highlighter'),
-          (ScreenshotTool.arrow, Symbols.arrow_outward, 'Arrow'),
-          (ScreenshotTool.rectangle, Symbols.rectangle, 'Rectangle'),
-          (ScreenshotTool.laser, Symbols.stylus_laser_pointer, 'Laser Pointer'),
-        ].map(
-          (t) => SqaFloatingBarButton(
-            icon: t.$2,
-            tooltip: t.$3,
-            isSelected: currentTool == t.$1,
-            onPressed: () => notifier.setTool(t.$1),
-          ),
-        ),
-
-        const SqaFloatingBarDivider(),
-
-        // Colors
-        ...[
-          Colors.red,
-          Colors.green,
-          Colors.blue,
-          Colors.white,
-        ].map(
-          (c) => SqaFloatingBarColorPicker(
-            color: c,
-            isSelected: annotationColor == c,
-            onTap: () => notifier.setColor(c),
-          ),
-        ),
-
-        const SqaFloatingBarDivider(),
-
-        // Clear button
-        SqaFloatingBarButton(
-          icon: Symbols.delete_sweep,
-          tooltip: 'Clear Annotations',
-          onPressed: () => notifier.clearAnnotations(),
+        // Annotation Tools & Colors
+        SqaAnnotationToolbar(
+          enabledTools: const [
+            ScreenshotTool.pointer,
+            ScreenshotTool.pen,
+            ScreenshotTool.marker,
+            ScreenshotTool.arrow,
+            ScreenshotTool.rectangle,
+            ScreenshotTool.laser,
+          ],
+          currentTool: currentTool,
+          onToolSelected: notifier.setTool,
+          currentColor: annotationColor,
+          onColorSelected: notifier.setColor,
+          onClear: notifier.clearAnnotations,
         ),
       ],
     );
   }
 }
+
 
 class _RecorderDelegate implements CaptureOverlayDelegate {
   final ScreenRecorderState _state;

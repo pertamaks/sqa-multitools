@@ -22,6 +22,8 @@ import '../../ui/widgets/sqa_hotkey_field.dart';
 import '../../ui/widgets/sqa_toast.dart';
 import 'providers/screen_recorder_provider.dart';
 import 'models/screen_recorder_state.dart';
+import '../../ui/widgets/sqa_dependency_card.dart';
+import '../../core/providers/ffmpeg_provider.dart';
 
 class ScreenRecorderPlugin implements SqaPlugin {
   @override
@@ -69,47 +71,7 @@ class _ScreenRecorderSettings extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!state.engineReady)
-          SqaCard(
-            margin: const EdgeInsets.only(bottom: 24),
-            padding: const EdgeInsets.all(16),
-            backgroundColor: theme.colorScheme.errorContainer.withValues(
-              alpha: 0.1,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Symbols.warning,
-                      color: theme.colorScheme.error,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Missing Dependencies',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.error,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'The recording engine (FFmpeg) is not installed. Technical settings are hidden until resolved.',
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 16),
-                SqaButton.tonal(
-                  onPressed: () => notifier.installEngine(),
-                  icon: Symbols.download,
-                  label: 'Download Engine',
-                ),
-              ],
-            ),
-          ),
+        const SqaDependencyCard(pluginName: 'Screen Recorder'),
 
         // --- SECTION: AUDIO ---
         Padding(
@@ -138,7 +100,7 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                   onChanged: (v) => notifier.setMicrophone(v),
                 ),
               ),
-              if (state.engineReady && state.microphoneEnabled) ...[
+              if (ref.watch(ffmpegProvider).isReady && state.microphoneEnabled) ...[
                 const Divider(height: 1, indent: 56),
                 SqaSettingsTile(
                   icon: Symbols.settings_input_component,
@@ -459,14 +421,13 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
   void _handleStart(BuildContext context) async {
     final state = ref.read(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
+    final engineStatus = ref.read(ffmpegProvider);
 
-    if (state.engineDownloadProgress != null) {
-      // Already downloading
+    if (engineStatus.isDownloading) {
       return;
     }
 
-    if (!state.engineReady) {
-      // ... (Engine download logic remains the same)
+    if (!engineStatus.isReady) {
       final shouldDownload = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -490,8 +451,7 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
 
       if (shouldDownload == true) {
         try {
-          await notifier.installEngine();
-          // After engine is ready, continue to monitor selection
+          await ref.read(ffmpegProvider.notifier).download();
         } catch (e) {
           if (context.mounted) {
             ScaffoldMessenger.of(
@@ -516,6 +476,7 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
   Widget build(BuildContext context) {
     final state = ref.watch(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
+    final ffmpegStatus = ref.watch(ffmpegProvider);
     final theme = Theme.of(context);
 
     return SqaPluginLayout(
@@ -523,13 +484,14 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
       title: 'Screen Recorder',
       description: 'Record your screen, camera, and audio inputs.',
       // Mini download progress on the top icon if downloading
-      trailing: state.engineDownloadProgress != null
+      trailing: ffmpegStatus.isDownloading
           ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
-                value: state.engineDownloadProgress! >= 0
-                    ? state.engineDownloadProgress
+                value: ffmpegStatus.downloadProgress != null &&
+                        ffmpegStatus.downloadProgress! >= 0
+                    ? ffmpegStatus.downloadProgress
                     : null,
                 strokeWidth: 2,
               ),
@@ -548,80 +510,80 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
                   : null,
               child: Column(
                 children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        state.isOverlayVisible
-                            ? 'OVERLAY ACTIVE'
-                            : 'READY TO RECORD',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              state.isOverlayVisible
+                                  ? 'OVERLAY ACTIVE'
+                                  : 'READY TO RECORD',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Config Summary Row
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _ConfigSnippet(
+                                  icon: switch (state.captureMode) {
+                                    CaptureMode.fullScreen => Symbols.fullscreen,
+                                    CaptureMode.area => Symbols.crop_free,
+                                    CaptureMode.window => Symbols.window,
+                                  },
+                                  label: switch (state.captureMode) {
+                                    CaptureMode.fullScreen => 'Full Screen',
+                                    CaptureMode.area => 'Select Area',
+                                    CaptureMode.window => 'Select Window',
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                _ConfigSnippet(
+                                  icon:
+                                      state.microphoneEnabled
+                                          ? Symbols.mic
+                                          : Symbols.mic_off,
+                                  label:
+                                      state.microphoneEnabled
+                                          ? (state.selectedAudioDevice ?? 'Mic On')
+                                          : 'No Audio',
+                                ),
+                                const SizedBox(height: 8),
+                                _ConfigSnippet(
+                                  icon: Symbols.photo_size_select_large,
+                                  label:
+                                      '${state.resolution} @ ${state.framerate}fps',
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      // Config Summary Row
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _ConfigSnippet(
-                            icon: switch (state.captureMode) {
-                              CaptureMode.fullScreen => Symbols.fullscreen,
-                              CaptureMode.area => Symbols.crop_free,
-                              CaptureMode.window => Symbols.window,
-                            },
-                            label: switch (state.captureMode) {
-                              CaptureMode.fullScreen => 'Full Screen',
-                              CaptureMode.area => 'Select Area',
-                              CaptureMode.window => 'Select Window',
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          _ConfigSnippet(
-                            icon:
-                                state.microphoneEnabled
-                                    ? Symbols.mic
-                                    : Symbols.mic_off,
-                            label:
-                                state.microphoneEnabled
-                                    ? (state.selectedAudioDevice ?? 'Mic On')
-                                    : 'No Audio',
-                          ),
-                          const SizedBox(height: 8),
-                          _ConfigSnippet(
-                            icon: Symbols.photo_size_select_large,
-                            label:
-                                '${state.resolution} @ ${state.framerate}fps',
-                          ),
-                        ],
+                      // Tune (Settings) Button
+                      Tooltip(
+                        message: 'Recording Settings',
+                        child: SqaIconContainer(
+                          icon: Symbols.tune,
+                          color: theme.colorScheme.primary,
+                          backgroundColor: Colors.transparent,
+                          size: 32,
+                          iconSize: 18,
+                          onTap: () {
+                            ref
+                                .read(navigationServiceProvider)
+                                .jumpToPluginSettings(ScreenRecorderPlugin().id);
+                          },
+                        ),
                       ),
                     ],
                   ),
-                ),
-                // Tune (Settings) Button
-                Tooltip(
-                  message: 'Recording Settings',
-                  child: SqaIconContainer(
-                    icon: Symbols.tune,
-                    color: theme.colorScheme.primary,
-                    backgroundColor: Colors.transparent,
-                    size: 32,
-                    iconSize: 18,
-                    onTap: () {
-                      ref
-                          .read(navigationServiceProvider)
-                          .jumpToPluginSettings(ScreenRecorderPlugin().id);
-                    },
-                  ),
-                ),
-              ],
-            ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -633,7 +595,7 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
                           icon: state.isOverlayVisible
                               ? Symbols.close
                               : Symbols.play_arrow,
-                          label: state.engineDownloadProgress != null
+                          label: ffmpegStatus.isDownloading
                               ? 'Downloading Engine...'
                               : (state.isOverlayVisible
                                     ? 'Cancel Overlay'

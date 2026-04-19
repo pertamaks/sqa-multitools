@@ -12,6 +12,7 @@ import '../../core/services/preferences_service.dart';
 import '../../core/providers/hotkey_provider.dart';
 import 'providers/screenshot_provider.dart';
 import 'ui/screenshot_view.dart';
+import '../../ui/widgets/sqa_dependency_card.dart';
 
 class ScreenshotPlugin implements SqaPlugin {
   @override
@@ -55,6 +56,7 @@ class _ScreenshotSettings extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SqaDependencyCard(pluginName: 'Screenshot'),
         // --- SECTION: CAPTURE ---
         Padding(
           padding: const EdgeInsets.only(bottom: 12),

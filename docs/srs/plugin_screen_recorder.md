@@ -57,11 +57,11 @@ Settings are organized into logical groups within the dedicated settings panel:
 - **Visual Feedback**: Toggle visibility of the mouse cursor and independent customization of **Left-Click** and **Right-Click** ripple colors.
 - **Recording Setup**: Quality selection (1080p, 720p), Framerate (60fps, 30fps), and initial **Start Delay** (Countdown).
 - **System & Files**: Custom directory selection utilizing native Windows folder picker and export format selection (MP4, MKV).
-- **Dependency Guarding**: Settings panel identifies if FFmpeg (required for audio discovery and recording) is missing and hides technical configurations until resolved.
+- **Dependency Guarding**: Settings panel utilizes `SqaDependencyCard` to track if FFmpeg (required for audio discovery and recording) is missing and provides a unified download UI. Technical settings are hidden until resolved.
 
 ## 4. Implementation Strategy (Technical Analysis)
 ### Capture Mechanism
-- **Engine**: Implementation via JIT-downloaded **FFmpeg**.
+- **Engine**: Implementation via the centralized `FfmpegEngine` in `core/engine/`.
 - **Absolute Coordinate Mapping**: Uses an absolute physical mapping system relative to the virtual desktop origin (top-left-most monitor). This ensures 100% precision for secondary monitors and negative logical offsets.
 - **Spatial Targetting**: All capture modes (Full Screen, Area, Window) resolve to a global logical `Rect`. Window mode uses spatial confirmation via a blue shade overlay instead of brittle title matching, ensuring stability even if window titles change.
 - **Crop Filter Strategy**: Uses the FFmpeg `crop` video filter to extract the target region from the global virtual desktop buffer, providing robust performance across mixed-DPI arrangements.
@@ -85,7 +85,7 @@ Settings are organized into logical groups within the dedicated settings panel:
 - **Layout**: Use `SqaPluginScrollableContent` to vertically center the recording configuration and primary status card.
 
 ### Software Interfaces
-- **API**: Platform-specific Windows capture APIs and FFmpeg CLI wrapper managed by the internal `FfmpegEngine` class.
+- **API**: Platform-specific Windows capture APIs and FFmpeg CLI wrapper managed by the centralized `FfmpegEngine` service.
 
 ## 6. Non-Functional Requirements (Quality Attributes)
 ### Performance

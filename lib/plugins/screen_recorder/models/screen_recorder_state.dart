@@ -37,8 +37,6 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(0) int delaySeconds,
     @Default(0) int countdownSeconds, // Live countdown before recording starts
     @Default(30) int framerate,
-    double? engineDownloadProgress,
-    @Default(false) bool engineReady,
     String? saveDirectory,
     Size? previousWindowSize,
     Offset? previousWindowPos,

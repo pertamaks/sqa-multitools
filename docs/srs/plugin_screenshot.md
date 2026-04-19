@@ -59,7 +59,11 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Not implemented**.
 
 ### Software Interfaces
-- **API:** Platform-specific Windows capture APIs.
+- **API:** Platform-specific Windows capture APIs and the centralized `FfmpegEngine` service for high-fidelity screenshot encoding.
+
+## 5. Non-Functional Requirements (Quality Attributes)
+### Dependency Guarding
+- **FFmpeg Integration**: The settings panel utilizes the core `SqaDependencyCard` to ensure the FFmpeg engine is available for screenshot encoding and coordinate mapping.
 
 ### Communication Interfaces
 - **Not implemented**.

@@ -105,3 +105,9 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 - **Description:** Centralized mechanism (`WindowTransitionCoordinator`) to manage complex window state changes.
 - **Strategy:** Replaces hardcoded delays with event-driven synchronization (native OS events + Flutter frame callbacks).
 - **Core Benefit:** Eliminates flickering and visual artifacts during large-scale structural window moves.
+
+### Centralized FFmpeg Engine
+- **Description:** A shared utility service in `core/engine/` that manages FFmpeg lifecycle and execution.
+- **DPI-Aware Capture:** Implements robust coordinate mapping and mixed-DPI scaling logic to ensure pixel-perfect crops across multi-monitor setups.
+- **Unified Dependency Management:** Provides a global Riverpod provider (`ffmpegProvider`) for tracking installation progress and engine readiness across all capturing plugins.
+- **Decoupled Architecture:** Uses a generic `FfmpegVideoConfig` DTO to allow both Screen Recorder and Screenshot plugins to share the same capture logic without circular dependencies.

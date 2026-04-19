@@ -12,7 +12,7 @@ import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/screenshot_tool.dart';
 import '../../../core/models/annotation.dart';
-import '../../screen_recorder/engine/ffmpeg_engine.dart';
+import '../../../core/engine/ffmpeg_engine.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/window/window_utils.dart';

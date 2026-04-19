@@ -5,8 +5,29 @@ import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import '../models/screen_recorder_state.dart';
-import '../../../core/models/capture_mode.dart';
+import '../models/capture_mode.dart';
+
+/// Configuration for a video recording session.
+/// Decoupled from plugin-specific states to allow core-level use.
+class FfmpegVideoConfig {
+  final int framerate;
+  final String? resolution;
+  final bool showCursor;
+  final CaptureMode captureMode;
+  final Rect? captureRect;
+  final bool microphoneEnabled;
+  final String? selectedAudioDevice;
+
+  const FfmpegVideoConfig({
+    required this.framerate,
+    this.resolution,
+    required this.showCursor,
+    required this.captureMode,
+    this.captureRect,
+    this.microphoneEnabled = false,
+    this.selectedAudioDevice,
+  });
+}
 
 class FfmpegEngine {
   static const String _downloadUrl =
@@ -107,19 +128,15 @@ class FfmpegEngine {
         throw Exception('ffmpeg.exe not found in downloaded archive.');
       }
     } finally {
-      // Clean up temp zip and unneeded extracted root if we copied the exe,
-      // but to be safe we just delete the zip.
       if (await zipFile.exists()) {
         await zipFile.delete();
       }
     }
   }
 
-  /// Extractor function meant to run inside an Isolate via `compute`.
   static Future<void> _extractZip(Map<String, String> args) async {
     final zipPath = args['zipPath']!;
     final destPath = args['destPath']!;
-
     extractFileToDisk(zipPath, destPath);
   }
 
@@ -137,12 +154,9 @@ class FfmpegEngine {
         'dummy',
       ]);
 
-      // FFmpeg outputs device lists to stderr
       final output = result.stderr as String;
       final lines = output.split('\n');
       final devices = <String>[];
-
-      // Regex to match: [dshow @ 000001f3e58f3dc0] "Microphone (Realtek High Definition Audio)" (audio)
       final deviceRegex = RegExp(r'\[dshow @ .*\] "(.*)" \(audio\)');
 
       for (final line in lines) {
@@ -154,39 +168,33 @@ class FfmpegEngine {
           }
         }
       }
-
       return devices;
     } catch (e) {
-      debugPrint('[ScreenRecorder] Failed to list audio devices: $e');
+      debugPrint('[FfmpegEngine] Failed to list audio devices: $e');
       return [];
     }
   }
 
   /// Builds the argument list for FFmpeg.
-  List<String> buildArguments(
-    ScreenRecorderState state,
-    String outputPath,
-    List<Display> displays,
-  ) {
+  List<String> buildArguments({
+    required FfmpegVideoConfig config,
+    required String outputPath,
+    required List<Display> displays,
+  }) {
     final args = <String>[];
+    args.addAll(['-y']);
+    args.addAll(['-f', 'gdigrab', '-framerate', '${config.framerate}']);
 
-    // Global flags
-    args.addAll(['-y']); // Overwrite outputs
-
-    // Input configuration
-    args.addAll(['-f', 'gdigrab', '-framerate', '${state.framerate}']);
-
-    // Hide cursor if requested
-    if (state.showCursor == false) {
+    if (config.showCursor == false) {
       args.addAll(['-draw_mouse', '0']);
     }
 
-    // Build Filter Chain
     final filters = <String>[];
-    if (state.captureMode == CaptureMode.window || state.captureRect != null) {
-      final rect = state.captureRect!;
+    if (config.captureMode == CaptureMode.window ||
+        config.captureRect != null) {
+      final rect = config.captureRect!;
 
-      // 1. Calculate Virtual Desktop logical bounds (Origin)
+      // 1. Calculate Virtual Desktop logical bounds
       double globalMinX = 0;
       double globalMinY = 0;
       for (final d in displays) {
@@ -235,35 +243,29 @@ class FfmpegEngine {
       int h = (rect.height * targetScale).toInt();
       if (w % 2 != 0) w -= 1;
       if (h % 2 != 0) h -= 1;
-
       filters.add('crop=$w:$h:$x:$y');
     }
 
-    // Scale resolution if needed
-    if (state.resolution == '720p') {
+    if (config.resolution == '720p') {
       filters.add('scale=-2:720');
-    } else if (state.resolution == '1080p') {
+    } else if (config.resolution == '1080p') {
       filters.add('scale=-2:1080');
-    } else if (state.resolution == '480p') {
+    } else if (config.resolution == '480p') {
       filters.add('scale=-2:480');
-    } else if (state.resolution == '360p') {
+    } else if (config.resolution == '360p') {
       filters.add('scale=-2:360');
     }
 
-    // 5. Input Assignment (MUST follow input options like -framerate)
     args.addAll(['-i', 'desktop']);
 
-    // 5.1 Additional Audio Input (Microphone)
-    if (state.microphoneEnabled && state.selectedAudioDevice != null) {
-      args.addAll(['-f', 'dshow', '-i', 'audio=${state.selectedAudioDevice}']);
+    if (config.microphoneEnabled && config.selectedAudioDevice != null) {
+      args.addAll(['-f', 'dshow', '-i', 'audio=${config.selectedAudioDevice}']);
     }
 
-    // 6. Filter Chain (MUST follow the input stream)
     if (filters.isNotEmpty) {
       args.addAll(['-vf', filters.join(',')]);
     }
 
-    // 7. Output Encoding Settings
     args.addAll([
       '-c:v',
       'libx264',
@@ -275,39 +277,34 @@ class FfmpegEngine {
       'yuv420p',
     ]);
 
-    if (state.microphoneEnabled && state.selectedAudioDevice != null) {
+    if (config.microphoneEnabled && config.selectedAudioDevice != null) {
       args.addAll(['-c:a', 'aac']);
     }
 
-    // 8. Output Path
     args.add(outputPath);
-
     return args;
   }
 
   /// Spawns the FFmpeg process
-  Future<Process> startRecording(
-    ScreenRecorderState state,
-    String savePath,
-    List<Display> displays,
-  ) async {
+  Future<Process> startRecording({
+    required FfmpegVideoConfig config,
+    required String savePath,
+    required List<Display> displays,
+  }) async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) {
       throw Exception('FFmpeg engine is not installed or available on PATH.');
     }
 
-    final args = buildArguments(state, savePath, displays);
-    /* debugPrint(
-      '[ScreenRecorder] FFmpeg Command: $_resolvedExecutable ${args.join(' ')}',
-    ); */
-
-    // Using Process.start
+    final args = buildArguments(
+      config: config,
+      outputPath: savePath,
+      displays: displays,
+    );
     final process = await Process.start(_resolvedExecutable!, args);
 
-    // Diagnostics: Pipe stderr to a log file in the project root for easier debugging
     final logFile = File('${Directory.current.path}\\ffmpeg_log.txt');
     if (await logFile.exists()) await logFile.delete();
 
-    // We don't await the collection of logs to avoid blocking
     process.stderr.transform(utf8.decoder).listen((data) {
       logFile.writeAsStringSync(data, mode: FileMode.append);
     });
@@ -326,7 +323,6 @@ class FfmpegEngine {
     final outputPath =
         '${tempDir.path}\\sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg';
 
-    // 1. Find the target display
     Display? targetDisplay;
     double maxOverlap = -1.0;
     for (final d in displays) {
@@ -347,7 +343,6 @@ class FfmpegEngine {
     final ratio = (targetDisplay.scaleFactor ?? 1.0).toDouble();
     final displayOrigin = targetDisplay.visiblePosition ?? Offset.zero;
 
-    // 2. Calculate physical origin
     double physicalOffsetX = 0;
     double physicalOffsetY = 0;
     for (final d in displays) {
@@ -360,26 +355,30 @@ class FfmpegEngine {
       }
     }
 
-    // 3. Calculate physical coordinates
     int x = ((bounds.left - displayOrigin.dx) * ratio + physicalOffsetX)
         .toInt();
     int y = ((bounds.top - displayOrigin.dy) * ratio + physicalOffsetY).toInt();
     int w = (bounds.width * ratio).toInt();
     int h = (bounds.height * ratio).toInt();
 
-    // Force even dimensions
     if (w % 2 != 0) w -= 1;
     if (h % 2 != 0) h -= 1;
 
     final args = [
-      '-f', 'gdigrab',
-      '-offset_x', '$x',
-      '-offset_y', '$y',
-      '-video_size', '${w}x$h',
-      '-i', 'desktop',
-      '-frames:v', '1',
+      '-f',
+      'gdigrab',
+      '-offset_x',
+      '$x',
+      '-offset_y',
+      '$y',
+      '-video_size',
+      '${w}x$h',
+      '-i',
+      'desktop',
+      '-frames:v',
+      '1',
       '-vf',
-      'scale=320:-2', // Small thumbnail with aspect ratio preserved (even width)
+      'scale=320:-2',
       '-y',
       outputPath,
     ];
@@ -393,9 +392,8 @@ class FfmpegEngine {
         return File(outputPath);
       }
     } catch (e) {
-      debugPrint('[ScreenRecorder] Thumbnail capture failed: $e');
+      debugPrint('[FfmpegEngine] Thumbnail capture failed: $e');
     }
-
     return null;
   }
 
@@ -408,7 +406,6 @@ class FfmpegEngine {
   }) async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return null;
 
-    // 1. Find the target display
     Display? targetDisplay;
     double maxOverlap = -1.0;
     for (final d in displays) {
@@ -429,8 +426,6 @@ class FfmpegEngine {
     final ratio = (targetDisplay.scaleFactor ?? 1.0).toDouble();
     final displayOrigin = targetDisplay.visiblePosition ?? Offset.zero;
 
-    // 2. Calculate physical origin relative to Virtual Desktop
-    // (This matches the logic in ScreenRecorder for consistency)
     double physicalOffsetX = 0;
     double physicalOffsetY = 0;
     for (final d in displays) {
@@ -443,7 +438,6 @@ class FfmpegEngine {
       }
     }
 
-    // 3. Calculate physical coordinates
     int x = ((logicalBounds.left - displayOrigin.dx) * ratio + physicalOffsetX)
         .toInt();
     int y = ((logicalBounds.top - displayOrigin.dy) * ratio + physicalOffsetY)
@@ -451,8 +445,6 @@ class FfmpegEngine {
     int w = (logicalBounds.width * ratio).toInt();
     int h = (logicalBounds.height * ratio).toInt();
 
-    // ffmpeg filters usually require even dimensions for some encoders,
-    // although for static images it's less strict, we keep it for safety.
     if (w % 2 != 0) w -= 1;
     if (h % 2 != 0) h -= 1;
 
@@ -471,7 +463,6 @@ class FfmpegEngine {
       'desktop',
       '-frames:v',
       '1',
-      // No scaling for screenshots!
       '-y',
       savePath,
     ];
@@ -490,7 +481,6 @@ class FfmpegEngine {
     } catch (e) {
       debugPrint('[FfmpegEngine] Screenshot exception: $e');
     }
-
     return null;
   }
 }

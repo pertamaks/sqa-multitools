@@ -11,7 +11,8 @@ import '../models/screen_recorder_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
-import '../engine/ffmpeg_engine.dart';
+import '../../../core/engine/ffmpeg_engine.dart';
+import '../../../core/providers/ffmpeg_provider.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
@@ -25,14 +26,11 @@ part 'screen_recorder_provider.g.dart';
 class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Timer? _timer;
   Process? _ffmpegProcess;
-  late final FfmpegEngine _engine;
   bool _isStopping = false;
   Timer? _laserTimer;
 
   @override
   ScreenRecorderState build() {
-    _engine = FfmpegEngine();
-
     // Kill any orphaned FFmpeg process when the provider is destroyed
     ref.onDispose(() {
       _laserTimer?.cancel();
@@ -42,23 +40,23 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       }
     });
 
+    // Listen to engine status changes
+    ref.listen(ffmpegProvider, (previous, next) {
+      if (!previous!.isReady && next.isReady) {
+        refreshMonitors();
+        refreshAudioDevices();
+      }
+    });
+
     // Trigger side-effects after the provider is initialized
     Future.microtask(() {
-      _checkEngine();
       refreshRecentRecordings();
     });
 
     return const ScreenRecorderState();
   }
 
-  Future<void> _checkEngine() async {
-    final ready = await FfmpegEngine.isEngineAvailable();
-    state = state.copyWith(engineReady: ready);
-    if (ready) {
-      await refreshMonitors();
-      await refreshAudioDevices();
-    }
-  }
+
 
   /// Refreshes the list of available monitors and their friendly names.
   Future<void> refreshMonitors() async {
@@ -88,7 +86,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Manually refreshes the visual snapshots of all monitors.
   Future<void> refreshThumbnails() async {
-    if (!state.engineReady) return;
+    final engineReady = ref.read(ffmpegProvider).isReady;
+    if (!engineReady) return;
 
     final Map<String, String> newThumbnails = Map.from(state.displayThumbnails);
 
@@ -118,7 +117,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Refreshes the list of available audio input devices.
   Future<void> refreshAudioDevices() async {
-    if (!state.engineReady) return;
+    final engineReady = ref.read(ffmpegProvider).isReady;
+    if (!engineReady) return;
 
     final devices = await FfmpegEngine.listAudioDevices();
     state = state.copyWith(
@@ -131,21 +131,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Downloads the engine
   Future<void> installEngine() async {
-    state = state.copyWith(engineDownloadProgress: 0.0);
-    try {
-      await FfmpegEngine.downloadEngine((progress) {
-        state = state.copyWith(engineDownloadProgress: progress);
-      });
-      state = state.copyWith(engineReady: true, engineDownloadProgress: null);
-    } catch (e) {
-      state = state.copyWith(engineDownloadProgress: null);
-      throw 'Failed to download FFmpeg: $e';
-    }
+    await ref.read(ffmpegProvider.notifier).download();
   }
 
   /// Called when the user presses start from the main UI
   Future<void> startOverlay([Rect? targetBounds]) async {
-    if (!state.engineReady) {
+    final engineReady = ref.read(ffmpegProvider).isReady;
+    if (!engineReady) {
       throw 'Engine not ready.';
     }
 
@@ -348,10 +340,20 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final savePath = '${saveDir.path}\\$filename';
 
     try {
-      _ffmpegProcess = await _engine.startRecording(
-        state,
-        savePath,
-        state.availableDisplays,
+      final config = FfmpegVideoConfig(
+        framerate: state.framerate,
+        resolution: state.resolution,
+        showCursor: state.showCursor,
+        captureMode: state.captureMode,
+        captureRect: state.captureRect,
+        microphoneEnabled: state.microphoneEnabled,
+        selectedAudioDevice: state.selectedAudioDevice,
+      );
+
+      _ffmpegProcess = await FfmpegEngine().startRecording(
+        config: config,
+        savePath: savePath,
+        displays: state.availableDisplays,
       );
 
       // Listener for unexpected exit

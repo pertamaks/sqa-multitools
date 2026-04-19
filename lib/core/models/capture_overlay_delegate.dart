@@ -22,6 +22,7 @@ abstract class CaptureOverlayDelegate {
   bool get isRecording => false;
   bool get isPaused => false;
   int get durationSeconds => 0;
+  Display? get lockedDisplay;
   int get countdownSeconds => 0;
   bool get isCapturing => false; // Screenshot "processing" flag
 
@@ -32,7 +33,7 @@ abstract class CaptureOverlayDelegate {
   Color get rightClickFeedbackColor => Colors.amber;
 
   // --- Shared Mutations ---
-  void setSelection(Rect? rect);
+  void setSelection(Rect? rect, [Display? display]);
   void addAnnotation(Annotation annotation);
   void updateLastAnnotation(Annotation annotation);
   void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]);

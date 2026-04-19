@@ -186,8 +186,10 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override Listenable? get annotationsChanged => _annotationsNotifier;
   @override Color get annotationColor => _state.annotationColor;
   @override ScreenshotTool get currentTool => _state.currentTool;
+  @override Display? get lockedDisplay => _state.lockedDisplay;
   @override List<Display> get availableDisplays => _state.availableDisplays;
 
+  @override void setSelection(Rect? rect, [Display? display]) => _notifier.setSelection(rect, display);
   @override bool get isRecording => _state.isRecording;
   @override bool get isPaused => _state.isPaused;
   @override int get durationSeconds => _state.durationSeconds;
@@ -199,11 +201,10 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override Color get clickFeedbackColor => _state.clickFeedbackColor;
   @override Color get rightClickFeedbackColor => _state.rightClickFeedbackColor;
 
-  @override void setSelection(Rect? rect) => _notifier.setSelection(rect);
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
+  @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
 
   @override
   Future<void> setIgnoreMouseEvents(bool ignore) => _notifier.setIgnoreMouseEvents(ignore);

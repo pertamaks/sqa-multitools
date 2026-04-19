@@ -198,6 +198,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       selectionRect: null,
       captureRect: captureRect,
       availableDisplays: displays,
+      lockedDisplay: null,
       registeredHotKey: registeredHotKey,
     );
 
@@ -520,6 +521,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       isOverlayVisible: false,
       selectionRect: null,
       targetedWindowRect: null,
+      lockedDisplay: null,
       registeredHotKey: null,
       isRecording: false,
       isPaused: false,
@@ -590,9 +592,17 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       state = state.copyWith(rightClickFeedbackColor: color);
 
   // Annotation Methods
-  void setSelection(Rect? rect) {
+  void setSelection(Rect? rect, [Display? display]) {
+    if (display != null && state.lockedDisplay != display) {
+      state = state.copyWith(lockedDisplay: display);
+    }
+
     state = state.copyWith(selectionRect: rect);
-    // Don't shrink anymore, stay full screen for annotations
+
+    // If we just finished a drag (rect is final) and have a logical lock, trigger physical lock
+    if (rect != null && state.lockedDisplay != null && !state.isRecording) {
+      _lockToMonitor(rect, providedDisplay: state.lockedDisplay);
+    }
   }
 
   void setTool(ScreenshotTool tool) =>
@@ -690,6 +700,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       targetWindowName: title,
     );
 
+    await _lockToMonitor(rect);
+
     // Bring the window to front
     if (hwnd != null && hwnd != 0) {
       WindowUtils.focusWindow(hwnd);
@@ -700,5 +712,76 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     startOverlay().catchError((e) {
       // Intentionally ignore for now, UI handles error.
     });
+  }
+
+  /// Physically shrinks the overlay window to cover only the target monitor.
+  /// This reduces DWM overhead and constrains interaction boundaries.
+  Future<void> _lockToMonitor(Rect targetRect, {Display? providedDisplay}) async {
+    if (!state.isOverlayVisible || state.isRecording) return;
+
+    final displays = state.availableDisplays;
+    if (displays.isEmpty) return;
+
+    // 1. Identify Target Display
+    Display? targetDisplay = providedDisplay;
+    if (targetDisplay == null) {
+      final windowPos = WindowUtils.getAppWindowPosition();
+      final center = targetRect.center.translate(windowPos.dx, windowPos.dy);
+
+      for (final d in displays) {
+        final dPos = d.visiblePosition ?? Offset.zero;
+        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        if (dRect.contains(center)) {
+          targetDisplay = d;
+          break;
+        }
+      }
+    }
+
+    if (targetDisplay == null) return;
+
+    final targetDisplayRect = Rect.fromLTWH(
+      targetDisplay.visiblePosition?.dx ?? 0,
+      targetDisplay.visiblePosition?.dy ?? 0,
+      targetDisplay.size.width,
+      targetDisplay.size.height,
+    );
+
+    final coordinator = ref.read(windowTransitionProvider);
+
+    // 2. Ghost for transition safety
+    await windowManager.setOpacity(0.01);
+    await coordinator.waitForSync(resize: false, move: false);
+
+    // 3. Coordinate Remapping
+    // We must shift local coordinates to stay spatially consistent after the window moves.
+    final windowPos = WindowUtils.getAppWindowPosition();
+    final globalSelection = state.selectionRect?.shift(windowPos);
+    final globalTargeted = state.targetedWindowRect?.shift(windowPos);
+
+    final newWindowPos = targetDisplayRect.topLeft;
+    final newLocalSelection = globalSelection?.shift(-newWindowPos);
+    final newLocalTargeted = globalTargeted?.shift(-newWindowPos);
+
+    // 4. Physical Move
+    await windowManager.setBounds(targetDisplayRect);
+
+    // 5. High-fidelity Sync
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      targetSize: targetDisplayRect.size,
+      targetOffset: targetDisplayRect.topLeft,
+    );
+
+    // 6. Update State
+    state = state.copyWith(
+      selectionRect: newLocalSelection,
+      targetedWindowRect: newLocalTargeted,
+      lockedDisplay: targetDisplay,
+    );
+
+    // 7. Reveal
+    await windowManager.setOpacity(1.0);
   }
 }

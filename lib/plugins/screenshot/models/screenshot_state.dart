@@ -28,6 +28,7 @@ abstract class ScreenshotState with _$ScreenshotState {
     Offset? previousWindowPos,
     @Default([]) List<Display> availableDisplays,
     @Default([]) List<CaptureInfo> recentCaptures,
+    Display? lockedDisplay,
   }) = _ScreenshotState;
 }
 

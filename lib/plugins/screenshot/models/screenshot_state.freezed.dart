@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ScreenshotState {
 
- CaptureMode get captureMode; String get format; bool get isCapturing; ScreenshotTool get currentTool; Color get annotationColor; bool get isOverlayVisible; Rect? get selectionRect; List<Annotation> get annotations; bool get isTargetingWindow; Rect? get targetedWindowRect; String? get targetWindowName; int? get targetedWindowHwnd; String? get saveDirectory; Size? get previousWindowSize; Offset? get previousWindowPos; List<Display> get availableDisplays; List<CaptureInfo> get recentCaptures;
+ CaptureMode get captureMode; String get format; bool get isCapturing; ScreenshotTool get currentTool; Color get annotationColor; bool get isOverlayVisible; Rect? get selectionRect; List<Annotation> get annotations; bool get isTargetingWindow; Rect? get targetedWindowRect; String? get targetWindowName; int? get targetedWindowHwnd; String? get saveDirectory; Size? get previousWindowSize; Offset? get previousWindowPos; List<Display> get availableDisplays; List<CaptureInfo> get recentCaptures; Display? get lockedDisplay;
 /// Create a copy of ScreenshotState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ScreenshotStateCopyWith<ScreenshotState> get copyWith => _$ScreenshotStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScreenshotState&&(identical(other.captureMode, captureMode) || other.captureMode == captureMode)&&(identical(other.format, format) || other.format == format)&&(identical(other.isCapturing, isCapturing) || other.isCapturing == isCapturing)&&(identical(other.currentTool, currentTool) || other.currentTool == currentTool)&&(identical(other.annotationColor, annotationColor) || other.annotationColor == annotationColor)&&(identical(other.isOverlayVisible, isOverlayVisible) || other.isOverlayVisible == isOverlayVisible)&&(identical(other.selectionRect, selectionRect) || other.selectionRect == selectionRect)&&const DeepCollectionEquality().equals(other.annotations, annotations)&&(identical(other.isTargetingWindow, isTargetingWindow) || other.isTargetingWindow == isTargetingWindow)&&(identical(other.targetedWindowRect, targetedWindowRect) || other.targetedWindowRect == targetedWindowRect)&&(identical(other.targetWindowName, targetWindowName) || other.targetWindowName == targetWindowName)&&(identical(other.targetedWindowHwnd, targetedWindowHwnd) || other.targetedWindowHwnd == targetedWindowHwnd)&&(identical(other.saveDirectory, saveDirectory) || other.saveDirectory == saveDirectory)&&(identical(other.previousWindowSize, previousWindowSize) || other.previousWindowSize == previousWindowSize)&&(identical(other.previousWindowPos, previousWindowPos) || other.previousWindowPos == previousWindowPos)&&const DeepCollectionEquality().equals(other.availableDisplays, availableDisplays)&&const DeepCollectionEquality().equals(other.recentCaptures, recentCaptures));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScreenshotState&&(identical(other.captureMode, captureMode) || other.captureMode == captureMode)&&(identical(other.format, format) || other.format == format)&&(identical(other.isCapturing, isCapturing) || other.isCapturing == isCapturing)&&(identical(other.currentTool, currentTool) || other.currentTool == currentTool)&&(identical(other.annotationColor, annotationColor) || other.annotationColor == annotationColor)&&(identical(other.isOverlayVisible, isOverlayVisible) || other.isOverlayVisible == isOverlayVisible)&&(identical(other.selectionRect, selectionRect) || other.selectionRect == selectionRect)&&const DeepCollectionEquality().equals(other.annotations, annotations)&&(identical(other.isTargetingWindow, isTargetingWindow) || other.isTargetingWindow == isTargetingWindow)&&(identical(other.targetedWindowRect, targetedWindowRect) || other.targetedWindowRect == targetedWindowRect)&&(identical(other.targetWindowName, targetWindowName) || other.targetWindowName == targetWindowName)&&(identical(other.targetedWindowHwnd, targetedWindowHwnd) || other.targetedWindowHwnd == targetedWindowHwnd)&&(identical(other.saveDirectory, saveDirectory) || other.saveDirectory == saveDirectory)&&(identical(other.previousWindowSize, previousWindowSize) || other.previousWindowSize == previousWindowSize)&&(identical(other.previousWindowPos, previousWindowPos) || other.previousWindowPos == previousWindowPos)&&const DeepCollectionEquality().equals(other.availableDisplays, availableDisplays)&&const DeepCollectionEquality().equals(other.recentCaptures, recentCaptures)&&(identical(other.lockedDisplay, lockedDisplay) || other.lockedDisplay == lockedDisplay));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,captureMode,format,isCapturing,currentTool,annotationColor,isOverlayVisible,selectionRect,const DeepCollectionEquality().hash(annotations),isTargetingWindow,targetedWindowRect,targetWindowName,targetedWindowHwnd,saveDirectory,previousWindowSize,previousWindowPos,const DeepCollectionEquality().hash(availableDisplays),const DeepCollectionEquality().hash(recentCaptures));
+int get hashCode => Object.hash(runtimeType,captureMode,format,isCapturing,currentTool,annotationColor,isOverlayVisible,selectionRect,const DeepCollectionEquality().hash(annotations),isTargetingWindow,targetedWindowRect,targetWindowName,targetedWindowHwnd,saveDirectory,previousWindowSize,previousWindowPos,const DeepCollectionEquality().hash(availableDisplays),const DeepCollectionEquality().hash(recentCaptures),lockedDisplay);
 
 @override
 String toString() {
-  return 'ScreenshotState(captureMode: $captureMode, format: $format, isCapturing: $isCapturing, currentTool: $currentTool, annotationColor: $annotationColor, isOverlayVisible: $isOverlayVisible, selectionRect: $selectionRect, annotations: $annotations, isTargetingWindow: $isTargetingWindow, targetedWindowRect: $targetedWindowRect, targetWindowName: $targetWindowName, targetedWindowHwnd: $targetedWindowHwnd, saveDirectory: $saveDirectory, previousWindowSize: $previousWindowSize, previousWindowPos: $previousWindowPos, availableDisplays: $availableDisplays, recentCaptures: $recentCaptures)';
+  return 'ScreenshotState(captureMode: $captureMode, format: $format, isCapturing: $isCapturing, currentTool: $currentTool, annotationColor: $annotationColor, isOverlayVisible: $isOverlayVisible, selectionRect: $selectionRect, annotations: $annotations, isTargetingWindow: $isTargetingWindow, targetedWindowRect: $targetedWindowRect, targetWindowName: $targetWindowName, targetedWindowHwnd: $targetedWindowHwnd, saveDirectory: $saveDirectory, previousWindowSize: $previousWindowSize, previousWindowPos: $previousWindowPos, availableDisplays: $availableDisplays, recentCaptures: $recentCaptures, lockedDisplay: $lockedDisplay)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ScreenshotStateCopyWith<$Res>  {
   factory $ScreenshotStateCopyWith(ScreenshotState value, $Res Function(ScreenshotState) _then) = _$ScreenshotStateCopyWithImpl;
 @useResult
 $Res call({
- CaptureMode captureMode, String format, bool isCapturing, ScreenshotTool currentTool, Color annotationColor, bool isOverlayVisible, Rect? selectionRect, List<Annotation> annotations, bool isTargetingWindow, Rect? targetedWindowRect, String? targetWindowName, int? targetedWindowHwnd, String? saveDirectory, Size? previousWindowSize, Offset? previousWindowPos, List<Display> availableDisplays, List<CaptureInfo> recentCaptures
+ CaptureMode captureMode, String format, bool isCapturing, ScreenshotTool currentTool, Color annotationColor, bool isOverlayVisible, Rect? selectionRect, List<Annotation> annotations, bool isTargetingWindow, Rect? targetedWindowRect, String? targetWindowName, int? targetedWindowHwnd, String? saveDirectory, Size? previousWindowSize, Offset? previousWindowPos, List<Display> availableDisplays, List<CaptureInfo> recentCaptures, Display? lockedDisplay
 });
 
 
@@ -62,7 +62,7 @@ class _$ScreenshotStateCopyWithImpl<$Res>
 
 /// Create a copy of ScreenshotState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? captureMode = null,Object? format = null,Object? isCapturing = null,Object? currentTool = null,Object? annotationColor = null,Object? isOverlayVisible = null,Object? selectionRect = freezed,Object? annotations = null,Object? isTargetingWindow = null,Object? targetedWindowRect = freezed,Object? targetWindowName = freezed,Object? targetedWindowHwnd = freezed,Object? saveDirectory = freezed,Object? previousWindowSize = freezed,Object? previousWindowPos = freezed,Object? availableDisplays = null,Object? recentCaptures = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? captureMode = null,Object? format = null,Object? isCapturing = null,Object? currentTool = null,Object? annotationColor = null,Object? isOverlayVisible = null,Object? selectionRect = freezed,Object? annotations = null,Object? isTargetingWindow = null,Object? targetedWindowRect = freezed,Object? targetWindowName = freezed,Object? targetedWindowHwnd = freezed,Object? saveDirectory = freezed,Object? previousWindowSize = freezed,Object? previousWindowPos = freezed,Object? availableDisplays = null,Object? recentCaptures = null,Object? lockedDisplay = freezed,}) {
   return _then(_self.copyWith(
 captureMode: null == captureMode ? _self.captureMode : captureMode // ignore: cast_nullable_to_non_nullable
 as CaptureMode,format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as String?,previousWindowSize: freezed == previousWindowSize ? _self.previousWin
 as Size?,previousWindowPos: freezed == previousWindowPos ? _self.previousWindowPos : previousWindowPos // ignore: cast_nullable_to_non_nullable
 as Offset?,availableDisplays: null == availableDisplays ? _self.availableDisplays : availableDisplays // ignore: cast_nullable_to_non_nullable
 as List<Display>,recentCaptures: null == recentCaptures ? _self.recentCaptures : recentCaptures // ignore: cast_nullable_to_non_nullable
-as List<CaptureInfo>,
+as List<CaptureInfo>,lockedDisplay: freezed == lockedDisplay ? _self.lockedDisplay : lockedDisplay // ignore: cast_nullable_to_non_nullable
+as Display?,
   ));
 }
 
@@ -166,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CaptureMode captureMode,  String format,  bool isCapturing,  ScreenshotTool currentTool,  Color annotationColor,  bool isOverlayVisible,  Rect? selectionRect,  List<Annotation> annotations,  bool isTargetingWindow,  Rect? targetedWindowRect,  String? targetWindowName,  int? targetedWindowHwnd,  String? saveDirectory,  Size? previousWindowSize,  Offset? previousWindowPos,  List<Display> availableDisplays,  List<CaptureInfo> recentCaptures)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CaptureMode captureMode,  String format,  bool isCapturing,  ScreenshotTool currentTool,  Color annotationColor,  bool isOverlayVisible,  Rect? selectionRect,  List<Annotation> annotations,  bool isTargetingWindow,  Rect? targetedWindowRect,  String? targetWindowName,  int? targetedWindowHwnd,  String? saveDirectory,  Size? previousWindowSize,  Offset? previousWindowPos,  List<Display> availableDisplays,  List<CaptureInfo> recentCaptures,  Display? lockedDisplay)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ScreenshotState() when $default != null:
-return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTool,_that.annotationColor,_that.isOverlayVisible,_that.selectionRect,_that.annotations,_that.isTargetingWindow,_that.targetedWindowRect,_that.targetWindowName,_that.targetedWindowHwnd,_that.saveDirectory,_that.previousWindowSize,_that.previousWindowPos,_that.availableDisplays,_that.recentCaptures);case _:
+return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTool,_that.annotationColor,_that.isOverlayVisible,_that.selectionRect,_that.annotations,_that.isTargetingWindow,_that.targetedWindowRect,_that.targetWindowName,_that.targetedWindowHwnd,_that.saveDirectory,_that.previousWindowSize,_that.previousWindowPos,_that.availableDisplays,_that.recentCaptures,_that.lockedDisplay);case _:
   return orElse();
 
 }
@@ -187,10 +188,10 @@ return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CaptureMode captureMode,  String format,  bool isCapturing,  ScreenshotTool currentTool,  Color annotationColor,  bool isOverlayVisible,  Rect? selectionRect,  List<Annotation> annotations,  bool isTargetingWindow,  Rect? targetedWindowRect,  String? targetWindowName,  int? targetedWindowHwnd,  String? saveDirectory,  Size? previousWindowSize,  Offset? previousWindowPos,  List<Display> availableDisplays,  List<CaptureInfo> recentCaptures)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CaptureMode captureMode,  String format,  bool isCapturing,  ScreenshotTool currentTool,  Color annotationColor,  bool isOverlayVisible,  Rect? selectionRect,  List<Annotation> annotations,  bool isTargetingWindow,  Rect? targetedWindowRect,  String? targetWindowName,  int? targetedWindowHwnd,  String? saveDirectory,  Size? previousWindowSize,  Offset? previousWindowPos,  List<Display> availableDisplays,  List<CaptureInfo> recentCaptures,  Display? lockedDisplay)  $default,) {final _that = this;
 switch (_that) {
 case _ScreenshotState():
-return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTool,_that.annotationColor,_that.isOverlayVisible,_that.selectionRect,_that.annotations,_that.isTargetingWindow,_that.targetedWindowRect,_that.targetWindowName,_that.targetedWindowHwnd,_that.saveDirectory,_that.previousWindowSize,_that.previousWindowPos,_that.availableDisplays,_that.recentCaptures);case _:
+return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTool,_that.annotationColor,_that.isOverlayVisible,_that.selectionRect,_that.annotations,_that.isTargetingWindow,_that.targetedWindowRect,_that.targetWindowName,_that.targetedWindowHwnd,_that.saveDirectory,_that.previousWindowSize,_that.previousWindowPos,_that.availableDisplays,_that.recentCaptures,_that.lockedDisplay);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +208,10 @@ return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CaptureMode captureMode,  String format,  bool isCapturing,  ScreenshotTool currentTool,  Color annotationColor,  bool isOverlayVisible,  Rect? selectionRect,  List<Annotation> annotations,  bool isTargetingWindow,  Rect? targetedWindowRect,  String? targetWindowName,  int? targetedWindowHwnd,  String? saveDirectory,  Size? previousWindowSize,  Offset? previousWindowPos,  List<Display> availableDisplays,  List<CaptureInfo> recentCaptures)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CaptureMode captureMode,  String format,  bool isCapturing,  ScreenshotTool currentTool,  Color annotationColor,  bool isOverlayVisible,  Rect? selectionRect,  List<Annotation> annotations,  bool isTargetingWindow,  Rect? targetedWindowRect,  String? targetWindowName,  int? targetedWindowHwnd,  String? saveDirectory,  Size? previousWindowSize,  Offset? previousWindowPos,  List<Display> availableDisplays,  List<CaptureInfo> recentCaptures,  Display? lockedDisplay)?  $default,) {final _that = this;
 switch (_that) {
 case _ScreenshotState() when $default != null:
-return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTool,_that.annotationColor,_that.isOverlayVisible,_that.selectionRect,_that.annotations,_that.isTargetingWindow,_that.targetedWindowRect,_that.targetWindowName,_that.targetedWindowHwnd,_that.saveDirectory,_that.previousWindowSize,_that.previousWindowPos,_that.availableDisplays,_that.recentCaptures);case _:
+return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTool,_that.annotationColor,_that.isOverlayVisible,_that.selectionRect,_that.annotations,_that.isTargetingWindow,_that.targetedWindowRect,_that.targetWindowName,_that.targetedWindowHwnd,_that.saveDirectory,_that.previousWindowSize,_that.previousWindowPos,_that.availableDisplays,_that.recentCaptures,_that.lockedDisplay);case _:
   return null;
 
 }
@@ -222,7 +223,7 @@ return $default(_that.captureMode,_that.format,_that.isCapturing,_that.currentTo
 
 
 class _ScreenshotState implements ScreenshotState {
-  const _ScreenshotState({this.captureMode = CaptureMode.area, this.format = 'PNG', this.isCapturing = false, this.currentTool = ScreenshotTool.pointer, this.annotationColor = Colors.red, this.isOverlayVisible = false, this.selectionRect = null, final  List<Annotation> annotations = const [], this.isTargetingWindow = false, this.targetedWindowRect, this.targetWindowName, this.targetedWindowHwnd, this.saveDirectory, this.previousWindowSize, this.previousWindowPos, final  List<Display> availableDisplays = const [], final  List<CaptureInfo> recentCaptures = const []}): _annotations = annotations,_availableDisplays = availableDisplays,_recentCaptures = recentCaptures;
+  const _ScreenshotState({this.captureMode = CaptureMode.area, this.format = 'PNG', this.isCapturing = false, this.currentTool = ScreenshotTool.pointer, this.annotationColor = Colors.red, this.isOverlayVisible = false, this.selectionRect = null, final  List<Annotation> annotations = const [], this.isTargetingWindow = false, this.targetedWindowRect, this.targetWindowName, this.targetedWindowHwnd, this.saveDirectory, this.previousWindowSize, this.previousWindowPos, final  List<Display> availableDisplays = const [], final  List<CaptureInfo> recentCaptures = const [], this.lockedDisplay}): _annotations = annotations,_availableDisplays = availableDisplays,_recentCaptures = recentCaptures;
   
 
 @override@JsonKey() final  CaptureMode captureMode;
@@ -260,6 +261,7 @@ class _ScreenshotState implements ScreenshotState {
   return EqualUnmodifiableListView(_recentCaptures);
 }
 
+@override final  Display? lockedDisplay;
 
 /// Create a copy of ScreenshotState
 /// with the given fields replaced by the non-null parameter values.
@@ -271,16 +273,16 @@ _$ScreenshotStateCopyWith<_ScreenshotState> get copyWith => __$ScreenshotStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ScreenshotState&&(identical(other.captureMode, captureMode) || other.captureMode == captureMode)&&(identical(other.format, format) || other.format == format)&&(identical(other.isCapturing, isCapturing) || other.isCapturing == isCapturing)&&(identical(other.currentTool, currentTool) || other.currentTool == currentTool)&&(identical(other.annotationColor, annotationColor) || other.annotationColor == annotationColor)&&(identical(other.isOverlayVisible, isOverlayVisible) || other.isOverlayVisible == isOverlayVisible)&&(identical(other.selectionRect, selectionRect) || other.selectionRect == selectionRect)&&const DeepCollectionEquality().equals(other._annotations, _annotations)&&(identical(other.isTargetingWindow, isTargetingWindow) || other.isTargetingWindow == isTargetingWindow)&&(identical(other.targetedWindowRect, targetedWindowRect) || other.targetedWindowRect == targetedWindowRect)&&(identical(other.targetWindowName, targetWindowName) || other.targetWindowName == targetWindowName)&&(identical(other.targetedWindowHwnd, targetedWindowHwnd) || other.targetedWindowHwnd == targetedWindowHwnd)&&(identical(other.saveDirectory, saveDirectory) || other.saveDirectory == saveDirectory)&&(identical(other.previousWindowSize, previousWindowSize) || other.previousWindowSize == previousWindowSize)&&(identical(other.previousWindowPos, previousWindowPos) || other.previousWindowPos == previousWindowPos)&&const DeepCollectionEquality().equals(other._availableDisplays, _availableDisplays)&&const DeepCollectionEquality().equals(other._recentCaptures, _recentCaptures));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ScreenshotState&&(identical(other.captureMode, captureMode) || other.captureMode == captureMode)&&(identical(other.format, format) || other.format == format)&&(identical(other.isCapturing, isCapturing) || other.isCapturing == isCapturing)&&(identical(other.currentTool, currentTool) || other.currentTool == currentTool)&&(identical(other.annotationColor, annotationColor) || other.annotationColor == annotationColor)&&(identical(other.isOverlayVisible, isOverlayVisible) || other.isOverlayVisible == isOverlayVisible)&&(identical(other.selectionRect, selectionRect) || other.selectionRect == selectionRect)&&const DeepCollectionEquality().equals(other._annotations, _annotations)&&(identical(other.isTargetingWindow, isTargetingWindow) || other.isTargetingWindow == isTargetingWindow)&&(identical(other.targetedWindowRect, targetedWindowRect) || other.targetedWindowRect == targetedWindowRect)&&(identical(other.targetWindowName, targetWindowName) || other.targetWindowName == targetWindowName)&&(identical(other.targetedWindowHwnd, targetedWindowHwnd) || other.targetedWindowHwnd == targetedWindowHwnd)&&(identical(other.saveDirectory, saveDirectory) || other.saveDirectory == saveDirectory)&&(identical(other.previousWindowSize, previousWindowSize) || other.previousWindowSize == previousWindowSize)&&(identical(other.previousWindowPos, previousWindowPos) || other.previousWindowPos == previousWindowPos)&&const DeepCollectionEquality().equals(other._availableDisplays, _availableDisplays)&&const DeepCollectionEquality().equals(other._recentCaptures, _recentCaptures)&&(identical(other.lockedDisplay, lockedDisplay) || other.lockedDisplay == lockedDisplay));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,captureMode,format,isCapturing,currentTool,annotationColor,isOverlayVisible,selectionRect,const DeepCollectionEquality().hash(_annotations),isTargetingWindow,targetedWindowRect,targetWindowName,targetedWindowHwnd,saveDirectory,previousWindowSize,previousWindowPos,const DeepCollectionEquality().hash(_availableDisplays),const DeepCollectionEquality().hash(_recentCaptures));
+int get hashCode => Object.hash(runtimeType,captureMode,format,isCapturing,currentTool,annotationColor,isOverlayVisible,selectionRect,const DeepCollectionEquality().hash(_annotations),isTargetingWindow,targetedWindowRect,targetWindowName,targetedWindowHwnd,saveDirectory,previousWindowSize,previousWindowPos,const DeepCollectionEquality().hash(_availableDisplays),const DeepCollectionEquality().hash(_recentCaptures),lockedDisplay);
 
 @override
 String toString() {
-  return 'ScreenshotState(captureMode: $captureMode, format: $format, isCapturing: $isCapturing, currentTool: $currentTool, annotationColor: $annotationColor, isOverlayVisible: $isOverlayVisible, selectionRect: $selectionRect, annotations: $annotations, isTargetingWindow: $isTargetingWindow, targetedWindowRect: $targetedWindowRect, targetWindowName: $targetWindowName, targetedWindowHwnd: $targetedWindowHwnd, saveDirectory: $saveDirectory, previousWindowSize: $previousWindowSize, previousWindowPos: $previousWindowPos, availableDisplays: $availableDisplays, recentCaptures: $recentCaptures)';
+  return 'ScreenshotState(captureMode: $captureMode, format: $format, isCapturing: $isCapturing, currentTool: $currentTool, annotationColor: $annotationColor, isOverlayVisible: $isOverlayVisible, selectionRect: $selectionRect, annotations: $annotations, isTargetingWindow: $isTargetingWindow, targetedWindowRect: $targetedWindowRect, targetWindowName: $targetWindowName, targetedWindowHwnd: $targetedWindowHwnd, saveDirectory: $saveDirectory, previousWindowSize: $previousWindowSize, previousWindowPos: $previousWindowPos, availableDisplays: $availableDisplays, recentCaptures: $recentCaptures, lockedDisplay: $lockedDisplay)';
 }
 
 
@@ -291,7 +293,7 @@ abstract mixin class _$ScreenshotStateCopyWith<$Res> implements $ScreenshotState
   factory _$ScreenshotStateCopyWith(_ScreenshotState value, $Res Function(_ScreenshotState) _then) = __$ScreenshotStateCopyWithImpl;
 @override @useResult
 $Res call({
- CaptureMode captureMode, String format, bool isCapturing, ScreenshotTool currentTool, Color annotationColor, bool isOverlayVisible, Rect? selectionRect, List<Annotation> annotations, bool isTargetingWindow, Rect? targetedWindowRect, String? targetWindowName, int? targetedWindowHwnd, String? saveDirectory, Size? previousWindowSize, Offset? previousWindowPos, List<Display> availableDisplays, List<CaptureInfo> recentCaptures
+ CaptureMode captureMode, String format, bool isCapturing, ScreenshotTool currentTool, Color annotationColor, bool isOverlayVisible, Rect? selectionRect, List<Annotation> annotations, bool isTargetingWindow, Rect? targetedWindowRect, String? targetWindowName, int? targetedWindowHwnd, String? saveDirectory, Size? previousWindowSize, Offset? previousWindowPos, List<Display> availableDisplays, List<CaptureInfo> recentCaptures, Display? lockedDisplay
 });
 
 
@@ -308,7 +310,7 @@ class __$ScreenshotStateCopyWithImpl<$Res>
 
 /// Create a copy of ScreenshotState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? captureMode = null,Object? format = null,Object? isCapturing = null,Object? currentTool = null,Object? annotationColor = null,Object? isOverlayVisible = null,Object? selectionRect = freezed,Object? annotations = null,Object? isTargetingWindow = null,Object? targetedWindowRect = freezed,Object? targetWindowName = freezed,Object? targetedWindowHwnd = freezed,Object? saveDirectory = freezed,Object? previousWindowSize = freezed,Object? previousWindowPos = freezed,Object? availableDisplays = null,Object? recentCaptures = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? captureMode = null,Object? format = null,Object? isCapturing = null,Object? currentTool = null,Object? annotationColor = null,Object? isOverlayVisible = null,Object? selectionRect = freezed,Object? annotations = null,Object? isTargetingWindow = null,Object? targetedWindowRect = freezed,Object? targetWindowName = freezed,Object? targetedWindowHwnd = freezed,Object? saveDirectory = freezed,Object? previousWindowSize = freezed,Object? previousWindowPos = freezed,Object? availableDisplays = null,Object? recentCaptures = null,Object? lockedDisplay = freezed,}) {
   return _then(_ScreenshotState(
 captureMode: null == captureMode ? _self.captureMode : captureMode // ignore: cast_nullable_to_non_nullable
 as CaptureMode,format: null == format ? _self.format : format // ignore: cast_nullable_to_non_nullable
@@ -327,7 +329,8 @@ as String?,previousWindowSize: freezed == previousWindowSize ? _self.previousWin
 as Size?,previousWindowPos: freezed == previousWindowPos ? _self.previousWindowPos : previousWindowPos // ignore: cast_nullable_to_non_nullable
 as Offset?,availableDisplays: null == availableDisplays ? _self._availableDisplays : availableDisplays // ignore: cast_nullable_to_non_nullable
 as List<Display>,recentCaptures: null == recentCaptures ? _self._recentCaptures : recentCaptures // ignore: cast_nullable_to_non_nullable
-as List<CaptureInfo>,
+as List<CaptureInfo>,lockedDisplay: freezed == lockedDisplay ? _self.lockedDisplay : lockedDisplay // ignore: cast_nullable_to_non_nullable
+as Display?,
   ));
 }
 

@@ -139,10 +139,11 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override Listenable? get annotationsChanged => _annotationsNotifier;
   @override Color get annotationColor => _state.annotationColor;
   @override ScreenshotTool get currentTool => _state.currentTool;
+  @override Display? get lockedDisplay => _state.lockedDisplay;
   @override List<Display> get availableDisplays => _state.availableDisplays;
   @override bool get isCapturing => _state.isCapturing;
 
-  @override void setSelection(Rect? rect) => _notifier.setSelection(rect);
+  @override void setSelection(Rect? rect, [Display? display]) => _notifier.setSelection(rect, display);
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);

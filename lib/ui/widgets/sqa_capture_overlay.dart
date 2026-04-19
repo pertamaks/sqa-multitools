@@ -112,6 +112,17 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       _focusNode.requestFocus();
     }
 
+    // Handle Bar Re-seating on Monitor Lock
+    if (oldWidget.delegate.lockedDisplay != widget.delegate.lockedDisplay &&
+        widget.delegate.lockedDisplay != null) {
+      // Small delay to let the physical window move settle (sync with OS)
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          _teleportBarToRect(widget.delegate.selectionRect ?? Rect.zero);
+        }
+      });
+    }
+
   }
 
   @override
@@ -332,19 +343,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     final displays = widget.delegate.availableDisplays;
     if (displays.isEmpty) return;
 
-    final center = targetRect.center;
-    double minX = 0, minY = 0;
-    for (final d in displays) {
-      final pos = d.visiblePosition ?? Offset.zero;
-      minX = math.min(minX, pos.dx);
-      minY = math.min(minY, pos.dy);
-    }
+    final windowPos = WindowUtils.getAppWindowPosition();
+    // Use the rect center in GLOBAL coordinates to find the display
+    final globalCenter = targetRect.center.translate(windowPos.dx, windowPos.dy);
 
     Display? activeDisplay;
     for (final d in displays) {
       final dPos = d.visiblePosition ?? Offset.zero;
-      final localMonitorRect = Rect.fromLTWH(dPos.dx - minX, dPos.dy - minY, d.size.width, d.size.height);
-      if (localMonitorRect.contains(center)) {
+      final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+      if (dRect.contains(globalCenter)) {
         activeDisplay = d;
         break;
       }
@@ -352,16 +359,19 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
     if (activeDisplay != null) {
       final dPos = activeDisplay.visiblePosition ?? Offset.zero;
-      final localTargetMonitorX = dPos.dx - minX;
-      final localTargetMonitorY = dPos.dy - minY;
 
       const double barWidth = 620.0;
       const double barHeight = 60.0;
       const double paddingBottom = 60.0;
 
+      // Calculate global target position for the bar
+      final globalTargetX = dPos.dx + (activeDisplay.size.width / 2) - (barWidth / 2);
+      final globalTargetY = dPos.dy + activeDisplay.size.height - barHeight - paddingBottom;
+
+      // Transform to local coordinates relative to the CURRENT window position
       final targetOffset = Offset(
-        localTargetMonitorX + (activeDisplay.size.width / 2) - (barWidth / 2),
-        localTargetMonitorY + activeDisplay.size.height - barHeight - paddingBottom,
+        globalTargetX - windowPos.dx,
+        globalTargetY - windowPos.dy,
       );
 
       final size = MediaQuery.of(context).size;
@@ -379,9 +389,26 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         _startLaserPruning();
       }
     } else if (widget.delegate.captureMode == CaptureMode.area) {
+      final startPos = details.localPosition;
+      final windowPos = WindowUtils.getAppWindowPosition();
+      final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
+
+      Display? startDisplay;
+      for (final d in widget.delegate.availableDisplays) {
+        final dPos = d.visiblePosition ?? Offset.zero;
+        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        if (dRect.contains(globalStart)) {
+          startDisplay = d;
+          break;
+        }
+      }
+
+      // Notify Logical Lock (First-Touch)
+      widget.delegate.setSelection(null, startDisplay);
+
       setState(() {
-        _startPos = details.localPosition;
-        _currentPos = details.localPosition;
+        _startPos = startPos;
+        _currentPos = startPos;
       });
     }
   }
@@ -407,8 +434,28 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         widget.delegate.currentTool != ScreenshotTool.pointer) {
       _drawingController.add(details.localPosition);
     } else if (widget.delegate.captureMode == CaptureMode.area) {
+      var currentPos = details.localPosition;
+
+      // Logical Clamping Constraint
+      final lockedDisplay = widget.delegate.lockedDisplay;
+      if (lockedDisplay != null) {
+        final windowPos = WindowUtils.getAppWindowPosition();
+        final dPos = lockedDisplay.visiblePosition ?? Offset.zero;
+
+        // Logical bounds of the monitor relative to our spanning window
+        final localMinX = dPos.dx - windowPos.dx;
+        final localMinY = dPos.dy - windowPos.dy;
+        final localMaxX = localMinX + lockedDisplay.size.width;
+        final localMaxY = localMinY + lockedDisplay.size.height;
+
+        currentPos = Offset(
+          currentPos.dx.clamp(localMinX, localMaxX),
+          currentPos.dy.clamp(localMinY, localMaxY),
+        );
+      }
+
       setState(() {
-        _currentPos = details.localPosition;
+        _currentPos = currentPos;
       });
     }
   }

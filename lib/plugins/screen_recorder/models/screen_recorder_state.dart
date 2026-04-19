@@ -47,6 +47,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default({}) Map<String, String> displayThumbnails, // id -> filePath
     String? primaryDisplayId,
     @Default([]) List<RecordingInfo> recentRecordings,
+    Display? lockedDisplay,
     @JsonKey(includeFromJson: false, includeToJson: false) HotKey? registeredHotKey,
   }) = _ScreenRecorderState;
 }

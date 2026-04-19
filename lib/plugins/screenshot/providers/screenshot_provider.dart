@@ -147,6 +147,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       targetedWindowRect: null,
       targetWindowName: null,
       availableDisplays: displays,
+      lockedDisplay: null,
       isTargetingWindow: state.captureMode == CaptureMode.window,
     );
 
@@ -197,6 +198,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isOverlayVisible: false,
       selectionRect: null,
       targetedWindowRect: null,
+      lockedDisplay: null,
       annotations: [],
     );
 
@@ -225,8 +227,17 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
   }
 
-  void setSelection(Rect? rect) {
+  void setSelection(Rect? rect, [Display? display]) {
+    if (display != null && state.lockedDisplay != display) {
+      state = state.copyWith(lockedDisplay: display);
+    }
+
     state = state.copyWith(selectionRect: rect);
+
+    // Physical lock on Drag End
+    if (rect != null && state.lockedDisplay != null && !state.isCapturing) {
+      _lockToMonitor(rect, providedDisplay: state.lockedDisplay);
+    }
   }
 
   void addAnnotation(Annotation annotation) {
@@ -327,6 +338,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         isOverlayVisible: false,
         selectionRect: null,
         targetedWindowRect: null,
+        lockedDisplay: null,
         annotations: [],
       );
 
@@ -410,8 +422,79 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       targetWindowName: title,
     );
 
+    _lockToMonitor(rect);
+
     if (state.targetedWindowHwnd != null && state.targetedWindowHwnd != 0) {
       WindowUtils.focusWindow(state.targetedWindowHwnd!);
     }
+  }
+
+  /// Physically shrinks the overlay window to cover only the target monitor.
+  Future<void> _lockToMonitor(Rect targetRect, {Display? providedDisplay}) async {
+    if (!state.isOverlayVisible || state.isCapturing) return;
+
+    final displays = state.availableDisplays;
+    if (displays.isEmpty) return;
+
+    // 1. Identify Target Display
+    Display? targetDisplay = providedDisplay;
+    if (targetDisplay == null) {
+      final windowPos = WindowUtils.getAppWindowPosition();
+      final center = targetRect.center.translate(windowPos.dx, windowPos.dy);
+
+      for (final d in displays) {
+        final dPos = d.visiblePosition ?? Offset.zero;
+        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        if (dRect.contains(center)) {
+          targetDisplay = d;
+          break;
+        }
+      }
+    }
+
+    if (targetDisplay == null) return;
+
+    final targetDisplayRect = Rect.fromLTWH(
+      targetDisplay.visiblePosition?.dx ?? 0,
+      targetDisplay.visiblePosition?.dy ?? 0,
+      targetDisplay.size.width,
+      targetDisplay.size.height,
+    );
+
+    final coordinator = ref.read(windowTransitionProvider);
+
+    // 2. Ghost for transition safety
+    await windowManager.setOpacity(0.01);
+    await coordinator.waitForSync(resize: false, move: false);
+
+    // 3. Coordinate Remapping
+    final windowPos = WindowUtils.getAppWindowPosition();
+    final globalSelection = state.selectionRect?.shift(windowPos);
+    final globalTargeted = state.targetedWindowRect?.shift(windowPos);
+
+    final newWindowPos = targetDisplayRect.topLeft;
+    final newLocalSelection = globalSelection?.shift(-newWindowPos);
+    final newLocalTargeted = globalTargeted?.shift(-newWindowPos);
+
+    // 4. Physical Move
+    await windowManager.setBounds(targetDisplayRect);
+
+    // 5. Sync
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      targetSize: targetDisplayRect.size,
+      targetOffset: targetDisplayRect.topLeft,
+    );
+
+    // 6. Update State
+    state = state.copyWith(
+      selectionRect: newLocalSelection,
+      targetedWindowRect: newLocalTargeted,
+      lockedDisplay: targetDisplay,
+    );
+
+    // 7. Reveal
+    await windowManager.setOpacity(1.0);
   }
 }

@@ -483,4 +483,41 @@ class FfmpegEngine {
     }
     return null;
   }
+
+  /// Composites a foreground image onto a background image.
+  static Future<bool> compositeImages({
+    required String backgroundPath,
+    required String foregroundPath,
+    required String outputPath,
+    int? cropX,
+    int? cropY,
+    int? cropW,
+    int? cropH,
+  }) async {
+    if (!await isEngineAvailable() || _resolvedExecutable == null) return false;
+
+    final filter = (cropX != null && cropY != null && cropW != null && cropH != null)
+        ? '[1:v]crop=$cropW:$cropH:$cropX:$cropY[fg_cropped];[0:v][fg_cropped]overlay=format=auto'
+        : 'overlay=format=auto';
+
+    final args = [
+      '-y',
+      '-i', backgroundPath,
+      '-i', foregroundPath,
+      '-filter_complex', filter,
+      outputPath,
+    ];
+
+    try {
+      final result = await Process.run(
+        _resolvedExecutable!,
+        args,
+      ).timeout(const Duration(seconds: 10));
+
+      return result.exitCode == 0;
+    } catch (e) {
+      debugPrint('[FfmpegEngine] Compositing failed: $e');
+      return false;
+    }
+  }
 }

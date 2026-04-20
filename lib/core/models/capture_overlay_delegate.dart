@@ -25,6 +25,7 @@ abstract class CaptureOverlayDelegate {
   Display? get lockedDisplay;
   int get countdownSeconds => 0;
   bool get isCapturing => false; // Screenshot "processing" flag
+  bool get isCompactLayout; // Controls floating bar centering logic
 
   // --- Feature Flags (Config) ---
   bool get enableClickFeedback => false;

@@ -14,19 +14,20 @@ import '../../core/models/click_ripple.dart';
 import '../../core/window/window_utils.dart';
 import 'sqa_selection_painter.dart';
 import 'sqa_floating_bar.dart';
+import '../../core/providers/capture_key_provider.dart';
 
 /// Internal controller for high-performance drawing.
 /// Bypasses the widget rebuild cycle for real-time annotation feedback.
 class _DrawingController extends ChangeNotifier {
-  List<Offset> _points = [];
-  List<DateTime> _timestamps = [];
+  final List<Offset> _points = [];
+  final List<DateTime> _timestamps = [];
 
   List<Offset> get points => _points;
   List<DateTime> get timestamps => _timestamps;
 
   void start() {
-    _points = [];
-    _timestamps = [];
+    _points.clear();
+    _timestamps.clear();
     notifyListeners();
   }
 
@@ -47,8 +48,8 @@ class _DrawingController extends ChangeNotifier {
   }
 
   void clear() {
-    _points = [];
-    _timestamps = [];
+    _points.clear();
+    _timestamps.clear();
     notifyListeners();
   }
 }
@@ -131,6 +132,13 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if (oldWidget.delegate.selectionRect != widget.delegate.selectionRect &&
         widget.delegate.selectionRect != null &&
         widget.delegate.lockedDisplay != null) {
+      _teleportBarToRect(widget.delegate.selectionRect!);
+    }
+
+    // Re-teleport if compact mode changed to maintain centering
+    if ((oldWidget.delegate.isRecording != widget.delegate.isRecording ||
+            oldWidget.delegate.isCapturing != widget.delegate.isCapturing) &&
+        widget.delegate.selectionRect != null) {
       _teleportBarToRect(widget.delegate.selectionRect!);
     }
 
@@ -281,6 +289,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     });
   }
 
+  bool get _isCompact => widget.delegate.isCompactLayout;
+  double get _estimatedBarWidth => _isCompact ? 320.0 : 620.0;
+
   Future<void> _handleIgnoreLogic() async {
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
@@ -316,7 +327,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       return;
     }
 
-    const double width = 620.0;
+    final width = _estimatedBarWidth;
     const double height = 60.0;
     final currentOffset = _barOffsetNotifier.value ?? Offset.zero;
     final barRect = Rect.fromLTWH(
@@ -339,7 +350,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   Offset _clampOffset(Offset offset, Size screenSize) {
-    const double barWidth = 650.0;
+    final double barWidth = _estimatedBarWidth + 30.0; // Allow slight buffer
     const double barHeight = 60.0;
     const double padding = 12.0;
 
@@ -371,7 +382,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if (activeDisplay != null) {
       final dPos = activeDisplay.visiblePosition ?? Offset.zero;
 
-      const double barWidth = 620.0;
+      final double barWidth = _estimatedBarWidth;
       const double barHeight = 60.0;
       const double paddingBottom = 60.0;
 
@@ -392,9 +403,13 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onPanStart(DragStartDetails details) {
-    if (widget.delegate.isRecording || widget.delegate.selectionRect != null) {
+    bool canDraw = widget.delegate.isRecording || 
+                  widget.delegate.captureMode == CaptureMode.fullScreen ||
+                  widget.delegate.selectionRect != null;
+
+    if (canDraw && widget.delegate.currentTool != ScreenshotTool.pointer) {
       _drawingController.start();
-      _drawingController.add(details.localPosition);
+      _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
 
       if (widget.delegate.currentTool == ScreenshotTool.laser) {
         _startLaserPruning();
@@ -441,9 +456,12 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    if ((widget.delegate.isRecording || widget.delegate.selectionRect != null) &&
-        widget.delegate.currentTool != ScreenshotTool.pointer) {
-      _drawingController.add(details.localPosition);
+    bool canDraw = widget.delegate.isRecording || 
+                  widget.delegate.captureMode == CaptureMode.fullScreen ||
+                  widget.delegate.selectionRect != null;
+
+    if (canDraw && widget.delegate.currentTool != ScreenshotTool.pointer) {
+      _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
     } else if (widget.delegate.captureMode == CaptureMode.area) {
       var currentPos = details.localPosition;
 
@@ -466,7 +484,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       }
 
       setState(() {
-        _currentPos = currentPos;
+        _currentPos = Offset(currentPos.dx.roundToDouble(), currentPos.dy.roundToDouble());
       });
     }
   }
@@ -537,6 +555,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 onPanUpdate: _onPanUpdate,
                 onPanEnd: _onPanEnd,
                 child: RepaintBoundary(
+                  key: ref.watch(captureKeyProvider),
                   child: CustomPaint(
                     size: Size.infinite,
                     painter: SqaSelectionPainter(

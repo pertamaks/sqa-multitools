@@ -43,6 +43,7 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     ref.watch(screenshotProvider.select((s) => s.targetedWindowRect));
     ref.watch(screenshotProvider.select((s) => s.captureMode));
     ref.watch(screenshotProvider.select((s) => s.availableDisplays));
+    ref.watch(screenshotProvider.select((s) => s.annotations));
 
     // Listen to annotations to update the notifier WITHOUT rebuilding the skeleton
     ref.listen(screenshotProvider.select((s) => s.annotations), (prev, next) {
@@ -76,19 +77,16 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
           currentColor: annotationColor,
           onColorSelected: notifier.setColor,
           onClear: notifier.clearAnnotations,
-        ),
-        const SqaFloatingBarDivider(),
-        ...[
-          Colors.red,
-          Colors.green,
-          Colors.blue,
-          Colors.white,
-        ].map(
-          (c) => SqaFloatingBarColorPicker(
-            color: c,
-            isSelected: annotationColor == c,
-            onTap: () => notifier.setColor(c),
-          ),
+          availableColors: const [
+            Colors.red,
+            Colors.green,
+            Colors.blue,
+            Colors.yellow,
+            Colors.amber,
+            Colors.cyan,
+            Colors.pink,
+            Colors.white,
+          ],
         ),
         const SqaFloatingBarDivider(),
         SqaFloatingBarButton(
@@ -138,6 +136,7 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override Display? get lockedDisplay => _state.lockedDisplay;
   @override List<Display> get availableDisplays => _state.availableDisplays;
   @override bool get isCapturing => _state.isCapturing;
+  @override bool get isCompactLayout => false; // Screenshots always use full toolbar
 
   @override void setSelection(Rect? rect, [Display? display]) => _notifier.setSelection(rect, display);
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);

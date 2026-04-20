@@ -32,7 +32,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(Colors.white) Color clickFeedbackColor,
     @Default(Colors.amber) Color rightClickFeedbackColor,
     @Default([]) List<Annotation> annotations,
-    @Default(ScreenshotTool.pen) ScreenshotTool currentTool,
+    @Default(ScreenshotTool.pointer) ScreenshotTool currentTool,
     @Default(Colors.red) Color annotationColor,
     @Default(0) int delaySeconds,
     @Default(0) int countdownSeconds, // Live countdown before recording starts

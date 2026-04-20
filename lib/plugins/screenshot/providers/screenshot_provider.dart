@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, Uint8List;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
+import 'package:flutter/rendering.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -17,6 +19,7 @@ import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/window/window_utils.dart';
 import '../../../core/window/window_transition_coordinator.dart';
+import '../../../core/providers/capture_key_provider.dart';
 
 
 part 'screenshot_provider.g.dart';
@@ -298,29 +301,92 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final savePath = '${saveDir.path}\\$filename';
 
     try {
-      // (Visual ghosting already handled above)
-      // Just a tiny extra buffer for the Flutter UI state change to propagate
-      await coordinator.waitForSync(resize: false, move: false, frame: true);
+      // 1. Capture Annotations (Foreground) - High DPI Aware
+      final captureKey = ref.read(captureKeyProvider);
+      Uint8List? annotationBytes;
+      
+      try {
+        final boundary = captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        if (boundary != null) {
+          // Determine the scale factor of the locked monitor
+          final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
+          final image = await boundary.toImage(pixelRatio: ratio);
+          final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+          if (byteData != null) {
+            annotationBytes = byteData.buffer.asUint8List();
+          }
+        }
+      } catch (e) {
+        debugPrint('[Screenshot] Annotation capture failed: $e');
+      }
 
-      // 2. Perform the actual capture
-      final file = await FfmpegEngine.takeScreenshot(
+      final tempDir = await getTemporaryDirectory();
+      final fgPath = '${tempDir.path}\\sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png';
+      final bgPath = '${tempDir.path}\\sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png';
+      
+      if (annotationBytes != null) {
+        await File(fgPath).writeAsBytes(annotationBytes);
+      }
+
+      // 2. Perform the Background Capture (Clean Screen)
+      // Visual ghosting already handled above, giving OS time to hide window.
+      await coordinator.waitForSync(resize: false, move: false, frame: true);
+      
+      final bgFile = await FfmpegEngine.takeScreenshot(
         logicalBounds: finalRect,
         displays: state.availableDisplays,
-        format: state.format,
-        savePath: savePath,
+        format: 'PNG',
+        savePath: bgPath,
       );
 
-      if (file != null && shouldCopy) {
-        // Implement standard system clipboard copy
-        // We can use Process.run to use powershell to copy file to clipboard
-        // Since user didn't want sqa-clipboard plugin but wants "copy button"
+      if (bgFile != null) {
+        if (annotationBytes != null) {
+          // 3. Composite FG + BG via FFmpeg
+          // Calculate pixel-perfect offsets
+          final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
+          
+          // The foreground image is the size of the whole overlay window.
+          // We need to crop it to match the background screenshot's selectionRect.
+          final rect = state.selectionRect ?? Rect.fromLTWH(0, 0, finalRect.width / ratio, finalRect.height / ratio);
+          
+          final offX = (rect.left * ratio).round();
+          final offY = (rect.top * ratio).round();
+          final width = (rect.width * ratio).round();
+          final height = (rect.height * ratio).round();
+
+          final success = await FfmpegEngine.compositeImages(
+            backgroundPath: bgPath,
+            foregroundPath: fgPath,
+            outputPath: savePath,
+            cropX: offX,
+            cropY: offY,
+            cropW: width,
+            cropH: height,
+          );
+          
+          if (!success) {
+             await bgFile.copy(savePath);
+          }
+        } else {
+          await bgFile.copy(savePath);
+        }
+      }
+
+      if (await File(savePath).exists() && shouldCopy) {
         await Process.run('powershell', [
           '-Command', 
           'Set-Clipboard -Path "$savePath"'
         ]);
       }
+      
+      // Cleanup temp bits
+      try {
+        if (await File(fgPath).exists()) await File(fgPath).delete();
+        if (await File(bgPath).exists()) await File(bgPath).delete();
+      } catch (_) {}
+      
     } catch (e) {
-      // Finalize failed silently
+      debugPrint('[Screenshot] Finalize Error: $e');
     } finally {
       final coordinator = ref.read(windowTransitionProvider);
 

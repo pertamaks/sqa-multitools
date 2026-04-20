@@ -527,6 +527,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       isPaused: false,
       durationSeconds: 0,
       annotations: [],
+      currentTool: ScreenshotTool.pointer,
     );
 
     // 6. Wait for Flutter to commit the first frame of the Small UI

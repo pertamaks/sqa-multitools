@@ -49,6 +49,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
     ref.watch(screenRecorderProvider.select((s) => s.targetedWindowRect));
     ref.watch(screenRecorderProvider.select((s) => s.captureMode));
     ref.watch(screenRecorderProvider.select((s) => s.availableDisplays));
+    ref.watch(screenRecorderProvider.select((s) => s.annotations));
 
     // 2. Listen to annotations to update the notifier WITHOUT rebuilding the skeleton
     ref.listen(screenRecorderProvider.select((s) => s.annotations), (prev, next) {
@@ -122,24 +123,26 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
           ),
         ],
 
-        const SqaFloatingBarDivider(),
+        if (isRecording) ...[
+          const SqaFloatingBarDivider(),
 
-        // Annotation Tools & Colors
-        SqaAnnotationToolbar(
-          enabledTools: const [
-            ScreenshotTool.pointer,
-            ScreenshotTool.pen,
-            ScreenshotTool.marker,
-            ScreenshotTool.arrow,
-            ScreenshotTool.rectangle,
-            ScreenshotTool.laser,
-          ],
-          currentTool: currentTool,
-          onToolSelected: notifier.setTool,
-          currentColor: annotationColor,
-          onColorSelected: notifier.setColor,
-          onClear: notifier.clearAnnotations,
-        ),
+          // Annotation Tools & Colors
+          SqaAnnotationToolbar(
+            enabledTools: const [
+              ScreenshotTool.pointer,
+              ScreenshotTool.pen,
+              ScreenshotTool.marker,
+              ScreenshotTool.arrow,
+              ScreenshotTool.rectangle,
+              ScreenshotTool.laser,
+            ],
+            currentTool: currentTool,
+            onToolSelected: notifier.setTool,
+            currentColor: annotationColor,
+            onColorSelected: notifier.setColor,
+            onClear: notifier.clearAnnotations,
+          ),
+        ],
       ],
     );
   }
@@ -171,6 +174,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override bool get isPaused => _state.isPaused;
   @override int get durationSeconds => _state.durationSeconds;
   @override int get countdownSeconds => _state.countdownSeconds;
+  @override bool get isCompactLayout => !_state.isRecording;
   
   @override bool get isCapturing => false;
   @override bool get enableClickFeedback => true;

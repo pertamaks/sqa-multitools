@@ -199,9 +199,6 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
     _splatController.forward(from: 0);
 
     _hideBug();
-    if (mounted) {
-      SqaToast.show(context, 'BUG SQUASHED!', type: SqaToastType.success);
-    }
     _scheduleNextBug();
   }
 

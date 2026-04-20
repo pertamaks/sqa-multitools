@@ -165,7 +165,7 @@ class SqaFloatingBarDragHandle extends StatelessWidget {
       onPanEnd: onDragEnd != null ? (_) => onDragEnd!() : null,
       behavior: HitTestBehavior.opaque,
       child: MouseRegion(
-        cursor: SystemMouseCursors.move,
+        cursor: SystemMouseCursors.basic,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: Icon(

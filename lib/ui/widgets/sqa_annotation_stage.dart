@@ -28,6 +28,14 @@ class _DrawingController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void replaceLast(Offset point) {
+    if (_points.isNotEmpty) {
+      _points[_points.length - 1] = point;
+      _timestamps[_timestamps.length - 1] = DateTime.now();
+      notifyListeners();
+    }
+  }
+
   void prune(DateTime limit) {
     while (_timestamps.isNotEmpty && _timestamps.first.isBefore(limit)) {
       _points.removeAt(0);
@@ -70,6 +78,7 @@ class SqaAnnotationStage extends StatefulWidget {
   final void Function(DragEndDetails details)? onAreaDragEnd;
   
   final Key? captureKey;
+  final bool textHasBackground;
 
   const SqaAnnotationStage({
     super.key,
@@ -92,6 +101,7 @@ class SqaAnnotationStage extends StatefulWidget {
     this.onAreaDragUpdate,
     this.onAreaDragEnd,
     this.captureKey,
+    this.textHasBackground = false,
   });
 
   @override
@@ -104,15 +114,42 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   Annotation? _hoveredAnnotation;
 
   // Text Tool State
-  Offset? _textInputPos;
+  Rect? _textInputRect;
   late TextEditingController _textController;
   late FocusNode _textFocusNode;
+
+  // Moving Annotation State
+  final ValueNotifier<Annotation?> _movingAnnotationNotifier = ValueNotifier(null);
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController();
     _textFocusNode = FocusNode();
+    _textFocusNode.addListener(() {
+      if (!_textFocusNode.hasFocus && _textInputRect != null) {
+        _submitText(_textController.text);
+      }
+    });
+  }
+
+  void _submitText(String text) {
+    if (text.trim().isNotEmpty && _textInputRect != null) {
+      final rect = _textInputRect!;
+      final newAnnotation = Annotation(
+        tool: ScreenshotTool.text,
+        points: [rect.topLeft], // Store top-left for anchoring
+        color: widget.annotationColor,
+        text: text,
+        strokeWidth: rect.width, // We hijack strokeWidth to store the maxWidth for wrapping
+        hasBackground: widget.textHasBackground,
+      );
+      widget.onAnnotationAdded(newAnnotation);
+    }
+    setState(() {
+      _textInputRect = null;
+      _textController.clear();
+    });
   }
 
   @override
@@ -121,11 +158,12 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
     _drawingController.dispose();
     _textController.dispose();
     _textFocusNode.dispose();
+    _movingAnnotationNotifier.dispose();
     super.dispose();
   }
 
   void _onHover(Offset position) {
-    if (widget.currentTool != ScreenshotTool.eraser) {
+    if (widget.currentTool != ScreenshotTool.eraser && widget.currentTool != ScreenshotTool.pointer && widget.currentTool != ScreenshotTool.text) {
       if (_hoveredAnnotation != null) {
         setState(() => _hoveredAnnotation = null);
       }
@@ -134,7 +172,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
 
     final hit = _findAnnotationAt(position);
     if (hit != _hoveredAnnotation) {
-      setState(() => _hoveredAnnotation = hit);
+      setState(() => _hoveredAnnotation = hit?.tool == ScreenshotTool.text || widget.currentTool == ScreenshotTool.eraser ? hit : null);
     }
   }
 
@@ -179,11 +217,28 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
         return false;
 
       case ScreenshotTool.text:
-        if (ann.points.isNotEmpty) {
-          // Estimate text bounds (16 fontSize * approx length)
-          final textLen = (ann.text ?? '').length;
-          final rect = Rect.fromLTWH(ann.points.first.dx, ann.points.first.dy, textLen * 10.0, 24.0).inflate(radius);
-          return rect.contains(p);
+        if (ann.text != null && ann.points.isNotEmpty) {
+          final textPainter = TextPainter(
+            text: TextSpan(
+              text: ann.text,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            textDirection: TextDirection.ltr,
+          );
+          if (ann.points.length >= 2) {
+            final maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+            final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
+            textPainter.layout(maxWidth: safeWidth);
+          } else {
+            textPainter.layout();
+          }
+          final textRect = Rect.fromLTWH(
+            ann.points.first.dx + 9.0,
+            ann.points.first.dy + 9.0,
+            textPainter.width,
+            textPainter.height,
+          ).inflate(radius);
+          return textRect.contains(p);
         }
         return false;
 
@@ -201,6 +256,11 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   }
 
   void _onPanStart(DragStartDetails details) {
+    if (_textInputRect != null) {
+      _textFocusNode.unfocus();
+      return;
+    }
+
     if (widget.canDraw && widget.currentTool == ScreenshotTool.eraser) {
       final hit = _findAnnotationAt(details.localPosition);
       if (hit != null) {
@@ -208,6 +268,16 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
         setState(() => _hoveredAnnotation = null);
       }
       return;
+    }
+
+    if (widget.canDraw && (widget.currentTool == ScreenshotTool.text || widget.currentTool == ScreenshotTool.pointer)) {
+      final hit = _findAnnotationAt(details.localPosition);
+      if (hit != null && hit.tool == ScreenshotTool.text) {
+        widget.onAnnotationRemoved(hit);
+        _movingAnnotationNotifier.value = hit;
+        setState(() => _hoveredAnnotation = null);
+        return;
+      }
     }
 
     if (widget.canDraw && widget.currentTool != ScreenshotTool.pointer) {
@@ -239,6 +309,13 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
+    if (_movingAnnotationNotifier.value != null) {
+      final ann = _movingAnnotationNotifier.value!;
+      final newPoints = ann.points.map((p) => p + details.delta).toList();
+      _movingAnnotationNotifier.value = ann.copyWith(points: newPoints);
+      return;
+    }
+
     if (widget.canDraw && widget.currentTool == ScreenshotTool.eraser) {
       final hit = _findAnnotationAt(details.localPosition);
       if (hit != null) {
@@ -249,7 +326,11 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
     }
 
     if (widget.canDraw && widget.currentTool != ScreenshotTool.pointer) {
-      _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
+      if (widget.currentTool == ScreenshotTool.text && _drawingController.points.isNotEmpty) {
+        _drawingController.replaceLast(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
+      } else {
+        _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
+      }
     } else {
       widget.onAreaDragUpdate?.call(details);
     }
@@ -258,11 +339,26 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   void _onPanEnd(DragEndDetails details) {
     _stopLaserPruning();
 
+    if (_movingAnnotationNotifier.value != null) {
+      widget.onAnnotationAdded(_movingAnnotationNotifier.value!);
+      _movingAnnotationNotifier.value = null;
+      return;
+    }
+
     // Handle Text Tool - Show input on end of selection/tap
     if (widget.currentTool == ScreenshotTool.text && widget.canDraw) {
       if (_drawingController.points.isNotEmpty) {
+        final start = _drawingController.points.first;
+        final end = _drawingController.points.last;
+        
+        // Default to a 300px box if they just clicked without dragging
+        Rect rect = Rect.fromPoints(start, end);
+        if (rect.width < 50) {
+          rect = Rect.fromLTWH(start.dx, start.dy, 300, 100);
+        }
+
         setState(() {
-          _textInputPos = _drawingController.points.first;
+          _textInputRect = rect;
           _textController.clear();
           _textFocusNode.requestFocus();
         });
@@ -290,11 +386,6 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Listenable> repaintSources = [
-      _drawingController,
-      if (widget.repaintCapture != null) widget.repaintCapture!,
-    ];
-
     return Stack(
       children: [
         // Custom Paint Surface
@@ -325,7 +416,8 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
                   activeTool: widget.currentTool,
                   activeColor: widget.annotationColor,
                   hoveredAnnotation: _hoveredAnnotation,
-                  repaint: Listenable.merge(repaintSources),
+                  movingAnnotation: _movingAnnotationNotifier,
+                  repaint: Listenable.merge([_drawingController, _movingAnnotationNotifier, if (widget.repaintCapture != null) widget.repaintCapture!]),
                 ),
               ),
             ),
@@ -333,39 +425,39 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
         ),
 
         // Text Tool Input
-        if (_textInputPos != null)
+        if (_textInputRect != null)
           Positioned(
-            left: _textInputPos!.dx,
-            top: _textInputPos!.dy,
-            child: SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _textController,
-                focusNode: _textFocusNode,
-                autofocus: true,
-                style: TextStyle(
-                  color: widget.annotationColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            left: _textInputRect!.left,
+            top: _textInputRect!.top,
+            width: _textInputRect!.width,
+            child: TextField(
+                  onTapOutside: (_) {},
+                  controller: _textController,
+              focusNode: _textFocusNode,
+              autofocus: true,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
+              style: TextStyle(
+                color: widget.annotationColor,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.annotationColor.withValues(alpha: 0.5), style: BorderStyle.solid),
                 ),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.annotationColor.withValues(alpha: 0.5), style: BorderStyle.solid),
                 ),
-                onSubmitted: (value) {
-                  if (value.isNotEmpty) {
-                    widget.onAnnotationAdded(Annotation(
-                      points: [_textInputPos!],
-                      tool: ScreenshotTool.text,
-                      color: widget.annotationColor,
-                      text: value,
-                    ));
-                  }
-                  setState(() {
-                    _textInputPos = null;
-                    _textController.clear();
-                  });
-                },
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.annotationColor, style: BorderStyle.solid),
+                ),
+                contentPadding: const EdgeInsets.all(8),
+                fillColor: widget.textHasBackground 
+                  ? widget.annotationColor.withValues(alpha: 0.25)
+                  : Colors.transparent,
+                filled: true,
               ),
             ),
           ),

@@ -33,11 +33,9 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
   Widget build(BuildContext context) {
     // 1. Structural properties that should trigger a full rebuild
     final isVisible = ref.watch(screenRecorderProvider.select((s) => s.isOverlayVisible));
-    if (!isVisible) return const SizedBox.shrink();
-
     final isRecording = ref.watch(screenRecorderProvider.select((s) => s.isRecording));
-    final currentTool = ref.watch(screenRecorderProvider.select((s) => s.currentTool));
-    final annotationColor = ref.watch(screenRecorderProvider.select((s) => s.annotationColor));
+    ref.watch(screenRecorderProvider.select((s) => s.currentTool));
+    ref.watch(screenRecorderProvider.select((s) => s.annotationColor));
     final countdownSeconds = ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
     final delaySeconds = ref.watch(screenRecorderProvider.select((s) => s.delaySeconds));
     final microphoneEnabled = ref.watch(screenRecorderProvider.select((s) => s.microphoneEnabled));
@@ -50,6 +48,9 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
     ref.watch(screenRecorderProvider.select((s) => s.captureMode));
     ref.watch(screenRecorderProvider.select((s) => s.availableDisplays));
     ref.watch(screenRecorderProvider.select((s) => s.annotations));
+    ref.watch(screenRecorderProvider.select((s) => s.textHasBackground));
+
+    if (!isVisible) return const SizedBox.shrink();
 
     // 2. Listen to annotations to update the notifier WITHOUT rebuilding the skeleton
     ref.listen(screenRecorderProvider.select((s) => s.annotations), (prev, next) {
@@ -127,21 +128,28 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
           const SqaFloatingBarDivider(),
 
           // Annotation Tools & Colors
-          SqaAnnotationToolbar(
-            enabledTools: const [
-              ScreenshotTool.pointer,
-              ScreenshotTool.pen,
-              ScreenshotTool.marker,
-              ScreenshotTool.eraser,
-              ScreenshotTool.arrow,
-              ScreenshotTool.rectangle,
-              ScreenshotTool.laser,
-            ],
-            currentTool: currentTool,
-            onToolSelected: notifier.setTool,
-            currentColor: annotationColor,
-            onColorSelected: notifier.setColor,
-            onClear: notifier.clearAnnotations,
+          Consumer(
+            builder: (context, ref, child) {
+              final state = ref.watch(screenRecorderProvider);
+              return SqaAnnotationToolbar(
+                enabledTools: const [
+                  ScreenshotTool.pointer,
+                  ScreenshotTool.pen,
+                  ScreenshotTool.marker,
+                  ScreenshotTool.eraser,
+                  ScreenshotTool.arrow,
+                  ScreenshotTool.rectangle,
+                  ScreenshotTool.laser,
+                ],
+                currentTool: state.currentTool,
+                onToolSelected: notifier.setTool,
+                currentColor: state.annotationColor,
+                onColorSelected: notifier.setColor,
+                textHasBackground: state.textHasBackground,
+                onTextBackgroundToggled: notifier.setTextHasBackground,
+                onClear: notifier.clearAnnotations,
+              );
+            },
           ),
         ],
       ],
@@ -167,6 +175,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override Listenable? get annotationsChanged => _annotationsNotifier;
   @override Color get annotationColor => _state.annotationColor;
   @override ScreenshotTool get currentTool => _state.currentTool;
+  @override bool get textHasBackground => _state.textHasBackground;
   @override Display? get lockedDisplay => _state.lockedDisplay;
   @override List<Display> get availableDisplays => _state.availableDisplays;
 
@@ -186,6 +195,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
   @override void removeAnnotation(Annotation annotation) => _notifier.removeAnnotation(annotation);
+  @override void setTextHasBackground(bool value) => _notifier.setTextHasBackground(value);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
   @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
 

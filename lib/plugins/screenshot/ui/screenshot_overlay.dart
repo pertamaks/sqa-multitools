@@ -34,8 +34,8 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     final isVisible = ref.watch(screenshotProvider.select((s) => s.isOverlayVisible));
     if (!isVisible) return const SizedBox.shrink();
 
-    final currentTool = ref.watch(screenshotProvider.select((s) => s.currentTool));
-    final annotationColor = ref.watch(screenshotProvider.select((s) => s.annotationColor));
+    ref.watch(screenshotProvider.select((s) => s.currentTool));
+    ref.watch(screenshotProvider.select((s) => s.annotationColor));
     final isCapturing = ref.watch(screenshotProvider.select((s) => s.isCapturing));
 
     // UI structural changes that must trigger a rebuild
@@ -44,6 +44,7 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     ref.watch(screenshotProvider.select((s) => s.captureMode));
     ref.watch(screenshotProvider.select((s) => s.availableDisplays));
     ref.watch(screenshotProvider.select((s) => s.annotations));
+    ref.watch(screenshotProvider.select((s) => s.textHasBackground));
 
     // Listen to annotations to update the notifier WITHOUT rebuilding the skeleton
     ref.listen(screenshotProvider.select((s) => s.annotations), (prev, next) {
@@ -63,31 +64,38 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     return SqaCaptureOverlay(
       delegate: _ScreenshotDelegate(state, notifier, _annotationsNotifier),
       toolbarBuilder: (context) => [
-        SqaAnnotationToolbar(
-          enabledTools: const [
-            ScreenshotTool.pen,
-            ScreenshotTool.line,
-            ScreenshotTool.arrow,
-            ScreenshotTool.marker,
-            ScreenshotTool.eraser,
-            ScreenshotTool.rectangle,
-            ScreenshotTool.text,
-          ],
-          currentTool: currentTool,
-          onToolSelected: notifier.setTool,
-          currentColor: annotationColor,
-          onColorSelected: notifier.setColor,
-          onClear: notifier.clearAnnotations,
-          availableColors: const [
-            Colors.red,
-            Colors.green,
-            Colors.blue,
-            Colors.yellow,
-            Colors.amber,
-            Colors.cyan,
-            Colors.pink,
-            Colors.white,
-          ],
+        Consumer(
+          builder: (context, ref, child) {
+            final state = ref.watch(screenshotProvider);
+            return SqaAnnotationToolbar(
+              enabledTools: const [
+                ScreenshotTool.pen,
+                ScreenshotTool.line,
+                ScreenshotTool.arrow,
+                ScreenshotTool.marker,
+                ScreenshotTool.eraser,
+                ScreenshotTool.rectangle,
+                ScreenshotTool.text,
+              ],
+              currentTool: state.currentTool,
+              onToolSelected: notifier.setTool,
+              currentColor: state.annotationColor,
+              onColorSelected: notifier.setColor,
+              textHasBackground: state.textHasBackground,
+              onTextBackgroundToggled: notifier.setTextHasBackground,
+              onClear: notifier.clearAnnotations,
+              availableColors: const [
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.yellow,
+                Colors.amber,
+                Colors.cyan,
+                Colors.pink,
+                Colors.white,
+              ],
+            );
+          },
         ),
         const SqaFloatingBarDivider(),
         SqaFloatingBarButton(
@@ -134,6 +142,7 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override Listenable? get annotationsChanged => _annotationsNotifier;
   @override Color get annotationColor => _state.annotationColor;
   @override ScreenshotTool get currentTool => _state.currentTool;
+  @override bool get textHasBackground => _state.textHasBackground;
   @override Display? get lockedDisplay => _state.lockedDisplay;
   @override List<Display> get availableDisplays => _state.availableDisplays;
   @override bool get isCapturing => _state.isCapturing;
@@ -143,6 +152,7 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
   @override void removeAnnotation(Annotation annotation) => _notifier.removeAnnotation(annotation);
+  @override void setTextHasBackground(bool value) => _notifier.setTextHasBackground(value);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
   @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
 

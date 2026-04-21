@@ -113,6 +113,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     state = state.copyWith(annotationColor: color);
   }
 
+  void setTextHasBackground(bool value) {
+    state = state.copyWith(textHasBackground: value);
+  }
+
   Future<void> startOverlay() async {
     final currentSize = await windowManager.getSize();
     final currentPos = await windowManager.getPosition();

@@ -486,6 +486,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 onAreaDragStart: _onAreaDragStart,
                 onAreaDragUpdate: _onAreaDragUpdate,
                 onAreaDragEnd: _onAreaDragEnd,
+                textHasBackground: delegate.textHasBackground,
               ),
 
           // Multi-monitor Instructions

@@ -20,12 +20,15 @@ class SqaSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     // We use Transform.scale to maintain consistency with the established
     // design in the settings plugin.
-    return Transform.scale(
-      scale: scale,
-      child: Switch(
-        value: value,
-        onChanged: onChanged,
-        // Ensure the switch uses the theme's colors
+    return SizedBox(
+      height: 36, // Match standard toolbar button height
+      child: Transform.scale(
+        scale: scale,
+        child: Switch(
+          value: value,
+          onChanged: onChanged,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
       ),
     );
   }

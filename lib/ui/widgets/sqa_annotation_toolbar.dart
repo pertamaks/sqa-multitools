@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../core/models/screenshot_tool.dart';
 import 'sqa_floating_bar.dart';
+import 'sqa_switch.dart';
 
 /// A centralized toolbar for annotation tools and color selection.
 /// Used by both Screen Recorder and Screenshot plugins.
@@ -21,6 +22,9 @@ class SqaAnnotationToolbar extends StatelessWidget {
   /// Callback when a color is selected.
   final ValueChanged<Color> onColorSelected;
 
+  final bool? textHasBackground;
+  final ValueChanged<bool>? onTextBackgroundToggled;
+
   /// Callback to clear all annotations.
   final VoidCallback onClear;
 
@@ -34,6 +38,8 @@ class SqaAnnotationToolbar extends StatelessWidget {
     required this.onToolSelected,
     required this.currentColor,
     required this.onColorSelected,
+    this.textHasBackground,
+    this.onTextBackgroundToggled,
     required this.onClear,
     this.availableColors = const [
       Colors.red,
@@ -49,14 +55,34 @@ class SqaAnnotationToolbar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Tools Section
-        ...enabledTools.map((tool) {
+        ...enabledTools.expand((tool) {
           final info = _getToolInfo(tool);
-          return SqaFloatingBarButton(
+          final toolButton = SqaFloatingBarButton(
             icon: info.icon,
             tooltip: info.label,
             isSelected: currentTool == tool,
             onPressed: () => onToolSelected(tool),
           );
+
+          // Inject Text Background toggle next to the Text tool
+          if (tool == ScreenshotTool.text && textHasBackground != null && currentTool == ScreenshotTool.text) {
+            return [
+              toolButton,
+              const SizedBox(width: 4),
+              // Smaller Icon for the switch
+              Icon(
+                Symbols.format_color_fill,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
+              SqaSwitch(
+                value: textHasBackground!,
+                onChanged: onTextBackgroundToggled,
+              ),
+            ];
+          }
+
+          return [toolButton];
         }),
 
         const SqaFloatingBarDivider(),
@@ -90,7 +116,7 @@ class SqaAnnotationToolbar extends StatelessWidget {
       ScreenshotTool.arrow => (icon: Symbols.arrow_outward, label: 'Arrow'),
       ScreenshotTool.marker => (icon: Symbols.brush, label: 'Highlighter'),
       ScreenshotTool.rectangle => (icon: Symbols.rectangle, label: 'Rectangle'),
-      ScreenshotTool.text => (icon: Symbols.text_fields, label: 'Text'),
+      ScreenshotTool.text => (icon: Symbols.text_select_start, label: 'Text'),
       ScreenshotTool.laser => (icon: Symbols.stylus_laser_pointer, label: 'Laser Pointer'),
       ScreenshotTool.eraser => (icon: Symbols.ink_eraser, label: 'Eraser'),
     };

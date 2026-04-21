@@ -23,6 +23,7 @@ class SqaSelectionPainter extends CustomPainter {
   final ScreenshotTool? activeTool;
   final Color? activeColor;
   final Annotation? hoveredAnnotation;
+  final ValueNotifier<Annotation?>? movingAnnotation;
 
   SqaSelectionPainter({
     this.selectionRect,
@@ -39,6 +40,7 @@ class SqaSelectionPainter extends CustomPainter {
     this.activeTool,
     this.activeColor,
     this.hoveredAnnotation,
+    this.movingAnnotation,
     super.repaint,
   });
 
@@ -106,7 +108,12 @@ class SqaSelectionPainter extends CustomPainter {
       _drawSingleAnnotation(canvas, ann);
     }
 
-    // 5. Draw Active Stroke (the line currently being drawn)
+    // 5. Draw Target Moving Annotation
+    if (movingAnnotation?.value != null) {
+      _drawSingleAnnotation(canvas, movingAnnotation!.value!);
+    }
+
+    // 6. Draw Active Stroke (the line currently being drawn)
     if (activePoints.length >= 2 && activeTool != null && activeColor != null) {
       _drawSingleAnnotation(
         canvas,
@@ -148,26 +155,66 @@ class SqaSelectionPainter extends CustomPainter {
   }
  
   void _drawHoverHighlight(Canvas canvas, Annotation ann) {
-    // 1. Draw Glow
-    final glowPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.6)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 8.0
-      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
-      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
-    
-    _drawAnnotationSurface(canvas, ann, glowPaint);
- 
-    // 2. Draw Bolder Original (White)
-    final topPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 2.0
-      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
-      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
- 
-    _drawAnnotationSurface(canvas, ann, topPaint);
+    if (activeTool == ScreenshotTool.eraser) {
+      if (ann.tool == ScreenshotTool.text) {
+        // Special glowing border for text in eraser mode
+        final textPainter = _getTextPainter(ann);
+        final rect = _getTextRect(ann, textPainter);
+
+        final glowPaint = Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4.0
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+        
+        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), glowPaint);
+
+        final borderPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+        
+        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), borderPaint);
+      } else {
+        // Standard glow/bold for other tools
+        // 1. Draw Glow
+        final glowPaint = Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 8.0
+          ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+          ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+        
+        _drawAnnotationSurface(canvas, ann, glowPaint);
+
+        // 2. Draw Bolder Original (White)
+        final topPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 2.0
+          ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+          ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
+
+        _drawAnnotationSurface(canvas, ann, topPaint);
+      }
+    } else if (ann.tool == ScreenshotTool.text) {
+      // Dimming effect for text move/selection
+      final textPainter = _getTextPainter(ann);
+      final rect = _getTextRect(ann, textPainter);
+
+      final dimPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.3)
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), dimPaint);
+
+      final borderPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0;
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), borderPaint);
+    }
   }
  
   /// Helper to draw only the path/shape surface without specific colors/logic
@@ -189,6 +236,12 @@ class SqaSelectionPainter extends CustomPainter {
         canvas.drawLine(ann.points.first, ann.points.last, paint);
         _drawArrowHead(canvas, ann.points.first, ann.points.last, paint);
       }
+    } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
+      double? maxWidth;
+      if (ann.points.length >= 2) {
+        maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+      }
+      _drawText(canvas, ann.points.first, ann.text!, ann.color, ann.hasBackground, maxWidth, paint);
     }
   }
  
@@ -272,7 +325,13 @@ class SqaSelectionPainter extends CustomPainter {
     } else if (ann.tool == ScreenshotTool.arrow) {
       _drawArrow(canvas, ann.points.first, ann.points.last, paint, ann.color);
     } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
-      _drawText(canvas, ann.points.first, ann.text!, ann.color);
+      double? maxWidth;
+      if (ann.points.length >= 2) {
+        maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+      } else {
+        maxWidth = ann.strokeWidth > 0 ? ann.strokeWidth : null;
+      }
+      _drawText(canvas, ann.points.first, ann.text!, ann.color, ann.hasBackground, maxWidth);
     }
   }
 
@@ -296,18 +355,97 @@ class SqaSelectionPainter extends CustomPainter {
     canvas.drawPath(headPath, fillPaint);
   }
 
-  void _drawText(Canvas canvas, Offset position, String text, Color color) {
+  void _drawText(Canvas canvas, Offset position, String text, Color color, bool hasBackground, [double? maxWidth, Paint? foregroundPaint]) {
+    canvas.save();
+    canvas.translate(position.dx, position.dy);
+
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: foregroundPaint == null ? color : null,
+          foreground: foregroundPaint,
+          fontSize: 16, 
+          fontWeight: FontWeight.bold
+        ),
       ),
       textDirection: TextDirection.ltr,
     );
-    textPainter.layout();
-    textPainter.paint(canvas, position);
+    
+    if (maxWidth != null) {
+      final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
+      textPainter.layout(maxWidth: safeWidth);
+    } else {
+      textPainter.layout();
+    }
+
+    // Draw background if enabled
+    if (hasBackground && foregroundPaint == null) {
+      final rect = Rect.fromLTWH(
+        9.0,
+        9.0,
+        textPainter.width,
+        textPainter.height,
+      ).inflate(4.0);
+      
+      final bgPaint = Paint()
+        ..color = color.withValues(alpha: 0.25)
+        ..style = PaintingStyle.fill;
+      
+      final borderPaint = Paint()
+        ..color = color.withValues(alpha: 0.45)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0;
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        bgPaint,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        borderPaint,
+      );
+    }
+
+    textPainter.paint(canvas, const Offset(9.0, 9.0));
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+
+  TextPainter _getTextPainter(Annotation ann) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: ann.text ?? '',
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    double? maxWidth;
+    if (ann.points.length >= 2) {
+      maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+    } else if (ann.tool == ScreenshotTool.text) {
+      maxWidth = ann.strokeWidth > 0 ? ann.strokeWidth : null;
+    }
+
+    if (maxWidth != null) {
+      final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
+      textPainter.layout(maxWidth: safeWidth);
+    } else {
+      textPainter.layout();
+    }
+
+    return textPainter;
+  }
+
+  Rect _getTextRect(Annotation ann, TextPainter textPainter) {
+    return Rect.fromLTWH(
+      ann.points.first.dx + 9.0,
+      ann.points.first.dy + 9.0,
+      textPainter.width,
+      textPainter.height,
+    ).inflate(4.0);
+  }
 }

@@ -16,6 +16,7 @@ abstract class CaptureOverlayDelegate {
   Listenable? get annotationsChanged;
   Color get annotationColor;
   ScreenshotTool get currentTool;
+  bool get textHasBackground;
   List<Display> get availableDisplays;
 
   // --- Recording State Reads (defaults for non-recording plugins) ---
@@ -38,6 +39,7 @@ abstract class CaptureOverlayDelegate {
   void addAnnotation(Annotation annotation);
   void updateLastAnnotation(Annotation annotation);
   void removeAnnotation(Annotation annotation);
+  void setTextHasBackground(bool value);
   void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]);
   void confirmTargetWindow(Rect rect, String title);
 

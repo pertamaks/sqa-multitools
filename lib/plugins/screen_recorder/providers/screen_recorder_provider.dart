@@ -683,7 +683,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   void clearAnnotations() => state = state.copyWith(annotations: []);
   void setColor(Color color) => state = state.copyWith(annotationColor: color);
-
+  void setTextHasBackground(bool value) => state = state.copyWith(textHasBackground: value);
+  
   // Window Targeting
   void setTargetingWindow(bool value) {
     state = state.copyWith(isTargetingWindow: value);

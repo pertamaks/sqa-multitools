@@ -8,51 +8,12 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import '../../core/models/capture_overlay_delegate.dart';
 import '../../core/models/capture_mode.dart';
-import '../../core/models/annotation.dart';
 import '../../core/models/screenshot_tool.dart';
 import '../../core/models/click_ripple.dart';
 import '../../core/window/window_utils.dart';
-import 'sqa_selection_painter.dart';
 import 'sqa_floating_bar.dart';
 import '../../core/providers/capture_key_provider.dart';
-
-/// Internal controller for high-performance drawing.
-/// Bypasses the widget rebuild cycle for real-time annotation feedback.
-class _DrawingController extends ChangeNotifier {
-  final List<Offset> _points = [];
-  final List<DateTime> _timestamps = [];
-
-  List<Offset> get points => _points;
-  List<DateTime> get timestamps => _timestamps;
-
-  void start() {
-    _points.clear();
-    _timestamps.clear();
-    notifyListeners();
-  }
-
-  void add(Offset point) {
-    _points.add(point);
-    _timestamps.add(DateTime.now());
-    notifyListeners();
-  }
-
-  void prune(DateTime limit) {
-    while (_timestamps.isNotEmpty && _timestamps.first.isBefore(limit)) {
-      _points.removeAt(0);
-      _timestamps.removeAt(0);
-    }
-    if (_points.isNotEmpty || _timestamps.isEmpty) {
-      notifyListeners();
-    }
-  }
-
-  void clear() {
-    _points.clear();
-    _timestamps.clear();
-    notifyListeners();
-  }
-}
+import 'sqa_annotation_stage.dart';
 
 class SqaCaptureOverlay extends ConsumerStatefulWidget {
   final CaptureOverlayDelegate delegate;
@@ -75,20 +36,12 @@ class SqaCaptureOverlay extends ConsumerStatefulWidget {
 class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
-  final _DrawingController _drawingController = _DrawingController();
   Offset? _startPos;
   Offset? _currentPos;
   final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(null);
   Timer? _mousePollingTimer;
-  Timer? _laserPruneTimer;
   bool _isDragging = false;
   Offset _dragGrabOffset = Offset.zero;
-  Annotation? _hoveredAnnotation;
-
-  // Text Tool State
-  Offset? _textInputPos;
-  late TextEditingController _textController;
-  late FocusNode _textFocusNode;
 
   // Click Feedback State
   final List<ClickRipple> _ripples = [];
@@ -108,8 +61,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     )..repeat(reverse: true);
     _startMousePolling();
 
-    _textController = TextEditingController();
-    _textFocusNode = FocusNode();
     _focusNode.requestFocus();
   }
 
@@ -157,11 +108,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   @override
   void dispose() {
     _mousePollingTimer?.cancel();
-    _laserPruneTimer?.cancel();
     _animationController.dispose();
-    _drawingController.dispose();
-    _textController.dispose();
-    _textFocusNode.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -412,104 +359,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
   }
 
-  void _onHover(Offset position) {
-    if (widget.delegate.currentTool != ScreenshotTool.eraser) {
-      if (_hoveredAnnotation != null) {
-        setState(() => _hoveredAnnotation = null);
-      }
-      return;
-    }
-
-    final hit = _findAnnotationAt(position);
-    if (hit != _hoveredAnnotation) {
-      setState(() => _hoveredAnnotation = hit);
-    }
-  }
-
-  Annotation? _findAnnotationAt(Offset position) {
-    const double hitRadius = 15.0;
-    
-    // Check in reverse order so we hit the top-most (most recent) annotation first
-    final annotations = widget.delegate.annotations;
-    for (int i = annotations.length - 1; i >= 0; i--) {
-      if (_isHit(annotations[i], position, hitRadius)) {
-        return annotations[i];
-      }
-    }
-    return null;
-  }
-
-  bool _isHit(Annotation ann, Offset p, double radius) {
-    if (ann.points.isEmpty) return false;
-
-    switch (ann.tool) {
-      case ScreenshotTool.pen:
-      case ScreenshotTool.marker:
-      case ScreenshotTool.laser:
-        // Use path segments
-        for (int i = 0; i < ann.points.length - 1; i++) {
-          if (_distToSegment(p, ann.points[i], ann.points[i + 1]) < radius) return true;
-        }
-        return false;
-
-      case ScreenshotTool.line:
-      case ScreenshotTool.arrow:
-        if (ann.points.length >= 2) {
-          return _distToSegment(p, ann.points.first, ann.points.last) < radius;
-        }
-        return false;
-
-      case ScreenshotTool.rectangle:
-        if (ann.points.length >= 2) {
-          final rect = Rect.fromPoints(ann.points.first, ann.points.last).inflate(radius);
-          return rect.contains(p);
-        }
-        return false;
-
-      case ScreenshotTool.text:
-        if (ann.points.isNotEmpty) {
-          // Estimate text bounds (16 fontSize * approx length)
-          final textLen = (ann.text ?? '').length;
-          final rect = Rect.fromLTWH(ann.points.first.dx, ann.points.first.dy, textLen * 10.0, 24.0).inflate(radius);
-          return rect.contains(p);
-        }
-        return false;
-
-      default:
-        return false;
-    }
-  }
-
-  double _distToSegment(Offset p, Offset a, Offset b) {
-    final l2 = (a - b).distanceSquared;
-    if (l2 == 0) return (p - a).distance;
-    var t = ((p.dx - a.dx) * (b.dx - a.dx) + (p.dy - a.dy) * (b.dy - a.dy)) / l2;
-    t = math.max(0, math.min(1, t));
-    return (p - Offset(a.dx + t * (b.dx - a.dx), a.dy + t * (b.dy - a.dy))).distance;
-  }
-
-  void _onPanStart(DragStartDetails details) {
-    bool canDraw = widget.delegate.isRecording || 
-                  widget.delegate.captureMode == CaptureMode.fullScreen ||
-                  widget.delegate.selectionRect != null;
-
-    if (canDraw && widget.delegate.currentTool == ScreenshotTool.eraser) {
-      final hit = _findAnnotationAt(details.localPosition);
-      if (hit != null) {
-        widget.delegate.removeAnnotation(hit);
-        setState(() => _hoveredAnnotation = null);
-      }
-      return;
-    }
-
-    if (canDraw && widget.delegate.currentTool != ScreenshotTool.pointer) {
-      _drawingController.start();
-      _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
-
-      if (widget.delegate.currentTool == ScreenshotTool.laser) {
-        _startLaserPruning();
-      }
-    } else if (widget.delegate.captureMode == CaptureMode.area) {
+  void _onAreaDragStart(DragStartDetails details) {
+    if (widget.delegate.captureMode == CaptureMode.area) {
       final startPos = details.localPosition;
       final windowPos = WindowUtils.getAppWindowPosition();
       final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
@@ -534,39 +385,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
   }
 
-  void _startLaserPruning() {
-    _laserPruneTimer?.cancel();
-    _laserPruneTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (widget.delegate.currentTool != ScreenshotTool.laser) {
-        _stopLaserPruning();
-        return;
-      }
-      _drawingController.prune(DateTime.now().subtract(const Duration(milliseconds: 1000)));
-    });
-  }
-
-  void _stopLaserPruning() {
-    _laserPruneTimer?.cancel();
-    _laserPruneTimer = null;
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    bool canDraw = widget.delegate.isRecording || 
-                  widget.delegate.captureMode == CaptureMode.fullScreen ||
-                  widget.delegate.selectionRect != null;
-
-    if (canDraw && widget.delegate.currentTool == ScreenshotTool.eraser) {
-      final hit = _findAnnotationAt(details.localPosition);
-      if (hit != null) {
-        widget.delegate.removeAnnotation(hit);
-        setState(() => _hoveredAnnotation = null);
-      }
-      return;
-    }
-
-    if (canDraw && widget.delegate.currentTool != ScreenshotTool.pointer) {
-      _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
-    } else if (widget.delegate.captureMode == CaptureMode.area) {
+  void _onAreaDragUpdate(DragUpdateDetails details) {
+    if (widget.delegate.captureMode == CaptureMode.area) {
       var currentPos = details.localPosition;
 
       // Logical Clamping Constraint
@@ -593,36 +413,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
   }
 
-  void _onPanEnd(DragEndDetails details) {
-    _stopLaserPruning();
-
-    // Handle Text Tool - Show input on end of selection/tap
-    if (widget.delegate.currentTool == ScreenshotTool.text && 
-        (widget.delegate.isRecording || widget.delegate.selectionRect != null)) {
-      if (_drawingController.points.isNotEmpty) {
-        setState(() {
-          _textInputPos = _drawingController.points.first;
-          _textController.clear();
-          _textFocusNode.requestFocus();
-        });
-        _drawingController.clear();
-      }
-      return;
-    }
-
-    if (widget.delegate.isRecording || widget.delegate.selectionRect != null) {
-      if (_drawingController.points.isNotEmpty) {
-        final annotation = Annotation(
-          points: List.from(_drawingController.points),
-          pointTimestamps: List.from(_drawingController.timestamps),
-          tool: widget.delegate.currentTool,
-          color: widget.delegate.annotationColor,
-          strokeWidth: widget.delegate.currentTool == ScreenshotTool.marker ? 24.0 : 2.0,
-        );
-        widget.delegate.addAnnotation(annotation);
-        _drawingController.clear();
-      }
-    } else if (widget.delegate.selectionRect == null && _startPos != null && _currentPos != null) {
+  void _onAreaDragEnd(DragEndDetails details) {
+    if (widget.delegate.selectionRect == null && _startPos != null && _currentPos != null) {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
         _teleportBarToRect(rect);
@@ -668,82 +460,33 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         child: Stack(
 
             children: [
-              // Custom Paint Surface
-              MouseRegion(
-                onHover: (event) => _onHover(event.localPosition),
-                onExit: (_) => setState(() => _hoveredAnnotation = null),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: _onPanStart,
-                  onPanUpdate: _onPanUpdate,
-                  onPanEnd: _onPanEnd,
-                  child: RepaintBoundary(
-                    key: ref.watch(captureKeyProvider),
-                    child: CustomPaint(
-                      size: Size.infinite,
-                      painter: SqaSelectionPainter(
-                        selectionRect: selectionRect,
-                        targetedWindowRect: delegate.targetedWindowRect,
-                        annotations: delegate.annotations,
-                        isRecording: delegate.isRecording,
-                        isCapturing: delegate.isCapturing,
-                        animationValue: _animationController.value,
-                        ripples: _ripples,
-                        clickFeedbackColor: delegate.clickFeedbackColor,
-                        rightClickFeedbackColor: delegate.rightClickFeedbackColor,
-                        activePoints: _drawingController.points,
-                        activeTimestamps: _drawingController.timestamps,
-                        activeTool: delegate.currentTool,
-                        activeColor: delegate.annotationColor,
-                        hoveredAnnotation: _hoveredAnnotation,
-                        repaint: Listenable.merge([
-                          _animationController,
-                          _drawingController,
-                          if (widget.delegate.annotationsChanged != null) widget.delegate.annotationsChanged!,
-                        ]),
-                      ),
-                    ),
-                  ),
-                ),
+              // Annotation Layer
+              SqaAnnotationStage(
+                canDraw: delegate.isRecording || 
+                        delegate.captureMode == CaptureMode.fullScreen ||
+                        delegate.selectionRect != null,
+                currentTool: delegate.currentTool,
+                annotationColor: delegate.annotationColor,
+                annotations: delegate.annotations,
+                onAnnotationAdded: delegate.addAnnotation,
+                onAnnotationRemoved: delegate.removeAnnotation,
+                selectionRect: selectionRect,
+                targetedWindowRect: delegate.targetedWindowRect,
+                isRecording: delegate.isRecording,
+                isCapturing: delegate.isCapturing,
+                animationValue: _animationController.value,
+                ripples: _ripples,
+                clickFeedbackColor: delegate.clickFeedbackColor,
+                rightClickFeedbackColor: delegate.rightClickFeedbackColor,
+                repaintCapture: Listenable.merge([
+                  _animationController,
+                  if (widget.delegate.annotationsChanged != null) widget.delegate.annotationsChanged!,
+                ]),
+                captureKey: ref.watch(captureKeyProvider),
+                onAreaDragStart: _onAreaDragStart,
+                onAreaDragUpdate: _onAreaDragUpdate,
+                onAreaDragEnd: _onAreaDragEnd,
               ),
-
-          // Text Tool Input
-          if (_textInputPos != null)
-            Positioned(
-              left: _textInputPos!.dx,
-              top: _textInputPos!.dy,
-              child: SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _textController,
-                  focusNode: _textFocusNode,
-                  autofocus: true,
-                  style: TextStyle(
-                    color: widget.delegate.annotationColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  onSubmitted: (value) {
-                    if (value.isNotEmpty) {
-                      widget.delegate.addAnnotation(Annotation(
-                        points: [_textInputPos!],
-                        tool: ScreenshotTool.text,
-                        color: widget.delegate.annotationColor,
-                        text: value,
-                      ));
-                    }
-                    setState(() {
-                      _textInputPos = null;
-                      _textController.clear();
-                    });
-                  },
-                ),
-              ),
-            ),
 
           // Multi-monitor Instructions
           if (showInstruction && !delegate.isCapturing)

@@ -8,6 +8,7 @@ class Annotation {
   final Color color;
   final double strokeWidth;
   final String? text;
+  final bool hasBackground;
 
   Annotation({
     required this.points,
@@ -16,6 +17,7 @@ class Annotation {
     required this.color,
     this.strokeWidth = 2.0,
     this.text,
+    this.hasBackground = false,
   });
 
   Annotation copyWith({
@@ -25,6 +27,7 @@ class Annotation {
     Color? color,
     double? strokeWidth,
     String? text,
+    bool? hasBackground,
   }) {
     return Annotation(
       points: points ?? this.points,
@@ -33,6 +36,7 @@ class Annotation {
       color: color ?? this.color,
       strokeWidth: strokeWidth ?? this.strokeWidth,
       text: text ?? this.text,
+      hasBackground: hasBackground ?? this.hasBackground,
     );
   }
 }

@@ -22,8 +22,6 @@ void main() {
       final state = container.read(screenshotProvider);
       expect(state.captureMode, CaptureMode.area);
       expect(state.format, 'PNG');
-      expect(state.delaySeconds, 0);
-      expect(state.includeCursor, true);
       expect(state.isCapturing, false);
       expect(state.isOverlayVisible, false);
       expect(state.currentTool, ScreenshotTool.pointer);

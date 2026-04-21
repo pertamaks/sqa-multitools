@@ -11,39 +11,56 @@ class SqaSelectionPainter extends CustomPainter {
   final Rect? targetedWindowRect;
   final List<Annotation> annotations;
   final bool isRecording;
+  final bool isCapturing;
   final double animationValue; // 0.0 to 1.0, used for breathing effects
   final List<ClickRipple> ripples;
   final Color clickFeedbackColor;
   final Color rightClickFeedbackColor;
 
+  // Active Drawing State (for zero-rebuild loop)
+  final List<Offset> activePoints;
+  final List<DateTime> activeTimestamps;
+  final ScreenshotTool? activeTool;
+  final Color? activeColor;
+  final Annotation? hoveredAnnotation;
+  final ValueNotifier<Annotation?>? movingAnnotation;
+
   SqaSelectionPainter({
     this.selectionRect,
     this.targetedWindowRect,
     required this.annotations,
-    this.isRecording = false,
-    this.animationValue = 0.0,
+    required this.isRecording,
+    required this.isCapturing,
+    required this.animationValue,
     this.ripples = const [],
     this.clickFeedbackColor = Colors.white,
     this.rightClickFeedbackColor = Colors.amber,
+    this.activePoints = const [],
+    this.activeTimestamps = const [],
+    this.activeTool,
+    this.activeColor,
+    this.hoveredAnnotation,
+    this.movingAnnotation,
     super.repaint,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.5);
+    // 1. Draw Dimming Layer (Spotlight)
+    if (!isCapturing) {
+      final backgroundPaint = Paint()..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
 
-    // 1. Handle Background Dimming & Cutout (Spotlight)
-    if (selectionRect != null) {
-      final path = Path()
-        ..addRect(Offset.zero & size)
-        ..addRect(selectionRect!)
-        ..fillType = PathFillType.evenOdd;
-      canvas.drawPath(path, backgroundPaint);
+      if (selectionRect != null) {
+        final path = Path()
+          ..addRect(Offset.zero & size)
+          ..addRect(selectionRect!)
+          ..fillType = PathFillType.evenOdd;
+        canvas.drawPath(path, backgroundPaint);
+      }
     }
 
     // 2. Window/Monitor Hover Highlight
-    if (targetedWindowRect != null && selectionRect == null) {
+    if (!isCapturing && targetedWindowRect != null && selectionRect == null) {
       final targetPaint = Paint()
         ..color = Colors.blue.withValues(alpha: 0.2)
         ..style = PaintingStyle.fill;
@@ -53,37 +70,24 @@ class SqaSelectionPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
-        targetPaint,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
-        borderPaint,
-      );
-    } else if (selectionRect != null) {
+      canvas.drawRRect(RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)), targetPaint);
+      canvas.drawRRect(RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)), borderPaint);
+    } else if (!isCapturing && selectionRect != null) {
       // 3. Draw Active Selection Border (Glow & Brackets)
       final color = isRecording ? Colors.red : Colors.blue;
       final breathe = animationValue;
 
-      // Outer Glow
       final glowPaint = Paint()
-        ..color = color.withValues(
-          alpha: isRecording ? (0.2 + breathe * 0.3) : 0.2,
-        )
+        ..color = color.withValues(alpha: isRecording ? (0.2 + breathe * 0.3) : 0.2)
         ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 8.0);
       canvas.drawRect(selectionRect!, glowPaint);
 
-      // Main thin border (outset by 4px)
       final borderPaint = Paint()
-        ..color = color.withValues(
-          alpha: isRecording ? (0.8 + breathe * 0.2) : 0.8,
-        )
+        ..color = color.withValues(alpha: isRecording ? (0.8 + breathe * 0.2) : 0.8)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
       canvas.drawRect(selectionRect!.inflate(4.0), borderPaint);
 
-      // High-Fidelity Corner Brackets
       final bracketPaint = Paint()
         ..color = color
         ..style = PaintingStyle.stroke
@@ -93,101 +97,36 @@ class SqaSelectionPainter extends CustomPainter {
       const double bracketSize = 20.0;
       final r = selectionRect!.inflate(4.0);
 
-      // Top Left
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.left, r.top + bracketSize)
-          ..lineTo(r.left, r.top)
-          ..lineTo(r.left + bracketSize, r.top),
-        bracketPaint,
-      );
-      // Top Right
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.right - bracketSize, r.top)
-          ..lineTo(r.right, r.top)
-          ..lineTo(r.right, r.top + bracketSize),
-        bracketPaint,
-      );
-      // Bottom Right
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.right, r.bottom - bracketSize)
-          ..lineTo(r.right, r.bottom)
-          ..lineTo(r.right - bracketSize, r.bottom),
-        bracketPaint,
-      );
-      // Bottom Left
-      canvas.drawPath(
-        Path()
-          ..moveTo(r.left + bracketSize, r.bottom)
-          ..lineTo(r.left, r.bottom)
-          ..lineTo(r.left, r.bottom - bracketSize),
-        bracketPaint,
-      );
-    } else if (selectionRect == null && targetedWindowRect == null) {
-      // Clear background if not selecting/targeting
-      if (!isRecording) {
-        // No-op or draw clear dim if desired. Here we follow 'Clear Targeting' rule.
-      }
+      canvas.drawPath(Path()..moveTo(r.left, r.top + bracketSize)..lineTo(r.left, r.top)..lineTo(r.left + bracketSize, r.top), bracketPaint);
+      canvas.drawPath(Path()..moveTo(r.right - bracketSize, r.top)..lineTo(r.right, r.top)..lineTo(r.right, r.top + bracketSize), bracketPaint);
+      canvas.drawPath(Path()..moveTo(r.right, r.bottom - bracketSize)..lineTo(r.right, r.bottom)..lineTo(r.right - bracketSize, r.bottom), bracketPaint);
+      canvas.drawPath(Path()..moveTo(r.left + bracketSize, r.bottom)..lineTo(r.left, r.bottom)..lineTo(r.left, r.bottom - bracketSize), bracketPaint);
     }
 
-    // 4. Draw Annotations
+    // 4. Draw Existing Annotations
     for (final ann in annotations) {
-      final paint = Paint()
-        ..color = ann.color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = ann.strokeWidth
-        ..strokeCap = StrokeCap.round;
-
-      if (ann.points.length < 2) continue;
-
-      if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
-        if (ann.tool == ScreenshotTool.marker) {
-          paint.color = ann.color.withValues(alpha: 0.4);
-        }
-        final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
-        for (var i = 1; i < ann.points.length; i++) {
-          path.lineTo(ann.points[i].dx, ann.points[i].dy);
-        }
-        canvas.drawPath(path, paint);
-      } else if (ann.tool == ScreenshotTool.laser) {
-        // Laser effect: Thick glowing path
-        final laserPaint = Paint()
-          ..color = ann.color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4.0
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
-
-        final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
-        for (var i = 1; i < ann.points.length; i++) {
-          path.lineTo(ann.points[i].dx, ann.points[i].dy);
-        }
-        canvas.drawPath(path, laserPaint);
-
-        // Core of the laser (sharper)
-        final corePaint = Paint()
-          ..color = Colors.white.withValues(alpha: 0.8)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5
-          ..strokeCap = StrokeCap.round;
-        canvas.drawPath(path, corePaint);
-      } else if (ann.tool == ScreenshotTool.line) {
-        canvas.drawLine(ann.points.first, ann.points.last, paint);
-      } else if (ann.tool == ScreenshotTool.rectangle) {
-        canvas.drawRect(
-          Rect.fromPoints(ann.points.first, ann.points.last),
-          paint,
-        );
-      } else if (ann.tool == ScreenshotTool.arrow) {
-        _drawArrow(canvas, ann.points.first, ann.points.last, paint, ann.color);
-      } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
-        _drawText(canvas, ann.points.first, ann.text!, ann.color);
-      }
+      _drawSingleAnnotation(canvas, ann);
     }
 
-    // 5. Draw Click Ripples
+    // 5. Draw Target Moving Annotation
+    if (movingAnnotation?.value != null) {
+      _drawSingleAnnotation(canvas, movingAnnotation!.value!);
+    }
+
+    // 6. Draw Active Stroke (the line currently being drawn)
+    if (activePoints.length >= 2 && activeTool != null && activeColor != null) {
+      _drawSingleAnnotation(
+        canvas,
+        Annotation(
+          points: activePoints,
+          pointTimestamps: activeTimestamps,
+          tool: activeTool!,
+          color: activeColor!,
+        ),
+      );
+    }
+
+    // 6. Draw Click Ripples
     final now = DateTime.now();
     for (final ripple in ripples) {
       final progress = ripple.getProgress(now);
@@ -197,30 +136,206 @@ class SqaSelectionPainter extends CustomPainter {
       final radius = ripple.maxRadius * progress;
 
       final ripplePaint = Paint()
-        ..color = ripple.isRightClick
-            ? rightClickFeedbackColor.withValues(alpha: opacity * 0.6)
-            : clickFeedbackColor.withValues(alpha: opacity * 0.6)
+        ..color = ripple.isRightClick ? rightClickFeedbackColor.withValues(alpha: opacity * 0.6) : clickFeedbackColor.withValues(alpha: opacity * 0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
       canvas.drawCircle(ripple.position, radius, ripplePaint);
 
       final corePaint = Paint()
-        ..color = ripple.isRightClick
-            ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8)
-            : clickFeedbackColor.withValues(alpha: opacity * 0.8)
+        ..color = ripple.isRightClick ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8) : clickFeedbackColor.withValues(alpha: opacity * 0.8)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(ripple.position, 4.0 * (1.0 - progress), corePaint);
     }
+ 
+    // 7. Draw Hover Highlight (Glow & Bolder)
+    if (hoveredAnnotation != null) {
+      _drawHoverHighlight(canvas, hoveredAnnotation!);
+    }
+  }
+ 
+  void _drawHoverHighlight(Canvas canvas, Annotation ann) {
+    if (activeTool == ScreenshotTool.eraser) {
+      if (ann.tool == ScreenshotTool.text) {
+        // Special glowing border for text in eraser mode
+        final textPainter = _getTextPainter(ann);
+        final rect = _getTextRect(ann, textPainter);
+
+        final glowPaint = Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4.0
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+        
+        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), glowPaint);
+
+        final borderPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+        
+        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), borderPaint);
+      } else {
+        // Standard glow/bold for other tools
+        // 1. Draw Glow
+        final glowPaint = Paint()
+          ..color = Colors.white.withValues(alpha: 0.6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 8.0
+          ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+          ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+        
+        _drawAnnotationSurface(canvas, ann, glowPaint);
+
+        // 2. Draw Bolder Original (White)
+        final topPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 2.0
+          ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+          ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
+
+        _drawAnnotationSurface(canvas, ann, topPaint);
+      }
+    } else if (ann.tool == ScreenshotTool.text) {
+      // Dimming effect for text move/selection
+      final textPainter = _getTextPainter(ann);
+      final rect = _getTextRect(ann, textPainter);
+
+      final dimPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.3)
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), dimPaint);
+
+      final borderPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0;
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), borderPaint);
+    }
+  }
+ 
+  /// Helper to draw only the path/shape surface without specific colors/logic
+  void _drawAnnotationSurface(Canvas canvas, Annotation ann, Paint paint) {
+    if (ann.points.isEmpty) return;
+ 
+    if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker || ann.tool == ScreenshotTool.laser) {
+      final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
+      for (var i = 1; i < ann.points.length; i++) {
+        path.lineTo(ann.points[i].dx, ann.points[i].dy);
+      }
+      canvas.drawPath(path, paint);
+    } else if (ann.tool == ScreenshotTool.line) {
+      if (ann.points.length >= 2) canvas.drawLine(ann.points.first, ann.points.last, paint);
+    } else if (ann.tool == ScreenshotTool.rectangle) {
+      if (ann.points.length >= 2) canvas.drawRect(Rect.fromPoints(ann.points.first, ann.points.last), paint);
+    } else if (ann.tool == ScreenshotTool.arrow) {
+      if (ann.points.length >= 2) {
+        canvas.drawLine(ann.points.first, ann.points.last, paint);
+        _drawArrowHead(canvas, ann.points.first, ann.points.last, paint);
+      }
+    } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
+      double? maxWidth;
+      if (ann.points.length >= 2) {
+        maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+      }
+      _drawText(canvas, ann.points.first, ann.text!, ann.color, ann.hasBackground, maxWidth, paint);
+    }
+  }
+ 
+  void _drawArrowHead(Canvas canvas, Offset start, Offset end, Paint paint) {
+    final dX = end.dx - start.dx;
+    final dY = end.dy - start.dy;
+    final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
+    const double arrowSize = 14;
+    const double arrowAngle = 0.5;
+ 
+    final headPath = Path()
+      ..moveTo(end.dx, end.dy)
+      ..lineTo(end.dx - arrowSize * math.cos(angle - arrowAngle), end.dy - arrowSize * math.sin(angle - arrowAngle))
+      ..lineTo(end.dx - arrowSize * math.cos(angle + arrowAngle), end.dy - arrowSize * math.sin(angle + arrowAngle))
+      ..close();
+ 
+    final headPaint = Paint()
+      ..color = paint.color
+      ..style = PaintingStyle.fill;
+    
+    canvas.drawPath(headPath, headPaint);
   }
 
-  void _drawArrow(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    Paint paint,
-    Color color,
-  ) {
+  void _drawSingleAnnotation(Canvas canvas, Annotation ann) {
+    if (ann.points.length < 2 && ann.tool != ScreenshotTool.text) return;
+
+    final paint = Paint()
+      ..color = ann.color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth
+      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
+
+    if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
+      if (ann.tool == ScreenshotTool.marker) {
+        paint.color = ann.color.withValues(alpha: 0.4);
+      }
+      final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
+      for (var i = 1; i < ann.points.length; i++) {
+        path.lineTo(ann.points[i].dx, ann.points[i].dy);
+      }
+      canvas.drawPath(path, paint);
+    } else if (ann.tool == ScreenshotTool.laser) {
+      final now = DateTime.now();
+      const fadeDuration = 1000; // ms
+
+      for (var i = 0; i < ann.points.length - 1; i++) {
+        final p1 = ann.points[i];
+        final p2 = ann.points[i + 1];
+        
+        // Calculate opacity based on point age
+        double opacity = 1.0;
+        if (ann.pointTimestamps.length > i) {
+          final age = now.difference(ann.pointTimestamps[i]).inMilliseconds;
+          opacity = (1.0 - (age / fadeDuration)).clamp(0.0, 1.0);
+        }
+
+        if (opacity <= 0) continue;
+
+        // Draw Glow
+        final laserPaint = Paint()
+          ..color = ann.color.withValues(alpha: opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4.0
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
+        canvas.drawLine(p1, p2, laserPaint);
+
+        // Draw Core
+        final corePaint = Paint()
+          ..color = Colors.white.withValues(alpha: opacity * 0.8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(p1, p2, corePaint);
+      }
+    } else if (ann.tool == ScreenshotTool.line) {
+      canvas.drawLine(ann.points.first, ann.points.last, paint);
+    } else if (ann.tool == ScreenshotTool.rectangle) {
+      canvas.drawRect(Rect.fromPoints(ann.points.first, ann.points.last), paint);
+    } else if (ann.tool == ScreenshotTool.arrow) {
+      _drawArrow(canvas, ann.points.first, ann.points.last, paint, ann.color);
+    } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
+      double? maxWidth;
+      if (ann.points.length >= 2) {
+        maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+      } else {
+        maxWidth = ann.strokeWidth > 0 ? ann.strokeWidth : null;
+      }
+      _drawText(canvas, ann.points.first, ann.text!, ann.color, ann.hasBackground, maxWidth);
+    }
+  }
+
+  void _drawArrow(Canvas canvas, Offset start, Offset end, Paint paint, Color color) {
     canvas.drawLine(start, end, paint);
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
@@ -230,14 +345,8 @@ class SqaSelectionPainter extends CustomPainter {
 
     final headPath = Path()
       ..moveTo(end.dx, end.dy)
-      ..lineTo(
-        end.dx - arrowSize * math.cos(angle - arrowAngle),
-        end.dy - arrowSize * math.sin(angle - arrowAngle),
-      )
-      ..lineTo(
-        end.dx - arrowSize * math.cos(angle + arrowAngle),
-        end.dy - arrowSize * math.sin(angle + arrowAngle),
-      )
+      ..lineTo(end.dx - arrowSize * math.cos(angle - arrowAngle), end.dy - arrowSize * math.sin(angle - arrowAngle))
+      ..lineTo(end.dx - arrowSize * math.cos(angle + arrowAngle), end.dy - arrowSize * math.sin(angle + arrowAngle))
       ..close();
 
     final fillPaint = Paint()
@@ -246,22 +355,97 @@ class SqaSelectionPainter extends CustomPainter {
     canvas.drawPath(headPath, fillPaint);
   }
 
-  void _drawText(Canvas canvas, Offset position, String text, Color color) {
+  void _drawText(Canvas canvas, Offset position, String text, Color color, bool hasBackground, [double? maxWidth, Paint? foregroundPaint]) {
+    canvas.save();
+    canvas.translate(position.dx, position.dy);
+
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
         style: TextStyle(
-          color: color,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+          color: foregroundPaint == null ? color : null,
+          foreground: foregroundPaint,
+          fontSize: 16, 
+          fontWeight: FontWeight.bold
         ),
       ),
       textDirection: TextDirection.ltr,
     );
-    textPainter.layout();
-    textPainter.paint(canvas, position);
+    
+    if (maxWidth != null) {
+      final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
+      textPainter.layout(maxWidth: safeWidth);
+    } else {
+      textPainter.layout();
+    }
+
+    // Draw background if enabled
+    if (hasBackground && foregroundPaint == null) {
+      final rect = Rect.fromLTWH(
+        9.0,
+        9.0,
+        textPainter.width,
+        textPainter.height,
+      ).inflate(4.0);
+      
+      final bgPaint = Paint()
+        ..color = color.withValues(alpha: 0.25)
+        ..style = PaintingStyle.fill;
+      
+      final borderPaint = Paint()
+        ..color = color.withValues(alpha: 0.45)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0;
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        bgPaint,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        borderPaint,
+      );
+    }
+
+    textPainter.paint(canvas, const Offset(9.0, 9.0));
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+
+  TextPainter _getTextPainter(Annotation ann) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: ann.text ?? '',
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    double? maxWidth;
+    if (ann.points.length >= 2) {
+      maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
+    } else if (ann.tool == ScreenshotTool.text) {
+      maxWidth = ann.strokeWidth > 0 ? ann.strokeWidth : null;
+    }
+
+    if (maxWidth != null) {
+      final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
+      textPainter.layout(maxWidth: safeWidth);
+    } else {
+      textPainter.layout();
+    }
+
+    return textPainter;
+  }
+
+  Rect _getTextRect(Annotation ann, TextPainter textPainter) {
+    return Rect.fromLTWH(
+      ann.points.first.dx + 9.0,
+      ann.points.first.dy + 9.0,
+      textPainter.width,
+      textPainter.height,
+    ).inflate(4.0);
+  }
 }

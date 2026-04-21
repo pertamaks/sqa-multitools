@@ -76,8 +76,9 @@ class SqaFloatingBarButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
         minimumSize: const Size(36, 36),
         padding: EdgeInsets.zero,
+        splashFactory: NoSplash.splashFactory,
       ).copyWith(
-        overlayColor: SqaStyles.buttonOverlay(context, baseColor: color),
+        overlayColor: SqaStyles.buttonOverlay(context, baseColor: color, silent: true),
       ),
     );
 
@@ -164,7 +165,7 @@ class SqaFloatingBarDragHandle extends StatelessWidget {
       onPanEnd: onDragEnd != null ? (_) => onDragEnd!() : null,
       behavior: HitTestBehavior.opaque,
       child: MouseRegion(
-        cursor: SystemMouseCursors.move,
+        cursor: SystemMouseCursors.basic,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: Icon(

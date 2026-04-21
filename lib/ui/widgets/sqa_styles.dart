@@ -27,7 +27,10 @@ class SqaStyles {
   static WidgetStateProperty<Color?> buttonOverlay(
     BuildContext context, {
     Color? baseColor,
+    bool silent = false,
   }) {
+    if (silent) return WidgetStateProperty.all(Colors.transparent);
+
     final theme = Theme.of(context);
     final color = baseColor ?? theme.colorScheme.primary;
 

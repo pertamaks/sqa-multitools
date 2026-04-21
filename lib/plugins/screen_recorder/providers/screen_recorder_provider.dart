@@ -11,11 +11,14 @@ import '../models/screen_recorder_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
-import '../engine/ffmpeg_engine.dart';
+import '../../../core/engine/ffmpeg_engine.dart';
+import '../../../core/providers/ffmpeg_provider.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import '../../../core/window/window_utils.dart';
+import '../../../core/window/window_transition_coordinator.dart';
+
 
 part 'screen_recorder_provider.g.dart';
 
@@ -23,14 +26,11 @@ part 'screen_recorder_provider.g.dart';
 class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Timer? _timer;
   Process? _ffmpegProcess;
-  late final FfmpegEngine _engine;
   bool _isStopping = false;
   Timer? _laserTimer;
 
   @override
   ScreenRecorderState build() {
-    _engine = FfmpegEngine();
-
     // Kill any orphaned FFmpeg process when the provider is destroyed
     ref.onDispose(() {
       _laserTimer?.cancel();
@@ -40,23 +40,23 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       }
     });
 
+    // Listen to engine status changes
+    ref.listen(ffmpegProvider, (previous, next) {
+      if (!previous!.isReady && next.isReady) {
+        refreshMonitors();
+        refreshAudioDevices();
+      }
+    });
+
     // Trigger side-effects after the provider is initialized
     Future.microtask(() {
-      _checkEngine();
       refreshRecentRecordings();
     });
 
     return const ScreenRecorderState();
   }
 
-  Future<void> _checkEngine() async {
-    final ready = await FfmpegEngine.isEngineAvailable();
-    state = state.copyWith(engineReady: ready);
-    if (ready) {
-      await refreshMonitors();
-      await refreshAudioDevices();
-    }
-  }
+
 
   /// Refreshes the list of available monitors and their friendly names.
   Future<void> refreshMonitors() async {
@@ -86,7 +86,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Manually refreshes the visual snapshots of all monitors.
   Future<void> refreshThumbnails() async {
-    if (!state.engineReady) return;
+    final engineReady = ref.read(ffmpegProvider).isReady;
+    if (!engineReady) return;
 
     final Map<String, String> newThumbnails = Map.from(state.displayThumbnails);
 
@@ -116,7 +117,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Refreshes the list of available audio input devices.
   Future<void> refreshAudioDevices() async {
-    if (!state.engineReady) return;
+    final engineReady = ref.read(ffmpegProvider).isReady;
+    if (!engineReady) return;
 
     final devices = await FfmpegEngine.listAudioDevices();
     state = state.copyWith(
@@ -129,21 +131,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Downloads the engine
   Future<void> installEngine() async {
-    state = state.copyWith(engineDownloadProgress: 0.0);
-    try {
-      await FfmpegEngine.downloadEngine((progress) {
-        state = state.copyWith(engineDownloadProgress: progress);
-      });
-      state = state.copyWith(engineReady: true, engineDownloadProgress: null);
-    } catch (e) {
-      state = state.copyWith(engineDownloadProgress: null);
-      throw 'Failed to download FFmpeg: $e';
-    }
+    await ref.read(ffmpegProvider.notifier).download();
   }
 
   /// Called when the user presses start from the main UI
   Future<void> startOverlay([Rect? targetBounds]) async {
-    if (!state.engineReady) {
+    final engineReady = ref.read(ffmpegProvider).isReady;
+    if (!engineReady) {
       throw 'Engine not ready.';
     }
 
@@ -182,20 +176,21 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       // captureRect stays null — it will be set when the user selects a window or draws an area
     }
 
-    // 1. Hide the window to prevent intermediate redraw artifacts during transition
-    await windowManager.hide();
-    await windowManager.setBounds(overlayRect);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    final coordinator = ref.read(windowTransitionProvider);
+
+    // 1. Ghost the window instantly and wait for OS commitment
+    await windowManager.setOpacity(0.0);
+    await coordinator.waitForSync(resize: false, move: false);
+
+    // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
-    await Future<void>.delayed(const Duration(milliseconds: 50));
     await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    await windowManager.setAlwaysOnTop(true);
-    await windowManager.setIgnoreMouseEvents(false);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    // 5. Update state to trigger UI rendering
+    // 3. Update state early so Flutter starts building the transparent overlay UI
+    final hotkeyInfo = ref.read(hotkeySettingsProvider).recordToggle;
+    final registeredHotKey = hotkeyInfo.toHotKey();
+
     state = state.copyWith(
       previousWindowSize: currentSize,
       previousWindowPos: currentPos,
@@ -203,8 +198,36 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       selectionRect: null,
       captureRect: captureRect,
       availableDisplays: displays,
+      lockedDisplay: null,
+      registeredHotKey: registeredHotKey,
     );
-    await windowManager.show();
+
+    // Wait for Flutter to commit the first frame of the overlay
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
+
+    // 4. Expand the window while it is ghosted and Flutter is ready
+    await windowManager.setBounds(overlayRect);
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setIgnoreMouseEvents(false);
+
+    // 5. Robust sync delay for Windows DWM buffer allocation
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: overlayRect.size,
+      targetOffset: overlayRect.topLeft,
+    );
+
+
+    // Register hotkey with the stored instance
+    await hotKeyManager.register(
+      registeredHotKey,
+      keyDownHandler: (hk) => toggleRecording(),
+    );
+
+    // 6. Finally reveal and focus
+    await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
 
@@ -230,22 +253,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   /// Used to allow clicking THROUGH the overlay to reach underlying apps.
   Future<void> setIgnoreMouseEvents(bool ignore) async {
     await windowManager.setIgnoreMouseEvents(ignore);
-  }
-
-  Future<void> _restoreWindow() async {
-    final size = state.previousWindowSize ?? const Size(450, 500);
-    final pos = state.previousWindowPos ?? const Offset(100, 100);
-
-    // Restore standard window decorations to ensure rounded corners on Windows 11
-    await windowManager.setHasShadow(true);
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-
-    final alwaysOnTop = ref.read(themeSettingsProvider).alwaysOnTop;
-    await windowManager.setAlwaysOnTop(alwaysOnTop);
-    await windowManager.setBounds(
-      Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height),
-    );
-    await windowManager.setIgnoreMouseEvents(false);
   }
 
   Future<void> toggleRecording() async {
@@ -334,10 +341,20 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final savePath = '${saveDir.path}\\$filename';
 
     try {
-      _ffmpegProcess = await _engine.startRecording(
-        state,
-        savePath,
-        state.availableDisplays,
+      final config = FfmpegVideoConfig(
+        framerate: state.framerate,
+        resolution: state.resolution,
+        showCursor: state.showCursor,
+        captureMode: state.captureMode,
+        captureRect: state.captureRect,
+        microphoneEnabled: state.microphoneEnabled,
+        selectedAudioDevice: state.selectedAudioDevice,
+      );
+
+      _ffmpegProcess = await FfmpegEngine().startRecording(
+        config: config,
+        savePath: savePath,
+        displays: state.availableDisplays,
       );
 
       // Listener for unexpected exit
@@ -353,6 +370,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         }
       });
     } catch (e) {
+      await _restoreWindowInternal();
       state = state.copyWith(isRecording: false);
       throw 'Failed to start recording: $e';
     }
@@ -381,17 +399,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       }
     } finally {
       _isStopping = false;
-      // 3. Always reset state and restore window even if ffmpeg fails
-      state = state.copyWith(
-        isRecording: false,
-        isPaused: false,
-        durationSeconds: 0,
-        isOverlayVisible: false,
-        annotations: [],
-      );
-
-      await _restoreWindow();
-      await setIgnoreMouseEvents(false); // Hard reset last
+      // Use the hardened Ghost-First sequence for a clean transition back to toolbar
+      await cancelOverlay();
       refreshRecentRecordings();
     }
   }
@@ -445,7 +454,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
             validInfo.length > 10 ? validInfo.sublist(0, 10) : validInfo,
       );
     } catch (e) {
-      debugPrint('[ScreenRecorder] Failed to refresh recordings: $e');
+      // Silent catch for unexpected file system errors
     }
   }
 
@@ -474,13 +483,76 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   Future<void> cancelOverlay() async {
-    // Unregister recorder hotkey only
-    final hotkeyInfo = ref.read(hotkeySettingsProvider).recordToggle;
-    await hotKeyManager.unregister(hotkeyInfo.toHotKey());
+    final coordinator = ref.read(windowTransitionProvider);
 
-    state = state.copyWith(isOverlayVisible: false, selectionRect: null);
-    await setIgnoreMouseEvents(false);
-    await _restoreWindow();
+    // 1. Ghost the window instantly as the absolute FIRST step
+    // Use 0.01 temporarily to keep the layered context warm
+    await windowManager.setOpacity(0.01);
+    await coordinator.waitForSync(resize: false, move: false);
+
+
+    // 2. Perform background cleanup while invisible
+    // (WE DEFER setIgnoreMouseEvents(false) to the very end)
+
+    // 3. Unregister recorder hotkey immediately (using MATCHED instance)
+    if (state.registeredHotKey != null) {
+      try {
+        await hotKeyManager.unregister(state.registeredHotKey!);
+      } catch (e) {
+        // Silent catch for hotkey cleanup
+      }
+    }
+
+    // 4. Physically restore window bounds BEFORE switching UI state
+    await _restoreWindowInternal();
+    final targetSize = state.previousWindowSize ?? const Size(450, 500);
+    final targetPos = state.previousWindowPos ?? const Offset(100, 100);
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: targetSize,
+      targetOffset: targetPos,
+    );
+
+
+    // 5. NOW switch the UI state to Toolbar mode
+    state = state.copyWith(
+      isOverlayVisible: false,
+      selectionRect: null,
+      targetedWindowRect: null,
+      lockedDisplay: null,
+      registeredHotKey: null,
+      isRecording: false,
+      isPaused: false,
+      durationSeconds: 0,
+      annotations: [],
+      currentTool: ScreenshotTool.pointer,
+    );
+
+    // 6. Wait for Flutter to commit the first frame of the Small UI
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
+    final theme = ref.read(themeSettingsProvider);
+
+    // 7. Finally restore attributes, reveal and focus
+    // Move all attribute changes here to prevent DWM flushes on giant window
+    await Future.wait([
+      windowManager.setHasShadow(true),
+      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAlwaysOnTop(theme.alwaysOnTop),
+      setIgnoreMouseEvents(false),
+    ]);
+    
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
+  }
+
+  Future<void> _restoreWindowInternal() async {
+    final size = state.previousWindowSize ?? const Size(450, 500);
+    final pos = state.previousWindowPos ?? const Offset(100, 100);
+
+    // Structural Move Only (Isolate from attribute changes to prevent flicker)
+    await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
   }
 
   void togglePause() {
@@ -521,9 +593,17 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       state = state.copyWith(rightClickFeedbackColor: color);
 
   // Annotation Methods
-  void setSelection(Rect? rect) {
+  void setSelection(Rect? rect, [Display? display]) {
+    if (display != null && state.lockedDisplay != display) {
+      state = state.copyWith(lockedDisplay: display);
+    }
+
     state = state.copyWith(selectionRect: rect);
-    // Don't shrink anymore, stay full screen for annotations
+
+    // If we just finished a drag (rect is final) and have a logical lock, trigger physical lock
+    if (rect != null && state.lockedDisplay != null && !state.isRecording) {
+      _lockToMonitor(rect, providedDisplay: state.lockedDisplay);
+    }
   }
 
   void setTool(ScreenshotTool tool) =>
@@ -596,9 +676,15 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     }
   }
 
+  void removeAnnotation(Annotation annotation) {
+    final updated = state.annotations.where((a) => a != annotation).toList();
+    state = state.copyWith(annotations: updated);
+  }
+
   void clearAnnotations() => state = state.copyWith(annotations: []);
   void setColor(Color color) => state = state.copyWith(annotationColor: color);
-
+  void setTextHasBackground(bool value) => state = state.copyWith(textHasBackground: value);
+  
   // Window Targeting
   void setTargetingWindow(bool value) {
     state = state.copyWith(isTargetingWindow: value);
@@ -621,6 +707,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       targetWindowName: title,
     );
 
+    await _lockToMonitor(rect);
+
     // Bring the window to front
     if (hwnd != null && hwnd != 0) {
       WindowUtils.focusWindow(hwnd);
@@ -631,5 +719,76 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     startOverlay().catchError((e) {
       // Intentionally ignore for now, UI handles error.
     });
+  }
+
+  /// Physically shrinks the overlay window to cover only the target monitor.
+  /// This reduces DWM overhead and constrains interaction boundaries.
+  Future<void> _lockToMonitor(Rect targetRect, {Display? providedDisplay}) async {
+    if (!state.isOverlayVisible || state.isRecording) return;
+
+    final displays = state.availableDisplays;
+    if (displays.isEmpty) return;
+
+    // 1. Identify Target Display
+    Display? targetDisplay = providedDisplay;
+    if (targetDisplay == null) {
+      final windowPos = WindowUtils.getAppWindowPosition();
+      final center = targetRect.center.translate(windowPos.dx, windowPos.dy);
+
+      for (final d in displays) {
+        final dPos = d.visiblePosition ?? Offset.zero;
+        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        if (dRect.contains(center)) {
+          targetDisplay = d;
+          break;
+        }
+      }
+    }
+
+    if (targetDisplay == null) return;
+
+    final targetDisplayRect = Rect.fromLTWH(
+      targetDisplay.visiblePosition?.dx ?? 0,
+      targetDisplay.visiblePosition?.dy ?? 0,
+      targetDisplay.size.width,
+      targetDisplay.size.height,
+    );
+
+    final coordinator = ref.read(windowTransitionProvider);
+
+    // 2. Ghost for transition safety
+    await windowManager.setOpacity(0.01);
+    await coordinator.waitForSync(resize: false, move: false);
+
+    // 3. Coordinate Remapping
+    // We must shift local coordinates to stay spatially consistent after the window moves.
+    final windowPos = WindowUtils.getAppWindowPosition();
+    final globalSelection = state.selectionRect?.shift(windowPos);
+    final globalTargeted = state.targetedWindowRect?.shift(windowPos);
+
+    final newWindowPos = targetDisplayRect.topLeft;
+    final newLocalSelection = globalSelection?.shift(-newWindowPos);
+    final newLocalTargeted = globalTargeted?.shift(-newWindowPos);
+
+    // 4. Physical Move
+    await windowManager.setBounds(targetDisplayRect);
+
+    // 5. High-fidelity Sync
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      targetSize: targetDisplayRect.size,
+      targetOffset: targetDisplayRect.topLeft,
+    );
+
+    // 6. Update State
+    state = state.copyWith(
+      selectionRect: newLocalSelection,
+      targetedWindowRect: newLocalTargeted,
+      lockedDisplay: targetDisplay,
+    );
+
+    // 7. Reveal
+    await windowManager.setOpacity(1.0);
   }
 }

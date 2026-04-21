@@ -58,8 +58,10 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
     - **Snap-Height Expansion:** Integrated toggle (Show All/Less) that snaps to `collapsedMaxLines` when minimized, featuring a gradient-fade footer.
     - **Horizontal Scroll:** Support for mandatory single-line horizontal scrolling via `horizontalScrollController`.
   - **SqaDropdown:** Standardized selection menus.
-  - **SqaFloatingBar:** Centralized draggable controls for capture tools.
+  - **SqaFloatingBar:** Centralized draggable controls for capture tools. Features theme-aware styling for all internal components (e.g., recording timers) to ensure maximum legibility in both light and dark modes.
+  - **SqaCaptureOverlay:** Centralized foundation for high-performance, flicker-free capture tools (Screenshot, Screen Recorder). Implements the "Passive Exit" pattern for stable transitions.
   - **SqaPluginLayout:** Standardized window architecture (header + tabs + body).
+
   - **SqaSettingsButton:** Quick-access gear icons for plugin-specific settings.
   - **SqaSettingsTile:** Standardized rows for configuration panels.
   - **SqaSwitch:** Unified 0.6 scale toggles for preferences.
@@ -97,3 +99,15 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 
 ### Maintainability
 - Modular design with isolated plugin logic to allow independent updates.
+
+## 6. Optimization & Robustness
+### Window Transition Synchronization
+- **Description:** Centralized mechanism (`WindowTransitionCoordinator`) to manage complex window state changes.
+- **Strategy:** Replaces hardcoded delays with event-driven synchronization (native OS events + Flutter frame callbacks).
+- **Core Benefit:** Eliminates flickering and visual artifacts during large-scale structural window moves.
+
+### Centralized FFmpeg Engine
+- **Description:** A shared utility service in `core/engine/` that manages FFmpeg lifecycle and execution.
+- **DPI-Aware Capture:** Implements robust coordinate mapping and mixed-DPI scaling logic to ensure pixel-perfect crops across multi-monitor setups.
+- **Unified Dependency Management:** Provides a global Riverpod provider (`ffmpegProvider`) for tracking installation progress and engine readiness across all capturing plugins.
+- **Decoupled Architecture:** Uses a generic `FfmpegVideoConfig` DTO to allow both Screen Recorder and Screenshot plugins to share the same capture logic without circular dependencies.

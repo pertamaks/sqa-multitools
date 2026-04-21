@@ -47,16 +47,17 @@ class WindowUtils {
     if (!Platform.isWindows) return null;
 
     final point = calloc<POINT>();
-    GetCursorPos(point);
-
     final myPid = GetCurrentProcessId();
     final lpdwProcessId = calloc<Uint32>();
     final rectPointer = calloc<RECT>();
-    final classNameBuffer = calloc<Uint16>(256).cast<Utf16>();
+    final classNameBuffer = calloc<Uint16>(512).cast<Utf16>();
 
     int targetHwnd = 0;
+    Pointer<Utf16>? textBuffer;
 
     try {
+      GetCursorPos(point);
+
       // Start from the very first (top-most) child of the Desktop
       int hwnd = GetWindow(GetDesktopWindow(), GW_CHILD);
 
@@ -73,20 +74,22 @@ class WindowUtils {
             GetWindowThreadProcessId(hwnd, lpdwProcessId);
             if (lpdwProcessId.value != myPid) {
               // 4. Filter out system background windows
-              GetClassName(hwnd, classNameBuffer, 256);
-              final className = classNameBuffer.toDartString();
+              final classLen = GetClassName(hwnd, classNameBuffer, 512);
+              if (classLen > 0) {
+                final className = classNameBuffer.toDartString();
 
-              final ignoreClasses = [
-                'Progman',
-                'WorkerW',
-                'Shell_TrayWnd',
-                'Shell_SecondaryTrayWnd',
-              ];
+                final ignoreClasses = [
+                  'Progman',
+                  'WorkerW',
+                  'Shell_TrayWnd',
+                  'Shell_SecondaryTrayWnd',
+                ];
 
-              if (!ignoreClasses.contains(className)) {
-                // Found it! This is the top-most app window under our overlay
-                targetHwnd = hwnd;
-                break;
+                if (!ignoreClasses.contains(className)) {
+                  // Found it! This is the top-most app window under our overlay
+                  targetHwnd = hwnd;
+                  break;
+                }
               }
             }
           }
@@ -95,43 +98,50 @@ class WindowUtils {
         hwnd = GetWindow(hwnd, GW_HWNDNEXT);
       }
 
-      if (targetHwnd == 0) return null;
+      if (targetHwnd == 0 || IsWindow(targetHwnd) == 0) return null;
 
       // Get Title
-      final textBuffer = calloc<Uint16>(256).cast<Utf16>();
-      GetWindowText(targetHwnd, textBuffer, 256);
-      final title = textBuffer.toDartString();
-      calloc.free(textBuffer);
+      String title = 'Active Window';
+      textBuffer = calloc<Uint16>(512).cast<Utf16>();
+      final textLen = GetWindowText(targetHwnd, textBuffer, 512);
+      if (textLen > 0) {
+        title = textBuffer.toDartString();
+      }
 
       // Get Precise Bounds (DWM aware)
-      final hr = DwmGetWindowAttribute(
-        targetHwnd,
-        DWMWA_EXTENDED_FRAME_BOUNDS,
-        rectPointer,
-        sizeOf<RECT>(),
-      );
-
       Rect rect;
-      if (hr == 0) {
-        rect = Rect.fromLTRB(
-          rectPointer.ref.left.toDouble(),
-          rectPointer.ref.top.toDouble(),
-          rectPointer.ref.right.toDouble(),
-          rectPointer.ref.bottom.toDouble(),
+      if (IsWindow(targetHwnd) != 0) {
+        final hr = DwmGetWindowAttribute(
+          targetHwnd,
+          DWMWA_EXTENDED_FRAME_BOUNDS,
+          rectPointer,
+          sizeOf<RECT>(),
         );
+
+        if (hr == 0) {
+          rect = Rect.fromLTRB(
+            rectPointer.ref.left.toDouble(),
+            rectPointer.ref.top.toDouble(),
+            rectPointer.ref.right.toDouble(),
+            rectPointer.ref.bottom.toDouble(),
+          );
+        } else {
+          // Fallback to basic window rect
+          GetWindowRect(targetHwnd, rectPointer);
+          rect = Rect.fromLTRB(
+            rectPointer.ref.left.toDouble(),
+            rectPointer.ref.top.toDouble(),
+            rectPointer.ref.right.toDouble(),
+            rectPointer.ref.bottom.toDouble(),
+          );
+        }
       } else {
-        // Fallback to basic window rect
-        rect = Rect.fromLTRB(
-          rectPointer.ref.left.toDouble(),
-          rectPointer.ref.top.toDouble(),
-          rectPointer.ref.right.toDouble(),
-          rectPointer.ref.bottom.toDouble(),
-        );
+        return null;
       }
 
       // Convert Physical Rect (Windows API) to Logical Rect (Flutter)
       final dpi = GetDpiForWindow(targetHwnd);
-      final scaleFactor = dpi / 96.0;
+      final scaleFactor = (dpi > 0) ? dpi / 96.0 : 1.0;
 
       return WindowInfo(
         hwnd: targetHwnd,
@@ -143,11 +153,15 @@ class WindowUtils {
           rect.bottom / scaleFactor,
         ),
       );
+    } catch (e) {
+      debugPrint('[WindowUtils] Error in getWindowInfoAt: $e');
+      return null;
     } finally {
       calloc.free(point);
       calloc.free(lpdwProcessId);
       calloc.free(rectPointer);
       calloc.free(classNameBuffer);
+      if (textBuffer != null) calloc.free(textBuffer);
     }
   }
 
@@ -199,4 +213,58 @@ class WindowUtils {
     if (!Platform.isWindows) return false;
     return (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
   }
+
+  static int _cachedAppHwnd = 0;
+
+  /// Fetches the current application window's position synchronously.
+  /// Bypasses focus dependency by searching for our process window if needed.
+  static Offset getAppWindowPosition() {
+    if (!Platform.isWindows) return Offset.zero;
+
+    final rectPointer = calloc<RECT>();
+    final lpdwProcessId = calloc<Uint32>();
+
+    try {
+      // 1. Try Cached Handle first for performance
+      int hwnd = _cachedAppHwnd;
+
+      // 2. Validate or find new handle if missing/invalid
+      if (hwnd == 0 || IsWindow(hwnd) == 0 || IsWindowVisible(hwnd) == 0) {
+        final myPid = GetCurrentProcessId();
+        int searchHwnd = GetWindow(GetDesktopWindow(), GW_CHILD);
+
+        while (searchHwnd != 0) {
+          if (IsWindowVisible(searchHwnd) != 0) {
+            GetWindowThreadProcessId(searchHwnd, lpdwProcessId);
+            if (lpdwProcessId.value == myPid) {
+              hwnd = searchHwnd;
+              _cachedAppHwnd = hwnd;
+              break;
+            }
+          }
+          searchHwnd = GetWindow(searchHwnd, GW_HWNDNEXT);
+        }
+      }
+
+      if (hwnd == 0) return Offset.zero;
+
+      GetWindowRect(hwnd, rectPointer);
+
+      // Convert Physical to Logical
+      final dpi = GetDpiForWindow(hwnd);
+      final scaleFactor = (dpi > 0) ? dpi / 96.0 : 1.0;
+
+      return Offset(
+        rectPointer.ref.left.toDouble() / scaleFactor,
+        rectPointer.ref.top.toDouble() / scaleFactor,
+      );
+    } catch (e) {
+      debugPrint('[WindowUtils] Error in getAppWindowPosition: $e');
+      return Offset.zero;
+    } finally {
+      calloc.free(rectPointer);
+      calloc.free(lpdwProcessId);
+    }
+  }
 }
+

@@ -6,7 +6,6 @@ import '../../core/services/preferences_service.dart';
 import '../../core/services/coffee_shop_service.dart';
 import '../../plugins/settings/providers/settings_debug_provider.dart';
 import '../../core/providers/plugin_provider.dart';
-import 'sqa_toast.dart';
 
 class SquashTheBugOverlay extends ConsumerStatefulWidget {
   static final GlobalKey<SquashTheBugOverlayState> bugKey = GlobalKey();
@@ -199,9 +198,6 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
     _splatController.forward(from: 0);
 
     _hideBug();
-    if (mounted) {
-      SqaToast.show(context, 'BUG SQUASHED!', type: SqaToastType.success);
-    }
     _scheduleNextBug();
   }
 

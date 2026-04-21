@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import 'package:sqa_multitools/plugins/screen_recorder/engine/ffmpeg_engine.dart';
-import 'package:sqa_multitools/plugins/screen_recorder/models/screen_recorder_state.dart';
+import 'package:sqa_multitools/core/engine/ffmpeg_engine.dart';
 import 'package:sqa_multitools/core/models/capture_mode.dart';
 
 void main() {
@@ -30,10 +29,11 @@ void main() {
 
   group('FfmpegEngine buildArguments Tests', () {
     test('Full Screen mode uses captureRect offsets', () {
-      final state = ScreenRecorderState(
+      const config = FfmpegVideoConfig(
         captureMode: CaptureMode.fullScreen,
-        captureRect: const Rect.fromLTWH(1920, 0, 1920, 1080),
+        captureRect: Rect.fromLTWH(1920, 0, 1920, 1080),
         framerate: 30,
+        showCursor: true,
       );
 
       final displays = [
@@ -49,25 +49,29 @@ void main() {
         ),
       ];
 
-      final args = engine.buildArguments(state, 'output.mp4', displays);
+      final args = engine.buildArguments(
+        config: config,
+        outputPath: 'output.mp4',
+        displays: displays,
+      );
 
-      expect(args, contains('-offset_x'));
-      expect(args[args.indexOf('-offset_x') + 1], '1920');
-      expect(args, contains('-offset_y'));
-      expect(args[args.indexOf('-offset_y') + 1], '0');
-      expect(args, contains('-video_size'));
-      expect(args[args.indexOf('-video_size') + 1], '1920x1080');
+      // Verify crop filter for secondary monitor
+      expect(args, contains('-vf'));
+      final vf = args[args.indexOf('-vf') + 1];
+      expect(vf, contains('crop=1920:1080:1920:0'));
     });
 
     test('Area mode uses captureRect (selectionRect mapped)', () {
-      final state = ScreenRecorderState(
+      const config = FfmpegVideoConfig(
         captureMode: CaptureMode.area,
-        captureRect: const Rect.fromLTWH(
+        captureRect: Rect.fromLTWH(
           2020,
           100,
           500,
           400,
         ), // Selection on Monitor 2
+        framerate: 30,
+        showCursor: true,
       );
 
       final displays = [
@@ -83,17 +87,23 @@ void main() {
         ),
       ];
 
-      final args = engine.buildArguments(state, 'output.mp4', displays);
+      final args = engine.buildArguments(
+        config: config,
+        outputPath: 'output.mp4',
+        displays: displays,
+      );
 
+      final vf = args[args.indexOf('-vf') + 1];
       // (2020 - 1920) + 1920 (physical offset) = 2020
-      expect(args[args.indexOf('-offset_x') + 1], '2020');
-      expect(args[args.indexOf('-offset_y') + 1], '100');
+      expect(vf, contains('crop=500:400:2020:100'));
     });
 
     test('Ensures even dimensions for libx264', () {
-      final state = ScreenRecorderState(
+      const config = FfmpegVideoConfig(
         captureMode: CaptureMode.area,
-        captureRect: const Rect.fromLTWH(10, 10, 333, 221),
+        captureRect: Rect.fromLTWH(10, 10, 333, 221),
+        framerate: 30,
+        showCursor: true,
       );
 
       final displays = [
@@ -104,27 +114,22 @@ void main() {
         ),
       ];
 
-      final args = engine.buildArguments(state, 'output.mp4', displays);
-
-      expect(args[args.indexOf('-video_size') + 1], '332x220');
-    });
-
-    test('Window mode uses title input', () {
-      final state = ScreenRecorderState(
-        captureMode: CaptureMode.window,
-        targetWindowName: 'Notepad',
+      final args = engine.buildArguments(
+        config: config,
+        outputPath: 'output.mp4',
+        displays: displays,
       );
 
-      final args = engine.buildArguments(state, 'output.mp4', []);
-
-      expect(args, contains('-i'));
-      expect(args[args.indexOf('-i') + 1], 'title="Notepad"');
+      final vf = args[args.indexOf('-vf') + 1];
+      expect(vf, contains('crop=332:220'));
     });
 
     test('DPI Scaling scales coordinates correctly', () {
-      final state = ScreenRecorderState(
+      const config = FfmpegVideoConfig(
         captureMode: CaptureMode.area,
-        captureRect: const Rect.fromLTWH(100, 100, 200, 200),
+        captureRect: Rect.fromLTWH(100, 100, 200, 200),
+        framerate: 30,
+        showCursor: true,
       );
 
       final displays = [
@@ -136,11 +141,14 @@ void main() {
         ),
       ];
 
-      final args = engine.buildArguments(state, 'output.mp4', displays);
+      final args = engine.buildArguments(
+        config: config,
+        outputPath: 'output.mp4',
+        displays: displays,
+      );
 
-      expect(args[args.indexOf('-offset_x') + 1], '150');
-      expect(args[args.indexOf('-offset_y') + 1], '150');
-      expect(args[args.indexOf('-video_size') + 1], '300x300');
+      final vf = args[args.indexOf('-vf') + 1];
+      expect(vf, contains('crop=300:300:150:150'));
     });
 
     test('Mixed Scaling - Secondary Monitor Physical Offset', () {
@@ -161,21 +169,27 @@ void main() {
         ),
       ];
 
-      final state = ScreenRecorderState(
+      const config = FfmpegVideoConfig(
         captureMode: CaptureMode.area,
-        captureRect: const Rect.fromLTWH(
+        captureRect: Rect.fromLTWH(
           2000,
           100,
           200,
           200,
         ), // Logical 80px into Monitor 2
+        framerate: 30,
+        showCursor: true,
       );
 
-      final args = engine.buildArguments(state, 'output.mp4', displays);
+      final args = engine.buildArguments(
+        config: config,
+        outputPath: 'output.mp4',
+        displays: displays,
+      );
 
+      final vf = args[args.indexOf('-vf') + 1];
       // (2000 - 1920) * 1.0 (local ratio) + 2880 (physical M1 width) = 80 + 2880 = 2960
-      expect(args[args.indexOf('-offset_x') + 1], '2960');
-      expect(args[args.indexOf('-offset_y') + 1], '100');
+      expect(vf, contains('crop=200:200:2960:100'));
     });
   });
 }

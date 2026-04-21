@@ -5,6 +5,7 @@ import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
 
+import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 
 part 'screen_recorder_state.freezed.dart';
@@ -31,13 +32,11 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(Colors.white) Color clickFeedbackColor,
     @Default(Colors.amber) Color rightClickFeedbackColor,
     @Default([]) List<Annotation> annotations,
-    @Default(ScreenshotTool.pen) ScreenshotTool currentTool,
+    @Default(ScreenshotTool.pointer) ScreenshotTool currentTool,
     @Default(Colors.red) Color annotationColor,
     @Default(0) int delaySeconds,
     @Default(0) int countdownSeconds, // Live countdown before recording starts
     @Default(30) int framerate,
-    double? engineDownloadProgress,
-    @Default(false) bool engineReady,
     String? saveDirectory,
     Size? previousWindowSize,
     Offset? previousWindowPos,
@@ -48,6 +47,9 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default({}) Map<String, String> displayThumbnails, // id -> filePath
     String? primaryDisplayId,
     @Default([]) List<RecordingInfo> recentRecordings,
+    Display? lockedDisplay,
+    @Default(false) bool textHasBackground,
+    @JsonKey(includeFromJson: false, includeToJson: false) HotKey? registeredHotKey,
   }) = _ScreenRecorderState;
 }
 

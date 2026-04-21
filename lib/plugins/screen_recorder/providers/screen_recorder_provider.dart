@@ -676,6 +676,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     }
   }
 
+  void removeAnnotation(Annotation annotation) {
+    final updated = state.annotations.where((a) => a != annotation).toList();
+    state = state.copyWith(annotations: updated);
+  }
+
   void clearAnnotations() => state = state.copyWith(annotations: []);
   void setColor(Color color) => state = state.copyWith(annotationColor: color);
 

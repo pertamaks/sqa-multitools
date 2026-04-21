@@ -7,4 +7,5 @@ enum ScreenshotTool {
   rectangle,
   text,
   laser,
+  eraser,
 }

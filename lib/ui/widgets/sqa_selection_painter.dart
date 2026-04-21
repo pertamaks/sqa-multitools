@@ -22,6 +22,7 @@ class SqaSelectionPainter extends CustomPainter {
   final List<DateTime> activeTimestamps;
   final ScreenshotTool? activeTool;
   final Color? activeColor;
+  final Annotation? hoveredAnnotation;
 
   SqaSelectionPainter({
     this.selectionRect,
@@ -37,6 +38,7 @@ class SqaSelectionPainter extends CustomPainter {
     this.activeTimestamps = const [],
     this.activeTool,
     this.activeColor,
+    this.hoveredAnnotation,
     super.repaint,
   });
 
@@ -138,6 +140,76 @@ class SqaSelectionPainter extends CustomPainter {
         ..style = PaintingStyle.fill;
       canvas.drawCircle(ripple.position, 4.0 * (1.0 - progress), corePaint);
     }
+ 
+    // 7. Draw Hover Highlight (Glow & Bolder)
+    if (hoveredAnnotation != null) {
+      _drawHoverHighlight(canvas, hoveredAnnotation!);
+    }
+  }
+ 
+  void _drawHoverHighlight(Canvas canvas, Annotation ann) {
+    // 1. Draw Glow
+    final glowPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 8.0
+      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+    
+    _drawAnnotationSurface(canvas, ann, glowPaint);
+ 
+    // 2. Draw Bolder Original (White)
+    final topPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 2.0
+      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
+ 
+    _drawAnnotationSurface(canvas, ann, topPaint);
+  }
+ 
+  /// Helper to draw only the path/shape surface without specific colors/logic
+  void _drawAnnotationSurface(Canvas canvas, Annotation ann, Paint paint) {
+    if (ann.points.isEmpty) return;
+ 
+    if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker || ann.tool == ScreenshotTool.laser) {
+      final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
+      for (var i = 1; i < ann.points.length; i++) {
+        path.lineTo(ann.points[i].dx, ann.points[i].dy);
+      }
+      canvas.drawPath(path, paint);
+    } else if (ann.tool == ScreenshotTool.line) {
+      if (ann.points.length >= 2) canvas.drawLine(ann.points.first, ann.points.last, paint);
+    } else if (ann.tool == ScreenshotTool.rectangle) {
+      if (ann.points.length >= 2) canvas.drawRect(Rect.fromPoints(ann.points.first, ann.points.last), paint);
+    } else if (ann.tool == ScreenshotTool.arrow) {
+      if (ann.points.length >= 2) {
+        canvas.drawLine(ann.points.first, ann.points.last, paint);
+        _drawArrowHead(canvas, ann.points.first, ann.points.last, paint);
+      }
+    }
+  }
+ 
+  void _drawArrowHead(Canvas canvas, Offset start, Offset end, Paint paint) {
+    final dX = end.dx - start.dx;
+    final dY = end.dy - start.dy;
+    final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
+    const double arrowSize = 14;
+    const double arrowAngle = 0.5;
+ 
+    final headPath = Path()
+      ..moveTo(end.dx, end.dy)
+      ..lineTo(end.dx - arrowSize * math.cos(angle - arrowAngle), end.dy - arrowSize * math.sin(angle - arrowAngle))
+      ..lineTo(end.dx - arrowSize * math.cos(angle + arrowAngle), end.dy - arrowSize * math.sin(angle + arrowAngle))
+      ..close();
+ 
+    final headPaint = Paint()
+      ..color = paint.color
+      ..style = PaintingStyle.fill;
+    
+    canvas.drawPath(headPath, headPaint);
   }
 
   void _drawSingleAnnotation(Canvas canvas, Annotation ann) {

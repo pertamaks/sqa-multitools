@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, Uint8List;
+import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
 import 'package:flutter/rendering.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -250,6 +250,11 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   void updateLastAnnotation(Annotation annotation) {
     if (state.annotations.isEmpty) return;
     final updated = [...state.annotations.sublist(0, state.annotations.length - 1), annotation];
+    state = state.copyWith(annotations: updated);
+  }
+  
+  void removeAnnotation(Annotation annotation) {
+    final updated = state.annotations.where((a) => a != annotation).toList();
     state = state.copyWith(annotations: updated);
   }
 

@@ -92,6 +92,7 @@ class SqaAnnotationToolbar extends StatelessWidget {
       ScreenshotTool.rectangle => (icon: Symbols.rectangle, label: 'Rectangle'),
       ScreenshotTool.text => (icon: Symbols.text_fields, label: 'Text'),
       ScreenshotTool.laser => (icon: Symbols.stylus_laser_pointer, label: 'Laser Pointer'),
+      ScreenshotTool.eraser => (icon: Symbols.ink_eraser, label: 'Eraser'),
     };
   }
 }

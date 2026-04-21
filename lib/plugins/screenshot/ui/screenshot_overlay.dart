@@ -69,6 +69,7 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
             ScreenshotTool.line,
             ScreenshotTool.arrow,
             ScreenshotTool.marker,
+            ScreenshotTool.eraser,
             ScreenshotTool.rectangle,
             ScreenshotTool.text,
           ],
@@ -141,6 +142,7 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override void setSelection(Rect? rect, [Display? display]) => _notifier.setSelection(rect, display);
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
+  @override void removeAnnotation(Annotation annotation) => _notifier.removeAnnotation(annotation);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
   @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
 

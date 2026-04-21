@@ -37,6 +37,7 @@ abstract class CaptureOverlayDelegate {
   void setSelection(Rect? rect, [Display? display]);
   void addAnnotation(Annotation annotation);
   void updateLastAnnotation(Annotation annotation);
+  void removeAnnotation(Annotation annotation);
   void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]);
   void confirmTargetWindow(Rect rect, String title);
 

@@ -132,6 +132,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
               ScreenshotTool.pointer,
               ScreenshotTool.pen,
               ScreenshotTool.marker,
+              ScreenshotTool.eraser,
               ScreenshotTool.arrow,
               ScreenshotTool.rectangle,
               ScreenshotTool.laser,
@@ -184,6 +185,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
 
   @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
   @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
+  @override void removeAnnotation(Annotation annotation) => _notifier.removeAnnotation(annotation);
   @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
   @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
 

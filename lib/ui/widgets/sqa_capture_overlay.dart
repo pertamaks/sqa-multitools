@@ -498,6 +498,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
           pointTimestamps: List.from(_drawingController.timestamps),
           tool: widget.delegate.currentTool,
           color: widget.delegate.annotationColor,
+          strokeWidth: widget.delegate.currentTool == ScreenshotTool.marker ? 24.0 : 2.0,
         );
         widget.delegate.addAnnotation(annotation);
         _drawingController.clear();

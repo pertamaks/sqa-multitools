@@ -146,9 +146,9 @@ class SqaSelectionPainter extends CustomPainter {
     final paint = Paint()
       ..color = ann.color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = ann.strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeWidth = ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth
+      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
+      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
 
     if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
       if (ann.tool == ScreenshotTool.marker) {

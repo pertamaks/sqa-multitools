@@ -69,6 +69,7 @@ dependencies:
   screen_retriever: ^0.2.0
   file_selector: ^1.1.0
   win32: ^5.15.0
+  markdown: ^7.3.1
 
 dev_dependencies:
   flutter_test:

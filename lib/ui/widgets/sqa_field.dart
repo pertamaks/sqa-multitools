@@ -5,26 +5,6 @@ import 'sqa_toast.dart';
 import 'sqa_styles.dart';
 
 class SqaField extends StatefulWidget {
-  final String label;
-  final TextEditingController? controller;
-  final String? initialValue;
-  final IconData? icon;
-  final bool isMonospace;
-  final bool readOnly;
-  final bool isMultiline;
-  final int? maxLines;
-  final int? minLines;
-  final double? maxHeight;
-  final Widget? prefix;
-  final ScrollController? horizontalScrollController;
-  final bool wrap;
-  final ValueChanged<String>? onChanged;
-  final String? hintText;
-  final bool showCopyButton;
-  final Widget? trailing;
-  final int? collapsedMaxLines;
-  final bool showLineNumbers;
-
   const SqaField({
     super.key,
     required this.label,
@@ -46,7 +26,31 @@ class SqaField extends StatefulWidget {
     this.trailing,
     this.collapsedMaxLines,
     this.showLineNumbers = false,
+    this.isTransparent = false,
+    this.showLabel = true,
   });
+
+  final String label;
+  final TextEditingController? controller;
+  final String? initialValue;
+  final IconData? icon;
+  final bool isMonospace;
+  final bool readOnly;
+  final bool isMultiline;
+  final int? maxLines;
+  final int? minLines;
+  final double? maxHeight;
+  final Widget? prefix;
+  final ScrollController? horizontalScrollController;
+  final bool wrap;
+  final ValueChanged<String>? onChanged;
+  final String? hintText;
+  final bool showCopyButton;
+  final Widget? trailing;
+  final int? collapsedMaxLines;
+  final bool showLineNumbers;
+  final bool isTransparent;
+  final bool showLabel;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -59,6 +63,7 @@ class _SqaFieldState extends State<SqaField> {
   final ValueNotifier<double> _stickyTopNotifier = ValueNotifier<double>(4.0);
   late ScrollController _verticalScrollController;
   late ScrollController _gutterScrollController;
+  late ScrollController _internalHorizontalScrollController;
 
   int get _lineCount => _internalController.text.split('\n').length;
 
@@ -120,6 +125,7 @@ class _SqaFieldState extends State<SqaField> {
     _internalController.addListener(_onControllerChanged);
     _verticalScrollController = ScrollController();
     _gutterScrollController = ScrollController();
+    _internalHorizontalScrollController = ScrollController();
 
     _verticalScrollController.addListener(_syncGutterScroll);
   }
@@ -164,6 +170,7 @@ class _SqaFieldState extends State<SqaField> {
     _verticalScrollController.removeListener(_syncGutterScroll);
     _verticalScrollController.dispose();
     _gutterScrollController.dispose();
+    _internalHorizontalScrollController.dispose();
     _stickyTopNotifier.dispose();
     super.dispose();
   }
@@ -210,29 +217,31 @@ class _SqaFieldState extends State<SqaField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, size: 14, color: colorScheme.primary),
-                  const SizedBox(width: 6),
-                ],
-                Text(
-                  widget.label.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
-                    color: colorScheme.primary,
+        if (widget.showLabel) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  if (widget.icon != null) ...[
+                    Icon(widget.icon, size: 14, color: colorScheme.primary),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    widget.label.toUpperCase(),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                      color: colorScheme.primary,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            if (widget.trailing != null) widget.trailing!,
-          ],
-        ),
-        const SizedBox(height: 8),
+                ],
+              ),
+              if (widget.trailing != null) widget.trailing!,
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
         Container(
           width: double.infinity,
           constraints: effectiveMaxHeight != null
@@ -240,10 +249,12 @@ class _SqaFieldState extends State<SqaField> {
               : null,
           key: _containerKey,
           decoration: BoxDecoration(
-            color: colorScheme.surface,
+            color: widget.isTransparent ? Colors.transparent : colorScheme.surface,
             borderRadius: SqaStyles.radiusLarge,
             border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              color: widget.isTransparent 
+                  ? Colors.transparent 
+                  : colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
           ),
           child: ClipRRect(
@@ -338,16 +349,18 @@ class _SqaFieldState extends State<SqaField> {
                               child: textField,
                             );
 
-                            if (widget.horizontalScrollController != null &&
-                                !widget.wrap) {
+                            if (!widget.wrap) {
+                              final hController = widget.horizontalScrollController ??
+                                  _internalHorizontalScrollController;
+
                               return Scrollbar(
-                                controller: widget.horizontalScrollController,
+                                controller: hController,
                                 thumbVisibility: true,
                                 thickness: 4.0,
                                 radius: const Radius.circular(2),
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
-                                  controller: widget.horizontalScrollController,
+                                  controller: hController,
                                   child: IntrinsicWidth(
                                     child: scrollConfiguration,
                                   ),

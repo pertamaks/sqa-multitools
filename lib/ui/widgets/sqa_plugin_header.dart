@@ -30,7 +30,7 @@ class SqaPluginHeader extends StatelessWidget {
     final effectiveColor = color ?? colorScheme.primary;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (onBack != null) ...[
           IconButton(

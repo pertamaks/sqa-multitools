@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'sqa_card.dart';
 import 'sqa_styles.dart';
+import 'sqa_fade_wrapper.dart';
+import 'sqa_scroll_behavior.dart';
 
 /// A centralized floating action bar for overlays (Screenshot, Screen Recorder).
 ///
@@ -17,16 +19,30 @@ class SqaFloatingBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SqaCard(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: IntrinsicHeight(
-        child: Row(mainAxisSize: MainAxisSize.min, children: children),
+      padding: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        constraints: const BoxConstraints(maxWidth: 600), // Limit total width
+        child: SqaFadeWrapper(
+          axis: Axis.horizontal,
+          child: ScrollConfiguration(
+            behavior: const SqaMouseDragScrollBehavior(),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: children,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
 /// A standardized action button for the SqaFloatingBar.
-class SqaFloatingBarButton extends StatelessWidget {
+class SqaFloatingBarButton extends StatefulWidget {
   final IconData icon;
   final String? tooltip;
   final VoidCallback? onPressed;
@@ -35,6 +51,11 @@ class SqaFloatingBarButton extends StatelessWidget {
   final bool isLoading;
   final Color? color;
   final double iconSize;
+
+  /// Optional vertical expansion action
+  final IconData? secondaryIcon;
+  final VoidCallback? secondaryOnPressed;
+  final String? secondaryTooltip;
 
   const SqaFloatingBarButton({
     super.key,
@@ -46,18 +67,28 @@ class SqaFloatingBarButton extends StatelessWidget {
     this.isLoading = false,
     this.color,
     this.iconSize = 20.0,
+    this.secondaryIcon,
+    this.secondaryOnPressed,
+    this.secondaryTooltip,
   });
+
+  @override
+  State<SqaFloatingBarButton> createState() => _SqaFloatingBarButtonState();
+}
+
+class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    Widget content = Icon(icon, size: iconSize);
-    if (isLoading) {
+    Widget content = Icon(widget.icon, size: widget.iconSize);
+    if (widget.isLoading) {
       content = SizedBox(
-        width: iconSize,
-        height: iconSize,
+        width: widget.iconSize,
+        height: widget.iconSize,
         child: CircularProgressIndicator(
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
@@ -67,28 +98,72 @@ class SqaFloatingBarButton extends StatelessWidget {
 
     Widget button = IconButton(
       icon: content,
-      onPressed: isLoading ? null : onPressed,
+      onPressed: widget.isLoading ? null : widget.onPressed,
       style: IconButton.styleFrom(
-        backgroundColor: isSelected ? colorScheme.primaryContainer : null,
-        foregroundColor: isSelected
+        backgroundColor: widget.isSelected ? colorScheme.primaryContainer : null,
+        foregroundColor: widget.isSelected
             ? colorScheme.onPrimaryContainer
-            : color ?? colorScheme.onSurface,
+            : widget.color ?? colorScheme.onSurface,
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
         minimumSize: const Size(36, 36),
         padding: EdgeInsets.zero,
         splashFactory: NoSplash.splashFactory,
       ).copyWith(
-        overlayColor: SqaStyles.buttonOverlay(context, baseColor: color, silent: true),
+        overlayColor: SqaStyles.buttonOverlay(context, baseColor: widget.color, silent: true),
       ),
     );
 
-    if (tooltip != null && !isLoading) {
-      button = Tooltip(message: tooltip!, child: button);
-    }
+    // Wrap in Horizontal Expansion logic
+    final bool hasSecondary = widget.secondaryIcon != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2.0),
-      child: button,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          child: Container(
+            decoration: BoxDecoration(
+              color: widget.isSelected 
+                ? colorScheme.primaryContainer 
+                : (_isHovered && hasSecondary) 
+                  ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
+                  : null,
+              borderRadius: SqaStyles.radiusMedium,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Primary Button
+                Tooltip(
+                  message: widget.tooltip ?? '',
+                  child: button,
+                ),
+                // Horizontal Extension
+                if (hasSecondary && _isHovered)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: IconButton(
+                      icon: Icon(widget.secondaryIcon, size: widget.iconSize),
+                      tooltip: widget.secondaryTooltip,
+                      onPressed: widget.secondaryOnPressed,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      color: widget.color ?? colorScheme.onSurface,
+                      style: IconButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: SqaStyles.radiusMedium,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -16,13 +16,15 @@ The **MD Editor Plugin** is a premium Markdown management and editing tool for S
 
 ### 2.3 Human-Readable Editor
 - **Live Styling**: Real-time rendering of headers (larger font), bold/italic text, and code blocks within the editing area.
-- **Floating Toolbar**: Contextual actions for Markdown formatting and secondary copy functions.
+- **Adaptive Floating Toolbar**: Contextual actions for Markdown formatting featuring screen-aware pivot logic to prevent interface clipping.
+- **Sync-Scroll Anchoring**: High-fidelity expansion that keeps the primary button pinned to the mouse coordinate during width growth.
 - **Smart Copy**: Ability to copy content as both Plain Text (Raw MD) and Rich Text (HTML) to preserve formatting in Office apps.
 
 ## 3. Technical Implementation
 - **State management**: `flutter_riverpod` with generated notifiers.
 - **Immutability**: `freezed` for `MdEditorState` and `MdDocument`.
-- **Text Rendering**: `SqaMdTextController` (centralized widget) for inline styling.
+- **Adaptive Physics**: Custom `AnimationController` listeners with scroll-offset compensation for frame-perfect expansion.
+- **Peeking Logic**: `SqaScrollVisibilityTrigger` (centralized widget) for intelligent clipping detection.
 - **Clipboard**: `super_clipboard` for multi-format HTML/Plain Text injection.
 
 ## 4. UI Standards

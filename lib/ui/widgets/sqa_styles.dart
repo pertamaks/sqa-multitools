@@ -29,18 +29,18 @@ class SqaStyles {
     Color? baseColor,
     bool silent = false,
   }) {
-    if (silent) return WidgetStateProperty.all(Colors.transparent);
-
     final theme = Theme.of(context);
-    final color = baseColor ?? theme.colorScheme.primary;
+    final color = baseColor ??
+        (silent ? theme.colorScheme.onSurface : theme.colorScheme.primary);
+    final alphaFactor = silent ? 0.5 : 1.0;
 
     return WidgetStateProperty.resolveWith<Color?>((states) {
       if (states.contains(WidgetState.pressed)) {
-        return color.withValues(alpha: 0.12);
+        return color.withValues(alpha: 0.12 * alphaFactor);
       }
       if (states.contains(WidgetState.hovered) ||
           states.contains(WidgetState.focused)) {
-        return color.withValues(alpha: 0.08);
+        return color.withValues(alpha: 0.08 * alphaFactor);
       }
       return null;
     });

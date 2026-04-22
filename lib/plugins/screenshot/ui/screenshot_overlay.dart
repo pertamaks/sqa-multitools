@@ -97,7 +97,8 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
             );
           },
         ),
-        const SqaFloatingBarDivider(),
+      ],
+      trailingActionsBuilder: (context) => [
         SqaFloatingBarButton(
           icon: Symbols.content_copy,
           tooltip: 'Copy to Clipboard',

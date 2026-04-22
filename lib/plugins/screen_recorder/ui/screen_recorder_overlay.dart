@@ -69,7 +69,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
 
     return SqaCaptureOverlay(
       delegate: _RecorderDelegate(state, notifier, _annotationsNotifier),
-      toolbarBuilder: (context) => [
+      leadingActionsBuilder: (context) => [
         // Record/Stop button
         SqaFloatingBarButton(
           icon: isRecording ? Symbols.stop_circle : Symbols.play_arrow,
@@ -94,9 +94,8 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
             },
             color: Colors.red,
           ),
-
-        const SqaFloatingBarDivider(),
-
+      ],
+      toolbarBuilder: (context) => [
         // Mic Toggle
         SqaFloatingBarButton(
           icon: microphoneEnabled ? Symbols.mic : Symbols.mic_off,

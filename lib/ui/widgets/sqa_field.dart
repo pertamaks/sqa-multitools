@@ -28,10 +28,12 @@ class SqaField extends StatefulWidget {
     this.showLineNumbers = false,
     this.isTransparent = false,
     this.showLabel = true,
+    this.undoController,
   });
 
   final String label;
   final TextEditingController? controller;
+  final UndoHistoryController? undoController;
   final String? initialValue;
   final IconData? icon;
   final bool isMonospace;
@@ -337,6 +339,7 @@ class _SqaFieldState extends State<SqaField> {
                                 ),
                               ),
                               scrollController: _verticalScrollController,
+                              undoController: widget.undoController,
                             );
 
                             final scrollConfiguration = ScrollConfiguration(

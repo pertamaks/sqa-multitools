@@ -18,6 +18,8 @@ import 'sqa_annotation_stage.dart';
 class SqaCaptureOverlay extends ConsumerStatefulWidget {
   final CaptureOverlayDelegate delegate;
   final List<Widget> Function(BuildContext context) toolbarBuilder;
+  final List<Widget> Function(BuildContext context)? leadingActionsBuilder;
+  final List<Widget> Function(BuildContext context)? trailingActionsBuilder;
   final Widget Function(BuildContext context, CaptureMode mode)? instructionBuilder;
   final ValueChanged<Offset?>? onBarOffsetChanged;
 
@@ -25,6 +27,8 @@ class SqaCaptureOverlay extends ConsumerStatefulWidget {
     super.key,
     required this.delegate,
     required this.toolbarBuilder,
+    this.leadingActionsBuilder,
+    this.trailingActionsBuilder,
     this.instructionBuilder,
     this.onBarOffsetChanged,
   });
@@ -508,7 +512,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 top: barPosition.dy,
                 child: MouseRegion(
                   child: SqaFloatingBar(
-                    children: [
+                    leading: [
                       SqaFloatingBarDragHandle(
                         onDragStart: (details) {
                           setState(() {
@@ -533,6 +537,11 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                       if (delegate.isRecording || delegate.countdownSeconds > 0)
                         const SqaFloatingBarDivider(),
 
+                      if (widget.leadingActionsBuilder != null)
+                        ...widget.leadingActionsBuilder!(context),
+                    ],
+                    trailing: widget.trailingActionsBuilder?.call(context),
+                    children: [
                       // Custom Content from Plugin
                       ...widget.toolbarBuilder(context),
                     ],

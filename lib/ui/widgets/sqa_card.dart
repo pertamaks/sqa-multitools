@@ -9,6 +9,7 @@ class SqaCard extends StatelessWidget {
   final BorderRadius? borderRadius;
   final Color? backgroundColor;
   final BorderSide? borderSide;
+  final List<BoxShadow>? boxShadow;
 
   const SqaCard({
     super.key,
@@ -19,6 +20,7 @@ class SqaCard extends StatelessWidget {
     this.borderRadius,
     this.backgroundColor,
     this.borderSide,
+    this.boxShadow,
   });
 
   @override
@@ -31,6 +33,7 @@ class SqaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? theme.colorScheme.surfaceContainerHigh,
         borderRadius: effectiveRadius,
+        boxShadow: boxShadow,
         border: Border.fromBorderSide(
           borderSide ??
               BorderSide(

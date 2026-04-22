@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
@@ -15,6 +14,7 @@ import '../plugins/screen_recorder/providers/screen_recorder_provider.dart';
 import 'widgets/sqa_fade_wrapper.dart';
 import 'widgets/sqa_bug_squasher.dart';
 import 'widgets/sqa_scroll_behavior.dart';
+import 'widgets/sqa_inline_tooltip.dart';
 
 /// The collapsed toolbar height (no plugin open).
 const double kToolbarWindowHeight = 56; // 56px target + 9px Windows offset
@@ -33,44 +33,18 @@ class MainToolbar extends ConsumerStatefulWidget {
 }
 
 class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
-  String? _hoveredTooltip;
-  bool _tooltipAlignLeft = false;
   late final ScrollController _scrollController;
-  bool _isScrolling = false;
-  Timer? _scrollEndTimer;
 
   @override
   void initState() {
     windowManager.addListener(this);
     _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
     super.initState();
-  }
-
-  void _onScroll() {
-    _scrollEndTimer?.cancel();
-    
-    if (!_isScrolling) {
-      setState(() {
-        _isScrolling = true;
-        _hoveredTooltip = null;
-      });
-    }
-
-    _scrollEndTimer = Timer(const Duration(milliseconds: 150), () {
-      if (mounted) {
-        setState(() {
-          _isScrolling = false;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
     windowManager.removeListener(this);
-    _scrollEndTimer?.cancel();
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -167,134 +141,50 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Stack(
-                          clipBehavior: Clip.hardEdge,
-                          children: [
-                            // Scrollable Plugin Icons
-                            Positioned.fill(
-                              child: SqaFadeWrapper(
-                                axis: Axis.horizontal,
-                                child: ClipRect(
-                                  child: ScrollConfiguration(
-                                    behavior: const SqaMouseDragScrollBehavior(),
-                                    child: SingleChildScrollView(
-                                      controller: _scrollController,
-                                      scrollDirection: Axis.horizontal,
-                                      clipBehavior: Clip.none,
-                                      child: IgnorePointer(
-                                        ignoring: _isScrolling,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: enabledPlugins
-                                              .asMap()
-                                              .entries
-                                              .map((entry) {
-                                                final index = entry.key;
-                                                final plugin = entry.value;
-                                                final isActive =
-                                                    activePlugin?.id == plugin.id;
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(
-                                                    right: 10.0,
-                                                  ),
-                                                  child: ToolIcon(
-                                                    icon: plugin.icon,
-                                                    tooltip: plugin.name,
-                                                    isActive: isActive,
-                                                    badge: _buildBadgeIcon(plugin),
-                                                    badgeColor: _getBadgeColor(
-                                                      plugin,
-                                                    ),
-                                                    onPressed: () =>
-                                                        _togglePlugin(plugin),
-                                                    onHover: (text) {
-                                                      setState(() {
-                                                        if (text == null) {
-                                                          _hoveredTooltip = null;
-                                                        } else {
-                                                          _hoveredTooltip =
-                                                              _formatTooltip(
-                                                                plugin,
-                                                                text,
-                                                              );
-                                                        }
-                                                        
-                                                        // Accurate center detection based on ACTUAL viewport width
-                                                        final double relativePos = (index * 46) - _scrollController.offset;
-                                                        _tooltipAlignLeft = relativePos > (constraints.maxWidth / 2);
-                                                      });
-                                                    },
-                                                  ),
-                                                );
-                                              })
-                                              .toList(),
-                                        ),
+                    child: SqaInlineTooltip(
+                      scrollController: _scrollController,
+                      backgroundColor: colorScheme.surfaceContainerLow,
+                      child: SqaFadeWrapper(
+                        axis: Axis.horizontal,
+                        child: ClipRect(
+                          child: ScrollConfiguration(
+                            behavior: const SqaMouseDragScrollBehavior(),
+                            child: SingleChildScrollView(
+                              controller: _scrollController,
+                              scrollDirection: Axis.horizontal,
+                              clipBehavior: Clip.none,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: enabledPlugins.asMap().entries.map((entry) {
+                                  final plugin = entry.value;
+                                  final isActive = activePlugin?.id == plugin.id;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                      right: 10.0,
+                                    ),
+                                    child: ToolIcon(
+                                      icon: plugin.icon,
+                                      tooltip: _formatTooltip(
+                                        plugin,
+                                        plugin.name,
                                       ),
+                                      isActive: isActive,
+                                      badge: _buildBadgeIcon(plugin),
+                                      badgeColor: _getBadgeColor(
+                                        plugin,
+                                      ),
+                                      onPressed: () => _togglePlugin(plugin),
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                        // Inline Tooltip Overlay
-                        if (_hoveredTooltip != null)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: Container(
-                                alignment: _tooltipAlignLeft
-                                    ? Alignment.centerLeft
-                                    : Alignment.centerRight,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colorScheme.surfaceContainerLow
-                                            .withValues(
-                                              alpha: _tooltipAlignLeft ? 0.8 : 0,
-                                            ),
-                                        colorScheme.surfaceContainerLow,
-                                        colorScheme.surfaceContainerLow
-                                            .withValues(
-                                              alpha: _tooltipAlignLeft ? 0 : 0.8,
-                                            ),
-                                      ],
-                                      stops: const [0, 0.5, 1],
-                                    ),
-                                  ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Text(
-                                    _hoveredTooltip!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: colorScheme.onSurfaceVariant,
-                                      fontWeight: FontWeight.bold,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withValues(alpha: 0.2),
-                                          offset: const Offset(1, 1),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                  );
+                                }).toList(),
                               ),
                             ),
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                   // Drag Handle
                   Icon(
@@ -317,24 +207,12 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                           )
                         : null,
                     onPressed: () => _handleSettingsPress(settingsPlugin),
-                    onHover: (text) {
-                      setState(() {
-                        _hoveredTooltip = text;
-                        _tooltipAlignLeft = true;
-                      });
-                    },
                   ),
                   const SizedBox(width: 4),
 
                   // Close to Tray
-                  MouseRegion(
-                    onEnter: (_) {
-                      setState(() {
-                        _hoveredTooltip = 'Close to Tray';
-                        _tooltipAlignLeft = true;
-                      });
-                    },
-                    onExit: (_) => setState(() => _hoveredTooltip = null),
+                  SqaInlineTooltipTrigger(
+                    tooltip: 'Close to Tray',
                     child: IconButton(
                       icon: const Icon(Symbols.close, size: 24),
                       onPressed: () => windowManager.hide(),
@@ -485,7 +363,6 @@ class ToolIcon extends ConsumerWidget {
   final Widget? badge;
   final Color? badgeColor;
   final VoidCallback onPressed;
-  final ValueChanged<String?>? onHover;
 
   const ToolIcon({
     super.key,
@@ -495,7 +372,6 @@ class ToolIcon extends ConsumerWidget {
     this.badge,
     this.badgeColor,
     required this.onPressed,
-    this.onHover,
   });
 
   @override
@@ -520,9 +396,8 @@ class ToolIcon extends ConsumerWidget {
       );
     }
 
-    return MouseRegion(
-      onEnter: (_) => onHover?.call(tooltip),
-      onExit: (_) => onHover?.call(null),
+    return SqaInlineTooltipTrigger(
+      tooltip: tooltip,
       child: IconButton(
         isSelected: isActive,
         icon: iconWidget,

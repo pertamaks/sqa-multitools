@@ -10,6 +10,7 @@ import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../providers/md_editor_provider.dart';
 import '../models/md_editor_state.dart';
+import 'package:flutter/services.dart';
 
 class MdEditorView extends ConsumerStatefulWidget {
   const MdEditorView({super.key});
@@ -21,6 +22,7 @@ class MdEditorView extends ConsumerStatefulWidget {
 class _MdEditorViewState extends ConsumerState<MdEditorView> {
   late TextEditingController _nameController;
   late SqaMdTextController _contentController;
+  late UndoHistoryController _undoController;
 
   @override
   void initState() {
@@ -28,13 +30,45 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
     final doc = ref.read(mdEditorProvider).activeDocument;
     _nameController = TextEditingController(text: doc?.name ?? '');
     _contentController = SqaMdTextController(text: doc?.content ?? '');
+    _undoController = UndoHistoryController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _contentController.dispose();
+    _undoController.dispose();
     super.dispose();
+  }
+
+  void _toggleStyle(String prefix, [String? suffix]) {
+    final selection = _contentController.selection;
+    if (!selection.isValid) return;
+
+    final text = _contentController.text;
+    final selectedText = selection.textInside(text);
+    final s = suffix ?? prefix;
+
+    final newText = text.replaceRange(selection.start, selection.end, '$prefix$selectedText$s');
+    _contentController.value = _contentController.value.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(
+        offset: selection.start + prefix.length + selectedText.length + s.length,
+      ),
+    );
+  }
+
+  void _insertBlock(String content) {
+    final selection = _contentController.selection;
+    final text = _contentController.text;
+    final start = selection.isValid ? selection.start : text.length;
+    final end = selection.isValid ? selection.end : text.length;
+
+    final newText = text.replaceRange(start, end, content);
+    _contentController.value = _contentController.value.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: start + content.length),
+    );
   }
 
   @override
@@ -130,6 +164,7 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
                       showLabel: false,
                       isTransparent: true,
                       controller: _contentController,
+                      undoController: _undoController,
                       isMultiline: true,
                       minLines: 25,
                       isMonospace: false, // Standard text editor feel
@@ -152,51 +187,87 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
   Widget _buildFloatingToolbar(BuildContext context) {
     return Positioned(
       bottom: 24,
-      left: 0,
-      right: 0,
+      left: 16,
+      right: 16,
       child: Center(
-        child: SqaFloatingBar(
-          children: [
-            SqaFloatingBarButton(
-              icon: Symbols.format_bold,
-              tooltip: 'Bold',
-              onPressed: () {},
-            ),
-            SqaFloatingBarButton(
-              icon: Symbols.format_italic,
-              tooltip: 'Italic',
-              onPressed: () {},
-            ),
-            SqaFloatingBarButton(
-              icon: Symbols.format_list_bulleted,
-              tooltip: 'List',
-              onPressed: () {},
-            ),
-            const SqaFloatingBarDivider(),
-            SqaFloatingBarButton(
-              icon: Symbols.link,
-              tooltip: 'Link',
-              onPressed: () {},
-            ),
-            SqaFloatingBarButton(
-              icon: Symbols.image,
-              tooltip: 'Image',
-              onPressed: () {},
-            ),
-            const SqaFloatingBarDivider(),
-            SqaFloatingBarButton(
-              icon: Symbols.content_copy,
-              tooltip: 'Copy Markdown',
-              secondaryIcon: Symbols.text_snippet,
-              secondaryTooltip: 'Copy as Rich Text',
-              onPressed: () {
-                // TODO: Implement Raw MD Copy
-              },
-              secondaryOnPressed: () {
-                // TODO: Implement Rich Text Copy
-              },
-            ),
-          ],
+        child: ListenableBuilder(
+          listenable: _undoController,
+          builder: (context, _) {
+            return SqaFloatingBar(
+              children: [
+                // Group 1: History
+                SqaFloatingBarButton(
+                  icon: Symbols.undo,
+                  tooltip: 'Undo',
+                  onPressed: _undoController.value.canUndo ? () => _undoController.undo() : null,
+                ),
+                SqaFloatingBarButton(
+                  icon: Symbols.redo,
+                  tooltip: 'Redo',
+                  onPressed: _undoController.value.canRedo ? () => _undoController.redo() : null,
+                ),
+                const SqaFloatingBarDivider(),
+                
+                // Group 2: Typography
+                SqaFloatingBarButton(
+                  icon: Symbols.format_bold,
+                  tooltip: 'Bold',
+                  onPressed: () => _toggleStyle('**'),
+                ),
+                SqaFloatingBarButton(
+                  icon: Symbols.format_italic,
+                  tooltip: 'Italic',
+                  onPressed: () => _toggleStyle('*'),
+                ),
+                SqaFloatingBarButton(
+                  icon: Symbols.format_underlined,
+                  tooltip: 'Underline',
+                  onPressed: () => _toggleStyle('<u>', '</u>'),
+                ),
+                const SqaFloatingBarDivider(),
+
+                // Group 3: Layout & Objects
+                SqaFloatingBarButton(
+                  icon: Symbols.table_chart,
+                  tooltip: 'Table',
+                  onPressed: () => _insertBlock('\n| Header | Header |\n| --- | --- |\n| Cell | Cell |\n'),
+                ),
+                SqaFloatingBarButton(
+                  icon: Symbols.code,
+                  tooltip: 'Code Block',
+                  onPressed: () => _toggleStyle('\n```\n', '\n```\n'),
+                ),
+                SqaFloatingBarButton(
+                  icon: Symbols.image,
+                  tooltip: 'Image',
+                  onPressed: () => _insertBlock('![alt text](url)'),
+                ),
+                const SqaFloatingBarDivider(),
+
+                // Group 4: Hyperlink
+                SqaFloatingBarButton(
+                  icon: Symbols.link,
+                  tooltip: 'Hyperlink',
+                  onPressed: () => _toggleStyle('[', '](url)'),
+                ),
+                const SqaFloatingBarDivider(),
+
+                // Group 5: Clipboard Actions (Final Position)
+                SqaFloatingBarButton(
+                  icon: Symbols.content_copy,
+                  tooltip: 'Copy Markdown',
+                  secondaryIcon: Symbols.text_snippet,
+                  secondaryTooltip: 'Copy as Rich Text',
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: _contentController.text));
+                  },
+                  secondaryOnPressed: () {
+                    // Placeholder for Rich Text implementation
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

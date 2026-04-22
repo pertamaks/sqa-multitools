@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 ///
 /// It styles common Markdown patterns like headers, bold, italic, and code
 /// without hiding the syntax, ensuring the content remains standard Markdown.
-class SqaMdTextController extends TextEditingController {
-  SqaMdTextController({super.text});
+class SqaTextController extends TextEditingController {
+  SqaTextController({super.text});
 
   @override
   TextSpan buildTextSpan({

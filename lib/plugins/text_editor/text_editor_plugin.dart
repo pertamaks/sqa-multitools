@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../core/models/sqa_plugin.dart';
-import 'providers/md_editor_provider.dart';
-import 'models/md_editor_state.dart';
-import 'ui/md_list_view.dart';
-import 'ui/md_editor_view.dart';
+import 'providers/text_editor_provider.dart';
+import 'models/text_editor_state.dart';
+import 'ui/text_list_view.dart';
+import 'ui/text_editor_view.dart';
 
-class MdEditorPlugin implements SqaPlugin {
+class TextEditorPlugin implements SqaPlugin {
   @override
-  String get id => 'com.sqa.plugin.md_editor';
-
-  @override
-  String get name => 'MD Editor';
+  String get id => 'com.sqa.plugin.text_editor';
 
   @override
-  String get description => 'A premium Markdown editor for bug reports and dev tickets.';
+  String get name => 'Text Editor';
+
+  @override
+  String get description => 'A premium Text Editor for bug reports and dev tickets.';
 
   @override
   IconData get icon => Symbols.edit_note;
@@ -38,14 +38,13 @@ class MdEditorPlugin implements SqaPlugin {
   Widget buildPluginWindow(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final state = ref.watch(mdEditorProvider);
+        final state = ref.watch(textEditorProvider);
         
         switch (state.viewMode) {
-
-          case MdEditorViewMode.editor:
-            return const MdEditorView();
-          case MdEditorViewMode.list:
-            return const MdListView();
+          case TextEditorViewMode.editor:
+            return const TextEditorView();
+          case TextEditorViewMode.list:
+            return const TextListView();
         }
       },
     );
@@ -53,6 +52,6 @@ class MdEditorPlugin implements SqaPlugin {
 
   @override
   Widget buildSettingsPanel(BuildContext context) {
-    return const Center(child: Text('MD Editor Settings'));
+    return const Center(child: Text('Text Editor Settings'));
   }
 }

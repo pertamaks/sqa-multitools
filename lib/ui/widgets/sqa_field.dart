@@ -29,6 +29,7 @@ class SqaField extends StatefulWidget {
     this.isTransparent = false,
     this.showLabel = true,
     this.undoController,
+    this.onTapOutside,
   });
 
   final String label;
@@ -46,6 +47,7 @@ class SqaField extends StatefulWidget {
   final ScrollController? horizontalScrollController;
   final bool wrap;
   final ValueChanged<String>? onChanged;
+  final TapRegionCallback? onTapOutside;
   final String? hintText;
   final bool showCopyButton;
   final Widget? trailing;
@@ -340,6 +342,7 @@ class _SqaFieldState extends State<SqaField> {
                               ),
                               scrollController: _verticalScrollController,
                               undoController: widget.undoController,
+                              onTapOutside: widget.onTapOutside,
                             );
 
                             final scrollConfiguration = ScrollConfiguration(

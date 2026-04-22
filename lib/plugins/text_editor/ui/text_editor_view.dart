@@ -5,32 +5,38 @@ import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_field.dart';
-import '../../../ui/widgets/sqa_md_text_controller.dart';
+import '../../../ui/widgets/sqa_text_controller.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
+import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_styles.dart';
-import '../providers/md_editor_provider.dart';
-import '../models/md_editor_state.dart';
+import '../../../ui/widgets/sqa_smart_text.dart';
+import '../providers/text_editor_provider.dart';
+import '../models/text_editor_state.dart';
 import 'package:flutter/services.dart';
 
-class MdEditorView extends ConsumerStatefulWidget {
-  const MdEditorView({super.key});
+class TextEditorView extends ConsumerStatefulWidget {
+  const TextEditorView({super.key});
 
   @override
-  ConsumerState<MdEditorView> createState() => _MdEditorViewState();
+  ConsumerState<TextEditorView> createState() => _TextEditorViewState();
 }
 
-class _MdEditorViewState extends ConsumerState<MdEditorView> {
+class _TextEditorViewState extends ConsumerState<TextEditorView> {
   late TextEditingController _nameController;
-  late SqaMdTextController _contentController;
+  late SqaTextController _contentController;
   late UndoHistoryController _undoController;
+  late FocusNode _titleFocusNode;
+  bool _isEditingTitle = false;
 
   @override
   void initState() {
     super.initState();
-    final doc = ref.read(mdEditorProvider).activeDocument;
+    final doc = ref.read(textEditorProvider).activeDocument;
     _nameController = TextEditingController(text: doc?.name ?? '');
-    _contentController = SqaMdTextController(text: doc?.content ?? '');
+    _contentController = SqaTextController(text: doc?.content ?? '');
     _undoController = UndoHistoryController();
+    _titleFocusNode = FocusNode();
+    _titleFocusNode.addListener(_onTitleFocusChange);
   }
 
   @override
@@ -38,7 +44,44 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
     _nameController.dispose();
     _contentController.dispose();
     _undoController.dispose();
+    _titleFocusNode.removeListener(_onTitleFocusChange);
+    _titleFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onTitleFocusChange() {
+    if (!_titleFocusNode.hasFocus && _isEditingTitle) {
+      _submitTitle();
+    }
+  }
+
+  void _submitTitle() {
+    if (!_isEditingTitle) return;
+    ref.read(textEditorProvider.notifier).updateName(_nameController.text);
+    setState(() => _isEditingTitle = false);
+  }
+
+  bool get _isDirty {
+    final doc = ref.read(textEditorProvider).activeDocument;
+    if (doc == null) return false;
+    return _nameController.text != doc.name ||
+        _contentController.text != doc.content;
+  }
+
+  Future<void> _handleBack() async {
+    if (_isDirty) {
+      final confirm = await SqaModal.showConfirm(
+        context,
+        title: 'Discard Changes?',
+        message:
+            'You have unsaved changes. Are you sure you want to discard them?',
+        confirmLabel: 'Discard',
+        confirmColor: Theme.of(context).colorScheme.error,
+        icon: Symbols.warning,
+      );
+      if (confirm != true) return;
+    }
+    ref.read(textEditorProvider.notifier).setViewMode(TextEditorViewMode.list);
   }
 
   void _toggleStyle(String prefix, [String? suffix]) {
@@ -74,56 +117,93 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final state = ref.watch(mdEditorProvider);
-    final notifier = ref.read(mdEditorProvider.notifier);
+    final state = ref.watch(textEditorProvider);
+    final notifier = ref.read(textEditorProvider.notifier);
+
+    final titleStyle = theme.textTheme.headlineSmall?.copyWith(
+      fontWeight: FontWeight.bold,
+      fontSize: 20,
+      color: theme.colorScheme.primary,
+      letterSpacing: -0.5,
+    );
 
     return SqaPluginLayout(
-      icon: Symbols.edit_note,
-      title: 'Editor',
-      description: 'Document Editor',
-      onBack: () => notifier.setViewMode(MdEditorViewMode.list),
-      useMask: false, // Disable global mask to keep toolbar opaque
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Symbols.close, size: 20),
-            onPressed: () => notifier.setViewMode(MdEditorViewMode.list),
-            tooltip: 'Discard changes',
-            style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.outline,
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-            ),
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: state.isSaving
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: theme.colorScheme.primary,
+      titleWidget: Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: _isEditingTitle
+            ? Align(
+                key: const ValueKey('editing'),
+                alignment: Alignment.centerLeft,
+                child: TextField(
+                  controller: _nameController,
+                  focusNode: _titleFocusNode,
+                  autofocus: true,
+                  style: titleStyle,
+                  decoration: InputDecoration(
+                    hintText: 'Document Title',
+                    hintStyle: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                     ),
-                  )
-                : const Icon(Symbols.check, size: 20),
-            onPressed: state.isSaving
-                ? null
-                : () {
-                    notifier.updateContent(_contentController.text);
-                    notifier.saveDocument();
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
+                  ),
+                  onChanged: (val) => setState(() {}),
+                  onSubmitted: (_) => _submitTitle(),
+                  onTapOutside: (_) {
+                    _titleFocusNode.unfocus();
                   },
-            tooltip: 'Save document',
-            style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-            ),
-          ),
-        ],
+                ),
+              )
+            : Align(
+                key: const ValueKey('viewing'),
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: SqaSmartText(
+                    text: _nameController.text.isEmpty
+                        ? 'Document Title'
+                        : _nameController.text,
+                    style: _nameController.text.isEmpty
+                        ? titleStyle?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.2),
+                          )
+                        : titleStyle,
+                    onTap: () {
+                      setState(() => _isEditingTitle = true);
+                      _titleFocusNode.requestFocus();
+                    },
+                  ),
+                ),
+              ),
+      ),
+      onBack: _handleBack,
+      useMask: false, // Disable global mask to keep toolbar opaque
+      trailing: IconButton(
+        icon: state.isSaving
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.primary,
+                ),
+              )
+            : const Icon(Symbols.check, size: 20),
+        onPressed: state.isSaving
+            ? null
+            : () {
+                notifier.updateContent(_contentController.text);
+                notifier.saveDocument();
+              },
+        tooltip: 'Save document',
+        style: IconButton.styleFrom(
+          foregroundColor: theme.colorScheme.primary,
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(40, 40),
+          shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+        ),
       ),
       child: Stack(
         children: [
@@ -131,33 +211,10 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
             child: SqaFadeWrapper(
               child: SqaPluginScrollableContent(
                 center: false,
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-                    // Unified Modern Title
-                    TextField(
-                      controller: _nameController,
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                      decoration: InputDecoration(
-                        hintText: 'Document Title',
-                        hintStyle: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.2),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      onChanged: (val) {
-                        setState(() {}); 
-                      },
-                    ),
-                    const SizedBox(height: 16),
                     // Seamless Markdown Content
                     SqaField(
                       label: '', // Not shown
@@ -171,6 +228,9 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
                       showLineNumbers: false,
                       showCopyButton: false,
                       hintText: 'Start writing your story...',
+                      onTapOutside: (_) {
+                        notifier.updateContent(_contentController.text);
+                      },
                     ),
                     const SizedBox(height: 100), // Space for floating bar
                   ],
@@ -185,12 +245,15 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
   }
 
   Widget _buildFloatingToolbar(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final barWidth = (screenWidth - 160).clamp(0.0, 800.0);
+    final leftOffset = (screenWidth - barWidth) / 2;
+
     return Positioned(
       bottom: 24,
-      left: 16,
-      right: 16,
-      child: Center(
-        child: ListenableBuilder(
+      left: leftOffset,
+      width: barWidth,
+      child: ListenableBuilder(
           listenable: _undoController,
           builder: (context, _) {
             return SqaFloatingBar(
@@ -269,7 +332,6 @@ class _MdEditorViewState extends ConsumerState<MdEditorView> {
             );
           },
         ),
-      ),
     );
   }
 }

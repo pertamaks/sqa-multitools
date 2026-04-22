@@ -140,8 +140,9 @@ class SqaModal<T> extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                fontSize: 20, // Match SqaPluginHeader standard for consistent branding
               ),
             ),
           ),
@@ -155,7 +156,15 @@ class SqaModal<T> extends StatelessWidget {
       ),
       content:
           isConfirmMode
-              ? (message != null ? Text(message!) : null)
+              ? (message != null
+                  ? Text(
+                    message!,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                  )
+                  : null)
               : SizedBox(
                 width: isTileMode ? 320 : 500,
                 height: isTileMode ? null : 400,
@@ -288,8 +297,8 @@ class SqaModal<T> extends StatelessWidget {
                                 tile.badge!,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: theme.colorScheme.onPrimaryContainer,
-                                  fontSize: 8,
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 11, // Standard Label size per GEMINI.md
                                 ),
                               ),
                             ),
@@ -327,7 +336,10 @@ class SqaModal<T> extends StatelessWidget {
                       listItem.subtitle!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11, // Standard Label size per GEMINI.md
+                      ),
                     )
                     : null,
             onTap: () => Navigator.of(context).pop(item),

@@ -1,35 +1,34 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
-import '../models/md_document.dart';
-import '../models/md_editor_state.dart';
+import '../models/text_document.dart';
+import '../models/text_editor_state.dart';
 
-part 'md_editor_provider.g.dart';
+part 'text_editor_provider.g.dart';
 
 @riverpod
-class MdEditor extends _$MdEditor {
+class TextEditor extends _$TextEditor {
   @override
-  MdEditorState build() {
-    return const MdEditorState();
+  TextEditorState build() {
+    return const TextEditorState();
   }
 
-  void setViewMode(MdEditorViewMode mode) {
+  void setViewMode(TextEditorViewMode mode) {
     state = state.copyWith(viewMode: mode);
   }
 
-  void openEditor(MdDocument? document) {
+  void openEditor(TextDocument? document) {
     state = state.copyWith(
       activeDocument: document,
-      viewMode: MdEditorViewMode.editor,
+      viewMode: TextEditorViewMode.editor,
     );
   }
 
-
-  void createFromTemplate(MdTemplateType type) {
+  void createFromTemplate(TextTemplateType type) {
     final String initialContent;
     final String name;
 
     switch (type) {
-      case MdTemplateType.bugReport:
+      case TextTemplateType.bugReport:
         name = "Bug Report ${DateTime.now().millisecond}";
         initialContent = """# Bug Report
 ## Summary
@@ -48,7 +47,7 @@ class MdEditor extends _$MdEditor {
 ## Logs/Screenshots
 - """;
         break;
-      case MdTemplateType.devTicket:
+      case TextTemplateType.devTicket:
         name = "Dev Ticket ${DateTime.now().millisecond}";
         initialContent = """# Development Ticket
 ## Summary
@@ -60,13 +59,13 @@ class MdEditor extends _$MdEditor {
 ## Acceptance Criteria
 - [ ] """;
         break;
-      case MdTemplateType.empty:
+      case TextTemplateType.empty:
         name = "Untitled ${DateTime.now().millisecond}";
         initialContent = "";
         break;
     }
 
-    final newDoc = MdDocument(
+    final newDoc = TextDocument(
       id: const Uuid().v4(),
       name: name,
       content: initialContent,
@@ -76,7 +75,7 @@ class MdEditor extends _$MdEditor {
 
     state = state.copyWith(
       activeDocument: newDoc,
-      viewMode: MdEditorViewMode.editor,
+      viewMode: TextEditorViewMode.editor,
     );
   }
 
@@ -85,6 +84,17 @@ class MdEditor extends _$MdEditor {
     state = state.copyWith(
       activeDocument: state.activeDocument!.copyWith(
         content: content,
+        lastModified: DateTime.now(),
+      ),
+    );
+  }
+
+  void updateName(String name) {
+    if (state.activeDocument == null) return;
+    if (state.activeDocument!.name == name) return;
+    state = state.copyWith(
+      activeDocument: state.activeDocument!.copyWith(
+        name: name,
         lastModified: DateTime.now(),
       ),
     );
@@ -108,16 +118,38 @@ class MdEditor extends _$MdEditor {
     }
 
     state = state.copyWith(
-      documents: updatedDocs,
+      documents: _sortDocuments(updatedDocs),
       isSaving: false,
     );
     
-    setViewMode(MdEditorViewMode.list);
+    setViewMode(TextEditorViewMode.list);
   }
 
   void deleteDocument(String id) {
     state = state.copyWith(
       documents: state.documents.where((d) => d.id != id).toList(),
     );
+  }
+
+  void togglePin(String id) {
+    final updatedDocs = state.documents.map((doc) {
+      if (doc.id == id) {
+        return doc.copyWith(isPinned: !doc.isPinned);
+      }
+      return doc;
+    }).toList();
+
+    state = state.copyWith(documents: _sortDocuments(updatedDocs));
+  }
+
+  List<TextDocument> _sortDocuments(List<TextDocument> docs) {
+    final sorted = List<TextDocument>.from(docs);
+    sorted.sort((a, b) {
+      if (a.isPinned != b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+      return b.lastModified.compareTo(a.lastModified);
+    });
+    return sorted;
   }
 }

@@ -8,9 +8,10 @@ import 'sqa_fade_wrapper.dart';
 /// It integrates [SqaPluginHeader] and optionally [SqaTabBar] with consistent
 /// padding and spacing.
 class SqaPluginLayout extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final String description;
+  final Widget? titleWidget;
   final Color? color;
   final Widget? trailing;
   final List<Tab>? tabs;
@@ -21,9 +22,10 @@ class SqaPluginLayout extends StatelessWidget {
 
   const SqaPluginLayout({
     super.key,
-    required this.icon,
-    required this.title,
-    required this.description,
+    this.icon,
+    this.title = '',
+    this.description = '',
+    this.titleWidget,
     this.color,
     this.trailing,
     this.tabs,
@@ -49,6 +51,7 @@ class SqaPluginLayout extends StatelessWidget {
             icon: icon,
             title: title,
             description: description,
+            titleWidget: titleWidget,
             color: color,
             trailing: trailing,
             onBack: onBack,

@@ -4,24 +4,27 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
+import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_styles.dart';
-import '../providers/md_editor_provider.dart';
-import '../models/md_document.dart';
+import '../../../ui/widgets/sqa_smart_text.dart';
+import '../providers/text_editor_provider.dart';
+import '../models/text_document.dart';
 
-class MdListView extends ConsumerWidget {
-  const MdListView({super.key});
+class TextListView extends ConsumerWidget {
+  const TextListView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(mdEditorProvider);
-    final notifier = ref.read(mdEditorProvider.notifier);
+    final state = ref.watch(textEditorProvider);
+    final notifier = ref.read(textEditorProvider.notifier);
+    final theme = Theme.of(context);
 
     return SqaPluginLayout(
       icon: Symbols.edit_note,
-      title: 'MD Editor',
-      description: 'Manage your markdown documents.',
+      title: 'Text Editor',
+      description: 'Manage and edit your text documents.',
       trailing: _buildNewDocumentButton(context, notifier),
       child: SqaPluginScrollableContent(
         child: state.documents.isEmpty
@@ -40,17 +43,30 @@ class MdListView extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  doc.name,
-                                  style: Theme.of(context).textTheme.titleSmall,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SqaSmartText(
+                                        text: doc.name,
+                                        style: theme.textTheme.titleSmall,
+                                      ),
+                                    ),
+                                    if (doc.isPinned) ...[
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Symbols.keep,
+                                        size: 16,
+                                        color: theme.colorScheme.primary,
+                                        fill: 1,
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Last modified: ${DateFormat.yMMMd().add_Hm().format(doc.lastModified)}',
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant
                                             .withValues(alpha: 0.7),
                                       ),
                                 ),
@@ -68,7 +84,7 @@ class MdListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, MdEditor notifier) {
+  Widget _buildEmptyState(BuildContext context, TextEditor notifier) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -109,7 +125,7 @@ class MdListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, MdEditor notifier, MdDocument doc) {
+  Widget _buildActions(BuildContext context, TextEditor notifier, TextDocument doc) {
     final theme = Theme.of(context);
     
     return MenuAnchor(
@@ -138,6 +154,13 @@ class MdListView extends ConsumerWidget {
         ),
         _buildActionItem(
           context,
+          doc.isPinned ? 'Unpin from Top' : 'Pin to Top',
+          doc.isPinned ? Symbols.keep_off : Symbols.keep,
+          null,
+          () => notifier.togglePin(doc.id),
+        ),
+        _buildActionItem(
+          context,
           'Copy Content',
           Symbols.content_copy,
           null,
@@ -150,7 +173,19 @@ class MdListView extends ConsumerWidget {
           'Delete',
           Symbols.delete,
           Colors.red,
-          () => notifier.deleteDocument(doc.id),
+          () async {
+            final confirm = await SqaModal.showConfirm(
+              context,
+              title: 'Delete Document',
+              message: 'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
+              confirmLabel: 'Delete',
+              confirmColor: theme.colorScheme.error,
+              icon: Symbols.delete_forever,
+            );
+            if (confirm == true) {
+              notifier.deleteDocument(doc.id);
+            }
+          },
         ),
       ],
       builder: (context, controller, child) {
@@ -207,7 +242,7 @@ class MdListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildNewDocumentButton(BuildContext context, MdEditor notifier, {bool isTonal = false}) {
+  Widget _buildNewDocumentButton(BuildContext context, TextEditor notifier, {bool isTonal = false}) {
     final theme = Theme.of(context);
     final String label = isTonal ? 'Create First Document' : 'New Document';
     final bool hasIcon = !isTonal;
@@ -237,7 +272,7 @@ class MdListView extends ConsumerWidget {
         _buildTemplateItem(
           context,
           notifier,
-          MdTemplateType.empty,
+          TextTemplateType.empty,
           'Empty Canvas',
           Symbols.draft,
           Colors.grey,
@@ -246,7 +281,7 @@ class MdListView extends ConsumerWidget {
         _buildTemplateItem(
           context,
           notifier,
-          MdTemplateType.bugReport,
+          TextTemplateType.bugReport,
           'Bug Report',
           Symbols.bug_report,
           Colors.orange,
@@ -255,7 +290,7 @@ class MdListView extends ConsumerWidget {
         _buildTemplateItem(
           context,
           notifier,
-          MdTemplateType.devTicket,
+          TextTemplateType.devTicket,
           'Dev Ticket',
           Symbols.confirmation_number,
           Colors.blue,
@@ -281,8 +316,8 @@ class MdListView extends ConsumerWidget {
 
   Widget _buildTemplateItem(
     BuildContext context,
-    MdEditor notifier,
-    MdTemplateType type,
+    TextEditor notifier,
+    TextTemplateType type,
     String label,
     IconData icon,
     Color color,

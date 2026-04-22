@@ -18,8 +18,6 @@ class SqaFloatingBar extends StatefulWidget {
 
   /// Fixed widgets anchored to the right.
   final List<Widget>? trailing;
-
-  /// Optional callback when the drag handle is dragged.
   final Offset? position;
 
   const SqaFloatingBar({
@@ -32,6 +30,21 @@ class SqaFloatingBar extends StatefulWidget {
 
   @override
   State<SqaFloatingBar> createState() => _SqaFloatingBarState();
+}
+
+/// An internal scope to mark the toolbar context.
+class SqaFloatingBarScope extends InheritedWidget {
+  const SqaFloatingBarScope({
+    super.key,
+    required super.child,
+  });
+
+  static SqaFloatingBarScope? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<SqaFloatingBarScope>();
+  }
+
+  @override
+  bool updateShouldNotify(SqaFloatingBarScope oldWidget) => false;
 }
 
 class _SqaFloatingBarState extends State<SqaFloatingBar> {
@@ -51,6 +64,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SqaCard(
       padding: EdgeInsets.zero,
       boxShadow: [
@@ -67,44 +81,46 @@ class _SqaFloatingBarState extends State<SqaFloatingBar> {
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        constraints: const BoxConstraints(maxWidth: 800), // Slightly wider for MD Editor
-        child: SqaInlineTooltip(
-          scrollController: _scrollController,
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Fixed Leading Anchor
-              if (widget.leading != null) ...[
-                ...widget.leading!,
-                const SizedBox(width: 4),
-              ],
+        constraints: const BoxConstraints(maxWidth: 800), // Slightly wider for Text Editor
+        child: SqaFloatingBarScope(
+          child: SqaInlineTooltip(
+            scrollController: _scrollController,
+            backgroundColor: theme.colorScheme.surfaceContainerHigh,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Fixed Leading Anchor
+                if (widget.leading != null) ...[
+                  ...widget.leading!,
+                  const SizedBox(width: 4),
+                ],
 
-              // Flexible Scrollable Center
-              Flexible(
-                child: SqaFadeWrapper(
-                  axis: Axis.horizontal,
-                  child: ScrollConfiguration(
-                    behavior: const SqaMouseDragScrollBehavior(),
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: widget.children,
+                // Flexible Scrollable Center
+                Flexible(
+                  child: SqaFadeWrapper(
+                    axis: Axis.horizontal,
+                    child: ScrollConfiguration(
+                      behavior: const SqaMouseDragScrollBehavior(),
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: widget.children,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-              // Fixed Trailing Anchor
-              if (widget.trailing != null) ...[
-                const SizedBox(width: 4),
-                ...widget.trailing!,
+                // Fixed Trailing Anchor
+                if (widget.trailing != null) ...[
+                  const SizedBox(width: 4),
+                  ...widget.trailing!,
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -199,17 +215,25 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
-    // Get screen width to detect true window boundaries
-    final screenWidth = MediaQuery.of(context).size.width;
+    // Smart Boundary Detection (Toolbar-Aware ONLY)
+    bool hitsToolbarEdge = false;
     
-    // Get button's global position
-    final globalPosition = renderBox.localToGlobal(Offset.zero);
-    final rightEdge = globalPosition.dx + renderBox.size.width;
+    // Find the toolbar ancestor state to get its render box safely
+    final barState = context.findAncestorStateOfType<_SqaFloatingBarState>();
+    final barBox = barState?.context.findRenderObject() as RenderBox?;
+
+    if (barBox != null) {
+      // Calculate button position RELATIVE to the toolbar
+      final localPos = renderBox.localToGlobal(Offset.zero, ancestor: barBox);
+      final buttonRightLocal = localPos.dx + renderBox.size.width;
+      
+      // Pivot if within 20px of the toolbar's internal right edge
+      // This perfectly captures the end buttons (considering the 16px bar padding).
+      hitsToolbarEdge = (barBox.size.width - buttonRightLocal) < 20.0;
+    }
 
     setState(() {
-      // Pivot to left-expansion ONLY if we are physically near the right screen border.
-      // We use a 48px threshold to account for the toolbar's own expansion and window margins.
-      _expandToLeft = (screenWidth - rightEdge) < 48.0;
+      _expandToLeft = hitsToolbarEdge;
     });
   }
 
@@ -278,6 +302,7 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2.0),
       child: MouseRegion(
+        hitTestBehavior: HitTestBehavior.opaque,
         onEnter: (_) {
           _updateExpansionDirection();
           setState(() {

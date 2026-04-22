@@ -66,10 +66,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
   Map<String, BlockComponentBuilder> _buildBlockComponentBuilders() {
     final map = {...standardBlockComponentBuilderMap};
-    
-    // We must provide NEW instances of the builders to avoid modifying the global 
-    // standardBlockComponentBuilderMap used by other plugins (like V2).
-    
+    final theme = Theme.of(context);
+
     // 1. Standard Paragraph Builder (Refined)
     map[ParagraphBlockKeys.type] = ParagraphBlockComponentBuilder(
       configuration: BlockComponentConfiguration(
@@ -78,7 +76,6 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     )..showActions = (_) => false;
 
     // 2. Standard Heading Builder (Refined)
-    final theme = Theme.of(context);
     map[HeadingBlockKeys.type] = HeadingBlockComponentBuilder(
       configuration: BlockComponentConfiguration(
         padding: (node) => EdgeInsets.zero,
@@ -93,26 +90,12 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       },
     )..showActions = (_) => false;
 
-    // 3. Todo List Builder (Refined)
-    map[TodoListBlockKeys.type] = TodoListBlockComponentBuilder(
-      configuration: BlockComponentConfiguration(
-        padding: (node) => EdgeInsets.zero,
-      ),
-    )..showActions = (_) => false;
-
-    // 4. Bullet List Builder (Refined)
-    map[BulletedListBlockKeys.type] = BulletedListBlockComponentBuilder(
-      configuration: BlockComponentConfiguration(
-        padding: (node) => EdgeInsets.zero,
-      ),
-    )..showActions = (_) => false;
-
-    // 5. Numbered List Builder (Refined)
-    map[NumberedListBlockKeys.type] = NumberedListBlockComponentBuilder(
-      configuration: BlockComponentConfiguration(
-        padding: (node) => EdgeInsets.zero,
-      ),
-    )..showActions = (_) => false;
+    // Hide handles for all other blocks
+    for (final entry in map.entries) {
+      if (entry.key != HeadingBlockKeys.type && entry.key != ParagraphBlockKeys.type) {
+        entry.value.showActions = (_) => false;
+      }
+    }
 
     return map;
   }
@@ -170,6 +153,21 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       if (confirm != true) return;
     }
     ref.read(textEditorProvider.notifier).setViewMode(TextEditorViewMode.list);
+  }
+
+  bool _isAttributeToggled(String key) {
+    final selection = _editorState.selection;
+    if (selection == null) return false;
+    
+    if (selection.isCollapsed) {
+      return _editorState.toggledStyle[key] == true || 
+             (_editorState.getDeltaAttributesInSelectionStart()?[key] == true);
+    }
+    
+    final nodes = _editorState.getNodesInSelection(selection);
+    return nodes.allSatisfyInSelection(selection, (delta) {
+      return delta.everyAttributes((attributes) => attributes[key] == true);
+    });
   }
 
   @override
@@ -314,14 +312,14 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 editorStyle: EditorStyle.desktop(
                   padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 12.0),
                   maxWidth: 800.0,
+                  textScaleFactor: 14.0 / 16.0,
                   cursorColor: theme.colorScheme.primary,
                   selectionColor: theme.colorScheme.primary.withValues(alpha: 0.2),
                   textStyleConfiguration: TextStyleConfiguration(
                     text: GoogleFonts.inter(
-                      fontSize: 14.0,
+                      fontSize: 16.0,
                       color: theme.colorScheme.onSurface,
                     ),
-                    lineHeight: 1.5,
                   ),
                 ),
               ),
@@ -336,98 +334,199 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   Widget _buildFloatingToolbar(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final barWidth = (screenWidth - 160).clamp(0.0, 800.0);
-    final leftOffset = (screenWidth - barWidth) / 2;
 
     return Positioned(
       bottom: 24,
-      left: leftOffset,
-      width: barWidth,
-      child: ListenableBuilder(
-          listenable: _editorState.selectionNotifier,
-          builder: (context, _) {
-            return SqaFloatingBar(
-              children: [
-                // Group 1: History
-                SqaFloatingBarButton(
-                  icon: Symbols.undo,
-                  tooltip: 'Undo',
-                  onPressed: _editorState.undoManager.undoStack.isNonEmpty ? () => _editorState.undoManager.undo() : null,
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.redo,
-                  tooltip: 'Redo',
-                  onPressed: _editorState.undoManager.redoStack.isNonEmpty ? () => _editorState.undoManager.redo() : null,
-                ),
-                const SqaFloatingBarDivider(),
-                
-                // Group 2: Typography
-                SqaFloatingBarButton(
-                  icon: Symbols.format_bold,
-                  tooltip: 'Bold',
-                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.bold),
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.format_italic,
-                  tooltip: 'Italic',
-                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.italic),
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.format_underlined,
-                  tooltip: 'Underline',
-                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.underline),
-                ),
-                const SqaFloatingBarDivider(),
+      left: 0,
+      right: 0,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: barWidth),
+          child: ListenableBuilder(
+            listenable: _editorState.selectionNotifier,
+            builder: (context, _) {
+              return SqaFloatingBar(
+                children: [
+                  // Group 1: History
+                  SqaFloatingBarButton(
+                    icon: Symbols.undo,
+                    tooltip: 'Undo',
+                    onPressed: _editorState.undoManager.undoStack.isNonEmpty ? () => _editorState.undoManager.undo() : null,
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.redo,
+                    tooltip: 'Redo',
+                    onPressed: _editorState.undoManager.redoStack.isNonEmpty ? () => _editorState.undoManager.redo() : null,
+                  ),
+                  const SqaFloatingBarDivider(),
+                  
+                  // Group 2: Block Identity (Action-First)
+                  SqaFloatingBarButton(
+                    icon: Symbols.format_h1,
+                    tooltip: 'Heading 1',
+                    onPressed: () => _editorState.formatNode(
+                      _editorState.selection,
+                      (node) => node.copyWith(
+                        type: HeadingBlockKeys.type,
+                        attributes: {
+                          HeadingBlockKeys.level: 1,
+                          HeadingBlockKeys.delta: node.delta?.toJson() ?? [],
+                        },
+                      ),
+                    ),
+                    secondaryActions: [
+                      SqaFloatingSubAction(
+                        icon: Symbols.format_h2,
+                        tooltip: 'Heading 2',
+                        onPressed: () => _editorState.formatNode(
+                          _editorState.selection,
+                          (node) => node.copyWith(
+                            type: HeadingBlockKeys.type,
+                            attributes: {
+                              HeadingBlockKeys.level: 2,
+                              HeadingBlockKeys.delta: node.delta?.toJson() ?? [],
+                            },
+                          ),
+                        ),
+                      ),
+                      SqaFloatingSubAction(
+                        icon: Symbols.format_h3,
+                        tooltip: 'Heading 3',
+                        onPressed: () => _editorState.formatNode(
+                          _editorState.selection,
+                          (node) => node.copyWith(
+                            type: HeadingBlockKeys.type,
+                            attributes: {
+                              HeadingBlockKeys.level: 3,
+                              HeadingBlockKeys.delta: node.delta?.toJson() ?? [],
+                            },
+                          ),
+                        ),
+                      ),
+                      SqaFloatingSubAction(
+                        icon: Symbols.text_fields,
+                        tooltip: 'Standard Text',
+                        onPressed: () => _editorState.formatNode(
+                          _editorState.selection,
+                          (node) => node.copyWith(
+                            type: ParagraphBlockKeys.type,
+                            attributes: {
+                              ParagraphBlockKeys.delta: node.delta?.toJson() ?? [],
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SqaFloatingBarDivider(),
+                  
+                  // Group 3: Typography
+                  SqaFloatingBarButton(
+                    icon: Symbols.format_bold,
+                    tooltip: 'Bold',
+                    isSelected: _isAttributeToggled(AppFlowyRichTextKeys.bold),
+                    onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.bold),
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.format_italic,
+                    tooltip: 'Italic',
+                    isSelected: _isAttributeToggled(AppFlowyRichTextKeys.italic),
+                    onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.italic),
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.format_underlined,
+                    tooltip: 'Underline',
+                    isSelected: _isAttributeToggled(AppFlowyRichTextKeys.underline),
+                    onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.underline),
+                  ),
+                  const SqaFloatingBarDivider(),
 
-                // Group 3: Layout & Objects
-                SqaFloatingBarButton(
-                  icon: Symbols.table_chart,
-                  tooltip: 'Table',
-                  onPressed: () {
-                    // Table insertion placeholder
-                  },
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.code,
-                  tooltip: 'Code Block',
-                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.code),
-                ),
-                SqaFloatingBarButton(
-                  icon: Symbols.image,
-                  tooltip: 'Image',
-                  onPressed: () {
-                    // AppFlowy image insertion placeholder
-                  },
-                ),
-                const SqaFloatingBarDivider(),
+                  // Group 4: Lists (Action-First)
+                  SqaFloatingBarButton(
+                    icon: Symbols.format_list_bulleted,
+                    tooltip: 'Bulleted List',
+                    onPressed: () => _editorState.formatNode(
+                      _editorState.selection,
+                      (node) => node.copyWith(
+                        type: BulletedListBlockKeys.type,
+                        attributes: {
+                          BulletedListBlockKeys.delta: node.delta?.toJson() ?? [],
+                        },
+                      ),
+                    ),
+                    secondaryActions: [
+                      SqaFloatingSubAction(
+                        icon: Symbols.format_list_numbered,
+                        tooltip: 'Numbered List',
+                        onPressed: () => _editorState.formatNode(
+                          _editorState.selection,
+                          (node) => node.copyWith(
+                            type: NumberedListBlockKeys.type,
+                            attributes: {
+                              NumberedListBlockKeys.delta: node.delta?.toJson() ?? [],
+                              NumberedListBlockKeys.number: 1,
+                            },
+                          ),
+                        ),
+                      ),
+                      SqaFloatingSubAction(
+                        icon: Symbols.checklist,
+                        tooltip: 'Todo List',
+                        onPressed: () => _editorState.formatNode(
+                          _editorState.selection,
+                          (node) => node.copyWith(
+                            type: TodoListBlockKeys.type,
+                            attributes: {
+                              TodoListBlockKeys.delta: node.delta?.toJson() ?? [],
+                              TodoListBlockKeys.checked: false,
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SqaFloatingBarDivider(),
 
-                // Group 4: Hyperlink
-                SqaFloatingBarButton(
-                  icon: Symbols.link,
-                  tooltip: 'Hyperlink',
-                  onPressed: () {
-                    // Link toggle logic
-                  },
-                ),
-                const SqaFloatingBarDivider(),
+                  // Group 5: Layout & Objects
+                  SqaFloatingBarButton(
+                    icon: Symbols.code,
+                    tooltip: 'Code Block',
+                    isSelected: _isAttributeToggled(AppFlowyRichTextKeys.code),
+                    onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.code),
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.link,
+                    tooltip: 'Hyperlink',
+                    onPressed: () {
+                      // Link toggle logic
+                    },
+                  ),
+                  const SqaFloatingBarDivider(),
 
-                // Group 5: Clipboard Actions (Final Position)
-                SqaFloatingBarButton(
-                  icon: Symbols.content_copy,
-                  tooltip: 'Copy Markdown',
-                  secondaryIcon: Symbols.text_snippet,
-                  secondaryTooltip: 'Copy as Rich Text',
-                  onPressed: () {
-                    final md = documentToMarkdown(_editorState.document);
-                    Clipboard.setData(ClipboardData(text: md));
-                  },
-                  secondaryOnPressed: () {
-                    // Placeholder for Rich Text implementation
-                  },
-                ),
-              ],
-            );
-          },
+                  // Group 6: Clipboard Actions
+                  SqaFloatingBarButton(
+                    icon: Symbols.content_copy,
+                    tooltip: 'Copy Markdown',
+                    onPressed: () {
+                      final md = documentToMarkdown(_editorState.document);
+                      Clipboard.setData(ClipboardData(text: md));
+                    },
+                    secondaryActions: [
+                      SqaFloatingSubAction(
+                        icon: Symbols.text_snippet,
+                        tooltip: 'Copy as Rich Text',
+                        onPressed: () {
+                          // Placeholder for Rich Text implementation
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
         ),
+      ),
     );
   }
 }

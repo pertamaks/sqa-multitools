@@ -116,24 +116,21 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       child: Container(
         height: kToolbarWindowHeight,
         color: Colors.transparent,
-        alignment: Alignment.topCenter,
-        // padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: Container(
-          height: kToolbarWindowHeight,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(10),
-              topRight: const Radius.circular(10),
-              bottomLeft: Radius.circular(activePlugin != null ? 0 : 10),
-              bottomRight: Radius.circular(activePlugin != null ? 0 : 10),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Container(
+            height: kToolbarWindowHeight,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(10),
+                topRight: const Radius.circular(10),
+                bottomLeft: Radius.circular(activePlugin != null ? 0 : 10),
+                bottomRight: Radius.circular(activePlugin != null ? 0 : 10),
+              ),
             ),
-            // border: Border.all(
-            //   color: colorScheme.primary.withValues(alpha: 0.2),
-            //   width: 1.0,
-            // ),
-          ),
-          child: Padding(
+            child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Transform.translate(
               offset: const Offset(0, -4.0),
@@ -228,8 +225,10 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   // --- Helper Methods ---
 
@@ -295,38 +294,13 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final hasPlugin = activePlugin != null;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: isOverlayActive ? Colors.transparent : colorScheme.surfaceContainerLow,
       body: Stack(
         children: [
           if (hasPlugin && !isOverlayActive)
-            Padding(
-              padding: const EdgeInsets.only(top: kToolbarWindowHeight),
-              child: Container(
-                color: colorScheme.surface,
-                child: Stack(
-                  children: [
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 600),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLow,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: activePlugin.buildPluginWindow(context),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            Positioned.fill(
+              top: kToolbarWindowHeight,
+              child: activePlugin.buildPluginWindow(context),
             ),
           if (!isOverlayActive)
             Positioned(

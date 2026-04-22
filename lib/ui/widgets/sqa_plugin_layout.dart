@@ -43,24 +43,29 @@ class SqaPluginLayout extends StatelessWidget {
       content = SqaFadeWrapper(child: child);
     }
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          child: SqaPluginHeader(
-            icon: icon,
-            title: title,
-            description: description,
-            titleWidget: titleWidget,
-            color: color,
-            trailing: trailing,
-            onBack: onBack,
-          ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: SqaPluginHeader(
+                icon: icon,
+                title: title,
+                description: description,
+                titleWidget: titleWidget,
+                color: color,
+                trailing: trailing,
+                onBack: onBack,
+              ),
+            ),
+            if (tabs != null && tabs!.isNotEmpty)
+              SqaTabBar(tabs: tabs!, controller: tabController),
+            Expanded(child: content),
+          ],
         ),
-        if (tabs != null && tabs!.isNotEmpty)
-          SqaTabBar(tabs: tabs!, controller: tabController),
-        Expanded(child: content),
-      ],
+      ),
     );
   }
 }

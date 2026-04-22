@@ -34,6 +34,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  flutter_localizations:
+    sdk: flutter
+  appflowy_editor: ^6.2.0
   ffi: ^2.1.2
   window_manager: ^0.5.1
   system_tray: ^2.0.3
@@ -52,7 +55,7 @@ dependencies:
   just_audio_windows: ^0.2.1
   faker_dart: ^0.2.3
   json_annotation: ^4.11.0
-  intl: ^0.19.0
+  intl: ^0.20.2
   super_clipboard: ^0.9.1
   super_drag_and_drop: ^0.9.0
   collection: ^1.19.1

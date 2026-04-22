@@ -27,9 +27,18 @@ class TextListView extends ConsumerWidget {
       description: 'Manage and edit your text documents.',
       trailing: _buildNewDocumentButton(context, notifier),
       child: SqaPluginScrollableContent(
-        child: state.documents.isEmpty
-            ? _buildEmptyState(context, notifier)
-            : Column(
+        child: state.isLoading
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(40.0),
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              )
+            : state.documents.isEmpty
+                ? _buildEmptyState(context, notifier)
+                : Column(
                 children: state.documents.map((doc) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
@@ -165,7 +174,7 @@ class TextListView extends ConsumerWidget {
           Symbols.content_copy,
           null,
           () {
-            // TODO: Implement copy
+            notifier.copyContent(doc.content);
           },
         ),
         _buildActionItem(

@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
-import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
-import '../../../ui/widgets/sqa_field.dart';
-import '../../../ui/widgets/sqa_text_controller.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_styles.dart';
@@ -13,6 +10,9 @@ import '../../../ui/widgets/sqa_smart_text.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_editor_state.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
+import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
@@ -23,30 +23,75 @@ class TextEditorView extends ConsumerStatefulWidget {
 
 class _TextEditorViewState extends ConsumerState<TextEditorView> {
   late TextEditingController _nameController;
-  late SqaTextController _contentController;
-  late UndoHistoryController _undoController;
+  late EditorState _editorState;
+  StreamSubscription<EditorTransactionValue>? _editorSubscription;
   late FocusNode _titleFocusNode;
+  late FocusNode _editorFocusNode;
   bool _isEditingTitle = false;
 
   @override
   void initState() {
     super.initState();
+    forceShowBlockAction = false;
     final doc = ref.read(textEditorProvider).activeDocument;
     _nameController = TextEditingController(text: doc?.name ?? '');
-    _contentController = SqaTextController(text: doc?.content ?? '');
-    _undoController = UndoHistoryController();
+    
+    // Initialize EditorState from Markdown
+    final initialContent = doc?.content ?? '';
+    final Document document;
+    
+    if (initialContent.isEmpty) {
+      document = Document.blank(withInitialText: true);
+    } else {
+      document = markdownToDocument(initialContent);
+      // Ensure the document has at least one paragraph node for editing
+      if (document.root.children.isEmpty) {
+        document.root.children.add(paragraphNode());
+      }
+    }
+    
+    _editorState = EditorState(document: document);
+    
     _titleFocusNode = FocusNode();
     _titleFocusNode.addListener(_onTitleFocusChange);
+    _editorFocusNode = FocusNode();
+    
+    // Listen for changes in the editor to sync with provider
+    _editorSubscription = _editorState.transactionStream.listen((event) {
+      if (event.$1 == TransactionTime.after) {
+        _onEditorChanged();
+      }
+    });
+  }
+
+  Map<String, BlockComponentBuilder> _buildBlockComponentBuilders() {
+    final map = {...standardBlockComponentBuilderMap};
+    for (final builder in map.values) {
+      builder.showActions = (_) => false;
+      builder.configuration = builder.configuration.copyWith(
+        padding: (node) => EdgeInsets.zero,
+      );
+    }
+    return map;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _contentController.dispose();
-    _undoController.dispose();
+    _editorSubscription?.cancel();
+    _editorState.dispose();
     _titleFocusNode.removeListener(_onTitleFocusChange);
     _titleFocusNode.dispose();
+    _editorFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onEditorChanged() {
+    final currentContent = ref.read(textEditorProvider).activeDocument?.content ?? '';
+    final newContent = documentToMarkdown(_editorState.document);
+    if (newContent != currentContent) {
+      ref.read(textEditorProvider.notifier).updateContent(newContent);
+    }
   }
 
   void _onTitleFocusChange() {
@@ -64,8 +109,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   bool get _isDirty {
     final doc = ref.read(textEditorProvider).activeDocument;
     if (doc == null) return false;
+    final currentContent = documentToMarkdown(_editorState.document);
     return _nameController.text != doc.name ||
-        _contentController.text != doc.content;
+        currentContent != doc.content;
   }
 
   Future<void> _handleBack() async {
@@ -82,36 +128,6 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       if (confirm != true) return;
     }
     ref.read(textEditorProvider.notifier).setViewMode(TextEditorViewMode.list);
-  }
-
-  void _toggleStyle(String prefix, [String? suffix]) {
-    final selection = _contentController.selection;
-    if (!selection.isValid) return;
-
-    final text = _contentController.text;
-    final selectedText = selection.textInside(text);
-    final s = suffix ?? prefix;
-
-    final newText = text.replaceRange(selection.start, selection.end, '$prefix$selectedText$s');
-    _contentController.value = _contentController.value.copyWith(
-      text: newText,
-      selection: TextSelection.collapsed(
-        offset: selection.start + prefix.length + selectedText.length + s.length,
-      ),
-    );
-  }
-
-  void _insertBlock(String content) {
-    final selection = _contentController.selection;
-    final text = _contentController.text;
-    final start = selection.isValid ? selection.start : text.length;
-    final end = selection.isValid ? selection.end : text.length;
-
-    final newText = text.replaceRange(start, end, content);
-    _contentController.value = _contentController.value.copyWith(
-      text: newText,
-      selection: TextSelection.collapsed(offset: start + content.length),
-    );
   }
 
   @override
@@ -194,7 +210,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         onPressed: state.isSaving
             ? null
             : () {
-                notifier.updateContent(_contentController.text);
+                notifier.updateContent(documentToMarkdown(_editorState.document));
                 notifier.saveDocument();
               },
         tooltip: 'Save document',
@@ -209,31 +225,62 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         children: [
           Positioned.fill(
             child: SqaFadeWrapper(
-              child: SqaPluginScrollableContent(
-                center: false,
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Seamless Markdown Content
-                    SqaField(
-                      label: '', // Not shown
-                      showLabel: false,
-                      isTransparent: true,
-                      controller: _contentController,
-                      undoController: _undoController,
-                      isMultiline: true,
-                      minLines: 25,
-                      isMonospace: false, // Standard text editor feel
-                      showLineNumbers: false,
-                      showCopyButton: false,
-                      hintText: 'Start writing your story...',
-                      onTapOutside: (_) {
-                        notifier.updateContent(_contentController.text);
-                      },
+              child: AppFlowyEditor(
+                key: ValueKey(_editorState.hashCode),
+                editorState: _editorState,
+                autoFocus: true,
+                focusNode: _editorFocusNode,
+                blockComponentBuilders: _buildBlockComponentBuilders(),
+                commandShortcutEvents: [
+                  CommandShortcutEvent(
+                    key: 'paste markdown refresh',
+                    getDescription: () => 'Paste and Refresh',
+                    command: 'ctrl+v',
+                    macOSCommand: 'cmd+v',
+                    handler: (editorState) {
+                      () async {
+                        final data = await AppFlowyClipboard.getData();
+                        final text = data.text;
+                        if (text != null && text.isNotEmpty) {
+                          final selection = editorState.selection;
+                          if (selection == null) return;
+
+                          final document = markdownToDocument(text);
+                          final transaction = editorState.transaction;
+                          
+                          // Perform a structural insertion at the current cursor
+                          transaction.insertNodes(selection.end.path, document.root.children);
+                          
+                          // Calculate the new selection (at the end of the inserted nodes)
+                          var newPath = selection.end.path;
+                          for (var i = 0; i < document.root.children.length - 1; i++) {
+                            newPath = newPath.next;
+                          }
+                          final lastNodeLen = document.root.children.lastOrNull?.delta?.length ?? 0;
+                          transaction.afterSelection = Selection.collapsed(
+                            Position(path: newPath, offset: lastNodeLen)
+                          );
+
+                          await editorState.apply(transaction);
+                        }
+                      }();
+                      return KeyEventResult.handled;
+                    },
+                  ),
+                  ...standardCommandShortcutEvents,
+                ],
+                editorStyle: EditorStyle.desktop(
+                  padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 12.0),
+                  maxWidth: 800.0,
+                  cursorColor: theme.colorScheme.primary,
+                  selectionColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  textStyleConfiguration: TextStyleConfiguration(
+                    text: GoogleFonts.inter(
+                      fontSize: 14.0,
+                      color: theme.colorScheme.onSurface,
                     ),
-                    const SizedBox(height: 100), // Space for floating bar
-                  ],
+                    lineHeight: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -254,7 +301,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       left: leftOffset,
       width: barWidth,
       child: ListenableBuilder(
-          listenable: _undoController,
+          listenable: _editorState.selectionNotifier,
           builder: (context, _) {
             return SqaFloatingBar(
               children: [
@@ -262,12 +309,12 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 SqaFloatingBarButton(
                   icon: Symbols.undo,
                   tooltip: 'Undo',
-                  onPressed: _undoController.value.canUndo ? () => _undoController.undo() : null,
+                  onPressed: _editorState.undoManager.undoStack.isNonEmpty ? () => _editorState.undoManager.undo() : null,
                 ),
                 SqaFloatingBarButton(
                   icon: Symbols.redo,
                   tooltip: 'Redo',
-                  onPressed: _undoController.value.canRedo ? () => _undoController.redo() : null,
+                  onPressed: _editorState.undoManager.redoStack.isNonEmpty ? () => _editorState.undoManager.redo() : null,
                 ),
                 const SqaFloatingBarDivider(),
                 
@@ -275,17 +322,17 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 SqaFloatingBarButton(
                   icon: Symbols.format_bold,
                   tooltip: 'Bold',
-                  onPressed: () => _toggleStyle('**'),
+                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.bold),
                 ),
                 SqaFloatingBarButton(
                   icon: Symbols.format_italic,
                   tooltip: 'Italic',
-                  onPressed: () => _toggleStyle('*'),
+                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.italic),
                 ),
                 SqaFloatingBarButton(
                   icon: Symbols.format_underlined,
                   tooltip: 'Underline',
-                  onPressed: () => _toggleStyle('<u>', '</u>'),
+                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.underline),
                 ),
                 const SqaFloatingBarDivider(),
 
@@ -293,17 +340,21 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 SqaFloatingBarButton(
                   icon: Symbols.table_chart,
                   tooltip: 'Table',
-                  onPressed: () => _insertBlock('\n| Header | Header |\n| --- | --- |\n| Cell | Cell |\n'),
+                  onPressed: () {
+                    // Table insertion placeholder
+                  },
                 ),
                 SqaFloatingBarButton(
                   icon: Symbols.code,
                   tooltip: 'Code Block',
-                  onPressed: () => _toggleStyle('\n```\n', '\n```\n'),
+                  onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.code),
                 ),
                 SqaFloatingBarButton(
                   icon: Symbols.image,
                   tooltip: 'Image',
-                  onPressed: () => _insertBlock('![alt text](url)'),
+                  onPressed: () {
+                    // AppFlowy image insertion placeholder
+                  },
                 ),
                 const SqaFloatingBarDivider(),
 
@@ -311,7 +362,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 SqaFloatingBarButton(
                   icon: Symbols.link,
                   tooltip: 'Hyperlink',
-                  onPressed: () => _toggleStyle('[', '](url)'),
+                  onPressed: () {
+                    // Link toggle logic
+                  },
                 ),
                 const SqaFloatingBarDivider(),
 
@@ -322,7 +375,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   secondaryIcon: Symbols.text_snippet,
                   secondaryTooltip: 'Copy as Rich Text',
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: _contentController.text));
+                    final md = documentToMarkdown(_editorState.document);
+                    Clipboard.setData(ClipboardData(text: md));
                   },
                   secondaryOnPressed: () {
                     // Placeholder for Rich Text implementation

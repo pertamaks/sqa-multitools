@@ -11,6 +11,7 @@ import '../../plugins/settings/settings_plugin.dart';
 import '../../plugins/security_payloads/security_payloads_plugin.dart';
 import '../../plugins/beautifier/beautifier_plugin.dart';
 import '../../plugins/text_editor/text_editor_plugin.dart';
+import '../../plugins/text_editor_v2/text_editor_v2_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
 
@@ -25,6 +26,7 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     SecurityPayloadsPlugin(),
     BeautifierPlugin(),
     TextEditorPlugin(),
+    TextEditorV2Plugin(),
     if (ref.watch(supporterTierProvider) >= 2) QaOraclePlugin(),
   ];
 });

@@ -15,6 +15,7 @@ abstract class TextEditorState with _$TextEditorState {
     TextDocument? activeDocument,
     @Default(TextEditorViewMode.list) TextEditorViewMode viewMode,
     @Default(false) bool isSaving,
+    @Default(false) bool isLoading,
     String? errorMessage,
   }) = _TextEditorState;
 }

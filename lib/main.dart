@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:appflowy_editor/appflowy_editor.dart';
 import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/audio_service.dart';
@@ -109,6 +111,15 @@ class SqaMultitoolsApp extends ConsumerWidget {
             colorScheme: lightScheme,
             pageTransitionsTheme: noTransitions,
           ),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            AppFlowyEditorLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', ''), // English, no country code
+          ],
           darkTheme: ThemeData(
             useMaterial3: true,
             colorScheme: darkScheme,

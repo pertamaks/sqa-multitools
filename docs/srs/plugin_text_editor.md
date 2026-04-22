@@ -15,19 +15,19 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **Bug Report Template**: Standardized structure covering Summary, Steps to Reproduce, Expected vs. Actual, and Logs.
 - **Dev Ticket Template**: Standardized structure for requirements and acceptance criteria.
 
-### 2.3 Human-Readable Editor
-- **Live Styling**: Real-time rendering of headers (larger font), bold/italic text, and code blocks within the editing area.
+### 2.3 WYSIWYG Markdown Editor
+- **Block-Based Editing**: Implements a Notion-like block editor powered by `appflowy_editor`, allowing users to edit formatted text directly without raw syntax characters (WYSIWYG).
 - **Discard Confirmation**: Safety check when leaving the editor with unsaved changes.
 - **Adaptive Floating Toolbar**: Contextual actions for Markdown formatting featuring screen-aware pivot logic to prevent interface clipping.
 - **Sync-Scroll Anchoring**: High-fidelity expansion that keeps the primary button pinned to the mouse coordinate during width growth.
-- **Smart Copy**: Ability to copy content as both Plain Text (Raw MD) and Rich Text (HTML) to preserve formatting in Office apps.
+- **Smart Copy**: Ability to copy content as both Plain Text (Raw MD) and Rich Text to preserve formatting in Office apps.
 
 ## 3. Technical Implementation
 - **State management**: `flutter_riverpod` with generated notifiers.
 - **Immutability**: `freezed` for `TextEditorState` and `TextDocument`.
 - **Adaptive Physics**: Custom `AnimationController` listeners with scroll-offset compensation for frame-perfect expansion.
 - **Peeking Logic**: `SqaScrollVisibilityTrigger` (centralized widget) for intelligent clipping detection.
-- **Clipboard**: `super_clipboard` for multi-format HTML/Plain Text injection.
+- **Editor Engine**: `appflowy_editor` for block-based document handling and seamless Markdown round-trip serialization.
 
 ## 4. UI Standards
 - Uses `SqaPluginLayout` for a consistent header and back-navigation feel. The Editor View utilizes an icon-less header to reduce visual noise and maximize focus.

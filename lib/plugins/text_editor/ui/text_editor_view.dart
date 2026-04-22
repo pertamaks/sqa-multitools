@@ -66,12 +66,54 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
   Map<String, BlockComponentBuilder> _buildBlockComponentBuilders() {
     final map = {...standardBlockComponentBuilderMap};
-    for (final builder in map.values) {
-      builder.showActions = (_) => false;
-      builder.configuration = builder.configuration.copyWith(
+    
+    // We must provide NEW instances of the builders to avoid modifying the global 
+    // standardBlockComponentBuilderMap used by other plugins (like V2).
+    
+    // 1. Standard Paragraph Builder (Refined)
+    map[ParagraphBlockKeys.type] = ParagraphBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(
         padding: (node) => EdgeInsets.zero,
-      );
-    }
+      ),
+    )..showActions = (_) => false;
+
+    // 2. Standard Heading Builder (Refined)
+    final theme = Theme.of(context);
+    map[HeadingBlockKeys.type] = HeadingBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(
+        padding: (node) => EdgeInsets.zero,
+      ),
+      textStyleBuilder: (level) {
+        final fontSizes = [24.0, 20.0, 18.0, 16.0, 14.0, 14.0];
+        return GoogleFonts.inter(
+          fontSize: fontSizes[level - 1],
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface,
+        );
+      },
+    )..showActions = (_) => false;
+
+    // 3. Todo List Builder (Refined)
+    map[TodoListBlockKeys.type] = TodoListBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(
+        padding: (node) => EdgeInsets.zero,
+      ),
+    )..showActions = (_) => false;
+
+    // 4. Bullet List Builder (Refined)
+    map[BulletedListBlockKeys.type] = BulletedListBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(
+        padding: (node) => EdgeInsets.zero,
+      ),
+    )..showActions = (_) => false;
+
+    // 5. Numbered List Builder (Refined)
+    map[NumberedListBlockKeys.type] = NumberedListBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(
+        padding: (node) => EdgeInsets.zero,
+      ),
+    )..showActions = (_) => false;
+
     return map;
   }
 

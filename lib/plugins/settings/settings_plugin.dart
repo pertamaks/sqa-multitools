@@ -585,17 +585,19 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
         ),
         Expanded(
           child: SqaFadeWrapper(
-            child: ReorderableListView.builder(
-              onReorder: (oldIndex, newIndex) {
-                ref
-                    .read(enabledPluginsProvider.notifier)
-                    .reorder(oldIndex, newIndex);
-              },
-              scrollController: _scrollController,
-              padding: const EdgeInsets.all(16.0),
-              itemCount: allPlugins.length,
-              buildDefaultDragHandles: false,
-              proxyDecorator: (child, index, animation) {
+            child: Scrollbar(
+              controller: _scrollController,
+              child: ReorderableListView.builder(
+                onReorder: (oldIndex, newIndex) {
+                  ref
+                      .read(enabledPluginsProvider.notifier)
+                      .reorder(oldIndex, newIndex);
+                },
+                scrollController: _scrollController,
+                padding: const EdgeInsets.all(16.0),
+                itemCount: allPlugins.length,
+                buildDefaultDragHandles: false,
+                proxyDecorator: (child, index, animation) {
                 return AnimatedBuilder(
                   animation: animation,
                   builder: (context, child) {
@@ -732,6 +734,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
             ),
           ),
         ),
+      ),
       ],
     );
   }

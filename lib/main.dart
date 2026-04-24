@@ -92,6 +92,7 @@ class SqaMultitoolsApp extends ConsumerWidget {
           darkScheme = darkDynamic.harmonized();
         } else {
           final seedColor = Color(settings.seedColorValue);
+          // Generate the accent-based scheme for primary/secondary roles
           lightScheme = ColorScheme.fromSeed(
             seedColor: seedColor,
             brightness: Brightness.light,
@@ -99,6 +100,44 @@ class SqaMultitoolsApp extends ConsumerWidget {
           darkScheme = ColorScheme.fromSeed(
             seedColor: seedColor,
             brightness: Brightness.dark,
+          );
+
+          // M3's fromSeed tints ALL colors with the seed hue, making
+          // "white" text/icons appear colored with saturated seeds.
+          // Override neutral roles with a grey-based scheme to keep
+          // surfaces and text clean while preserving the accent.
+          final neutralLight = ColorScheme.fromSeed(
+            seedColor: Colors.grey,
+            brightness: Brightness.light,
+          );
+          final neutralDark = ColorScheme.fromSeed(
+            seedColor: Colors.grey,
+            brightness: Brightness.dark,
+          );
+
+          lightScheme = lightScheme.copyWith(
+            surface: neutralLight.surface,
+            onSurface: neutralLight.onSurface,
+            onSurfaceVariant: neutralLight.onSurfaceVariant,
+            surfaceContainerLowest: neutralLight.surfaceContainerLowest,
+            surfaceContainerLow: neutralLight.surfaceContainerLow,
+            surfaceContainer: neutralLight.surfaceContainer,
+            surfaceContainerHigh: neutralLight.surfaceContainerHigh,
+            surfaceContainerHighest: neutralLight.surfaceContainerHighest,
+            outline: neutralLight.outline,
+            outlineVariant: neutralLight.outlineVariant,
+          );
+          darkScheme = darkScheme.copyWith(
+            surface: neutralDark.surface,
+            onSurface: neutralDark.onSurface,
+            onSurfaceVariant: neutralDark.onSurfaceVariant,
+            surfaceContainerLowest: neutralDark.surfaceContainerLowest,
+            surfaceContainerLow: neutralDark.surfaceContainerLow,
+            surfaceContainer: neutralDark.surfaceContainer,
+            surfaceContainerHigh: neutralDark.surfaceContainerHigh,
+            surfaceContainerHighest: neutralDark.surfaceContainerHighest,
+            outline: neutralDark.outline,
+            outlineVariant: neutralDark.outlineVariant,
           );
         }
 
@@ -110,6 +149,20 @@ class SqaMultitoolsApp extends ConsumerWidget {
             useMaterial3: true,
             colorScheme: lightScheme,
             pageTransitionsTheme: noTransitions,
+            scrollbarTheme: ScrollbarThemeData(
+              thumbVisibility: WidgetStateProperty.all(true),
+              trackVisibility: WidgetStateProperty.all(false),
+              thickness: WidgetStateProperty.all(8.0),
+              radius: const Radius.circular(4.0),
+              thumbColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.hovered) ||
+                    states.contains(WidgetState.dragged)) {
+                  return lightScheme?.primary.withValues(alpha: 0.8);
+                }
+                return lightScheme?.primary.withValues(alpha: 0.5);
+              }),
+              interactive: true,
+            ),
           ),
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
@@ -124,6 +177,20 @@ class SqaMultitoolsApp extends ConsumerWidget {
             useMaterial3: true,
             colorScheme: darkScheme,
             pageTransitionsTheme: noTransitions,
+            scrollbarTheme: ScrollbarThemeData(
+              thumbVisibility: WidgetStateProperty.all(true),
+              trackVisibility: WidgetStateProperty.all(false),
+              thickness: WidgetStateProperty.all(8.0),
+              radius: const Radius.circular(4.0),
+              thumbColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.hovered) ||
+                    states.contains(WidgetState.dragged)) {
+                  return darkScheme?.primary.withValues(alpha: 0.8);
+                }
+                return darkScheme?.primary.withValues(alpha: 0.5);
+              }),
+              interactive: true,
+            ),
           ),
           builder: (context, child) {
             final isScreenshotVisible = ref

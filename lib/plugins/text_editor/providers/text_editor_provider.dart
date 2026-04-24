@@ -32,6 +32,9 @@ class TextEditor extends _$TextEditor {
 
   void setViewMode(TextEditorViewMode mode) {
     state = state.copyWith(viewMode: mode);
+    if (mode == TextEditorViewMode.list) {
+      initialize();
+    }
   }
 
   void openEditor(TextDocument? document) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 import '../models/text_document.dart';
 
 class TextEditorStorageService {
@@ -21,27 +22,87 @@ class TextEditorStorageService {
       final dir = await _storageDir;
       final registryFile = File('${dir.path}${Platform.pathSeparator}$_registryFile');
       
-      if (!await registryFile.exists()) return [];
+      List<dynamic> registry = [];
+      if (await registryFile.exists()) {
+        try {
+          registry = jsonDecode(await registryFile.readAsString()) as List<dynamic>;
+        } catch (_) {
+          registry = [];
+        }
+      }
 
-      final content = await registryFile.readAsString();
-      final List<dynamic> json = jsonDecode(content) as List<dynamic>;
-      
+      // Phase 1: Load documents from registry
       final List<TextDocument> docs = [];
-      for (var entry in json) {
+      final Set<String> registeredFilenames = {};
+
+      for (var entry in registry) {
         final docMeta = TextDocument.fromJson(entry as Map<String, dynamic>);
-        // Get filename from the metadata or fallback to name
         final filename = _safeFilename(docMeta.name);
+        registeredFilenames.add('$filename.txt');
         final file = File('${dir.path}${Platform.pathSeparator}$filename.txt');
         
         if (await file.exists()) {
           final content = await file.readAsString();
           docs.add(docMeta.copyWith(content: content));
         } else {
-          // If file doesn't exist but it's in registry, it's missing
-          // We can still add it with empty content or skip it
+          // File missing from disk but in registry — keep with empty content
           docs.add(docMeta.copyWith(content: ''));
         }
       }
+
+      // Phase 2: Scan filesystem for orphan .txt files not in registry
+      bool registryDirty = false;
+      await for (final entity in dir.list()) {
+        if (entity is! File) continue;
+        final basename = entity.uri.pathSegments.last;
+        // Skip the registry file itself and any non-.txt files
+        if (basename == _registryFile || !basename.endsWith('.txt')) continue;
+        // Skip files already tracked by the registry
+        if (registeredFilenames.contains(basename)) continue;
+
+        // Orphan file found — import it
+        final content = await entity.readAsString();
+        final rawName = basename.substring(0, basename.length - 4); // strip .txt
+
+        // Try to extract a title from the first H1 line
+        String docName = rawName;
+        final lines = content.split('\n');
+        if (lines.isNotEmpty && lines.first.trim().startsWith('# ')) {
+          final extracted = lines.first.trim().substring(2).trim();
+          if (extracted.isNotEmpty) docName = extracted;
+        }
+
+        final newDoc = TextDocument(
+          id: const Uuid().v4(),
+          name: docName,
+          content: content,
+          lastModified: await entity.lastModified(),
+        );
+        docs.add(newDoc);
+
+        // Auto-register in the registry so it persists
+        registry.add(newDoc.copyWith(content: '').toJson());
+        registeredFilenames.add(basename);
+
+        // If imported name differs from filename, rename the file to match
+        final expectedFilename = '${_safeFilename(docName)}.txt';
+        if (expectedFilename != basename) {
+          final newPath = '${dir.path}${Platform.pathSeparator}$expectedFilename';
+          // Only rename if target doesn't already exist
+          if (!await File(newPath).exists()) {
+            await entity.rename(newPath);
+          }
+        }
+        registryDirty = true;
+      }
+
+      // Persist updated registry if new files were imported
+      if (registryDirty) {
+        await registryFile.writeAsString(
+          const JsonEncoder.withIndent('  ').convert(registry),
+        );
+      }
+
       return docs;
     } catch (e) {
       return [];

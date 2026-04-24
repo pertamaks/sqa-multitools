@@ -25,6 +25,7 @@ class TextEditorView extends ConsumerStatefulWidget {
 class _TextEditorViewState extends ConsumerState<TextEditorView> {
   late TextEditingController _nameController;
   late EditorState _editorState;
+  late EditorScrollController _editorScrollController;
   StreamSubscription<EditorTransactionValue>? _editorSubscription;
   late FocusNode _titleFocusNode;
   late FocusNode _editorFocusNode;
@@ -52,6 +53,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     }
     
     _editorState = EditorState(document: document);
+    _editorScrollController = EditorScrollController(
+      editorState: _editorState,
+      shrinkWrap: true, // Required for standard ScrollController & Scrollbar support
+    );
     
     _titleFocusNode = FocusNode();
     _titleFocusNode.addListener(_onTitleFocusChange);
@@ -256,12 +261,12 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           menuChildren: [
             _buildColorOption(context, 'None', null, node, position, editorState, direction),
             const Divider(height: 4),
-            _buildColorOption(context, 'Light Grey', '#F5F5F5', node, position, editorState, direction),
-            _buildColorOption(context, 'Sky Blue', '#E3F2FD', node, position, editorState, direction),
-            _buildColorOption(context, 'Mint Green', '#E8F5E9', node, position, editorState, direction),
-            _buildColorOption(context, 'Pale Yellow', '#FFFDE7', node, position, editorState, direction),
-            _buildColorOption(context, 'Rose', '#FFEBEE', node, position, editorState, direction),
-            _buildColorOption(context, 'Lavender', '#F3E5F5', node, position, editorState, direction),
+            _buildColorOption(context, 'Warm Sand', '#D7CCC8', node, position, editorState, direction),
+            _buildColorOption(context, 'Slate', '#B0BEC5', node, position, editorState, direction),
+            _buildColorOption(context, 'Soft Peach', '#FFCCBC', node, position, editorState, direction),
+            _buildColorOption(context, 'Dusty Sage', '#C8E6C9', node, position, editorState, direction),
+            _buildColorOption(context, 'Soft Lilac', '#D1C4E9', node, position, editorState, direction),
+            _buildColorOption(context, 'Pale Teal', '#B2DFDB', node, position, editorState, direction),
           ],
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -401,6 +406,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     _nameController.dispose();
     _editorSubscription?.cancel();
     _editorState.dispose();
+    _editorScrollController.dispose();
     _titleFocusNode.removeListener(_onTitleFocusChange);
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
@@ -426,6 +432,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       }
     });
   }
+
 
   void _onTitleFocusChange() {
     if (!_titleFocusNode.hasFocus && _isEditingTitle) {
@@ -622,12 +629,18 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
+                // NOTE: Do NOT wrap with an external Scrollbar here.
+                // In shrinkWrap mode, AppFlowy's PageBlockComponent creates its own
+                // internal SingleChildScrollView with an unshared ScrollController.
+                // The global ScrollbarThemeData handles scrollbar visibility instead.
                 child: AppFlowyEditor(
                   key: ValueKey(_editorState.hashCode),
                   editorState: _editorState,
                   autoFocus: true,
                   focusNode: _editorFocusNode,
                   blockComponentBuilders: _buildBlockComponentBuilders(),
+                  editorScrollController: _editorScrollController,
+                  shrinkWrap: true,
                   commandShortcutEvents: [
                     CommandShortcutEvent(
                       key: 'paste markdown refresh',
@@ -953,27 +966,32 @@ class SqaTableBlockComponentBuilder extends TableBlockComponentBuilder {
       showActions: widget.showActions,
       actionBuilder: widget.actionBuilder,
       actionTrailingBuilder: widget.actionTrailingBuilder,
-      child: Theme(
-        data: theme.copyWith(
-          iconTheme: IconThemeData(
-            color: theme.colorScheme.onSurfaceVariant,
-            size: 18,
-          ),
-          // MAINTENANCE: Standardize the hardcoded Card widgets in appflowy_editor's TableActionButton
-          cardTheme: CardThemeData(
-            color: theme.colorScheme.surfaceContainerHigh,
-            elevation: 0,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-              side: BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-                width: 1,
+      child: SqaFadeWrapper(
+        axis: Axis.horizontal,
+        showStart: true,
+        showEnd: true,
+        child: Theme(
+          data: theme.copyWith(
+            iconTheme: IconThemeData(
+              color: theme.colorScheme.onSurfaceVariant,
+              size: 18,
+            ),
+            // MAINTENANCE: Standardize the hardcoded Card widgets in appflowy_editor's TableActionButton
+            cardTheme: CardThemeData(
+              color: theme.colorScheme.surfaceContainerHigh,
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+                side: BorderSide(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+                  width: 1,
+                ),
               ),
             ),
           ),
+          child: widget,
         ),
-        child: widget,
       ),
     );
   }

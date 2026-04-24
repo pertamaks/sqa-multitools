@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// If [center] is true (default), it centers content vertically when it's
 /// smaller than the available height. This is useful for simple tools.
 /// Set [center] to false if content should stay at the top (e.g. IDE-like editors).
-class SqaPluginScrollableContent extends StatelessWidget {
+class SqaPluginScrollableContent extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final ScrollController? controller;
@@ -20,27 +20,46 @@ class SqaPluginScrollableContent extends StatelessWidget {
   });
 
   @override
+  State<SqaPluginScrollableContent> createState() => _SqaPluginScrollableContentState();
+}
+
+class _SqaPluginScrollableContentState extends State<SqaPluginScrollableContent> {
+  ScrollController? _internalController;
+
+  ScrollController get _effectiveController => 
+      widget.controller ?? (_internalController ??= ScrollController());
+
+  @override
+  void dispose() {
+    _internalController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        Widget content = child;
+        Widget content = widget.child;
 
-        if (center) {
+        if (widget.center) {
           content = ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - padding.vertical).clamp(
+              minHeight: (constraints.maxHeight - widget.padding.vertical).clamp(
                 0.0,
                 double.infinity,
               ),
             ),
-            child: Center(child: child),
+            child: Center(child: widget.child),
           );
         }
 
-        return SingleChildScrollView(
-          controller: controller,
-          padding: padding,
-          child: content,
+        return Scrollbar(
+          controller: _effectiveController,
+          child: SingleChildScrollView(
+            controller: _effectiveController,
+            padding: widget.padding,
+            child: content,
+          ),
         );
       },
     );

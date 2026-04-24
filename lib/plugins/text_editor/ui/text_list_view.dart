@@ -25,7 +25,24 @@ class TextListView extends ConsumerWidget {
       icon: Symbols.edit_note,
       title: 'Text Editor',
       description: 'Manage and edit your text documents.',
-      trailing: _buildNewDocumentButton(context, notifier),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Symbols.refresh, size: 20),
+            onPressed: () => notifier.initialize(),
+            tooltip: 'Refresh file list',
+            style: IconButton.styleFrom(
+              foregroundColor: theme.colorScheme.onSurfaceVariant,
+              padding: const EdgeInsets.all(8),
+              minimumSize: const Size(40, 40),
+              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+            ),
+          ),
+          const SizedBox(width: 4),
+          _buildNewDocumentButton(context, notifier),
+        ],
+      ),
       child: SqaPluginScrollableContent(
         child: state.isLoading
             ? Center(

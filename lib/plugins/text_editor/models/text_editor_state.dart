@@ -16,6 +16,7 @@ abstract class TextEditorState with _$TextEditorState {
     @Default(TextEditorViewMode.list) TextEditorViewMode viewMode,
     @Default(false) bool isSaving,
     @Default(false) bool isLoading,
+    @Default(false) bool hasUnsavedChanges,
     String? errorMessage,
   }) = _TextEditorState;
 }

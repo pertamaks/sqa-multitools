@@ -105,8 +105,30 @@ class TextEditorStorageService {
     }
   }
 
+  Future<String> getNextAvailableName(String baseName) async {
+    final dir = await _storageDir;
+    String candidate = baseName.isEmpty ? 'Document' : baseName;
+    String safeCandidate = _safeFilename(candidate);
+    
+    // Check if the file exists
+    int counter = 1;
+    File file = File('${dir.path}${Platform.pathSeparator}$safeCandidate.txt');
+    
+    while (await file.exists()) {
+      safeCandidate = _safeFilename('$candidate ($counter)');
+      file = File('${dir.path}${Platform.pathSeparator}$safeCandidate.txt');
+      counter++;
+    }
+    
+    return candidate == baseName ? (counter == 1 ? baseName : '$candidate (${counter - 1})') : (counter == 1 ? candidate : '$candidate (${counter - 1})');
+  }
+
+  // Refined helper to get the actual safe name for filesystem operations
+  String getSafeFilename(String name) => _safeFilename(name);
+
   String _safeFilename(String name) {
-    // Basic sanitization for filenames
-    return name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    if (name.trim().isEmpty) return 'Untitled';
+    // Remove or replace OS-prohibited characters
+    return name.trim().replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').replaceAll(RegExp(r'\s+'), ' ');
   }
 }

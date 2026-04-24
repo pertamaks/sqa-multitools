@@ -305,7 +305,7 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
             ? colorScheme.onPrimaryContainer
             : widget.color ?? colorScheme.onSurface,
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-        minimumSize: const Size(36, 36),
+        minimumSize: const Size(40, 40),
         padding: EdgeInsets.zero,
         splashFactory: NoSplash.splashFactory,
       ).copyWith(
@@ -315,23 +315,17 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
 
     // List of Secondary Menu Buttons
     final List<Widget> secondaryWidgets = secondaryActions.map((action) {
-      return Padding(
-        padding: EdgeInsets.only(
-          left: _expandToLeft ? 4.0 : 0.0,
-          right: _expandToLeft ? 0.0 : 4.0,
-        ),
-        child: SqaInlineTooltipTrigger(
-          tooltip: action.tooltip,
-          child: IconButton(
-            icon: Icon(action.icon, size: widget.iconSize),
-            onPressed: action.onPressed,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            color: action.color ?? widget.color ?? colorScheme.onSurface,
-            style: IconButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusMedium,
-              ),
+      return SqaInlineTooltipTrigger(
+        tooltip: action.tooltip,
+        child: IconButton(
+          icon: Icon(action.icon, size: widget.iconSize),
+          onPressed: action.onPressed,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          color: action.color ?? widget.color ?? colorScheme.onSurface,
+          style: IconButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: SqaStyles.radiusMedium,
             ),
           ),
         ),

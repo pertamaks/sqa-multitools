@@ -38,6 +38,7 @@ class TextEditor extends _$TextEditor {
     state = state.copyWith(
       activeDocument: document,
       viewMode: TextEditorViewMode.editor,
+      hasUnsavedChanges: false,
     );
   }
 
@@ -47,7 +48,7 @@ class TextEditor extends _$TextEditor {
 
     switch (type) {
       case TextTemplateType.bugReport:
-        name = "Bug Report ${DateTime.now().millisecond}";
+        name = "";
         initialContent = """# Bug Report
 ## Summary
 (Brief description)
@@ -66,7 +67,7 @@ class TextEditor extends _$TextEditor {
 - """;
         break;
       case TextTemplateType.devTicket:
-        name = "Dev Ticket ${DateTime.now().millisecond}";
+        name = "";
         initialContent = """# Development Ticket
 ## Summary
 (Goal)
@@ -78,7 +79,7 @@ class TextEditor extends _$TextEditor {
 - [ ] """;
         break;
       case TextTemplateType.empty:
-        name = "Untitled ${DateTime.now().millisecond}";
+        name = "";
         initialContent = "";
         break;
     }
@@ -94,6 +95,7 @@ class TextEditor extends _$TextEditor {
     state = state.copyWith(
       activeDocument: newDoc,
       viewMode: TextEditorViewMode.editor,
+      hasUnsavedChanges: true,
     );
   }
 
@@ -101,25 +103,56 @@ class TextEditor extends _$TextEditor {
     if (state.activeDocument == null) return;
     if (state.activeDocument!.content == content) return;
 
+    String name = state.activeDocument!.name;
+    
+    // R1: Parse title if the first line is H1
+    final lines = content.split('\n');
+    if (lines.isNotEmpty) {
+      final firstLine = lines.first.trim();
+      if (firstLine.startsWith('# ')) {
+        final extractedName = firstLine.substring(2).trim();
+        if (extractedName.isNotEmpty && extractedName != name) {
+          name = extractedName;
+        }
+      }
+    }
+
     state = state.copyWith(
       activeDocument: state.activeDocument!.copyWith(
+        name: name,
         content: content,
         lastModified: DateTime.now(),
       ),
+      hasUnsavedChanges: true,
     );
     _debouncedSave();
   }
 
   void updateName(String name) {
     if (state.activeDocument == null) return;
-    if (state.activeDocument!.name == name) return;
+    final doc = state.activeDocument!;
+    if (doc.name == name) return;
 
-    final oldName = state.activeDocument!.name;
+    final oldName = doc.name;
+    String content = doc.content;
+
+    // R3: Handle H1 at the very top. If we change the name in header, update the H1 in content.
+    final lines = content.split('\n');
+    if (lines.isNotEmpty && lines.first.trim().startsWith('# ')) {
+      lines[0] = '# $name';
+      content = lines.join('\n');
+    } else {
+      // If no H1 at top, we prepend it to "integrate" them as requested
+      content = '# $name\n\n$content';
+    }
+
     state = state.copyWith(
-      activeDocument: state.activeDocument!.copyWith(
+      activeDocument: doc.copyWith(
         name: name,
+        content: content,
         lastModified: DateTime.now(),
       ),
+      hasUnsavedChanges: true,
     );
     // Renaming should be saved immediately to avoid file system confusion
     saveDocument(oldName: oldName);
@@ -139,20 +172,31 @@ class TextEditor extends _$TextEditor {
     state = state.copyWith(isSaving: true);
     
     try {
-      await _storage.saveDocument(doc, oldName: oldName);
+      // R2: Force "Document (n)" if name is empty or handle duplicates
+      String finalName = doc.name;
+      final isNew = !state.documents.any((d) => d.id == doc.id);
+      
+      if (finalName.isEmpty || isNew || oldName != null) {
+        finalName = await _storage.getNextAvailableName(finalName);
+      }
+
+      final updatedDoc = doc.copyWith(name: finalName);
+      await _storage.saveDocument(updatedDoc, oldName: oldName);
       
       final updatedDocs = [...state.documents];
-      final index = updatedDocs.indexWhere((d) => d.id == doc.id);
+      final index = updatedDocs.indexWhere((d) => d.id == updatedDoc.id);
       
       if (index != -1) {
-        updatedDocs[index] = doc;
+        updatedDocs[index] = updatedDoc;
       } else {
-        updatedDocs.add(doc);
+        updatedDocs.add(updatedDoc);
       }
 
       state = state.copyWith(
+        activeDocument: updatedDoc,
         documents: _sortDocuments(updatedDocs),
         isSaving: false,
+        hasUnsavedChanges: false,
       );
       
       if (navigateToList) {

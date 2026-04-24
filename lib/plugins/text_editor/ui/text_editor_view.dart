@@ -91,13 +91,27 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       },
     )..showActions = (_) => false;
 
-    // 3. Table Builder
+    // 3. Table Builders
+    // MAINTENANCE NOTE: The appflowy_editor split table handling across two builders:
+    // - TableBlockComponentBuilder: Handles the table container and COLUMN handles (via TableCol).
+    // - TableCellBlockComponentBuilder: Handles individual cells and ROW handles (via TableCellBlockWidget).
+    // We override both to inject our standardized MenuAnchor system.
+    
     map[TableBlockKeys.type] = SqaTableBlockComponentBuilder(
       tableStyle: TableStyle(
         borderWidth: 1.0,
         borderColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
         borderHoverColor: theme.colorScheme.primary.withValues(alpha: 0.5),
+        addIcon: Icon(
+          Symbols.add,
+          size: 18,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
+      menuBuilder: _buildTableMenu,
+    );
+
+    map[TableCellBlockKeys.type] = SqaTableCellBlockComponentBuilder(
       menuBuilder: _buildTableMenu,
     );
 
@@ -945,9 +959,40 @@ class SqaTableBlockComponentBuilder extends TableBlockComponentBuilder {
             color: theme.colorScheme.onSurfaceVariant,
             size: 18,
           ),
+          // MAINTENANCE: Standardize the hardcoded Card widgets in appflowy_editor's TableActionButton
+          cardTheme: CardThemeData(
+            color: theme.colorScheme.surfaceContainerHigh,
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+              side: BorderSide(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+          ),
         ),
         child: widget,
       ),
+    );
+  }
+}
+
+/// A customized TableCellBlockComponentBuilder that injects SQA-standard row handles.
+/// In appflowy_editor, the row-level interaction handles are provided by the cell builder.
+class SqaTableCellBlockComponentBuilder extends TableCellBlockComponentBuilder {
+  SqaTableCellBlockComponentBuilder({super.menuBuilder});
+
+  @override
+  BlockComponentWidget build(BlockComponentContext blockComponentContext) {
+    final widget = super.build(blockComponentContext);
+
+    // Standardize the row handle behavior via the block wrapper pattern
+    return SqaBlockComponentWrapper(
+      node: widget.node,
+      configuration: widget.configuration,
+      child: widget,
     );
   }
 }

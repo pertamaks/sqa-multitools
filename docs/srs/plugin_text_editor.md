@@ -23,14 +23,14 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **Smart Copy**: Ability to copy content as both Plain Text (Raw MD) and Rich Text to preserve formatting in Office apps.
 
 ### 2.4 Table Editor
-- **Contextual Actions**: Click-triggered `MenuAnchor` system for row/column operations (insert, delete, clear).
+- **Contextual Actions**: Standardized `MenuAnchor` system for both row and column operations (insert, delete, clear).
 - **Styling Control**: High-fidelity background color picker and standardized 1.0px grid lines with a subtle 0.4 alpha transparency.
 
 ## 3. Technical Implementation
 - **State management**: `flutter_riverpod` with generated notifiers.
 - **Immutability**: `freezed` for `TextEditorState` and `TextDocument`.
 - **Block Customization Pattern**: 
-    - **Inheritance**: Custom builders inherit from `appflowy_editor` base classes to inject SQA logic.
+    - **Inheritance**: Custom builders (e.g., `SqaTableBlockComponentBuilder`, `SqaTableCellBlockComponentBuilder`) inherit from `appflowy_editor` base classes to inject SQA logic.
     - **Stabilization**: Structural mutations (e.g., column deletion) utilize `addPostFrameCallback` to prevent indexing race conditions.
     - **Themed Wrapping**: `SqaBlockComponentWrapper` standardizes action handle behavior and local block themes.
 - **Adaptive Physics**: Custom `AnimationController` listeners with scroll-offset compensation and `_lastWidth` tracking for drift-free retraction.

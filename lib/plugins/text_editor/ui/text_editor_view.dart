@@ -14,6 +14,14 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'widgets/code_block_builder.dart';
+import 'widgets/code_block_encoder_parser.dart';
+import 'widgets/table_node_encoder_parser.dart';
+import 'widgets/table_node_loader_parser.dart';
+import 'widgets/html_node_loader_parser.dart';
+import 'widgets/html_node_encoder_parser.dart';
+import 'widgets/html_block_builder.dart';
+import 'widgets/text_node_encoder_parsers.dart';
 
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
@@ -45,7 +53,14 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     if (initialContent.isEmpty) {
       document = Document.blank(withInitialText: true);
     } else {
-      document = markdownToDocument(initialContent);
+      document = markdownToDocument(
+        initialContent,
+        markdownParsers: [
+          const SqaMarkdownCodeBlockParser(),
+          const SqaMarkdownTableParser(),
+          const SqaMarkdownHtmlParser(),
+        ],
+      );
       // Ensure the document has at least one paragraph node for editing
       if (document.root.children.isEmpty) {
         document.root.children.add(paragraphNode());
@@ -68,6 +83,90 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         _onEditorChanged();
       }
     });
+  }
+
+  String _exportToMarkdown() {
+    return documentToMarkdown(
+      _editorState.document,
+      customParsers: [
+        const SqaHeadingNodeParser(),
+        const SqaParagraphNodeParser(),
+        const SqaCodeBlockNodeParser(),
+        const SqaTableNodeParser(),
+        const SqaHtmlNodeParser(),
+      ],
+    );
+  }
+
+  List<CommandShortcutEvent> _buildCommandShortcuts() {
+    return [
+      // 1. Standard Paste with SQA Markdown Support (The "Smart Paste")
+      CommandShortcutEvent(
+        key: 'smart_paste',
+        command: 'ctrl+v',
+        macOSCommand: 'cmd+v',
+        getDescription: () => 'Smart Paste',
+        handler: (editorState) {
+          final selection = editorState.selection;
+          if (selection == null) return KeyEventResult.ignored;
+
+          () async {
+            final data = await AppFlowyClipboard.getData();
+            final text = data.text;
+            if (text != null && text.isNotEmpty) {
+              // Check if it looks like Markdown
+              final isMarkdown = text.contains('```') || 
+                                 text.contains('# ') || 
+                                 text.contains('* ') || 
+                                 text.contains('- ') ||
+                                 text.contains('1. ');
+              
+              if (isMarkdown) {
+                final document = markdownToDocument(
+                  text,
+                  markdownParsers: [
+                    const SqaMarkdownCodeBlockParser(),
+                    const SqaMarkdownTableParser(),
+                    const SqaMarkdownHtmlParser(),
+                  ],
+                );
+                final nodes = document.root.children.toList();
+                if (nodes.isNotEmpty) {
+                  final transaction = editorState.transaction;
+                  
+                  // Perform a structural insertion at the current cursor
+                  transaction.insertNodes(selection.end.path, nodes);
+                  
+                  // Calculate the new selection (at the end of the inserted nodes)
+                  var newPath = selection.end.path;
+                  for (var i = 0; i < nodes.length - 1; i++) {
+                    newPath = newPath.next;
+                  }
+                  final lastNodeLen = nodes.lastOrNull?.delta?.length ?? 0;
+                  transaction.afterSelection = Selection.collapsed(
+                    Position(path: newPath, offset: lastNodeLen)
+                  );
+                  
+                  await editorState.apply(transaction);
+                  return;
+                }
+              }
+              
+              // Fallback: Insert as plain text paragraphs
+              final transaction = editorState.transaction;
+              final lines = text.split('\n');
+              final nodes = lines.map((line) => paragraphNode(delta: Delta()..insert(line))).toList();
+              transaction.insertNodes(selection.end.path, nodes);
+              await editorState.apply(transaction);
+            }
+          }();
+          return KeyEventResult.handled;
+        },
+      ),
+
+      ...tableCommands,
+      ...standardCommandShortcutEvents,
+    ];
   }
 
   Map<String, BlockComponentBuilder> _buildBlockComponentBuilders() {
@@ -115,17 +214,32 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       ),
       menuBuilder: _buildTableMenu,
     );
-
     map[TableCellBlockKeys.type] = SqaTableCellBlockComponentBuilder(
       menuBuilder: _buildTableMenu,
     );
+    
+    // 4. Custom Code Block Builder
+    final codeBlockBuilder = SqaCodeBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(
+        padding: (node) => EdgeInsets.zero,
+      ),
+    );
+    map['code'] = codeBlockBuilder;
+    map['code_block'] = codeBlockBuilder;
 
     // Hide handles for all other blocks
     for (final entry in map.entries) {
-      if (entry.key != HeadingBlockKeys.type && entry.key != ParagraphBlockKeys.type && entry.key != TableBlockKeys.type) {
+      if (entry.key != HeadingBlockKeys.type && 
+          entry.key != ParagraphBlockKeys.type && 
+          entry.key != TableBlockKeys.type &&
+          entry.key != 'code' &&
+          entry.key != 'code_block') {
         entry.value.showActions = (_) => false;
       }
     }
+
+    // 13. SQA HTML Safety Net Builder
+    map['raw_html'] = RawHtmlBlockComponentBuilder();
 
     return map;
   }
@@ -422,7 +536,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       
       try {
         final currentContent = ref.read(textEditorProvider).activeDocument?.content ?? '';
-        final newContent = documentToMarkdown(_editorState.document);
+        final newContent = _exportToMarkdown();
         if (newContent != currentContent) {
           ref.read(textEditorProvider.notifier).updateContent(newContent);
         }
@@ -639,47 +753,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   autoFocus: true,
                   focusNode: _editorFocusNode,
                   blockComponentBuilders: _buildBlockComponentBuilders(),
+                  commandShortcutEvents: _buildCommandShortcuts(),
                   editorScrollController: _editorScrollController,
                   shrinkWrap: true,
-                  commandShortcutEvents: [
-                    CommandShortcutEvent(
-                      key: 'paste markdown refresh',
-                      getDescription: () => 'Paste and Refresh',
-                      command: 'ctrl+v',
-                      macOSCommand: 'cmd+v',
-                      handler: (editorState) {
-                        () async {
-                          final data = await AppFlowyClipboard.getData();
-                          final text = data.text;
-                          if (text != null && text.isNotEmpty) {
-                            final selection = editorState.selection;
-                            if (selection == null) return;
-
-                            final document = markdownToDocument(text);
-                            final transaction = editorState.transaction;
-                            
-                            // Perform a structural insertion at the current cursor
-                            transaction.insertNodes(selection.end.path, document.root.children);
-                            
-                            // Calculate the new selection (at the end of the inserted nodes)
-                            var newPath = selection.end.path;
-                            for (var i = 0; i < document.root.children.length - 1; i++) {
-                              newPath = newPath.next;
-                            }
-                            final lastNodeLen = document.root.children.lastOrNull?.delta?.length ?? 0;
-                            transaction.afterSelection = Selection.collapsed(
-                              Position(path: newPath, offset: lastNodeLen)
-                            );
-
-                            await editorState.apply(transaction);
-                          }
-                        }();
-                        return KeyEventResult.handled;
-                      },
-                    ),
-                    ...tableCommands,
-                    ...standardCommandShortcutEvents,
-                  ],
                   editorStyle: EditorStyle.desktop(
                     padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 12.0),
                     maxWidth: 800.0,
@@ -887,8 +963,39 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   SqaFloatingBarButton(
                     icon: Symbols.code,
                     tooltip: 'Code Block',
-                    isSelected: _isAttributeToggled(AppFlowyRichTextKeys.code),
-                    onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.code),
+                    isSelected: _editorState.selection != null && 
+                                _editorState.getNodesInSelection(_editorState.selection!).any((n) => n.type == 'code'),
+                    onPressed: () {
+                      final selection = _editorState.selection;
+                      if (selection == null) return;
+                      
+                      final nodes = _editorState.getNodesInSelection(selection);
+                      final isCodeBlock = nodes.any((n) => n.type == 'code');
+                      
+                      if (isCodeBlock) {
+                        _editorState.formatNode(selection, (node) => node.copyWith(
+                          type: ParagraphBlockKeys.type,
+                          attributes: {
+                            ParagraphBlockKeys.delta: node.delta?.toJson() ?? [],
+                          },
+                        ));
+                      } else {
+                        _editorState.formatNode(selection, (node) => node.copyWith(
+                          type: 'code',
+                          attributes: {
+                            'delta': node.delta?.toJson() ?? [],
+                            'language': 'javascript', // Default
+                          },
+                        ));
+                      }
+                    },
+                    secondaryActions: [
+                      SqaFloatingSubAction(
+                        icon: Symbols.code_blocks,
+                        tooltip: 'Inline Code',
+                        onPressed: () => _editorState.toggleAttribute(AppFlowyRichTextKeys.code),
+                      ),
+                    ],
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.link,
@@ -924,7 +1031,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     icon: Symbols.content_copy,
                     tooltip: 'Copy Markdown',
                     onPressed: () {
-                      final md = documentToMarkdown(_editorState.document);
+                      final md = _exportToMarkdown();
                       Clipboard.setData(ClipboardData(text: md));
                     },
                     secondaryActions: [

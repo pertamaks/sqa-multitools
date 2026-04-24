@@ -21,6 +21,8 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **Adaptive Floating Toolbar**: Contextual "Action-First" multi-expansion (Primary action + secondary options on hover).
 - **Sync-Scroll Anchoring**: High-fidelity expansion with 150ms stabilization lock and frame-perfect retraction sync.
 - **Smart Copy**: Ability to copy content as both Plain Text (Raw MD) and Rich Text to preserve formatting in Office apps.
+- **High-Fidelity Round-Trip**: Ensures 100% preservation of table alignment, code block indentation, and complex HTML structures during save/load cycles.
+- **HTML Safety Net**: Visual identification and preservation of raw HTML blocks (tables, sections, anchors) that the editor doesn't natively support.
 
 ### 2.4 Table Editor
 - **Contextual Actions**: Standardized `MenuAnchor` system for both row and column operations (insert, delete, clear).
@@ -36,6 +38,11 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **Adaptive Physics**: Custom `AnimationController` listeners with scroll-offset compensation and `_lastWidth` tracking for drift-free retraction.
 - **Peeking Logic**: `SqaScrollVisibilityTrigger` (centralized widget) for intelligent clipping detection.
 - **Editor Engine**: `appflowy_editor` for block-based document handling and seamless Markdown round-trip serialization.
+- **High-Fidelity Serialization**:
+    - **Whitespace Firewall**: Custom `SqaHeadingNodeParser` and `SqaParagraphNodeParser` enforce mandatory double-newline (\n\n) separation to prevent structural 'bleeding' and Setext-heading ambiguity.
+    - **Metadata Retention**: `SqaTableNodeParser` and `SqaCodeBlockNodeParser` preserve alignment markers and nested indentation.
+    - **HTML Safety Net**: `SqaMarkdownHtmlParser` (loader) and `SqaHtmlNodeParser` (encoder) capture and reconstruct raw HTML tags, storing them in dedicated `raw_html` nodes.
+    - **UI Reconstruction**: `RawHtmlBlockComponentBuilder` renders preserved HTML in a themed mono-spaced container for visual clarity.
 
 ## 4. UI Standards
 - **Standardized Layout**: Follows the global SQA standard: **800px Max-Width** (Centered) with a seamless `surfaceContainerLow` background filling the window edges.

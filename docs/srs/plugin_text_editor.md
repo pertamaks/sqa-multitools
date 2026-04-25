@@ -23,6 +23,8 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **Smart Copy**: Ability to copy content as both Plain Text (Raw MD) and Rich Text to preserve formatting in Office apps.
 - **High-Fidelity Round-Trip**: Ensures 100% preservation of table alignment, code block indentation, and complex HTML structures during save/load cycles.
 - **HTML Safety Net**: Visual identification and preservation of raw HTML blocks (tables, sections, anchors) that the editor doesn't natively support.
+- **Quote Blocks**: Custom premium styling for blockquotes with primary-color vertical accents and italicized typography.
+- **Integrated Hyperlinks**: Standardized `MenuAnchor` system for adding, editing, and managing links with auto-protocol detection (e.g. `https://`) and quick actions.
 
 ### 2.4 Table Editor
 - **Contextual Actions**: Standardized `MenuAnchor` system for both row and column operations (insert, delete, clear).
@@ -42,6 +44,7 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
     - **Whitespace Firewall**: Custom `SqaHeadingNodeParser` and `SqaParagraphNodeParser` enforce mandatory double-newline (\n\n) separation to prevent structural 'bleeding' and Setext-heading ambiguity.
     - **Metadata Retention**: `SqaTableNodeParser` and `SqaCodeBlockNodeParser` preserve alignment markers and nested indentation.
     - **HTML Safety Net**: `SqaMarkdownHtmlParser` (loader) and `SqaHtmlNodeParser` (encoder) capture and reconstruct raw HTML tags, storing them in dedicated `raw_html` nodes.
+    - **Quote Fidelity**: `SqaQuoteNodeParser` ensures the `> ` prefix and mandatory double-newline (\n\n) separation to prevent structural corruption.
     - **UI Reconstruction**: `RawHtmlBlockComponentBuilder` renders preserved HTML in a themed mono-spaced container for visual clarity.
 
 ## 4. UI Standards

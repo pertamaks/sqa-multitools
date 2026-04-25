@@ -49,7 +49,8 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default([]) List<RecordingInfo> recentRecordings,
     Display? lockedDisplay,
     @Default(false) bool textHasBackground,
-    @JsonKey(includeFromJson: false, includeToJson: false) HotKey? registeredHotKey,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    HotKey? registeredHotKey,
   }) = _ScreenRecorderState;
 }
 

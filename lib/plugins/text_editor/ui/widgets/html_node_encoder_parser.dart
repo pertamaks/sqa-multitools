@@ -11,7 +11,7 @@ class SqaHtmlNodeParser extends NodeParser {
   @override
   String transform(Node node, DocumentMarkdownEncoder? encoder) {
     assert(node.type == 'raw_html');
-    
+
     final content = node.attributes['content'] as String? ?? '';
     // Use double newline to ensure absolute separation from the next block
     return '$content\n\n';

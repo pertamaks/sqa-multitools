@@ -17,11 +17,14 @@ class ScreenRecorderOverlay extends ConsumerStatefulWidget {
   const ScreenRecorderOverlay({super.key});
 
   @override
-  ConsumerState<ScreenRecorderOverlay> createState() => _ScreenRecorderOverlayState();
+  ConsumerState<ScreenRecorderOverlay> createState() =>
+      _ScreenRecorderOverlayState();
 }
 
 class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
-  final ValueNotifier<List<Annotation>> _annotationsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<Annotation>> _annotationsNotifier = ValueNotifier(
+    [],
+  );
 
   @override
   void dispose() {
@@ -32,14 +35,24 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
   @override
   Widget build(BuildContext context) {
     // 1. Structural properties that should trigger a full rebuild
-    final isVisible = ref.watch(screenRecorderProvider.select((s) => s.isOverlayVisible));
-    final isRecording = ref.watch(screenRecorderProvider.select((s) => s.isRecording));
+    final isVisible = ref.watch(
+      screenRecorderProvider.select((s) => s.isOverlayVisible),
+    );
+    final isRecording = ref.watch(
+      screenRecorderProvider.select((s) => s.isRecording),
+    );
     ref.watch(screenRecorderProvider.select((s) => s.currentTool));
     ref.watch(screenRecorderProvider.select((s) => s.annotationColor));
-    final countdownSeconds = ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
-    final delaySeconds = ref.watch(screenRecorderProvider.select((s) => s.delaySeconds));
-    final microphoneEnabled = ref.watch(screenRecorderProvider.select((s) => s.microphoneEnabled));
-    
+    final countdownSeconds = ref.watch(
+      screenRecorderProvider.select((s) => s.countdownSeconds),
+    );
+    final delaySeconds = ref.watch(
+      screenRecorderProvider.select((s) => s.delaySeconds),
+    );
+    final microphoneEnabled = ref.watch(
+      screenRecorderProvider.select((s) => s.microphoneEnabled),
+    );
+
     // UI structural changes that must trigger a rebuild
     ref.watch(screenRecorderProvider.select((s) => s.durationSeconds));
     ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
@@ -53,7 +66,10 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
     if (!isVisible) return const SizedBox.shrink();
 
     // 2. Listen to annotations to update the notifier WITHOUT rebuilding the skeleton
-    ref.listen(screenRecorderProvider.select((s) => s.annotations), (prev, next) {
+    ref.listen(screenRecorderProvider.select((s) => s.annotations), (
+      prev,
+      next,
+    ) {
       if (prev != next) {
         _annotationsNotifier.value = next;
       }
@@ -84,7 +100,9 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
         if (!isRecording)
           SqaFloatingBarButton(
             icon: Symbols.close,
-            tooltip: countdownSeconds > 0 ? 'Cancel Countdown' : 'Cancel Overlay',
+            tooltip: countdownSeconds > 0
+                ? 'Cancel Countdown'
+                : 'Cancel Overlay',
             onPressed: () {
               if (countdownSeconds > 0) {
                 notifier.cancelCountdown();
@@ -113,12 +131,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
               if (val != null) notifier.setDelay(val);
             },
             items: [0, 2, 5, 10]
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text('${e}s'),
-                  ),
-                )
+                .map((e) => DropdownMenuItem(value: e, child: Text('${e}s')))
                 .toList(),
           ),
         ],
@@ -156,7 +169,6 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
   }
 }
 
-
 class _RecorderDelegate implements CaptureOverlayDelegate {
   final ScreenRecorderState _state;
   final ScreenRecorderNotifier _notifier;
@@ -164,42 +176,80 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
 
   _RecorderDelegate(this._state, this._notifier, this._annotationsNotifier);
 
-  @override bool get isOverlayVisible => _state.isOverlayVisible;
-  @override bool get isTargetingWindow => _state.isTargetingWindow;
-  @override CaptureMode get captureMode => _state.captureMode;
-  @override Rect? get selectionRect => _state.selectionRect;
-  @override Rect? get targetedWindowRect => _state.targetedWindowRect;
-  @override String? get targetWindowName => _state.targetWindowName;
-  @override List<Annotation> get annotations => _annotationsNotifier.value;
-  @override Listenable? get annotationsChanged => _annotationsNotifier;
-  @override Color get annotationColor => _state.annotationColor;
-  @override ScreenshotTool get currentTool => _state.currentTool;
-  @override bool get textHasBackground => _state.textHasBackground;
-  @override Display? get lockedDisplay => _state.lockedDisplay;
-  @override List<Display> get availableDisplays => _state.availableDisplays;
-
-  @override void setSelection(Rect? rect, [Display? display]) => _notifier.setSelection(rect, display);
-  @override bool get isRecording => _state.isRecording;
-  @override bool get isPaused => _state.isPaused;
-  @override int get durationSeconds => _state.durationSeconds;
-  @override int get countdownSeconds => _state.countdownSeconds;
-  @override bool get isCompactLayout => !_state.isRecording;
-  
-  @override bool get isCapturing => false;
-  @override bool get enableClickFeedback => true;
-  @override bool get enableMousePassthrough => true;
-  @override Color get clickFeedbackColor => _state.clickFeedbackColor;
-  @override Color get rightClickFeedbackColor => _state.rightClickFeedbackColor;
-
-  @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
-  @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
-  @override void removeAnnotation(Annotation annotation) => _notifier.removeAnnotation(annotation);
-  @override void setTextHasBackground(bool value) => _notifier.setTextHasBackground(value);
-  @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
+  @override
+  bool get isOverlayVisible => _state.isOverlayVisible;
+  @override
+  bool get isTargetingWindow => _state.isTargetingWindow;
+  @override
+  CaptureMode get captureMode => _state.captureMode;
+  @override
+  Rect? get selectionRect => _state.selectionRect;
+  @override
+  Rect? get targetedWindowRect => _state.targetedWindowRect;
+  @override
+  String? get targetWindowName => _state.targetWindowName;
+  @override
+  List<Annotation> get annotations => _annotationsNotifier.value;
+  @override
+  Listenable? get annotationsChanged => _annotationsNotifier;
+  @override
+  Color get annotationColor => _state.annotationColor;
+  @override
+  ScreenshotTool get currentTool => _state.currentTool;
+  @override
+  bool get textHasBackground => _state.textHasBackground;
+  @override
+  Display? get lockedDisplay => _state.lockedDisplay;
+  @override
+  List<Display> get availableDisplays => _state.availableDisplays;
 
   @override
-  Future<void> setIgnoreMouseEvents(bool ignore) => _notifier.setIgnoreMouseEvents(ignore);
+  void setSelection(Rect? rect, [Display? display]) =>
+      _notifier.setSelection(rect, display);
+  @override
+  bool get isRecording => _state.isRecording;
+  @override
+  bool get isPaused => _state.isPaused;
+  @override
+  int get durationSeconds => _state.durationSeconds;
+  @override
+  int get countdownSeconds => _state.countdownSeconds;
+  @override
+  bool get isCompactLayout => !_state.isRecording;
+
+  @override
+  bool get isCapturing => false;
+  @override
+  bool get enableClickFeedback => true;
+  @override
+  bool get enableMousePassthrough => true;
+  @override
+  Color get clickFeedbackColor => _state.clickFeedbackColor;
+  @override
+  Color get rightClickFeedbackColor => _state.rightClickFeedbackColor;
+
+  @override
+  void addAnnotation(Annotation annotation) =>
+      _notifier.addAnnotation(annotation);
+  @override
+  void updateLastAnnotation(Annotation annotation) =>
+      _notifier.updateLastAnnotation(annotation);
+  @override
+  void removeAnnotation(Annotation annotation) =>
+      _notifier.removeAnnotation(annotation);
+  @override
+  void setTextHasBackground(bool value) =>
+      _notifier.setTextHasBackground(value);
+  @override
+  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) =>
+      _notifier.updateTargetedWindow(rect, name, hwnd);
+  @override
+  void confirmTargetWindow(Rect rect, String title) =>
+      _notifier.confirmTargetWindow(rect, title);
+
+  @override
+  Future<void> setIgnoreMouseEvents(bool ignore) =>
+      _notifier.setIgnoreMouseEvents(ignore);
 
   @override
   Future<void> cancelOverlay() => _notifier.cancelOverlay();

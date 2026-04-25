@@ -35,10 +35,7 @@ class SqaFloatingBar extends StatefulWidget {
 
 /// An internal scope to mark the toolbar context.
 class SqaFloatingBarScope extends InheritedWidget {
-  const SqaFloatingBarScope({
-    super.key,
-    required super.child,
-  });
+  const SqaFloatingBarScope({super.key, required super.child});
 
   static SqaFloatingBarScope? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<SqaFloatingBarScope>();
@@ -48,7 +45,8 @@ class SqaFloatingBarScope extends InheritedWidget {
   bool updateShouldNotify(SqaFloatingBarScope oldWidget) => false;
 }
 
-class _SqaFloatingBarState extends State<SqaFloatingBar> with TickerProviderStateMixin {
+class _SqaFloatingBarState extends State<SqaFloatingBar>
+    with TickerProviderStateMixin {
   late final ScrollController _scrollController;
   bool _isScrolling = false;
   bool _isHovered = false;
@@ -106,7 +104,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return MouseRegion(
       onEnter: (_) => _setHover(true),
       onExit: (_) => _setHover(false),
@@ -146,9 +144,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar> with TickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Fixed Leading Anchor (Always visible)
-                    if (widget.leading != null) ...[
-                      ...widget.leading!,
-                    ],
+                    if (widget.leading != null) ...[...widget.leading!],
 
                     // Flexible Scrollable Center (Collapses)
                     Flexible(
@@ -158,42 +154,46 @@ class _SqaFloatingBarState extends State<SqaFloatingBar> with TickerProviderStat
                         alignment: Alignment.centerLeft,
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
-                          child: _isHovered 
-                            ? Padding(
-                                key: const ValueKey('tools'),
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: SqaFadeWrapper(
-                                  axis: Axis.horizontal,
-                                  child: ScrollConfiguration(
-                                    behavior: const SqaMouseDragScrollBehavior(),
-                                    child: SingleChildScrollView(
-                                      controller: _scrollController,
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: widget.children,
+                          child: _isHovered
+                              ? Padding(
+                                  key: const ValueKey('tools'),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: SqaFadeWrapper(
+                                    axis: Axis.horizontal,
+                                    child: ScrollConfiguration(
+                                      behavior:
+                                          const SqaMouseDragScrollBehavior(),
+                                      child: SingleChildScrollView(
+                                        controller: _scrollController,
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: widget.children,
+                                        ),
                                       ),
                                     ),
                                   ),
+                                )
+                              : Padding(
+                                  key: const ValueKey('more'),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0,
+                                  ),
+                                  child: Icon(
+                                    Icons.more_horiz,
+                                    size: 18,
+                                    color: theme.colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.5),
+                                  ),
                                 ),
-                              )
-                            : Padding(
-                                key: const ValueKey('more'),
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                child: Icon(
-                                  Icons.more_horiz,
-                                  size: 18,
-                                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                                ),
-                              ),
                         ),
                       ),
                     ),
 
                     // Fixed Trailing Anchor (Always visible)
-                    if (widget.trailing != null) ...[
-                      ...widget.trailing!,
-                    ],
+                    if (widget.trailing != null) ...[...widget.trailing!],
                   ],
                 ),
               ),
@@ -251,7 +251,8 @@ class SqaFloatingBarButton extends StatefulWidget {
   State<SqaFloatingBarButton> createState() => _SqaFloatingBarButtonState();
 }
 
-class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with TickerProviderStateMixin {
+class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
+    with TickerProviderStateMixin {
   bool _isHovered = false;
   bool _expandToLeft = false;
   double _lastWidth = 0.0;
@@ -278,11 +279,11 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
     final bool hasSecondary = widget.secondaryActions?.isNotEmpty ?? false;
     // Remove !_isHovered check so we can handle retraction deltas
     if (!mounted || !hasSecondary || !_expandToLeft) return;
-    
+
     final totalSecondaryWidth = widget.secondaryActions!.length * 40.0;
     final currentWidth = _expansionAnimation.value * totalSecondaryWidth;
     final scrollable = Scrollable.maybeOf(context);
-    
+
     if (scrollable != null) {
       final position = scrollable.position;
       final delta = currentWidth - _lastWidth;
@@ -307,20 +308,21 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
 
     // Smart Boundary Detection (Toolbar-Aware ONLY)
     bool hitsToolbarEdge = false;
-    
+
     // Find the toolbar ancestor state to get its render box safely
     final barState = context.findAncestorStateOfType<_SqaFloatingBarState>();
     final barBox = barState?.context.findRenderObject() as RenderBox?;
 
     if (barBox != null) {
       final totalSecondaryWidth = (widget.secondaryActions?.length ?? 0) * 40.0;
-      
+
       // Calculate button position RELATIVE to the toolbar
       final localPos = renderBox.localToGlobal(Offset.zero, ancestor: barBox);
       final buttonRightLocal = localPos.dx + renderBox.size.width;
-      
+
       // Pivot if expanding to the right would exceed the bar width
-      hitsToolbarEdge = (buttonRightLocal + totalSecondaryWidth) > barBox.size.width;
+      hitsToolbarEdge =
+          (buttonRightLocal + totalSecondaryWidth) > barBox.size.width;
     }
 
     setState(() {
@@ -352,18 +354,25 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
     Widget primaryButton = IconButton(
       icon: content,
       onPressed: widget.isLoading ? null : widget.onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: widget.isSelected ? colorScheme.primaryContainer : null,
-        foregroundColor: widget.isSelected
-            ? colorScheme.onPrimaryContainer
-            : widget.color ?? colorScheme.onSurface,
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-        minimumSize: const Size(40, 40),
-        padding: EdgeInsets.zero,
-        splashFactory: NoSplash.splashFactory,
-      ).copyWith(
-        overlayColor: SqaStyles.buttonOverlay(context, baseColor: widget.color, silent: true),
-      ),
+      style:
+          IconButton.styleFrom(
+            backgroundColor: widget.isSelected
+                ? colorScheme.primaryContainer
+                : null,
+            foregroundColor: widget.isSelected
+                ? colorScheme.onPrimaryContainer
+                : widget.color ?? colorScheme.onSurface,
+            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+            minimumSize: const Size(40, 40),
+            padding: EdgeInsets.zero,
+            splashFactory: NoSplash.splashFactory,
+          ).copyWith(
+            overlayColor: SqaStyles.buttonOverlay(
+              context,
+              baseColor: widget.color,
+              silent: true,
+            ),
+          ),
     );
 
     // List of Secondary Menu Buttons
@@ -377,9 +386,7 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           color: action.color ?? widget.color ?? colorScheme.onSurface,
           style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: SqaStyles.radiusMedium,
-            ),
+            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
           ),
         ),
       );
@@ -391,11 +398,13 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
         hitTestBehavior: HitTestBehavior.opaque,
         onEnter: (_) {
           _updateExpansionDirection();
-          
+
           // Find the bar state to check if we are currently scrolling/locked
-          final barState = context.findAncestorStateOfType<_SqaFloatingBarState>();
-          if (barState != null && barState.isScrolling) return; // Wait for scrolling to settle
-          
+          final barState = context
+              .findAncestorStateOfType<_SqaFloatingBarState>();
+          if (barState != null && barState.isScrolling)
+            return; // Wait for scrolling to settle
+
           // Halt any active scroll momentum before starting expansion
           // This prevents the 'Sync-Scroll' logic from fighting with active scroll physics.
           final scrollable = Scrollable.maybeOf(context);
@@ -414,21 +423,27 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
           if (hasSecondary) _expansionController.reverse();
         }),
         child: Align(
-          alignment: _expandToLeft ? Alignment.centerRight : Alignment.centerLeft,
+          alignment: _expandToLeft
+              ? Alignment.centerRight
+              : Alignment.centerLeft,
           child: AnimatedBuilder(
             animation: _expansionAnimation,
             builder: (context, child) {
               final totalSecondaryWidth = secondaryActions.length * 40.0;
-              final animatedWidth = hasSecondary ? (_expansionAnimation.value * totalSecondaryWidth) : 0.0;
-              
+              final animatedWidth = hasSecondary
+                  ? (_expansionAnimation.value * totalSecondaryWidth)
+                  : 0.0;
+
               return Container(
                 width: 40.0 + animatedWidth,
                 height: 40.0,
                 decoration: BoxDecoration(
-                  color: widget.isSelected 
-                    ? colorScheme.primaryContainer 
-                    : (_isHovered && hasSecondary) 
-                      ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
+                  color: widget.isSelected
+                      ? colorScheme.primaryContainer
+                      : (_isHovered && hasSecondary)
+                      ? theme.colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.3,
+                        )
                       : null,
                   borderRadius: SqaStyles.radiusMedium,
                 ),
@@ -436,18 +451,24 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
                   child: OverflowBox(
                     maxWidth: 40.0 + totalSecondaryWidth,
                     minWidth: 40.0,
-                    alignment: _expandToLeft ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: _expandToLeft
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (hasSecondary && _isHovered && _expandToLeft) 
-                          ...secondaryWidgets.reversed.map((w) => SqaScrollVisibilityTrigger(child: w)),
+                        if (hasSecondary && _isHovered && _expandToLeft)
+                          ...secondaryWidgets.reversed.map(
+                            (w) => SqaScrollVisibilityTrigger(child: w),
+                          ),
                         SqaInlineTooltipTrigger(
                           tooltip: widget.tooltip,
                           child: primaryButton,
                         ),
-                        if (hasSecondary && _isHovered && !_expandToLeft) 
-                          ...secondaryWidgets.map((w) => SqaScrollVisibilityTrigger(child: w)),
+                        if (hasSecondary && _isHovered && !_expandToLeft)
+                          ...secondaryWidgets.map(
+                            (w) => SqaScrollVisibilityTrigger(child: w),
+                          ),
                       ],
                     ),
                   ),
@@ -460,7 +481,6 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton> with Ticker
     );
   }
 }
-
 
 /// A standardized vertical divider for grouping actions in SqaFloatingBar.
 class SqaFloatingBarDivider extends StatelessWidget {
@@ -549,7 +569,8 @@ class SqaFloatingBarDragHandle extends StatefulWidget {
   });
 
   @override
-  State<SqaFloatingBarDragHandle> createState() => _SqaFloatingBarDragHandleState();
+  State<SqaFloatingBarDragHandle> createState() =>
+      _SqaFloatingBarDragHandleState();
 }
 
 class _SqaFloatingBarDragHandleState extends State<SqaFloatingBarDragHandle> {

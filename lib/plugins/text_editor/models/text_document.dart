@@ -3,11 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'text_document.freezed.dart';
 part 'text_document.g.dart';
 
-enum TextTemplateType {
-  empty,
-  bugReport,
-  devTicket,
-}
+enum TextTemplateType { empty, bugReport, devTicket }
 
 @freezed
 abstract class TextDocument with _$TextDocument {

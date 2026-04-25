@@ -36,7 +36,9 @@ class TextListView extends ConsumerWidget {
               foregroundColor: theme.colorScheme.onSurfaceVariant,
               padding: const EdgeInsets.all(8),
               minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              shape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusLarge,
+              ),
             ),
           ),
           const SizedBox(width: 4),
@@ -54,8 +56,8 @@ class TextListView extends ConsumerWidget {
                 ),
               )
             : state.documents.isEmpty
-                ? _buildEmptyState(context, notifier)
-                : Column(
+            ? _buildEmptyState(context, notifier)
+            : Column(
                 children: state.documents.map((doc) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
@@ -92,9 +94,9 @@ class TextListView extends ConsumerWidget {
                                 Text(
                                   'Last modified: ${DateFormat.yMMMd().add_Hm().format(doc.lastModified)}',
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant
-                                            .withValues(alpha: 0.7),
-                                      ),
+                                    color: theme.colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.7),
+                                  ),
                                 ),
                               ],
                             ),
@@ -140,7 +142,9 @@ class TextListView extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: SqaStyles.radiusMedium,
       ),
       child: Icon(
@@ -151,9 +155,13 @@ class TextListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, TextEditor notifier, TextDocument doc) {
+  Widget _buildActions(
+    BuildContext context,
+    TextEditor notifier,
+    TextDocument doc,
+  ) {
     final theme = Theme.of(context);
-    
+
     return MenuAnchor(
       alignmentOffset: const Offset(-100, 8),
       style: MenuStyle(
@@ -194,25 +202,20 @@ class TextListView extends ConsumerWidget {
             notifier.copyContent(doc.content);
           },
         ),
-        _buildActionItem(
-          context,
-          'Delete',
-          Symbols.delete,
-          Colors.red,
-          () async {
-            final confirm = await SqaModal.showConfirm(
-              context,
-              title: 'Delete Document',
-              message: 'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
-              confirmLabel: 'Delete',
-              confirmColor: theme.colorScheme.error,
-              icon: Symbols.delete_forever,
-            );
-            if (confirm == true) {
-              notifier.deleteDocument(doc.id);
-            }
-          },
-        ),
+        _buildActionItem(context, 'Delete', Symbols.delete, Colors.red, () async {
+          final confirm = await SqaModal.showConfirm(
+            context,
+            title: 'Delete Document',
+            message:
+                'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            confirmColor: theme.colorScheme.error,
+            icon: Symbols.delete_forever,
+          );
+          if (confirm == true) {
+            notifier.deleteDocument(doc.id);
+          }
+        }),
       ],
       builder: (context, controller, child) {
         return IconButton(
@@ -242,7 +245,7 @@ class TextListView extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
     final effectiveColor = color ?? theme.colorScheme.onSurface;
-    
+
     return MenuItemButton(
       onPressed: onPressed,
       style: MenuItemButton.styleFrom(
@@ -268,14 +271,19 @@ class TextListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildNewDocumentButton(BuildContext context, TextEditor notifier, {bool isTonal = false}) {
+  Widget _buildNewDocumentButton(
+    BuildContext context,
+    TextEditor notifier, {
+    bool isTonal = false,
+  }) {
     final theme = Theme.of(context);
     final String label = isTonal ? 'Create First Document' : 'New Document';
     final bool hasIcon = !isTonal;
 
     // Estimate width based on SqaButton styling (12px bold text, icons, and padding)
     // Roughly: chars * 7.2px + icon(18px) + gap(8px) + padding(24px)
-    final double estimatedWidth = (label.length * 7.2) + (hasIcon ? 26.0 : 0) + 24.0;
+    final double estimatedWidth =
+        (label.length * 7.2) + (hasIcon ? 26.0 : 0) + 24.0;
     final double width = estimatedWidth.clamp(140.0, 240.0);
 
     return MenuAnchor(
@@ -350,7 +358,7 @@ class TextListView extends ConsumerWidget {
     double width,
   ) {
     final theme = Theme.of(context);
-    
+
     return MenuItemButton(
       onPressed: () => notifier.createFromTemplate(type),
       style: MenuItemButton.styleFrom(

@@ -5,16 +5,18 @@ class HotkeyInfo {
   final int keyCode;
   final List<int> modifierIndices;
 
-  const HotkeyInfo({
-    required this.keyCode,
-    required this.modifierIndices,
-  });
+  const HotkeyInfo({required this.keyCode, required this.modifierIndices});
 
   /// Converts this info to a hotkey_manager HotKey object.
-  HotKey toHotKey({String? identifier, HotKeyScope scope = HotKeyScope.system}) {
+  HotKey toHotKey({
+    String? identifier,
+    HotKeyScope scope = HotKeyScope.system,
+  }) {
     return HotKey(
       key: LogicalKeyboardKey(keyCode),
-      modifiers: modifierIndices.map((index) => HotKeyModifier.values[index]).toList(),
+      modifiers: modifierIndices
+          .map((index) => HotKeyModifier.values[index])
+          .toList(),
       identifier: identifier,
       scope: scope,
     );
@@ -30,7 +32,7 @@ class HotkeyInfo {
       // Fallback for physical keys if encountered
       keyCode = key.usbHidUsage;
     }
-    
+
     return HotkeyInfo(
       keyCode: keyCode,
       modifierIndices: hotKey.modifiers?.map((m) => m.index).toList() ?? [],
@@ -39,10 +41,7 @@ class HotkeyInfo {
 
   /// Serialization for SharedPreferences
   Map<String, dynamic> toJson() {
-    return {
-      'keyCode': keyCode,
-      'modifiers': modifierIndices,
-    };
+    return {'keyCode': keyCode, 'modifiers': modifierIndices};
   }
 
   factory HotkeyInfo.fromJson(Map<String, dynamic> json) {
@@ -55,10 +54,15 @@ class HotkeyInfo {
   @override
   String toString() {
     final modifiers = modifierIndices
-        .map((i) => HotKeyModifier.values[i].toString().split('.').last.toUpperCase())
+        .map(
+          (i) =>
+              HotKeyModifier.values[i].toString().split('.').last.toUpperCase(),
+        )
         .join(' + ');
     final keyLabel = LogicalKeyboardKey(keyCode).keyLabel;
-    final key = (keyLabel == ' ' || keyLabel.isEmpty) ? 'SPACE' : keyLabel.toUpperCase();
+    final key = (keyLabel == ' ' || keyLabel.isEmpty)
+        ? 'SPACE'
+        : keyLabel.toUpperCase();
     return modifiers.isEmpty ? key : '$modifiers + $key';
   }
 
@@ -72,11 +76,11 @@ class HotkeyInfo {
 
   @override
   int get hashCode => keyCode.hashCode ^ modifierIndices.hashCode;
-  
+
   bool _listEquals(List<int> a, List<int> b) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
-        if (a[i] != b[i]) return false;
+      if (a[i] != b[i]) return false;
     }
     return true;
   }

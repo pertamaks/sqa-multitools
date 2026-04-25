@@ -152,11 +152,18 @@ class _ScreenshotSettings extends ConsumerWidget {
             onSave: (info) {
               final error = ref
                   .read(hotkeySettingsProvider.notifier)
-                  .updateHotkey(PreferencesService.keyHotkeyScreenshotToggle, info);
+                  .updateHotkey(
+                    PreferencesService.keyHotkeyScreenshotToggle,
+                    info,
+                  );
               if (error != null) {
                 SqaToast.show(context, error, type: SqaToastType.error);
               } else {
-                SqaToast.show(context, 'Screenshot hotkey updated!', type: SqaToastType.success);
+                SqaToast.show(
+                  context,
+                  'Screenshot hotkey updated!',
+                  type: SqaToastType.success,
+                );
               }
             },
           ),

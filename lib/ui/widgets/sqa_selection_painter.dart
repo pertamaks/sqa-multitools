@@ -48,7 +48,8 @@ class SqaSelectionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // 1. Draw Dimming Layer (Spotlight)
     if (!isCapturing) {
-      final backgroundPaint = Paint()..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
+      final backgroundPaint = Paint()
+        ..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
 
       if (selectionRect != null) {
         final path = Path()
@@ -70,20 +71,30 @@ class SqaSelectionPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
-      canvas.drawRRect(RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)), targetPaint);
-      canvas.drawRRect(RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)), borderPaint);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
+        targetPaint,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(4)),
+        borderPaint,
+      );
     } else if (!isCapturing && selectionRect != null) {
       // 3. Draw Active Selection Border (Glow & Brackets)
       final color = isRecording ? Colors.red : Colors.blue;
       final breathe = animationValue;
 
       final glowPaint = Paint()
-        ..color = color.withValues(alpha: isRecording ? (0.2 + breathe * 0.3) : 0.2)
+        ..color = color.withValues(
+          alpha: isRecording ? (0.2 + breathe * 0.3) : 0.2,
+        )
         ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 8.0);
       canvas.drawRect(selectionRect!, glowPaint);
 
       final borderPaint = Paint()
-        ..color = color.withValues(alpha: isRecording ? (0.8 + breathe * 0.2) : 0.8)
+        ..color = color.withValues(
+          alpha: isRecording ? (0.8 + breathe * 0.2) : 0.8,
+        )
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
       canvas.drawRect(selectionRect!.inflate(4.0), borderPaint);
@@ -97,10 +108,34 @@ class SqaSelectionPainter extends CustomPainter {
       const double bracketSize = 20.0;
       final r = selectionRect!.inflate(4.0);
 
-      canvas.drawPath(Path()..moveTo(r.left, r.top + bracketSize)..lineTo(r.left, r.top)..lineTo(r.left + bracketSize, r.top), bracketPaint);
-      canvas.drawPath(Path()..moveTo(r.right - bracketSize, r.top)..lineTo(r.right, r.top)..lineTo(r.right, r.top + bracketSize), bracketPaint);
-      canvas.drawPath(Path()..moveTo(r.right, r.bottom - bracketSize)..lineTo(r.right, r.bottom)..lineTo(r.right - bracketSize, r.bottom), bracketPaint);
-      canvas.drawPath(Path()..moveTo(r.left + bracketSize, r.bottom)..lineTo(r.left, r.bottom)..lineTo(r.left, r.bottom - bracketSize), bracketPaint);
+      canvas.drawPath(
+        Path()
+          ..moveTo(r.left, r.top + bracketSize)
+          ..lineTo(r.left, r.top)
+          ..lineTo(r.left + bracketSize, r.top),
+        bracketPaint,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(r.right - bracketSize, r.top)
+          ..lineTo(r.right, r.top)
+          ..lineTo(r.right, r.top + bracketSize),
+        bracketPaint,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(r.right, r.bottom - bracketSize)
+          ..lineTo(r.right, r.bottom)
+          ..lineTo(r.right - bracketSize, r.bottom),
+        bracketPaint,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(r.left + bracketSize, r.bottom)
+          ..lineTo(r.left, r.bottom)
+          ..lineTo(r.left, r.bottom - bracketSize),
+        bracketPaint,
+      );
     }
 
     // 4. Draw Existing Annotations
@@ -136,24 +171,28 @@ class SqaSelectionPainter extends CustomPainter {
       final radius = ripple.maxRadius * progress;
 
       final ripplePaint = Paint()
-        ..color = ripple.isRightClick ? rightClickFeedbackColor.withValues(alpha: opacity * 0.6) : clickFeedbackColor.withValues(alpha: opacity * 0.6)
+        ..color = ripple.isRightClick
+            ? rightClickFeedbackColor.withValues(alpha: opacity * 0.6)
+            : clickFeedbackColor.withValues(alpha: opacity * 0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
 
       canvas.drawCircle(ripple.position, radius, ripplePaint);
 
       final corePaint = Paint()
-        ..color = ripple.isRightClick ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8) : clickFeedbackColor.withValues(alpha: opacity * 0.8)
+        ..color = ripple.isRightClick
+            ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8)
+            : clickFeedbackColor.withValues(alpha: opacity * 0.8)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(ripple.position, 4.0 * (1.0 - progress), corePaint);
     }
- 
+
     // 7. Draw Hover Highlight (Glow & Bolder)
     if (hoveredAnnotation != null) {
       _drawHoverHighlight(canvas, hoveredAnnotation!);
     }
   }
- 
+
   void _drawHoverHighlight(Canvas canvas, Annotation ann) {
     if (activeTool == ScreenshotTool.eraser) {
       if (ann.tool == ScreenshotTool.text) {
@@ -166,35 +205,57 @@ class SqaSelectionPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 4.0
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
-        
-        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), glowPaint);
+
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+          glowPaint,
+        );
 
         final borderPaint = Paint()
           ..color = Colors.white
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0;
-        
-        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), borderPaint);
+
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+          borderPaint,
+        );
       } else {
         // Standard glow/bold for other tools
         // 1. Draw Glow
         final glowPaint = Paint()
           ..color = Colors.white.withValues(alpha: 0.6)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 8.0
-          ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
-          ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round
+          ..strokeWidth =
+              (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0
+                  ? 24.0
+                  : ann.strokeWidth) +
+              8.0
+          ..strokeCap = ann.tool == ScreenshotTool.marker
+              ? StrokeCap.square
+              : StrokeCap.round
+          ..strokeJoin = ann.tool == ScreenshotTool.marker
+              ? StrokeJoin.miter
+              : StrokeJoin.round
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
-        
+
         _drawAnnotationSurface(canvas, ann, glowPaint);
 
         // 2. Draw Bolder Original (White)
         final topPaint = Paint()
           ..color = Colors.white
           ..style = PaintingStyle.stroke
-          ..strokeWidth = (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth) + 2.0
-          ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
-          ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
+          ..strokeWidth =
+              (ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0
+                  ? 24.0
+                  : ann.strokeWidth) +
+              2.0
+          ..strokeCap = ann.tool == ScreenshotTool.marker
+              ? StrokeCap.square
+              : StrokeCap.round
+          ..strokeJoin = ann.tool == ScreenshotTool.marker
+              ? StrokeJoin.miter
+              : StrokeJoin.round;
 
         _drawAnnotationSurface(canvas, ann, topPaint);
       }
@@ -206,31 +267,44 @@ class SqaSelectionPainter extends CustomPainter {
       final dimPaint = Paint()
         ..color = Colors.black.withValues(alpha: 0.3)
         ..style = PaintingStyle.fill;
-      
-      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), dimPaint);
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        dimPaint,
+      );
 
       final borderPaint = Paint()
         ..color = Colors.white.withValues(alpha: 0.5)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
-      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)), borderPaint);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
+        borderPaint,
+      );
     }
   }
- 
+
   /// Helper to draw only the path/shape surface without specific colors/logic
   void _drawAnnotationSurface(Canvas canvas, Annotation ann, Paint paint) {
     if (ann.points.isEmpty) return;
- 
-    if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker || ann.tool == ScreenshotTool.laser) {
+
+    if (ann.tool == ScreenshotTool.pen ||
+        ann.tool == ScreenshotTool.marker ||
+        ann.tool == ScreenshotTool.laser) {
       final path = Path()..moveTo(ann.points.first.dx, ann.points.first.dy);
       for (var i = 1; i < ann.points.length; i++) {
         path.lineTo(ann.points[i].dx, ann.points[i].dy);
       }
       canvas.drawPath(path, paint);
     } else if (ann.tool == ScreenshotTool.line) {
-      if (ann.points.length >= 2) canvas.drawLine(ann.points.first, ann.points.last, paint);
+      if (ann.points.length >= 2)
+        canvas.drawLine(ann.points.first, ann.points.last, paint);
     } else if (ann.tool == ScreenshotTool.rectangle) {
-      if (ann.points.length >= 2) canvas.drawRect(Rect.fromPoints(ann.points.first, ann.points.last), paint);
+      if (ann.points.length >= 2)
+        canvas.drawRect(
+          Rect.fromPoints(ann.points.first, ann.points.last),
+          paint,
+        );
     } else if (ann.tool == ScreenshotTool.arrow) {
       if (ann.points.length >= 2) {
         canvas.drawLine(ann.points.first, ann.points.last, paint);
@@ -241,27 +315,41 @@ class SqaSelectionPainter extends CustomPainter {
       if (ann.points.length >= 2) {
         maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
       }
-      _drawText(canvas, ann.points.first, ann.text!, ann.color, ann.hasBackground, maxWidth, paint);
+      _drawText(
+        canvas,
+        ann.points.first,
+        ann.text!,
+        ann.color,
+        ann.hasBackground,
+        maxWidth,
+        paint,
+      );
     }
   }
- 
+
   void _drawArrowHead(Canvas canvas, Offset start, Offset end, Paint paint) {
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
     final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
     const double arrowSize = 14;
     const double arrowAngle = 0.5;
- 
+
     final headPath = Path()
       ..moveTo(end.dx, end.dy)
-      ..lineTo(end.dx - arrowSize * math.cos(angle - arrowAngle), end.dy - arrowSize * math.sin(angle - arrowAngle))
-      ..lineTo(end.dx - arrowSize * math.cos(angle + arrowAngle), end.dy - arrowSize * math.sin(angle + arrowAngle))
+      ..lineTo(
+        end.dx - arrowSize * math.cos(angle - arrowAngle),
+        end.dy - arrowSize * math.sin(angle - arrowAngle),
+      )
+      ..lineTo(
+        end.dx - arrowSize * math.cos(angle + arrowAngle),
+        end.dy - arrowSize * math.sin(angle + arrowAngle),
+      )
       ..close();
- 
+
     final headPaint = Paint()
       ..color = paint.color
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawPath(headPath, headPaint);
   }
 
@@ -271,9 +359,16 @@ class SqaSelectionPainter extends CustomPainter {
     final paint = Paint()
       ..color = ann.color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0 ? 24.0 : ann.strokeWidth
-      ..strokeCap = ann.tool == ScreenshotTool.marker ? StrokeCap.square : StrokeCap.round
-      ..strokeJoin = ann.tool == ScreenshotTool.marker ? StrokeJoin.miter : StrokeJoin.round;
+      ..strokeWidth =
+          ann.tool == ScreenshotTool.marker && ann.strokeWidth <= 2.0
+          ? 24.0
+          : ann.strokeWidth
+      ..strokeCap = ann.tool == ScreenshotTool.marker
+          ? StrokeCap.square
+          : StrokeCap.round
+      ..strokeJoin = ann.tool == ScreenshotTool.marker
+          ? StrokeJoin.miter
+          : StrokeJoin.round;
 
     if (ann.tool == ScreenshotTool.pen || ann.tool == ScreenshotTool.marker) {
       if (ann.tool == ScreenshotTool.marker) {
@@ -291,7 +386,7 @@ class SqaSelectionPainter extends CustomPainter {
       for (var i = 0; i < ann.points.length - 1; i++) {
         final p1 = ann.points[i];
         final p2 = ann.points[i + 1];
-        
+
         // Calculate opacity based on point age
         double opacity = 1.0;
         if (ann.pointTimestamps.length > i) {
@@ -321,7 +416,10 @@ class SqaSelectionPainter extends CustomPainter {
     } else if (ann.tool == ScreenshotTool.line) {
       canvas.drawLine(ann.points.first, ann.points.last, paint);
     } else if (ann.tool == ScreenshotTool.rectangle) {
-      canvas.drawRect(Rect.fromPoints(ann.points.first, ann.points.last), paint);
+      canvas.drawRect(
+        Rect.fromPoints(ann.points.first, ann.points.last),
+        paint,
+      );
     } else if (ann.tool == ScreenshotTool.arrow) {
       _drawArrow(canvas, ann.points.first, ann.points.last, paint, ann.color);
     } else if (ann.tool == ScreenshotTool.text && ann.text != null) {
@@ -331,11 +429,24 @@ class SqaSelectionPainter extends CustomPainter {
       } else {
         maxWidth = ann.strokeWidth > 0 ? ann.strokeWidth : null;
       }
-      _drawText(canvas, ann.points.first, ann.text!, ann.color, ann.hasBackground, maxWidth);
+      _drawText(
+        canvas,
+        ann.points.first,
+        ann.text!,
+        ann.color,
+        ann.hasBackground,
+        maxWidth,
+      );
     }
   }
 
-  void _drawArrow(Canvas canvas, Offset start, Offset end, Paint paint, Color color) {
+  void _drawArrow(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+    Color color,
+  ) {
     canvas.drawLine(start, end, paint);
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
@@ -345,8 +456,14 @@ class SqaSelectionPainter extends CustomPainter {
 
     final headPath = Path()
       ..moveTo(end.dx, end.dy)
-      ..lineTo(end.dx - arrowSize * math.cos(angle - arrowAngle), end.dy - arrowSize * math.sin(angle - arrowAngle))
-      ..lineTo(end.dx - arrowSize * math.cos(angle + arrowAngle), end.dy - arrowSize * math.sin(angle + arrowAngle))
+      ..lineTo(
+        end.dx - arrowSize * math.cos(angle - arrowAngle),
+        end.dy - arrowSize * math.sin(angle - arrowAngle),
+      )
+      ..lineTo(
+        end.dx - arrowSize * math.cos(angle + arrowAngle),
+        end.dy - arrowSize * math.sin(angle + arrowAngle),
+      )
       ..close();
 
     final fillPaint = Paint()
@@ -355,7 +472,15 @@ class SqaSelectionPainter extends CustomPainter {
     canvas.drawPath(headPath, fillPaint);
   }
 
-  void _drawText(Canvas canvas, Offset position, String text, Color color, bool hasBackground, [double? maxWidth, Paint? foregroundPaint]) {
+  void _drawText(
+    Canvas canvas,
+    Offset position,
+    String text,
+    Color color,
+    bool hasBackground, [
+    double? maxWidth,
+    Paint? foregroundPaint,
+  ]) {
     canvas.save();
     canvas.translate(position.dx, position.dy);
 
@@ -365,13 +490,13 @@ class SqaSelectionPainter extends CustomPainter {
         style: TextStyle(
           color: foregroundPaint == null ? color : null,
           foreground: foregroundPaint,
-          fontSize: 16, 
-          fontWeight: FontWeight.bold
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
         ),
       ),
       textDirection: TextDirection.ltr,
     );
-    
+
     if (maxWidth != null) {
       final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
       textPainter.layout(maxWidth: safeWidth);
@@ -387,11 +512,11 @@ class SqaSelectionPainter extends CustomPainter {
         textPainter.width,
         textPainter.height,
       ).inflate(4.0);
-      
+
       final bgPaint = Paint()
         ..color = color.withValues(alpha: 0.25)
         ..style = PaintingStyle.fill;
-      
+
       final borderPaint = Paint()
         ..color = color.withValues(alpha: 0.45)
         ..style = PaintingStyle.stroke

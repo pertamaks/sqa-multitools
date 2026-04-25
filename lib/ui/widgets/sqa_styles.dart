@@ -30,7 +30,8 @@ class SqaStyles {
     bool silent = false,
   }) {
     final theme = Theme.of(context);
-    final color = baseColor ??
+    final color =
+        baseColor ??
         (silent ? theme.colorScheme.onSurface : theme.colorScheme.primary);
     final alphaFactor = silent ? 0.5 : 1.0;
 

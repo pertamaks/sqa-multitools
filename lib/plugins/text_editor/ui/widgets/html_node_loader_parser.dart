@@ -19,27 +19,19 @@ class SqaMarkdownHtmlParser extends CustomMarkdownParser {
       // Since the markdown package doesn't give us the raw source easily,
       // we use an approximation that includes the tags.
       final rawHtml = _reconstructHtml(element);
-      
+
       return [
         Node(
           type: 'raw_html',
-          attributes: {
-            'html_tag': element.tag,
-            'content': rawHtml,
-          },
+          attributes: {'html_tag': element.tag, 'content': rawHtml},
         ),
       ];
     }
-    
+
     // Also catch raw Text nodes that look like HTML tags at the start
     if (element is md.Text && element.text.trim().startsWith('<')) {
       return [
-        Node(
-          type: 'raw_html',
-          attributes: {
-            'content': element.text,
-          },
-        ),
+        Node(type: 'raw_html', attributes: {'content': element.text}),
       ];
     }
 
@@ -47,7 +39,20 @@ class SqaMarkdownHtmlParser extends CustomMarkdownParser {
   }
 
   bool _isRawHtmlTag(String tag) {
-    const rawTags = {'table', 'div', 'section', 'article', 'header', 'footer', 'aside', 'nav', 'canvas', 'video', 'audio', 'iframe'};
+    const rawTags = {
+      'table',
+      'div',
+      'section',
+      'article',
+      'header',
+      'footer',
+      'aside',
+      'nav',
+      'canvas',
+      'video',
+      'audio',
+      'iframe',
+    };
     return rawTags.contains(tag.toLowerCase());
   }
 
@@ -56,12 +61,14 @@ class SqaMarkdownHtmlParser extends CustomMarkdownParser {
     final attributes = element.attributes.entries
         .map((e) => ' ${e.key}="${e.value}"')
         .join();
-    
-    final children = element.children?.map((child) {
+
+    final children =
+        element.children?.map((child) {
           if (child is md.Element) return _reconstructHtml(child);
           if (child is md.Text) return child.text;
           return '';
-        }).join() ?? '';
+        }).join() ??
+        '';
 
     return '<$tag$attributes>$children</$tag>';
   }

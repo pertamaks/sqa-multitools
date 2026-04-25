@@ -6,7 +6,8 @@ class SqaMouseDragScrollBehavior extends MaterialScrollBehavior {
   const SqaMouseDragScrollBehavior();
 
   @override
-  ScrollPhysics getScrollPhysics(BuildContext context) => const BouncingScrollPhysics();
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const BouncingScrollPhysics();
 
   @override
   Set<PointerDeviceKind> get dragDevices => {

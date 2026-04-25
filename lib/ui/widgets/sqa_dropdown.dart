@@ -105,7 +105,10 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
     }
 
     final double calculatedMax = estimatedMax + 43.0;
-    final double maxWidth = calculatedMax.clamp(100.0, 180.0); // Slightly larger min width
+    final double maxWidth = calculatedMax.clamp(
+      100.0,
+      180.0,
+    ); // Slightly larger min width
 
     return MenuAnchor(
       controller: _menuController,
@@ -139,20 +142,18 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
             minimumSize: Size(maxWidth - 8, 36),
             shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-            backgroundColor:
-                isSelected
-                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-                    : null,
+            backgroundColor: isSelected
+                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
+                : null,
           ),
-            child: DefaultTextStyle.merge(
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 11, // Unified to 11px
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color:
-                    isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface,
-              ),
+          child: DefaultTextStyle.merge(
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 11, // Unified to 11px
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurface,
+            ),
             child: item.child,
           ),
         );
@@ -175,21 +176,22 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 0,
+                ),
                 height: 32,
                 decoration: BoxDecoration(
-                  color:
-                      isShowing
-                          ? colorScheme.primary.withValues(alpha: 0.1)
-                          : colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.4,
-                          ),
+                  color: isShowing
+                      ? colorScheme.primary.withValues(alpha: 0.1)
+                      : colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.4,
+                        ),
                   borderRadius: SqaStyles.radiusSmall,
                   border: Border.all(
-                    color:
-                        isShowing
-                            ? colorScheme.primary.withValues(alpha: 0.5)
-                            : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: isShowing
+                        ? colorScheme.primary.withValues(alpha: 0.5)
+                        : colorScheme.outlineVariant.withValues(alpha: 0.5),
                     width: 1.0,
                   ),
                 ),
@@ -205,12 +207,9 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        child:
-                            widget.items
-                                .firstWhere(
-                                  (item) => item.value == widget.value,
-                                )
-                                .child,
+                        child: widget.items
+                            .firstWhere((item) => item.value == widget.value)
+                            .child,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -219,10 +218,9 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                       child: Icon(
                         Symbols.keyboard_arrow_down,
                         size: 16,
-                        color:
-                            isShowing
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
+                        color: isShowing
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -235,5 +233,3 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
     );
   }
 }
-
-

@@ -20,7 +20,9 @@ class ScreenshotOverlay extends ConsumerStatefulWidget {
 }
 
 class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
-  final ValueNotifier<List<Annotation>> _annotationsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<Annotation>> _annotationsNotifier = ValueNotifier(
+    [],
+  );
 
   @override
   void dispose() {
@@ -31,12 +33,16 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
   @override
   Widget build(BuildContext context) {
     // Structural properties that should trigger a full rebuild
-    final isVisible = ref.watch(screenshotProvider.select((s) => s.isOverlayVisible));
+    final isVisible = ref.watch(
+      screenshotProvider.select((s) => s.isOverlayVisible),
+    );
     if (!isVisible) return const SizedBox.shrink();
 
     ref.watch(screenshotProvider.select((s) => s.currentTool));
     ref.watch(screenshotProvider.select((s) => s.annotationColor));
-    final isCapturing = ref.watch(screenshotProvider.select((s) => s.isCapturing));
+    final isCapturing = ref.watch(
+      screenshotProvider.select((s) => s.isCapturing),
+    );
 
     // UI structural changes that must trigger a rebuild
     ref.watch(screenshotProvider.select((s) => s.selectionRect));
@@ -133,39 +139,78 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
 
   _ScreenshotDelegate(this._state, this._notifier, this._annotationsNotifier);
 
-  @override bool get isOverlayVisible => _state.isOverlayVisible;
-  @override bool get isTargetingWindow => _state.isTargetingWindow;
-  @override CaptureMode get captureMode => _state.captureMode;
-  @override Rect? get selectionRect => _state.selectionRect;
-  @override Rect? get targetedWindowRect => _state.targetedWindowRect;
-  @override String? get targetWindowName => _state.targetWindowName;
-  @override List<Annotation> get annotations => _annotationsNotifier.value;
-  @override Listenable? get annotationsChanged => _annotationsNotifier;
-  @override Color get annotationColor => _state.annotationColor;
-  @override ScreenshotTool get currentTool => _state.currentTool;
-  @override bool get textHasBackground => _state.textHasBackground;
-  @override Display? get lockedDisplay => _state.lockedDisplay;
-  @override List<Display> get availableDisplays => _state.availableDisplays;
-  @override bool get isCapturing => _state.isCapturing;
-  @override bool get isCompactLayout => false; // Screenshots always use full toolbar
+  @override
+  bool get isOverlayVisible => _state.isOverlayVisible;
+  @override
+  bool get isTargetingWindow => _state.isTargetingWindow;
+  @override
+  CaptureMode get captureMode => _state.captureMode;
+  @override
+  Rect? get selectionRect => _state.selectionRect;
+  @override
+  Rect? get targetedWindowRect => _state.targetedWindowRect;
+  @override
+  String? get targetWindowName => _state.targetWindowName;
+  @override
+  List<Annotation> get annotations => _annotationsNotifier.value;
+  @override
+  Listenable? get annotationsChanged => _annotationsNotifier;
+  @override
+  Color get annotationColor => _state.annotationColor;
+  @override
+  ScreenshotTool get currentTool => _state.currentTool;
+  @override
+  bool get textHasBackground => _state.textHasBackground;
+  @override
+  Display? get lockedDisplay => _state.lockedDisplay;
+  @override
+  List<Display> get availableDisplays => _state.availableDisplays;
+  @override
+  bool get isCapturing => _state.isCapturing;
+  @override
+  bool get isCompactLayout => false; // Screenshots always use full toolbar
 
-  @override void setSelection(Rect? rect, [Display? display]) => _notifier.setSelection(rect, display);
-  @override void addAnnotation(Annotation annotation) => _notifier.addAnnotation(annotation);
-  @override void updateLastAnnotation(Annotation annotation) => _notifier.updateLastAnnotation(annotation);
-  @override void removeAnnotation(Annotation annotation) => _notifier.removeAnnotation(annotation);
-  @override void setTextHasBackground(bool value) => _notifier.setTextHasBackground(value);
-  @override void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) => _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override void confirmTargetWindow(Rect rect, String title) => _notifier.confirmTargetWindow(rect, title);
+  @override
+  void setSelection(Rect? rect, [Display? display]) =>
+      _notifier.setSelection(rect, display);
+  @override
+  void addAnnotation(Annotation annotation) =>
+      _notifier.addAnnotation(annotation);
+  @override
+  void updateLastAnnotation(Annotation annotation) =>
+      _notifier.updateLastAnnotation(annotation);
+  @override
+  void removeAnnotation(Annotation annotation) =>
+      _notifier.removeAnnotation(annotation);
+  @override
+  void setTextHasBackground(bool value) =>
+      _notifier.setTextHasBackground(value);
+  @override
+  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) =>
+      _notifier.updateTargetedWindow(rect, name, hwnd);
+  @override
+  void confirmTargetWindow(Rect rect, String title) =>
+      _notifier.confirmTargetWindow(rect, title);
 
   // Defaults for non-recording plugin
-  @override bool get isRecording => false;
-  @override bool get isPaused => false;
-  @override int get durationSeconds => 0;
-  @override int get countdownSeconds => 0;
-  @override bool get enableClickFeedback => false;
-  @override bool get enableMousePassthrough => false;
-  @override Color get clickFeedbackColor => Colors.white;
-  @override Color get rightClickFeedbackColor => Colors.amber;
-  @override Future<void> setIgnoreMouseEvents(bool ignore) async {}
-  @override Future<void> cancelOverlay() => _notifier.stopCapture();
+  @override
+  bool get isRecording => false;
+  @override
+  bool get isPaused => false;
+  @override
+  int get durationSeconds => 0;
+  @override
+  int get countdownSeconds => 0;
+  @override
+  bool get enableClickFeedback => false;
+  @override
+  bool get enableMousePassthrough => false;
+  @override
+  Color get clickFeedbackColor => Colors.white;
+  @override
+  Color get rightClickFeedbackColor => Colors.amber;
+  @override
+  Future<void> setIgnoreMouseEvents(bool ignore) async {}
+  @override
+  Future<void> cancelOverlay() => _notifier.stopCapture();
 }

@@ -12,8 +12,9 @@ class SqaTableNodeParser extends NodeParser {
   String transform(Node node, DocumentMarkdownEncoder? encoder) {
     final int rowsLen = node.attributes['rowsLen'] as int? ?? 0;
     final int colsLen = node.attributes['colsLen'] as int? ?? 0;
-    final List<dynamic> alignments = node.attributes['alignments'] as List<dynamic>? ?? [];
-    
+    final List<dynamic> alignments =
+        node.attributes['alignments'] as List<dynamic>? ?? [];
+
     if (rowsLen == 0 || colsLen == 0) return '';
 
     String result = '';

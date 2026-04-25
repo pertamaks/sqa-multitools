@@ -20,13 +20,15 @@ class SqaPluginScrollableContent extends StatefulWidget {
   });
 
   @override
-  State<SqaPluginScrollableContent> createState() => _SqaPluginScrollableContentState();
+  State<SqaPluginScrollableContent> createState() =>
+      _SqaPluginScrollableContentState();
 }
 
-class _SqaPluginScrollableContentState extends State<SqaPluginScrollableContent> {
+class _SqaPluginScrollableContentState
+    extends State<SqaPluginScrollableContent> {
   ScrollController? _internalController;
 
-  ScrollController get _effectiveController => 
+  ScrollController get _effectiveController =>
       widget.controller ?? (_internalController ??= ScrollController());
 
   @override
@@ -44,10 +46,8 @@ class _SqaPluginScrollableContentState extends State<SqaPluginScrollableContent>
         if (widget.center) {
           content = ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: (constraints.maxHeight - widget.padding.vertical).clamp(
-                0.0,
-                double.infinity,
-              ),
+              minHeight: (constraints.maxHeight - widget.padding.vertical)
+                  .clamp(0.0, double.infinity),
             ),
             child: Center(child: widget.child),
           );

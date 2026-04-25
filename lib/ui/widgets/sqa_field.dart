@@ -253,11 +253,13 @@ class _SqaFieldState extends State<SqaField> {
               : null,
           key: _containerKey,
           decoration: BoxDecoration(
-            color: widget.isTransparent ? Colors.transparent : colorScheme.surface,
+            color: widget.isTransparent
+                ? Colors.transparent
+                : colorScheme.surface,
             borderRadius: SqaStyles.radiusLarge,
             border: Border.all(
-              color: widget.isTransparent 
-                  ? Colors.transparent 
+              color: widget.isTransparent
+                  ? Colors.transparent
                   : colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
           ),
@@ -356,7 +358,8 @@ class _SqaFieldState extends State<SqaField> {
                             );
 
                             if (!widget.wrap) {
-                              final hController = widget.horizontalScrollController ??
+                              final hController =
+                                  widget.horizontalScrollController ??
                                   _internalHorizontalScrollController;
 
                               return Scrollbar(

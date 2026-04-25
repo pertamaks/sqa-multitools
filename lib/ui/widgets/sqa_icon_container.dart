@@ -33,8 +33,9 @@ class SqaIconContainer extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: backgroundColor ?? effectiveColor.withValues(alpha: 0.1),
-        borderRadius:
-            isCircular ? null : (borderRadius ?? SqaStyles.radiusMedium),
+        borderRadius: isCircular
+            ? null
+            : (borderRadius ?? SqaStyles.radiusMedium),
         shape: isCircular ? BoxShape.circle : BoxShape.rectangle,
       ),
       child: Center(
@@ -46,7 +47,9 @@ class SqaIconContainer extends StatelessWidget {
       return InkWell(
         onTap: onTap,
         customBorder: isCircular ? const CircleBorder() : null,
-        borderRadius: isCircular ? null : (borderRadius ?? SqaStyles.radiusMedium),
+        borderRadius: isCircular
+            ? null
+            : (borderRadius ?? SqaStyles.radiusMedium),
         child: content,
       );
     }

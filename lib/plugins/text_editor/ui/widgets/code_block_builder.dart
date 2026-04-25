@@ -7,9 +7,7 @@ import '../../../../ui/widgets/sqa_styles.dart';
 
 /// A custom SQA-standard Code Block builder.
 class SqaCodeBlockComponentBuilder extends BlockComponentBuilder {
-  SqaCodeBlockComponentBuilder({
-    super.configuration,
-  });
+  SqaCodeBlockComponentBuilder({super.configuration});
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -19,15 +17,14 @@ class SqaCodeBlockComponentBuilder extends BlockComponentBuilder {
       key: node.key,
       configuration: configuration,
       showActions: showActions(node),
-      actionBuilder: (context, state) => actionBuilder(
-        blockComponentContext,
-        state,
-      ),
+      actionBuilder: (context, state) =>
+          actionBuilder(blockComponentContext, state),
     );
   }
 
   @override
-  BlockComponentValidate get validate => (node) => node.delta != null;
+  BlockComponentValidate get validate =>
+      (node) => node.delta != null;
 }
 
 class SqaCodeBlockComponentWidget extends BlockComponentStatefulWidget {
@@ -40,17 +37,18 @@ class SqaCodeBlockComponentWidget extends BlockComponentStatefulWidget {
   });
 
   @override
-  State<SqaCodeBlockComponentWidget> createState() => _SqaCodeBlockComponentWidgetState();
+  State<SqaCodeBlockComponentWidget> createState() =>
+      _SqaCodeBlockComponentWidgetState();
 }
 
-class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidget>
+class _SqaCodeBlockComponentWidgetState
+    extends State<SqaCodeBlockComponentWidget>
     with
         SelectableMixin,
         DefaultSelectableMixin,
         BlockComponentConfigurable,
         BlockComponentBackgroundColorMixin,
         NestedBlockComponentStatefulWidgetMixin {
-  
   @override
   final forwardKey = GlobalKey(debugLabel: 'sqa_code_text');
 
@@ -58,7 +56,9 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
   GlobalKey<State<StatefulWidget>> get containerKey => widget.node.key;
 
   @override
-  GlobalKey<State<StatefulWidget>> blockComponentKey = GlobalKey(debugLabel: 'code');
+  GlobalKey<State<StatefulWidget>> blockComponentKey = GlobalKey(
+    debugLabel: 'code',
+  );
 
   @override
   BlockComponentConfiguration get configuration => widget.configuration;
@@ -69,10 +69,14 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
   bool _isHovered = false;
 
   @override
-  Widget buildComponent(BuildContext context, {bool withBackgroundColor = true}) {
+  Widget buildComponent(
+    BuildContext context, {
+    bool withBackgroundColor = true,
+  }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final String language = node.attributes['language']?.toString() ?? 'plaintext';
+    final String language =
+        node.attributes['language']?.toString() ?? 'plaintext';
     final code = node.delta?.toPlainText() ?? '';
 
     return MouseRegion(
@@ -82,9 +86,11 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
         key: blockComponentKey,
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isDark 
+          color: isDark
               ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
-              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              : theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
           borderRadius: SqaStyles.radiusMedium,
           border: Border.all(
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -100,7 +106,9 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.2,
+                    ),
                     width: 1,
                   ),
                 ),
@@ -112,7 +120,9 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -121,11 +131,16 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
                     IconButton(
                       icon: const Icon(Icons.copy_rounded, size: 14),
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                      constraints: const BoxConstraints(
+                        minWidth: 24,
+                        minHeight: 24,
+                      ),
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: code));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Code copied to clipboard')),
+                          const SnackBar(
+                            content: Text('Code copied to clipboard'),
+                          ),
                         );
                       },
                       color: theme.colorScheme.onSurfaceVariant,
@@ -133,7 +148,7 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
                 ],
               ),
             ),
-            
+
             // Code Content
             Padding(
               padding: const EdgeInsets.all(16),
@@ -151,7 +166,9 @@ class _SqaCodeBlockComponentWidgetState extends State<SqaCodeBlockComponentWidge
                   ),
                 ),
                 cursorColor: theme.colorScheme.primary,
-                selectionColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+                selectionColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.2,
+                ),
               ),
             ),
           ],
@@ -178,18 +195,22 @@ class SqaMarkdownCodeBlockParser extends CustomMarkdownParser {
     }
 
     // 2. Intercept 'li' tags that contain code blocks (including deeply nested in paragraphs)
-    if (element is md.Element && element.tag == 'li' && listType != MarkdownListType.unknown) {
+    if (element is md.Element &&
+        element.tag == 'li' &&
+        listType != MarkdownListType.unknown) {
       final children = element.children;
       if (children != null && _hasDeepPre(children)) {
         final results = <Node>[];
         final textNodes = <md.Node>[];
-        
+
         for (final child in children) {
           final nestedPre = _findPre(child);
           if (nestedPre != null) {
             // First, flush any accumulated text nodes as a list item
             if (textNodes.isNotEmpty) {
-              results.add(_createListItemNode(textNodes, listType, startNumber));
+              results.add(
+                _createListItemNode(textNodes, listType, startNumber),
+              );
               textNodes.clear();
             }
             // Then, add the code block
@@ -198,12 +219,12 @@ class SqaMarkdownCodeBlockParser extends CustomMarkdownParser {
             textNodes.add(child);
           }
         }
-        
+
         // Flush remaining text
         if (textNodes.isNotEmpty) {
           results.add(_createListItemNode(textNodes, listType, startNumber));
         }
-        
+
         return results;
       }
     }
@@ -218,7 +239,7 @@ class SqaMarkdownCodeBlockParser extends CustomMarkdownParser {
   md.Element? _findPre(md.Node node) {
     if (node is! md.Element) return null;
     if (node.tag == 'pre') return node;
-    
+
     // Check inside paragraphs (loose lists)
     if (node.tag == 'p' && node.children != null) {
       for (final child in node.children!) {
@@ -229,12 +250,17 @@ class SqaMarkdownCodeBlockParser extends CustomMarkdownParser {
     return null;
   }
 
-  Node _createListItemNode(List<md.Node> mdNodes, MarkdownListType listType, int? number, {List<Node>? children}) {
+  Node _createListItemNode(
+    List<md.Node> mdNodes,
+    MarkdownListType listType,
+    int? number, {
+    List<Node>? children,
+  }) {
     final delta = DeltaMarkdownDecoder().convertNodes(mdNodes);
-    final String type = (listType == MarkdownListType.ordered) 
-        ? 'numbered_list' 
+    final String type = (listType == MarkdownListType.ordered)
+        ? 'numbered_list'
         : 'bulleted_list';
-    
+
     return Node(
       type: type,
       attributes: {
@@ -271,7 +297,8 @@ class SqaMarkdownCodeBlockParser extends CustomMarkdownParser {
       Node(
         type: 'code',
         attributes: {
-          'delta': (Delta()..insert(codeElement.textContent.trimRight())).toJson(),
+          'delta': (Delta()..insert(codeElement.textContent.trimRight()))
+              .toJson(),
           'language': language ?? 'plaintext',
           if (indent > 0) 'indent': indent,
         },

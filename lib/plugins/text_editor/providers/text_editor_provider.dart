@@ -24,10 +24,7 @@ class TextEditor extends _$TextEditor {
   Future<void> initialize() async {
     state = state.copyWith(isLoading: true);
     final docs = await _storage.loadAllDocuments();
-    state = state.copyWith(
-      documents: _sortDocuments(docs),
-      isLoading: false,
-    );
+    state = state.copyWith(documents: _sortDocuments(docs), isLoading: false);
   }
 
   void setViewMode(TextEditorViewMode mode) {
@@ -107,7 +104,7 @@ class TextEditor extends _$TextEditor {
     if (state.activeDocument!.content == content) return;
 
     String name = state.activeDocument!.name;
-    
+
     // R1: Parse title if the first line is H1
     final lines = content.split('\n');
     if (lines.isNotEmpty) {
@@ -168,27 +165,30 @@ class TextEditor extends _$TextEditor {
     });
   }
 
-  Future<void> saveDocument({String? oldName, bool navigateToList = false}) async {
+  Future<void> saveDocument({
+    String? oldName,
+    bool navigateToList = false,
+  }) async {
     final doc = state.activeDocument;
     if (doc == null) return;
-    
+
     state = state.copyWith(isSaving: true);
-    
+
     try {
       // R2: Force "Document (n)" if name is empty or handle duplicates
       String finalName = doc.name;
       final isNew = !state.documents.any((d) => d.id == doc.id);
-      
+
       if (finalName.isEmpty || isNew || oldName != null) {
         finalName = await _storage.getNextAvailableName(finalName);
       }
 
       final updatedDoc = doc.copyWith(name: finalName);
       await _storage.saveDocument(updatedDoc, oldName: oldName);
-      
+
       final updatedDocs = [...state.documents];
       final index = updatedDocs.indexWhere((d) => d.id == updatedDoc.id);
-      
+
       if (index != -1) {
         updatedDocs[index] = updatedDoc;
       } else {
@@ -201,7 +201,7 @@ class TextEditor extends _$TextEditor {
         isSaving: false,
         hasUnsavedChanges: false,
       );
-      
+
       if (navigateToList) {
         setViewMode(TextEditorViewMode.list);
       }
@@ -254,4 +254,3 @@ class TextEditor extends _$TextEditor {
     return sorted;
   }
 }
-

@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 
 /// A centralized widget to trigger a scroll-into-view only if the child is clipped.
-/// 
+///
 /// This is the standard pattern for adaptive toolbars that expand dynamically.
 /// It prevents "Auto-Snapping" by performing a geometric visibility check before scrolling.
 class SqaScrollVisibilityTrigger extends StatefulWidget {
   final Widget child;
-  
-  const SqaScrollVisibilityTrigger({
-    super.key,
-    required this.child,
-  });
+
+  const SqaScrollVisibilityTrigger({super.key, required this.child});
 
   @override
-  State<SqaScrollVisibilityTrigger> createState() => _SqaScrollVisibilityTriggerState();
+  State<SqaScrollVisibilityTrigger> createState() =>
+      _SqaScrollVisibilityTriggerState();
 }
 
-class _SqaScrollVisibilityTriggerState extends State<SqaScrollVisibilityTrigger> {
+class _SqaScrollVisibilityTriggerState
+    extends State<SqaScrollVisibilityTrigger> {
   @override
   void initState() {
     super.initState();

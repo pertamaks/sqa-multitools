@@ -52,7 +52,10 @@ class SqaSmartText extends StatelessWidget {
             ? Tooltip(
                 message: text,
                 waitDuration: const Duration(milliseconds: 500),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.inverseSurface,

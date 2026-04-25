@@ -49,7 +49,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
           modifierIndices: [HotKeyModifier.alt.index],
         ); // Alt + R
 
-    final screenshot = 
+    final screenshot =
         prefs.getHotkey(PreferencesService.keyHotkeyScreenshotToggle) ??
         HotkeyInfo(
           keyCode: LogicalKeyboardKey.keyS.keyId,
@@ -87,7 +87,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
       },
     );
 
-    // Recorder registration is typically managed by ScreenRecorderNotifier 
+    // Recorder registration is typically managed by ScreenRecorderNotifier
     // to avoid conflicts with its internal state machine, but we store the preference here.
   }
 
@@ -121,19 +121,26 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
     }
 
     if (key == PreferencesService.keyHotkeyShowToolbar) {
-      if (info == state.recordToggle) return 'Conflict: Shortcut already assigned to Screen Recorder.';
-      if (info == state.screenshotToggle) return 'Conflict: Shortcut already assigned to Screenshot.';
+      if (info == state.recordToggle)
+        return 'Conflict: Shortcut already assigned to Screen Recorder.';
+      if (info == state.screenshotToggle)
+        return 'Conflict: Shortcut already assigned to Screenshot.';
     } else if (key == PreferencesService.keyHotkeyRecordToggle) {
-      if (info == state.showToolbar) return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      if (info == state.screenshotToggle) return 'Conflict: Shortcut already assigned to Screenshot.';
+      if (info == state.showToolbar)
+        return 'Conflict: Shortcut already assigned to Show Toolbar.';
+      if (info == state.screenshotToggle)
+        return 'Conflict: Shortcut already assigned to Screenshot.';
     } else if (key == PreferencesService.keyHotkeyScreenshotToggle) {
-      if (info == state.showToolbar) return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      if (info == state.recordToggle) return 'Conflict: Shortcut already assigned to Screen Recorder.';
+      if (info == state.showToolbar)
+        return 'Conflict: Shortcut already assigned to Show Toolbar.';
+      if (info == state.recordToggle)
+        return 'Conflict: Shortcut already assigned to Screen Recorder.';
     }
     return null;
   }
 }
 
-final hotkeySettingsProvider = NotifierProvider<HotkeySettingsNotifier, HotkeySettings>(() {
-  return HotkeySettingsNotifier();
-});
+final hotkeySettingsProvider =
+    NotifierProvider<HotkeySettingsNotifier, HotkeySettings>(() {
+      return HotkeySettingsNotifier();
+    });

@@ -15,7 +15,8 @@ class TextEditorPlugin implements SqaPlugin {
   String get name => 'Text Editor';
 
   @override
-  String get description => 'A premium Text Editor for bug reports and dev tickets.';
+  String get description =>
+      'A premium Text Editor for bug reports and dev tickets.';
 
   @override
   IconData get icon => Symbols.edit_note;
@@ -39,7 +40,7 @@ class TextEditorPlugin implements SqaPlugin {
     return Consumer(
       builder: (context, ref, child) {
         final state = ref.watch(textEditorProvider);
-        
+
         switch (state.viewMode) {
           case TextEditorViewMode.editor:
             return const TextEditorView();

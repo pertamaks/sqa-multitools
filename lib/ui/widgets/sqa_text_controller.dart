@@ -33,8 +33,9 @@ class SqaTextController extends TextEditingController {
 
         // Add text before the match
         if (match.start > lastMatchEnd) {
-          children
-              .add(TextSpan(text: text.substring(lastMatchEnd, match.start)));
+          children.add(
+            TextSpan(text: text.substring(lastMatchEnd, match.start)),
+          );
         }
 
         TextStyle? matchStyle;

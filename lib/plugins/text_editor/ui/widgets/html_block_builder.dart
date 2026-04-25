@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 class RawHtmlBlockComponentBuilder extends BlockComponentBuilder {
   RawHtmlBlockComponentBuilder()
-      : super(
-          configuration: BlockComponentConfiguration(
-            padding: (node) => const EdgeInsets.symmetric(vertical: 8.0),
-          ),
-        );
+    : super(
+        configuration: BlockComponentConfiguration(
+          padding: (node) => const EdgeInsets.symmetric(vertical: 8.0),
+        ),
+      );
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -41,7 +41,9 @@ class RawHtmlBlockComponentWidget extends BlockComponentStatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          ),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),

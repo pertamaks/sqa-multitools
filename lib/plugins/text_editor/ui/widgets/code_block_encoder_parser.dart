@@ -22,7 +22,7 @@ class SqaCodeBlockNodeParser extends NodeParser {
 
     // Convert delta to plain text
     final code = delta.toPlainText();
-    
+
     // Create the fenced block
     String result = '```$language\n$code\n```';
 

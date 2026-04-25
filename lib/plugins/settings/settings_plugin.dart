@@ -598,143 +598,145 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                 itemCount: allPlugins.length,
                 buildDefaultDragHandles: false,
                 proxyDecorator: (child, index, animation) {
-                return AnimatedBuilder(
-                  animation: animation,
-                  builder: (context, child) {
-                    final animValue = Curves.easeInOut.transform(
-                      animation.value,
-                    );
-                    final elevation = lerpDouble(0, 6, animValue)!;
-                    return Material(
-                      elevation: elevation,
-                      color: Colors.transparent,
-                      shadowColor: Colors.black26,
-                      borderRadius: SqaStyles.radiusLarge,
-                      child: child,
-                    );
-                  },
-                  child: child,
-                );
-              },
-              itemBuilder: (context, index) {
-                final plugin = allPlugins[index];
-                final isEnabled = enabledPlugins.any((p) => p.id == plugin.id);
-                final isFocused = !editMode && history == plugin.id;
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (context, child) {
+                      final animValue = Curves.easeInOut.transform(
+                        animation.value,
+                      );
+                      final elevation = lerpDouble(0, 6, animValue)!;
+                      return Material(
+                        elevation: elevation,
+                        color: Colors.transparent,
+                        shadowColor: Colors.black26,
+                        borderRadius: SqaStyles.radiusLarge,
+                        child: child,
+                      );
+                    },
+                    child: child,
+                  );
+                },
+                itemBuilder: (context, index) {
+                  final plugin = allPlugins[index];
+                  final isEnabled = enabledPlugins.any(
+                    (p) => p.id == plugin.id,
+                  );
+                  final isFocused = !editMode && history == plugin.id;
 
-                return SqaCard(
-                  // Use a dynamic key to force rebuild and collapse when toggling editMode
-                  key: ValueKey('${plugin.id}_$editMode'),
-                  margin: const EdgeInsets.only(bottom: 8.0),
-                  padding: EdgeInsets.zero,
-                  borderSide: isFocused
-                      ? BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 1.5,
-                        )
-                      : null,
-                  child: ExpansionTile(
-                    collapsedShape: const Border(),
-                    shape: const Border(),
-                    // Disable expansion interactions in Edit Mode
-                    enabled: !editMode,
-                    initiallyExpanded: isFocused,
-                    leading: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (editMode)
-                          ReorderableDragStartListener(
-                            index: index,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 12.0),
-                              child: Icon(
-                                Symbols.drag_indicator,
-                                size: 20,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.outlineVariant,
+                  return SqaCard(
+                    // Use a dynamic key to force rebuild and collapse when toggling editMode
+                    key: ValueKey('${plugin.id}_$editMode'),
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                    padding: EdgeInsets.zero,
+                    borderSide: isFocused
+                        ? BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1.5,
+                          )
+                        : null,
+                    child: ExpansionTile(
+                      collapsedShape: const Border(),
+                      shape: const Border(),
+                      // Disable expansion interactions in Edit Mode
+                      enabled: !editMode,
+                      initiallyExpanded: isFocused,
+                      leading: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (editMode)
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 12.0),
+                                child: Icon(
+                                  Symbols.drag_indicator,
+                                  size: 20,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant,
+                                ),
                               ),
                             ),
-                          ),
-                        SqaIconContainer(
-                          icon: plugin.icon,
-                          size: 32,
-                          iconSize: 18,
-                        ),
-                      ],
-                    ),
-                    title: Row(
-                      children: [
-                        Text(
-                          plugin.name,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        if (plugin.badge != null) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: plugin.badge == 'ALPHA'
-                                  ? Colors.amber
-                                  : plugin.badge == 'BETA'
-                                  ? Colors.blue
-                                  : Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              plugin.badge!,
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    plugin.badge == 'ALPHA' ||
-                                        plugin.badge == 'BETA'
-                                    ? Colors.white
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimaryContainer,
-                              ),
-                            ),
+                          SqaIconContainer(
+                            icon: plugin.icon,
+                            size: 32,
+                            iconSize: 18,
                           ),
                         ],
+                      ),
+                      title: Row(
+                        children: [
+                          Text(
+                            plugin.name,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          if (plugin.badge != null) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: plugin.badge == 'ALPHA'
+                                    ? Colors.amber
+                                    : plugin.badge == 'BETA'
+                                    ? Colors.blue
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                plugin.badge!,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      plugin.badge == 'ALPHA' ||
+                                          plugin.badge == 'BETA'
+                                      ? Colors.white
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      subtitle: Text(
+                        plugin.description,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      // Hide toggle switches in Edit Mode to reduce clutter
+                      trailing: editMode
+                          ? const SizedBox.shrink()
+                          : SqaSwitch(
+                              value: isEnabled,
+                              onChanged: (v) {
+                                ref
+                                    .read(enabledPluginsProvider.notifier)
+                                    .togglePlugin(plugin.id, v);
+                              },
+                            ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: plugin.buildSettingsPanel(context),
+                          ),
+                        ),
                       ],
                     ),
-                    subtitle: Text(
-                      plugin.description,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    // Hide toggle switches in Edit Mode to reduce clutter
-                    trailing: editMode
-                        ? const SizedBox.shrink()
-                        : SqaSwitch(
-                            value: isEnabled,
-                            onChanged: (v) {
-                              ref
-                                  .read(enabledPluginsProvider.notifier)
-                                  .togglePlugin(plugin.id, v);
-                            },
-                          ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: plugin.buildSettingsPanel(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
-      ),
       ],
     );
   }
@@ -1063,14 +1065,20 @@ class GeneralSettingsView extends ConsumerWidget {
                   label: 'Universal Toolbar Shortcut',
                   value: ref.watch(hotkeySettingsProvider).showToolbar,
                   onSave: (info) {
-                    final error = ref.read(hotkeySettingsProvider.notifier).updateHotkey(
-                      PreferencesService.keyHotkeyShowToolbar,
-                      info,
-                    );
+                    final error = ref
+                        .read(hotkeySettingsProvider.notifier)
+                        .updateHotkey(
+                          PreferencesService.keyHotkeyShowToolbar,
+                          info,
+                        );
                     if (error != null) {
                       SqaToast.show(context, error, type: SqaToastType.error);
                     } else {
-                      SqaToast.show(context, 'Toolbar shortcut updated!', type: SqaToastType.success);
+                      SqaToast.show(
+                        context,
+                        'Toolbar shortcut updated!',
+                        type: SqaToastType.success,
+                      );
                     }
                   },
                 ),

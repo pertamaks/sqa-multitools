@@ -64,7 +64,8 @@ class SqaPluginHeader extends StatelessWidget {
           const SizedBox(width: 16),
         ],
         Expanded(
-          child: titleWidget ??
+          child:
+              titleWidget ??
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

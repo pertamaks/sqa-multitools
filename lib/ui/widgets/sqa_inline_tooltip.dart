@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 class _SqaInlineTooltipState extends InheritedWidget {
   final void Function(String? text, Offset? globalPos) onHover;
 
-  const _SqaInlineTooltipState({
-    required this.onHover,
-    required super.child,
-  });
+  const _SqaInlineTooltipState({required this.onHover, required super.child});
 
   @override
   bool updateShouldNotify(_SqaInlineTooltipState oldWidget) => false;
@@ -33,7 +30,8 @@ class SqaInlineTooltip extends StatefulWidget {
   });
 
   static void show(BuildContext context, String? text, [Offset? globalPos]) {
-    final state = context.dependOnInheritedWidgetOfExactType<_SqaInlineTooltipState>();
+    final state = context
+        .dependOnInheritedWidgetOfExactType<_SqaInlineTooltipState>();
     state?.onHover(text, globalPos);
   }
 
@@ -95,7 +93,7 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
         _hoveredTooltip = null;
       } else {
         _hoveredTooltip = text;
-        
+
         // Calculate alignment based on global position relative to our viewport
         final RenderBox? box = context.findRenderObject() as RenderBox?;
         if (box != null) {
@@ -141,7 +139,9 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
                         left: _alignLeft ? 16.0 : 8.0,
                         right: _alignLeft ? 8.0 : 16.0,
                       ),
-                      color: (widget.backgroundColor ?? colorScheme.surfaceContainerLow),
+                      color:
+                          (widget.backgroundColor ??
+                          colorScheme.surfaceContainerLow),
                       child: Center(
                         widthFactor: 1.0,
                         heightFactor: 1.0,
@@ -179,17 +179,15 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
   }
 
   Widget _buildTail(ColorScheme colorScheme, {required bool isLeading}) {
-    final baseColor = (widget.backgroundColor ?? colorScheme.surfaceContainerLow);
+    final baseColor =
+        (widget.backgroundColor ?? colorScheme.surfaceContainerLow);
     return Container(
       width: 32,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: isLeading ? Alignment.centerRight : Alignment.centerLeft,
           end: isLeading ? Alignment.centerLeft : Alignment.centerRight,
-          colors: [
-            baseColor,
-            baseColor.withValues(alpha: 0.0),
-          ],
+          colors: [baseColor, baseColor.withValues(alpha: 0.0)],
         ),
       ),
     );
@@ -201,11 +199,7 @@ class SqaInlineTooltipTrigger extends StatelessWidget {
   final Widget child;
   final String? tooltip;
 
-  const SqaInlineTooltipTrigger({
-    super.key,
-    required this.child,
-    this.tooltip,
-  });
+  const SqaInlineTooltipTrigger({super.key, required this.child, this.tooltip});
 
   @override
   Widget build(BuildContext context) {

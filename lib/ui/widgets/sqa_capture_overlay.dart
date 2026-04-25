@@ -20,7 +20,8 @@ class SqaCaptureOverlay extends ConsumerStatefulWidget {
   final List<Widget> Function(BuildContext context) toolbarBuilder;
   final List<Widget> Function(BuildContext context)? leadingActionsBuilder;
   final List<Widget> Function(BuildContext context)? trailingActionsBuilder;
-  final Widget Function(BuildContext context, CaptureMode mode)? instructionBuilder;
+  final Widget Function(BuildContext context, CaptureMode mode)?
+  instructionBuilder;
   final ValueChanged<Offset?>? onBarOffsetChanged;
 
   const SqaCaptureOverlay({
@@ -42,7 +43,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   late AnimationController _animationController;
   Offset? _startPos;
   Offset? _currentPos;
-  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(null);
+  final ValueNotifier<Offset?> _barOffsetNotifier = ValueNotifier<Offset?>(
+    null,
+  );
   Timer? _mousePollingTimer;
   bool _isDragging = false;
   Offset _dragGrabOffset = Offset.zero;
@@ -54,7 +57,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   bool _isIgnoring = false;
   bool _isPollingProcessing = false;
   final FocusNode _focusNode = FocusNode();
-
 
   @override
   void initState() {
@@ -71,9 +73,11 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   @override
   void didUpdateWidget(covariant SqaCaptureOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.delegate.isOverlayVisible && !widget.delegate.isOverlayVisible) {
+    if (oldWidget.delegate.isOverlayVisible &&
+        !widget.delegate.isOverlayVisible) {
       _mousePollingTimer?.cancel();
-    } else if (!oldWidget.delegate.isOverlayVisible && widget.delegate.isOverlayVisible) {
+    } else if (!oldWidget.delegate.isOverlayVisible &&
+        widget.delegate.isOverlayVisible) {
       _startMousePolling();
       _focusNode.requestFocus();
     }
@@ -106,7 +110,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         widget.delegate.selectionRect != null) {
       _teleportBarToRect(widget.delegate.selectionRect!);
     }
-
   }
 
   @override
@@ -119,7 +122,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
   void _startMousePolling() {
     _mousePollingTimer?.cancel();
-    _mousePollingTimer = Timer.periodic(const Duration(milliseconds: 50), (_) async {
+    _mousePollingTimer = Timer.periodic(const Duration(milliseconds: 50), (
+      _,
+    ) async {
       if (!mounted || _isPollingProcessing) return;
       if (!widget.delegate.isOverlayVisible || _isDragging) return;
 
@@ -130,13 +135,17 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
           final rightDown = WindowUtils.isRightMouseDown();
 
           // 1. Global Click Detection
-          if ((leftDown && !_leftMouseDownLast) || (rightDown && !_rightMouseDownLast)) {
+          if ((leftDown && !_leftMouseDownLast) ||
+              (rightDown && !_rightMouseDownLast)) {
             final cursor = await screenRetriever.getCursorScreenPoint();
             if (!mounted || !widget.delegate.isOverlayVisible) return;
-            
+
             final windowPos = WindowUtils.getAppWindowPosition();
             if (!mounted || !widget.delegate.isOverlayVisible) return;
-            final localPos = Offset(cursor.dx - windowPos.dx, cursor.dy - windowPos.dy);
+            final localPos = Offset(
+              cursor.dx - windowPos.dx,
+              cursor.dy - windowPos.dy,
+            );
 
             // Handle Target Confirmation Click
             if ((widget.delegate.isTargetingWindow ||
@@ -147,23 +156,33 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 widget.delegate.targetedWindowRect != null) {
               final targetRect = widget.delegate.targetedWindowRect!;
               _teleportBarToRect(targetRect);
-              widget.delegate.confirmTargetWindow(targetRect, widget.delegate.targetWindowName ?? 'Selection');
+              widget.delegate.confirmTargetWindow(
+                targetRect,
+                widget.delegate.targetWindowName ?? 'Selection',
+              );
             }
 
             if (widget.delegate.enableClickFeedback) {
               setState(() {
-                _ripples.add(ClickRipple(
-                  position: localPos,
-                  timestamp: DateTime.now(),
-                  isRightClick: !leftDown && rightDown,
-                ));
+                _ripples.add(
+                  ClickRipple(
+                    position: localPos,
+                    timestamp: DateTime.now(),
+                    isRightClick: !leftDown && rightDown,
+                  ),
+                );
               });
               // Auto-cleanup after 600ms
               Future.delayed(const Duration(milliseconds: 600), () {
                 if (mounted) {
                   setState(() {
-                    _ripples.removeWhere((r) =>
-                        DateTime.now().difference(r.timestamp).inMilliseconds > 500);
+                    _ripples.removeWhere(
+                      (r) =>
+                          DateTime.now()
+                              .difference(r.timestamp)
+                              .inMilliseconds >
+                          500,
+                    );
                   });
                 }
               });
@@ -189,7 +208,11 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                   winInfo.rect.height,
                 );
                 if (widget.delegate.targetedWindowRect != localRect) {
-                  widget.delegate.updateTargetedWindow(localRect, winInfo.title, winInfo.hwnd);
+                  widget.delegate.updateTargetedWindow(
+                    localRect,
+                    winInfo.title,
+                    winInfo.hwnd,
+                  );
                 }
               } else if (widget.delegate.targetedWindowRect != null) {
                 widget.delegate.updateTargetedWindow(null, null);
@@ -225,7 +248,10 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 );
                 if (widget.delegate.targetedWindowRect != localRect) {
                   final index = displays.indexOf(targetDisplay);
-                  widget.delegate.updateTargetedWindow(localRect, 'Display ${index + 1}');
+                  widget.delegate.updateTargetedWindow(
+                    localRect,
+                    'Display ${index + 1}',
+                  );
                 }
               } else if (widget.delegate.targetedWindowRect != null) {
                 widget.delegate.updateTargetedWindow(null, null);
@@ -258,12 +284,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
     final cursor = await screenRetriever.getCursorScreenPoint();
     if (!mounted || !widget.delegate.isOverlayVisible) return;
-    
+
     final windowPos = WindowUtils.getAppWindowPosition();
     if (!mounted || !widget.delegate.isOverlayVisible) return;
-    
+
     final delegate = widget.delegate;
-    if (!delegate.isRecording || !delegate.isOverlayVisible || !mounted || delegate.isTargetingWindow) {
+    if (!delegate.isRecording ||
+        !delegate.isOverlayVisible ||
+        !mounted ||
+        delegate.isTargetingWindow) {
       if (_isIgnoring) {
         _isIgnoring = false;
         await delegate.setIgnoreMouseEvents(false);
@@ -316,8 +345,14 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     const double padding = 12.0;
 
     return Offset(
-      offset.dx.clamp(padding, math.max(padding, screenSize.width - barWidth - padding)),
-      offset.dy.clamp(padding, math.max(padding, screenSize.height - barHeight - padding)),
+      offset.dx.clamp(
+        padding,
+        math.max(padding, screenSize.width - barWidth - padding),
+      ),
+      offset.dy.clamp(
+        padding,
+        math.max(padding, screenSize.height - barHeight - padding),
+      ),
     );
   }
 
@@ -328,12 +363,20 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
     final windowPos = WindowUtils.getAppWindowPosition();
     // Use the rect center in GLOBAL coordinates to find the display
-    final globalCenter = targetRect.center.translate(windowPos.dx, windowPos.dy);
+    final globalCenter = targetRect.center.translate(
+      windowPos.dx,
+      windowPos.dy,
+    );
 
     Display? activeDisplay;
     for (final d in displays) {
       final dPos = d.visiblePosition ?? Offset.zero;
-      final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+      final dRect = Rect.fromLTWH(
+        dPos.dx,
+        dPos.dy,
+        d.size.width,
+        d.size.height,
+      );
       if (dRect.contains(globalCenter)) {
         activeDisplay = d;
         break;
@@ -348,8 +391,10 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       const double paddingBottom = 60.0;
 
       // Calculate global target position for the bar
-      final globalTargetX = dPos.dx + (activeDisplay.size.width / 2) - (barWidth / 2);
-      final globalTargetY = dPos.dy + activeDisplay.size.height - barHeight - paddingBottom;
+      final globalTargetX =
+          dPos.dx + (activeDisplay.size.width / 2) - (barWidth / 2);
+      final globalTargetY =
+          dPos.dy + activeDisplay.size.height - barHeight - paddingBottom;
 
       // Transform to local coordinates relative to the CURRENT window position
       final targetOffset = Offset(
@@ -372,7 +417,12 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       Display? startDisplay;
       for (final d in widget.delegate.availableDisplays) {
         final dPos = d.visiblePosition ?? Offset.zero;
-        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        final dRect = Rect.fromLTWH(
+          dPos.dx,
+          dPos.dy,
+          d.size.width,
+          d.size.height,
+        );
         if (dRect.contains(globalStart)) {
           startDisplay = d;
           break;
@@ -412,13 +462,18 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       }
 
       setState(() {
-        _currentPos = Offset(currentPos.dx.roundToDouble(), currentPos.dy.roundToDouble());
+        _currentPos = Offset(
+          currentPos.dx.roundToDouble(),
+          currentPos.dy.roundToDouble(),
+        );
       });
     }
   }
 
   void _onAreaDragEnd(DragEndDetails details) {
-    if (widget.delegate.selectionRect == null && _startPos != null && _currentPos != null) {
+    if (widget.delegate.selectionRect == null &&
+        _startPos != null &&
+        _currentPos != null) {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
         _teleportBarToRect(rect);
@@ -443,10 +498,14 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     final delegate = widget.delegate;
     if (!delegate.isOverlayVisible) return const SizedBox.shrink();
 
-    final selectionRect = delegate.selectionRect ??
-        (_startPos != null && _currentPos != null ? Rect.fromPoints(_startPos!, _currentPos!) : null);
+    final selectionRect =
+        delegate.selectionRect ??
+        (_startPos != null && _currentPos != null
+            ? Rect.fromPoints(_startPos!, _currentPos!)
+            : null);
 
-    final showInstruction = !delegate.isRecording && delegate.selectionRect == null;
+    final showInstruction =
+        !delegate.isRecording && delegate.selectionRect == null;
 
     return DefaultTextStyle(
       style: const TextStyle(color: Colors.white, fontFamily: 'Inter'),
@@ -454,7 +513,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         focusNode: _focusNode,
         autofocus: true,
         onKeyEvent: (node, event) {
-          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.escape) {
             // Call cancel via delegate (which eventually calls cancelOverlay/stopCapture)
             widget.delegate.cancelOverlay();
             return KeyEventResult.handled;
@@ -462,101 +522,112 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
           return KeyEventResult.ignored;
         },
         child: Stack(
+          children: [
+            // Annotation Layer
+            SqaAnnotationStage(
+              canDraw:
+                  delegate.isRecording ||
+                  delegate.captureMode == CaptureMode.fullScreen ||
+                  delegate.selectionRect != null,
+              currentTool: delegate.currentTool,
+              annotationColor: delegate.annotationColor,
+              annotations: delegate.annotations,
+              onAnnotationAdded: delegate.addAnnotation,
+              onAnnotationRemoved: delegate.removeAnnotation,
+              selectionRect: selectionRect,
+              targetedWindowRect: delegate.targetedWindowRect,
+              isRecording: delegate.isRecording,
+              isCapturing: delegate.isCapturing,
+              animationValue: _animationController.value,
+              ripples: _ripples,
+              clickFeedbackColor: delegate.clickFeedbackColor,
+              rightClickFeedbackColor: delegate.rightClickFeedbackColor,
+              repaintCapture: Listenable.merge([
+                _animationController,
+                if (widget.delegate.annotationsChanged != null)
+                  widget.delegate.annotationsChanged!,
+              ]),
+              captureKey: ref.watch(captureKeyProvider),
+              onAreaDragStart: _onAreaDragStart,
+              onAreaDragUpdate: _onAreaDragUpdate,
+              onAreaDragEnd: _onAreaDragEnd,
+              textHasBackground: delegate.textHasBackground,
+            ),
 
-            children: [
-              // Annotation Layer
-              SqaAnnotationStage(
-                canDraw: delegate.isRecording || 
-                        delegate.captureMode == CaptureMode.fullScreen ||
-                        delegate.selectionRect != null,
-                currentTool: delegate.currentTool,
-                annotationColor: delegate.annotationColor,
-                annotations: delegate.annotations,
-                onAnnotationAdded: delegate.addAnnotation,
-                onAnnotationRemoved: delegate.removeAnnotation,
-                selectionRect: selectionRect,
-                targetedWindowRect: delegate.targetedWindowRect,
-                isRecording: delegate.isRecording,
-                isCapturing: delegate.isCapturing,
-                animationValue: _animationController.value,
-                ripples: _ripples,
-                clickFeedbackColor: delegate.clickFeedbackColor,
-                rightClickFeedbackColor: delegate.rightClickFeedbackColor,
-                repaintCapture: Listenable.merge([
-                  _animationController,
-                  if (widget.delegate.annotationsChanged != null) widget.delegate.annotationsChanged!,
-                ]),
-                captureKey: ref.watch(captureKeyProvider),
-                onAreaDragStart: _onAreaDragStart,
-                onAreaDragUpdate: _onAreaDragUpdate,
-                onAreaDragEnd: _onAreaDragEnd,
-                textHasBackground: delegate.textHasBackground,
-              ),
+            // Multi-monitor Instructions
+            if (showInstruction && !delegate.isCapturing)
+              ..._buildMultiMonitorInstructions(),
 
-          // Multi-monitor Instructions
-          if (showInstruction && !delegate.isCapturing)
-            ..._buildMultiMonitorInstructions(),
+            // Floating Bar
+            ValueListenableBuilder<Offset?>(
+              valueListenable: _barOffsetNotifier,
+              builder: (context, barPosition, _) {
+                if (barPosition == null || delegate.isCapturing)
+                  return const SizedBox.shrink();
 
+                final showBar =
+                    delegate.isRecording ||
+                    (delegate.selectionRect != null ||
+                        delegate.captureMode == CaptureMode.fullScreen);
+                if (!showBar) return const SizedBox.shrink();
 
-          // Floating Bar
-          ValueListenableBuilder<Offset?>(
-            valueListenable: _barOffsetNotifier,
-            builder: (context, barPosition, _) {
-              if (barPosition == null || delegate.isCapturing) return const SizedBox.shrink();
+                return Positioned(
+                  left: barPosition.dx,
+                  top: barPosition.dy,
+                  child: MouseRegion(
+                    child: SqaFloatingBar(
+                      leading: [
+                        SqaFloatingBarDragHandle(
+                          onDragStart: (details) {
+                            setState(() {
+                              _isDragging = true;
+                              _dragGrabOffset = details.localPosition;
+                            });
+                          },
+                          onDragUpdate: (details) {
+                            final size = MediaQuery.of(context).size;
+                            _barOffsetNotifier.value = _clampOffset(
+                              details.globalPosition - _dragGrabOffset,
+                              size,
+                            );
+                            widget.onBarOffsetChanged?.call(
+                              _barOffsetNotifier.value,
+                            );
+                          },
+                          onDragEnd: () {
+                            setState(() => _isDragging = false);
+                          },
+                        ),
 
-              final showBar = delegate.isRecording || (delegate.selectionRect != null || delegate.captureMode == CaptureMode.fullScreen);
-              if (!showBar) return const SizedBox.shrink();
+                        // Timer & Status (if recording or countdown)
+                        if (delegate.isRecording ||
+                            delegate.countdownSeconds > 0)
+                          _buildTimerDisplay(delegate),
 
-              return Positioned(
-                left: barPosition.dx,
-                top: barPosition.dy,
-                child: MouseRegion(
-                  child: SqaFloatingBar(
-                    leading: [
-                      SqaFloatingBarDragHandle(
-                        onDragStart: (details) {
-                          setState(() {
-                            _isDragging = true;
-                            _dragGrabOffset = details.localPosition;
-                          });
-                        },
-                        onDragUpdate: (details) {
-                          final size = MediaQuery.of(context).size;
-                          _barOffsetNotifier.value = _clampOffset(details.globalPosition - _dragGrabOffset, size);
-                          widget.onBarOffsetChanged?.call(_barOffsetNotifier.value);
-                        },
-                        onDragEnd: () {
-                          setState(() => _isDragging = false);
-                        },
-                      ),
+                        if (delegate.isRecording ||
+                            delegate.countdownSeconds > 0)
+                          const SqaFloatingBarDivider(),
 
-                      // Timer & Status (if recording or countdown)
-                      if (delegate.isRecording || delegate.countdownSeconds > 0)
-                        _buildTimerDisplay(delegate),
-
-                      if (delegate.isRecording || delegate.countdownSeconds > 0)
-                        const SqaFloatingBarDivider(),
-
-                      if (widget.leadingActionsBuilder != null)
-                        ...widget.leadingActionsBuilder!(context),
-                    ],
-                    trailing: widget.trailingActionsBuilder?.call(context),
-                    children: [
-                      // Custom Content from Plugin
-                      ...widget.toolbarBuilder(context),
-                    ],
+                        if (widget.leadingActionsBuilder != null)
+                          ...widget.leadingActionsBuilder!(context),
+                      ],
+                      trailing: widget.trailingActionsBuilder?.call(context),
+                      children: [
+                        // Custom Content from Plugin
+                        ...widget.toolbarBuilder(context),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
 
-          // Processing indicator removed to prevent dimming in screenshot results
-        ],
+            // Processing indicator removed to prevent dimming in screenshot results
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTimerDisplay(CaptureOverlayDelegate delegate) {
     final theme = Theme.of(context);
@@ -638,7 +709,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         width: display.size.width,
         height: display.size.height,
         child: Center(
-          child: widget.instructionBuilder?.call(context, delegate.captureMode) ??
+          child:
+              widget.instructionBuilder?.call(context, delegate.captureMode) ??
               _DefaultInstruction(
                 mode: delegate.captureMode,
                 targeting: delegate.isTargetingWindow,
@@ -685,7 +757,10 @@ class _DefaultInstruction extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Esc to cancel',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 14,
+          ),
         ),
       ],
     );

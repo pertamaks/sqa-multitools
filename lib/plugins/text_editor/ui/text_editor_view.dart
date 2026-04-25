@@ -9,6 +9,7 @@ import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
+import '../../../ui/widgets/sqa_window_size_toggle.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_editor_state.dart';
 import 'package:flutter/services.dart';
@@ -79,9 +80,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           const SqaMarkdownHtmlParser(),
           const SqaMarkdownImageParser(),
         ],
-        inlineSyntaxes: [
-          SqaSpanInlineSyntax(),
-        ],
+        inlineSyntaxes: [SqaSpanInlineSyntax()],
       );
       // Ensure the document has at least one paragraph node for editing
       if (document.root.children.isEmpty) {
@@ -154,8 +153,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   }
                   final bytes = await item.readFileValue(Formats.png);
                   if (bytes != null) {
-                    final storageNotifier =
-                        ref.read(textEditorProvider.notifier);
+                    final storageNotifier = ref.read(
+                      textEditorProvider.notifier,
+                    );
                     final relativePath = await storageNotifier.saveImageBytes(
                       bytes,
                       'png',
@@ -200,9 +200,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     const SqaMarkdownHtmlParser(),
                     const SqaMarkdownImageParser(),
                   ],
-                  inlineSyntaxes: [
-                    SqaSpanInlineSyntax(),
-                  ],
+                  inlineSyntaxes: [SqaSpanInlineSyntax()],
                 );
                 final nodes = document.root.children.toList();
                 if (nodes.isNotEmpty) {
@@ -249,7 +247,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     String? storagePath,
   ) {
     final theme = Theme.of(context);
-    final map = <String, BlockComponentBuilder>{...standardBlockComponentBuilderMap};
+    final map = <String, BlockComponentBuilder>{
+      ...standardBlockComponentBuilderMap,
+    };
 
     // 1. Standard Paragraph Builder (Refined)
     map[ParagraphBlockKeys.type] = ParagraphBlockComponentBuilder(
@@ -1011,6 +1011,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
             ),
           ),
           _buildFloatingToolbar(context),
+          const Positioned(
+            bottom: 8,
+            right: 8,
+            child: SqaWindowSizeToggle(),
+          ),
         ],
       ),
     );
@@ -1159,7 +1164,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     icon: Symbols.format_bold,
                     tooltip: 'Bold',
                     isSelected: _isAttributeToggled(AppFlowyRichTextKeys.bold),
-                    onPressed: () => _toggleAttribute(AppFlowyRichTextKeys.bold),
+                    onPressed: () =>
+                        _toggleAttribute(AppFlowyRichTextKeys.bold),
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.format_italic,
@@ -1167,9 +1173,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     isSelected: _isAttributeToggled(
                       AppFlowyRichTextKeys.italic,
                     ),
-                    onPressed: () => _toggleAttribute(
-                      AppFlowyRichTextKeys.italic,
-                    ),
+                    onPressed: () =>
+                        _toggleAttribute(AppFlowyRichTextKeys.italic),
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.format_underlined,
@@ -1177,9 +1182,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     isSelected: _isAttributeToggled(
                       AppFlowyRichTextKeys.underline,
                     ),
-                    onPressed: () => _toggleAttribute(
-                      AppFlowyRichTextKeys.underline,
-                    ),
+                    onPressed: () =>
+                        _toggleAttribute(AppFlowyRichTextKeys.underline),
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.format_strikethrough,
@@ -1187,18 +1191,18 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     isSelected: _isAttributeToggled(
                       AppFlowyRichTextKeys.strikethrough,
                     ),
-                    onPressed: () => _toggleAttribute(
-                      AppFlowyRichTextKeys.strikethrough,
-                    ),
+                    onPressed: () =>
+                        _toggleAttribute(AppFlowyRichTextKeys.strikethrough),
                   ),
                   const SqaFloatingBarDivider(),
 
                   // Group 4: Colors
                   SqaColorPicker(
-                    activeColor: _editorState
-                        .getDeltaAttributesInSelectionStart()?[
-                      AppFlowyRichTextKeys.textColor
-                    ] as String?,
+                    activeColor:
+                        _editorState
+                                .getDeltaAttributesInSelectionStart()?[AppFlowyRichTextKeys
+                                .textColor]
+                            as String?,
                     onColorSelected: (color) {
                       final selection = _editorState.selection;
                       if (selection != null) {
@@ -1213,17 +1217,19 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     child: SqaFloatingBarButton(
                       icon: Symbols.format_color_text,
                       tooltip: 'Text Color',
-                      isSelected:
-                          _isAttributeToggled(AppFlowyRichTextKeys.textColor),
+                      isSelected: _isAttributeToggled(
+                        AppFlowyRichTextKeys.textColor,
+                      ),
                       onPressed: () {},
                     ),
                   ),
                   SqaColorPicker(
                     isBackground: true,
-                    activeColor: _editorState
-                        .getDeltaAttributesInSelectionStart()?[
-                      AppFlowyRichTextKeys.backgroundColor
-                    ] as String?,
+                    activeColor:
+                        _editorState
+                                .getDeltaAttributesInSelectionStart()?[AppFlowyRichTextKeys
+                                .backgroundColor]
+                            as String?,
                     onColorSelected: (color) {
                       final selection = _editorState.selection;
                       if (selection != null) {
@@ -1391,12 +1397,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       );
 
                       if (file != null) {
-                        final storageNotifier =
-                            ref.read(textEditorProvider.notifier);
-                        final relativePath =
-                            await storageNotifier.saveImageAttachment(
-                              file.path,
-                            );
+                        final storageNotifier = ref.read(
+                          textEditorProvider.notifier,
+                        );
+                        final relativePath = await storageNotifier
+                            .saveImageAttachment(file.path);
 
                         final transaction = _editorState.transaction;
                         final imageNode = Node(
@@ -1627,7 +1632,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           final opEnd = currentOffset + length;
 
           // Check if op overlaps with selection
-          if (!(opEnd <= start || currentOffset >= (selection.isCollapsed ? start + 1 : end))) {
+          if (!(opEnd <= start ||
+              currentOffset >= (selection.isCollapsed ? start + 1 : end))) {
             final href = op.attributes?[AppFlowyRichTextKeys.href] as String?;
             if (href != null && href.isNotEmpty) {
               initialUrl = href;
@@ -1923,4 +1929,3 @@ class _SqaLinkMenuWidgetState extends State<_SqaLinkMenuWidget> {
     );
   }
 }
-

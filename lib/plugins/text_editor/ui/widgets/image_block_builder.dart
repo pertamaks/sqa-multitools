@@ -13,10 +13,7 @@ import 'sqa_block_action_handle.dart';
 class SqaImageBlockComponentBuilder extends ImageBlockComponentBuilder {
   final String? storagePath;
 
-  SqaImageBlockComponentBuilder({
-    super.configuration,
-    this.storagePath,
-  });
+  SqaImageBlockComponentBuilder({super.configuration, this.storagePath});
 
   @override
   BlockComponentWidget build(BlockComponentContext blockComponentContext) {
@@ -27,21 +24,20 @@ class SqaImageBlockComponentBuilder extends ImageBlockComponentBuilder {
       storagePath: storagePath,
       configuration: configuration,
       showActions: showActions(node),
-      actionBuilder: (context, state) => SqaBlockActionHandle(
-        node: node,
-        state: state,
-      ),
+      actionBuilder: (context, state) =>
+          SqaBlockActionHandle(node: node, state: state),
       actionTrailingBuilder: (context, state) =>
           actionTrailingBuilder(blockComponentContext, state),
     );
   }
 
   @override
-  bool Function(Node node) get showActions => (node) => true;
+  bool Function(Node node) get showActions =>
+      (node) => true;
 
   @override
-  BlockComponentValidate get validate => (node) =>
-      node.attributes[ImageBlockKeys.url] != null;
+  BlockComponentValidate get validate =>
+      (node) => node.attributes[ImageBlockKeys.url] != null;
 }
 
 class SqaImageBlockComponentWidget extends BlockComponentStatefulWidget {
@@ -93,9 +89,7 @@ class _SqaImageBlockComponentWidgetState
   CursorStyle get cursorStyle => CursorStyle.cover;
 
   @override
-  Rect getBlockRect({
-    bool shiftWithBaseOffset = false,
-  }) {
+  Rect getBlockRect({bool shiftWithBaseOffset = false}) {
     final imageBox = imageKey.currentContext?.findRenderObject();
     if (imageBox is RenderBox) {
       return Offset.zero & imageBox.size;
@@ -135,17 +129,11 @@ class _SqaImageBlockComponentWidgetState
   }
 
   @override
-  Selection getSelectionInRange(Offset start, Offset end) => Selection.single(
-        path: widget.node.path,
-        startOffset: 0,
-        endOffset: 1,
-      );
+  Selection getSelectionInRange(Offset start, Offset end) =>
+      Selection.single(path: widget.node.path, startOffset: 0, endOffset: 1);
 
   @override
-  Offset localToGlobal(
-    Offset offset, {
-    bool shiftWithBaseOffset = false,
-  }) =>
+  Offset localToGlobal(Offset offset, {bool shiftWithBaseOffset = false}) =>
       _renderBox!.localToGlobal(offset);
 
   @override
@@ -208,11 +196,7 @@ class _SqaImageBlockComponentWidgetState
       showActions: widget.showActions,
       actionBuilder: widget.actionBuilder,
       actionTrailingBuilder: widget.actionTrailingBuilder,
-      child: Padding(
-        key: imageKey,
-        padding: padding,
-        child: child,
-      ),
+      child: Padding(key: imageKey, padding: padding, child: child),
     );
   }
 

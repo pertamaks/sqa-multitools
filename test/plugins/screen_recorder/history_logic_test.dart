@@ -6,7 +6,8 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:sqa_multitools/plugins/screen_recorder/providers/screen_recorder_provider.dart';
 
-class MockPathProvider extends PathProviderPlatform with MockPlatformInterfaceMixin {
+class MockPathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
   final String testPath;
   MockPathProvider(this.testPath);
 
@@ -23,7 +24,7 @@ void main() {
   setUpAll(() async {
     testDir = Directory.systemTemp.createTempSync('sqa_test');
     PathProviderPlatform.instance = MockPathProvider(testDir.path);
-    
+
     recordingsDir = Directory('${testDir.path}/SQA_Recordings');
     if (!await recordingsDir.exists()) {
       await recordingsDir.create(recursive: true);
@@ -43,7 +44,7 @@ void main() {
     // 1. Create dummy files with staggered modification times
     final file1 = File('${recordingsDir.path}/SQA_REC_OLD.mp4');
     await file1.writeAsString('old');
-    
+
     // Ensure file system registers different modification times
     await Future<void>.delayed(const Duration(seconds: 1));
 
@@ -52,13 +53,13 @@ void main() {
 
     // 2. Trigger refresh
     await notifier.refreshRecentRecordings();
-    
+
     // Check state
     var state = container.read(screenRecorderProvider);
-    
+
     // Should have 2 recordings
     expect(state.recentRecordings.length, 2);
-    
+
     // Should be sorted by date descending (NEW first)
     expect(state.recentRecordings[0].file.path, contains('SQA_REC_NEW.mp4'));
     expect(state.recentRecordings[1].file.path, contains('SQA_REC_OLD.mp4'));
@@ -70,11 +71,11 @@ void main() {
     // 4. Test deletion
     final firstRecord = state.recentRecordings[0];
     await notifier.deleteRecording(firstRecord);
-    
+
     state = container.read(screenRecorderProvider);
     expect(state.recentRecordings.length, 1);
     expect(state.recentRecordings[0].file.path, contains('SQA_REC_OLD.mp4'));
-    
+
     // Verify file is actually gone from disk
     expect(await firstRecord.file.exists(), isFalse);
   });

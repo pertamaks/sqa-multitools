@@ -36,8 +36,9 @@ class TextEditorStorageService {
 
   Future<Directory> get attachmentsDir async {
     final dir = await _storageDir;
-    final attachments =
-        Directory('${dir.path}${Platform.pathSeparator}attachments');
+    final attachments = Directory(
+      '${dir.path}${Platform.pathSeparator}attachments',
+    );
     if (!await attachments.exists()) {
       await attachments.create(recursive: true);
     }
@@ -134,8 +135,7 @@ class TextEditorStorageService {
         final finalFilename = '${_safeFilename(finalName)}.txt';
 
         if (finalFilename != basename) {
-          final newPath =
-              '${dir.path}${Platform.pathSeparator}$finalFilename';
+          final newPath = '${dir.path}${Platform.pathSeparator}$finalFilename';
           await entity.rename(newPath);
         }
 

@@ -14,7 +14,8 @@ class SqaDeltaMarkdownEncoder extends Converter<Delta, String> {
       if (op is TextInsert) {
         final attributes = op.attributes;
         if (attributes != null) {
-          final formula = (attributes[BuiltInAttributeKey.formula] as String?) ?? '';
+          final formula =
+              (attributes[BuiltInAttributeKey.formula] as String?) ?? '';
           buffer.write(_prefixSyntax(attributes));
           if (formula.isNotEmpty) {
             buffer.write(formula);
@@ -48,12 +49,12 @@ class SqaDeltaMarkdownEncoder extends Converter<Delta, String> {
     if (attributes[BuiltInAttributeKey.strikethrough] == true) {
       syntax += '~~';
     }
-    
+
     // Underline
     if (attributes[BuiltInAttributeKey.underline] == true) {
       syntax += '<u>';
     }
-    
+
     // Code
     if (attributes[BuiltInAttributeKey.code] == true) {
       syntax += '`';
@@ -67,7 +68,7 @@ class SqaDeltaMarkdownEncoder extends Converter<Delta, String> {
     // Colors (HTML Span)
     final textColor = attributes[AppFlowyRichTextKeys.textColor] as String?;
     final bgColor = attributes[AppFlowyRichTextKeys.backgroundColor] as String?;
-    
+
     if (textColor != null || bgColor != null) {
       syntax += '<span style="';
       if (textColor != null) syntax += 'color:$textColor;';

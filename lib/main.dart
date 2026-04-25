@@ -12,6 +12,7 @@ import 'ui/main_toolbar.dart';
 import 'plugins/screen_recorder/providers/screen_recorder_provider.dart';
 import 'plugins/screenshot/providers/screenshot_provider.dart';
 import 'core/providers/hotkey_provider.dart';
+import 'core/window/window_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,12 +21,13 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   await windowManager.ensureInitialized();
 
-  await windowManager.ensureInitialized();
-
   final alwaysOnTop = prefs.getBool('always_on_top') ?? true;
 
   const windowOptions = WindowOptions(
-    size: Size(kDefaultWindowWidth, kToolbarWindowHeight),
+    size: Size(
+      WindowConstants.kDefaultWindowWidth,
+      WindowConstants.kToolbarWindowHeight,
+    ),
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
@@ -35,7 +37,10 @@ void main() async {
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setAlwaysOnTop(alwaysOnTop);
     await windowManager.setMinimumSize(
-      const Size(kDefaultWindowWidth, kToolbarWindowHeight),
+      const Size(
+        WindowConstants.kDefaultWindowWidth,
+        WindowConstants.kToolbarWindowHeight,
+      ),
     );
     await windowManager.setPreventClose(true);
     await windowManager.show();

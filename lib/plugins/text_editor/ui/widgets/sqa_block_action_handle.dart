@@ -31,10 +31,7 @@ class SqaBlockActionHandle extends StatelessWidget {
             onTap: () {
               final editorState = context.read<EditorState>();
               final transaction = editorState.transaction;
-              transaction.insertNode(
-                node.path.next,
-                paragraphNode(),
-              );
+              transaction.insertNode(node.path.next, paragraphNode());
               editorState.apply(transaction);
             },
             tooltip: 'Add Block Below',
@@ -43,35 +40,47 @@ class SqaBlockActionHandle extends StatelessWidget {
           // 2. Drag Handle (Six Dots) with Options Menu
           MenuAnchor(
             style: MenuStyle(
-              backgroundColor: WidgetStatePropertyAll(theme.colorScheme.surface),
-              surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+              backgroundColor: WidgetStatePropertyAll(
+                theme.colorScheme.surface,
+              ),
+              surfaceTintColor: const WidgetStatePropertyAll(
+                Colors.transparent,
+              ),
               elevation: const WidgetStatePropertyAll(8),
               padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
               shape: WidgetStatePropertyAll(
                 RoundedRectangleBorder(
                   borderRadius: SqaStyles.radiusLarge,
                   side: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                 ),
               ),
             ),
             menuChildren: [
               MenuItemButton(
-                leadingIcon: Icon(Symbols.content_copy, size: 18, color: theme.colorScheme.onSurfaceVariant),
+                leadingIcon: Icon(
+                  Symbols.content_copy,
+                  size: 18,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
                 onPressed: () {
                   final editorState = context.read<EditorState>();
                   final transaction = editorState.transaction;
-                  transaction.insertNode(
-                    node.path.next,
-                    node.copyWith(),
-                  );
+                  transaction.insertNode(node.path.next, node.copyWith());
                   editorState.apply(transaction);
                 },
                 style: MenuItemButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   minimumSize: const Size(140, 36),
-                  shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: SqaStyles.radiusMedium,
+                  ),
                 ),
                 child: Text(
                   'Duplicate',
@@ -82,7 +91,11 @@ class SqaBlockActionHandle extends StatelessWidget {
                 ),
               ),
               MenuItemButton(
-                leadingIcon: Icon(Symbols.delete, size: 18, color: theme.colorScheme.error),
+                leadingIcon: Icon(
+                  Symbols.delete,
+                  size: 18,
+                  color: theme.colorScheme.error,
+                ),
                 onPressed: () {
                   final editorState = context.read<EditorState>();
                   final transaction = editorState.transaction;
@@ -90,9 +103,14 @@ class SqaBlockActionHandle extends StatelessWidget {
                   editorState.apply(transaction);
                 },
                 style: MenuItemButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   minimumSize: const Size(140, 36),
-                  shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: SqaStyles.radiusMedium,
+                  ),
                 ),
                 child: Text(
                   'Delete',
@@ -148,29 +166,33 @@ class _SqaActionButtonState extends State<_SqaActionButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Tooltip(
       message: widget.tooltip,
       waitDuration: const Duration(milliseconds: 500),
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        cursor: widget.isDraggable ? SystemMouseCursors.grab : SystemMouseCursors.click,
+        cursor: widget.isDraggable
+            ? SystemMouseCursors.grab
+            : SystemMouseCursors.click,
         child: GestureDetector(
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: _isHovered 
-                  ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.8)
+              color: _isHovered
+                  ? theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.8,
+                    )
                   : Colors.transparent,
               borderRadius: SqaStyles.radiusSmall,
             ),
             child: Icon(
               widget.icon,
               size: 18,
-              color: _isHovered 
+              color: _isHovered
                   ? theme.colorScheme.primary
                   : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),

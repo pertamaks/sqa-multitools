@@ -87,7 +87,8 @@ class SqaColorPicker extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: colors.map((color) {
-              final isSelected = (color['hex'] == '' && activeColor == null) ||
+              final isSelected =
+                  (color['hex'] == '' && activeColor == null) ||
                   (color['hex'] != '' && activeColor == color['hex']);
 
               return InkWell(
@@ -102,21 +103,25 @@ class SqaColorPicker extends StatelessWidget {
                     color: color['hex'] == ''
                         ? Colors.transparent
                         : Color(
-                            int.parse(color['hex']!.replaceFirst('#', '0xFF'))),
+                            int.parse(color['hex']!.replaceFirst('#', '0xFF')),
+                          ),
                     borderRadius: SqaStyles.radiusSmall,
                     border: Border.all(
                       color: isSelected
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.outlineVariant
-                              .withValues(alpha: 0.5),
+                          : theme.colorScheme.outlineVariant.withValues(
+                              alpha: 0.5,
+                            ),
                       width: isSelected ? 2 : 1,
                     ),
                   ),
                   child: color['hex'] == ''
                       ? Center(
-                          child: Icon(Icons.block,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant),
+                          child: Icon(
+                            Icons.block,
+                            size: 16,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         )
                       : null,
                 ),

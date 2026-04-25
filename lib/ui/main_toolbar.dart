@@ -16,14 +16,8 @@ import 'widgets/sqa_bug_squasher.dart';
 import 'widgets/sqa_scroll_behavior.dart';
 import 'widgets/sqa_inline_tooltip.dart';
 
-/// The collapsed toolbar height (no plugin open).
-const double kToolbarWindowHeight = 56; // 56px target + 9px Windows offset
-
-/// The default window width.
-const double kDefaultWindowWidth = 450;
-
-/// The expanded window height (plugin panel open).
-const double kExpandedWindowHeight = 500;
+import '../core/window/window_constants.dart';
+import '../core/providers/window_provider.dart';
 
 class MainToolbar extends ConsumerStatefulWidget {
   const MainToolbar({super.key});
@@ -69,15 +63,21 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       ref.read(activePluginProvider.notifier).setPlugin(null);
       // Clear history when closing
       ref.read(navigationHistoryProvider.notifier).setHistory(null);
-      // If we're closing the settings plugin specifically, revert any theme previews
       if (plugin.id == 'com.sqa.settings') {
         ref.read(themeSettingsProvider.notifier).resetToSaved();
       }
+      ref.read(windowSizeModeProvider.notifier).reset();
       await windowManager.setMinimumSize(
-        const Size(kDefaultWindowWidth, kToolbarWindowHeight),
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kToolbarWindowHeight,
+        ),
       );
       await windowManager.setSize(
-        const Size(kDefaultWindowWidth, kToolbarWindowHeight),
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kToolbarWindowHeight,
+        ),
       );
     } else {
       // HANDLE NAVIGATION HISTORY
@@ -93,12 +93,19 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         ref.read(navigationHistoryProvider.notifier).setHistory(null);
       }
 
+      ref.read(windowSizeModeProvider.notifier).reset();
       ref.read(activePluginProvider.notifier).setPlugin(plugin);
       await windowManager.setMinimumSize(
-        const Size(kDefaultWindowWidth, kExpandedWindowHeight),
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kExpandedWindowHeight,
+        ),
       );
       await windowManager.setSize(
-        const Size(kDefaultWindowWidth, kExpandedWindowHeight),
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kExpandedWindowHeight,
+        ),
       );
     }
   }
@@ -114,13 +121,13 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       onPanStart: (_) => windowManager.startDragging(),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        height: kToolbarWindowHeight,
+        height: WindowConstants.kToolbarWindowHeight,
         color: Colors.transparent,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
             child: Container(
-              height: kToolbarWindowHeight,
+              height: WindowConstants.kToolbarWindowHeight,
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.only(
@@ -311,7 +318,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         children: [
           if (hasPlugin && !isOverlayActive)
             Positioned.fill(
-              top: kToolbarWindowHeight,
+              top: WindowConstants.kToolbarWindowHeight,
               child: activePlugin.buildPluginWindow(context),
             ),
           if (!isOverlayActive)
@@ -319,7 +326,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
               top: 0,
               left: 0,
               right: 0,
-              height: kToolbarWindowHeight,
+              height: WindowConstants.kToolbarWindowHeight,
               child: _buildToolbarBar(
                 colorScheme,
                 enabledPlugins,

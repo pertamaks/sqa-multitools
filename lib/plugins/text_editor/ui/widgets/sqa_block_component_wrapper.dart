@@ -44,7 +44,9 @@ class SqaBlockComponentWrapper extends BlockComponentStatelessWidget {
         remoteSelection: editorState.remoteSelections,
         cursorColor: editorState.editorStyle.cursorColor,
         selectionColor: editorState.editorStyle.selectionColor,
-        blockColor: editorState.editorStyle.selectionColor.withValues(alpha: 0.3),
+        blockColor: editorState.editorStyle.selectionColor.withValues(
+          alpha: 0.3,
+        ),
         supportTypes: const [
           BlockSelectionType.block,
           BlockSelectionType.selection,

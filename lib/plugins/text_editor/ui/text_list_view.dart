@@ -103,10 +103,13 @@ class TextListView extends ConsumerWidget {
                                     const SizedBox(height: 4),
                                     Text(
                                       'Last modified: ${DateFormat.yMMMd().add_Hm().format(doc.lastModified)}',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant
-                                            .withValues(alpha: 0.7),
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant
+                                                .withValues(alpha: 0.7),
+                                          ),
                                     ),
                                   ],
                                 ),

@@ -37,10 +37,7 @@ class SqaMarkdownImageParser extends CustomMarkdownParser {
       return [
         Node(
           type: ImageBlockKeys.type,
-          attributes: {
-            ImageBlockKeys.url: url,
-            'alt': alt,
-          },
+          attributes: {ImageBlockKeys.url: url, 'alt': alt},
         ),
       ];
     }

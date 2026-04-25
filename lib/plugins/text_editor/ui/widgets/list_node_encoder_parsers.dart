@@ -35,7 +35,8 @@ class SqaTodoListNodeParser extends NodeParser {
   @override
   String transform(Node node, DocumentMarkdownEncoder? encoder) {
     final delta = node.delta;
-    final checked = node.attributes[TodoListBlockKeys.checked] as bool? ?? false;
+    final checked =
+        node.attributes[TodoListBlockKeys.checked] as bool? ?? false;
     if (delta == null) return '';
     final text = SqaDeltaMarkdownEncoder().convert(delta);
     return '* [${checked ? 'x' : ' '}] $text\n';

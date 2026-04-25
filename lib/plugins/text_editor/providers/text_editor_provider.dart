@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/services/preferences_service.dart';
 import '../models/text_document.dart';
 import '../models/text_editor_state.dart';
 import '../services/storage_service.dart';
@@ -9,20 +11,55 @@ import '../services/storage_service.dart';
 part 'text_editor_provider.g.dart';
 
 @riverpod
+List<TextDocument> filteredDocuments(Ref ref) {
+  final TextEditorState state = ref.watch(textEditorProvider);
+  final String query = state.searchQuery.toLowerCase();
+  if (query.isEmpty) {
+    return state.documents;
+  }
+  return state.documents.where((TextDocument doc) {
+    return doc.name.toLowerCase().contains(query) ||
+        doc.content.toLowerCase().contains(query);
+  }).toList();
+}
+
+@riverpod
 class TextEditor extends _$TextEditor {
-  final _storage = TextEditorStorageService();
+  TextEditorStorageService get _storage =>
+      TextEditorStorageService(customBasePath: state.savePath);
   Timer? _autoSaveTimer;
+  Timer? _searchDebounce;
 
   @override
   TextEditorState build() {
-    ref.onDispose(() => _autoSaveTimer?.cancel());
+    final prefs = ref.watch(preferencesServiceProvider);
+    final savedPath = prefs.getTextEditorSaveDir();
+
+    ref.onDispose(() {
+      _autoSaveTimer?.cancel();
+      _searchDebounce?.cancel();
+    });
     // Initial data refresh
     Future.microtask(() => initialize());
-    return const TextEditorState();
+    return TextEditorState(savePath: savedPath);
+  }
+
+  void setSearchQuery(String query) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      state = state.copyWith(searchQuery: query);
+    });
   }
 
   Future<void> initialize() async {
     state = state.copyWith(isLoading: true);
+
+    // Resolve save path if null (use default from storage service)
+    if (state.savePath == null || state.savePath!.isEmpty) {
+      final dir = await _storage.storageDir;
+      state = state.copyWith(savePath: dir.path);
+    }
+
     final docs = await _storage.loadAllDocuments();
     state = state.copyWith(documents: _sortDocuments(docs), isLoading: false);
   }
@@ -43,6 +80,12 @@ class TextEditor extends _$TextEditor {
   }
 
   void createFromTemplate(TextTemplateType type) {
+    if (state.documents.length >= state.maxDocuments) {
+      state = state.copyWith(
+        errorMessage: 'Maximum of ${state.maxDocuments} documents reached.',
+      );
+      return;
+    }
     final String initialContent;
     final String name;
 
@@ -179,6 +222,14 @@ class TextEditor extends _$TextEditor {
       String finalName = doc.name;
       final isNew = !state.documents.any((d) => d.id == doc.id);
 
+      if (isNew && state.documents.length >= state.maxDocuments) {
+        state = state.copyWith(
+          isSaving: false,
+          errorMessage: 'Maximum of ${state.maxDocuments} documents reached.',
+        );
+        return;
+      }
+
       if (finalName.isEmpty || isNew || oldName != null) {
         finalName = await _storage.getNextAvailableName(finalName);
       }
@@ -227,6 +278,28 @@ class TextEditor extends _$TextEditor {
 
   Future<void> copyContent(String content) async {
     await Clipboard.setData(ClipboardData(text: content));
+  }
+
+  Future<void> changeSavePath(String path) async {
+    state = state.copyWith(savePath: path);
+    await ref.read(preferencesServiceProvider).setTextEditorSaveDir(path);
+    await initialize(); // Reload from new path
+  }
+
+  Future<void> openSaveFolder() async {
+    final dir = await _storage.storageDir;
+    final path = dir.path;
+    if (Platform.isWindows) {
+      await Process.run('explorer.exe', [path]);
+    }
+  }
+
+  Future<String> saveImageAttachment(String originalPath) async {
+    return await _storage.saveImageAttachment(originalPath);
+  }
+
+  Future<String> saveImageBytes(Uint8List bytes, String extension) async {
+    return await _storage.saveImageBytes(bytes, extension);
   }
 
   void togglePin(String id) {

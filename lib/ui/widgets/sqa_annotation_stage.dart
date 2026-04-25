@@ -210,8 +210,9 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
       case ScreenshotTool.laser:
         // Use path segments
         for (int i = 0; i < ann.points.length - 1; i++) {
-          if (_distToSegment(p, ann.points[i], ann.points[i + 1]) < radius)
+          if (_distToSegment(p, ann.points[i], ann.points[i + 1]) < radius) {
             return true;
+          }
         }
         return false;
 

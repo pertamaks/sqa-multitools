@@ -402,8 +402,9 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
           // Find the bar state to check if we are currently scrolling/locked
           final barState = context
               .findAncestorStateOfType<_SqaFloatingBarState>();
-          if (barState != null && barState.isScrolling)
+          if (barState != null && barState.isScrolling) {
             return; // Wait for scrolling to settle
+          }
 
           // Halt any active scroll momentum before starting expansion
           // This prevents the 'Sync-Scroll' logic from fighting with active scroll physics.

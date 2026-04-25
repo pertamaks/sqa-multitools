@@ -25,6 +25,8 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **HTML Safety Net**: Visual identification and preservation of raw HTML blocks (tables, sections, anchors) that the editor doesn't natively support.
 - **Quote Blocks**: Custom premium styling for blockquotes with primary-color vertical accents and italicized typography.
 - **Integrated Hyperlinks**: Standardized `MenuAnchor` system for adding, editing, and managing links with auto-protocol detection (e.g. `https://`) and quick actions.
+- **Rich Text Extensions**: Native support for **Strikethrough**, **Text Color**, and **Highlight Color** via a premium grid-based color picker.
+- **Fidelity-First Encoding**: Colors are preserved during Markdown export using standard HTML `<span style="...">` tags, ensuring absolute data parity across different Markdown editors.
 
 ### 2.4 Table Editor
 - **Contextual Actions**: Standardized `MenuAnchor` system for both row and column operations (insert, delete, clear).
@@ -45,6 +47,7 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
     - **Metadata Retention**: `SqaTableNodeParser` and `SqaCodeBlockNodeParser` preserve alignment markers and nested indentation.
     - **HTML Safety Net**: `SqaMarkdownHtmlParser` (loader) and `SqaHtmlNodeParser` (encoder) capture and reconstruct raw HTML tags, storing them in dedicated `raw_html` nodes.
     - **Quote Fidelity**: `SqaQuoteNodeParser` ensures the `> ` prefix and mandatory double-newline (\n\n) separation to prevent structural corruption.
+    - **Color & Style Fidelity**: `SqaDeltaMarkdownEncoder` and `SqaSpanInlineSyntax` provide a dual-stage pipeline for serializing/deserializing colors as HTML spans, maintaining strict data parity without breaking GFM strikethrough logic.
     - **UI Reconstruction**: `RawHtmlBlockComponentBuilder` renders preserved HTML in a themed mono-spaced container for visual clarity.
 
 ## 4. UI Standards

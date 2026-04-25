@@ -9,6 +9,53 @@ part of 'text_editor_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(filteredDocuments)
+final filteredDocumentsProvider = FilteredDocumentsProvider._();
+
+final class FilteredDocumentsProvider
+    extends
+        $FunctionalProvider<
+          List<TextDocument>,
+          List<TextDocument>,
+          List<TextDocument>
+        >
+    with $Provider<List<TextDocument>> {
+  FilteredDocumentsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'filteredDocumentsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$filteredDocumentsHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<TextDocument>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  List<TextDocument> create(Ref ref) {
+    return filteredDocuments(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<TextDocument> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<TextDocument>>(value),
+    );
+  }
+}
+
+String _$filteredDocumentsHash() => r'696dcd53ddccdf919ccc9bb842bf64c7ba242fb1';
+
 @ProviderFor(TextEditor)
 final textEditorProvider = TextEditorProvider._();
 
@@ -41,7 +88,7 @@ final class TextEditorProvider
   }
 }
 
-String _$textEditorHash() => r'875b0dba7e6a7dbd57052bf1e46ec4c663e0d53c';
+String _$textEditorHash() => r'e8e9d8d26c2a80b993ec244634632007417066ee';
 
 abstract class _$TextEditor extends $Notifier<TextEditorState> {
   TextEditorState build();

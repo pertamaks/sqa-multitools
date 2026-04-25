@@ -95,30 +95,78 @@ class SqaMarkdownTableParser extends CustomMarkdownParser {
           alignments.add(alignment);
         }
 
-        cells[col].add(
-          paragraphNode(
-            delta: DeltaMarkdownDecoder().convertNodes(element.children),
-          ),
+        final cellChildren = <Node>[];
+        if (element.children != null) {
+          for (final child in element.children!) {
+            bool handled = false;
+            for (final parser in parsers) {
+              if (parser == this) continue; // Avoid infinite recursion
+              final nodes = parser.transform(child, parsers);
+              if (nodes.isNotEmpty) {
+                cellChildren.addAll(nodes);
+                handled = true;
+                break;
+              }
+            }
+
+            if (!handled) {
+              if (child is md.Text) {
+                cellChildren.add(
+                  paragraphNode(delta: Delta()..insert(child.text)),
+                );
+              } else if (child is md.Element) {
+                // If it's an unhandled element (like <a> or <span>),
+                // try to convert its nodes to a delta if possible
+                cellChildren.add(
+                  paragraphNode(
+                    delta: DeltaMarkdownDecoder().convertNodes([child]),
+                  ),
+                );
+              }
+            }
+          }
+        }
+
+        if (cellChildren.isEmpty) {
+          cellChildren.add(paragraphNode());
+        }
+
+        final cellNode = Node(
+          type: TableCellBlockKeys.type,
+          children: cellChildren,
         );
+        cells[col].add(cellNode);
       }
     }
 
-    if (cells.isEmpty) return [];
+    // 3. Manually construct the TableNode to avoid TableNode.fromList's strict delta assertions.
+    // This allows table cells to contain non-text nodes like Images.
+    // IMPORTANT: We must include default attributes to avoid "Null check operator" crashes
+    // during rendering (specifically in TableNode's internal calculations).
+    final tableNode = Node(
+      type: TableBlockKeys.type,
+      attributes: {
+        TableBlockKeys.rowsLen: rowsLen,
+        TableBlockKeys.colsLen: colsLen,
+        TableBlockKeys.colDefaultWidth: 160.0,
+        TableBlockKeys.rowDefaultHeight: 40.0,
+        TableBlockKeys.colMinimumWidth: 40.0,
+        TableBlockKeys.borderWidth: 2.0,
+        'alignments': alignments,
+      },
+    );
 
-    // In AppFlowy, columns are the first dimension in TableNode.fromList?
-    // Wait, the standard parser (MarkdownTableListParserV2) does row-first then transposes?
-    // Let's check the standard parser's loops again.
-    // Line 55: for (var i = 0; i < th.length; i++) { ... cells.add(row); }
-    // This looks like it adds columns as rows!
-
-    // Actually, AppFlowy's TableNode.fromList expects a 2D list where cells[col][row].
-    final tableNode = TableNode.fromList(cells);
-
-    // Set the captured alignments
-    if (alignments.isNotEmpty) {
-      tableNode.node.updateAttributes({'alignments': alignments});
+    for (int col = 0; col < colsLen; col++) {
+      for (int row = 0; row < rowsLen; row++) {
+        final cellNode = cells[col][row];
+        cellNode.updateAttributes({
+          TableCellBlockKeys.rowPosition: row,
+          TableCellBlockKeys.colPosition: col,
+        });
+        tableNode.insert(cellNode);
+      }
     }
 
-    return [tableNode.node];
+    return [tableNode];
   }
 }

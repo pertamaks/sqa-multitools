@@ -1,4 +1,5 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
+import 'sqa_delta_markdown_encoder.dart';
 
 /// A custom SQA-standard Heading encoder parser.
 /// It enforces a double newline (\n\n) after every heading to ensure
@@ -15,7 +16,7 @@ class SqaHeadingNodeParser extends NodeParser {
     final delta = node.delta;
     if (delta == null) return '';
 
-    final text = DeltaMarkdownEncoder().convert(delta);
+    final text = SqaDeltaMarkdownEncoder().convert(delta);
     // Use '#' * level and ensure exactly two newlines for block separation
     return '${'#' * level} $text\n\n';
   }
@@ -39,7 +40,7 @@ class SqaParagraphNodeParser extends NodeParser {
     final delta = node.delta;
     if (delta == null) return '';
 
-    final text = DeltaMarkdownEncoder().convert(delta);
+    final text = SqaDeltaMarkdownEncoder().convert(delta);
     if (text.isEmpty) return '\n';
 
     // Top-level paragraphs should have a blank line after them.
@@ -68,7 +69,7 @@ class SqaQuoteNodeParser extends NodeParser {
     final delta = node.delta;
     if (delta == null) return '';
 
-    final text = DeltaMarkdownEncoder().convert(delta);
+    final text = SqaDeltaMarkdownEncoder().convert(delta);
     return '> $text\n\n';
   }
 }

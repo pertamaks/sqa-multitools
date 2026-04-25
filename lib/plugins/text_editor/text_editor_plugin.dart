@@ -7,6 +7,10 @@ import 'models/text_editor_state.dart';
 import 'ui/text_list_view.dart';
 import 'ui/text_editor_view.dart';
 
+import 'package:file_selector/file_selector.dart';
+import '../../ui/widgets/sqa_card.dart';
+import '../../ui/widgets/sqa_settings_tile.dart';
+
 class TextEditorPlugin implements SqaPlugin {
   @override
   String get id => 'com.sqa.plugin.text_editor';
@@ -28,9 +32,7 @@ class TextEditorPlugin implements SqaPlugin {
   List<PermissionRequirement> get requiredPermissions => [];
 
   @override
-  Future<void> initialize() async {
-    // TODO: Pre-load documents from storage
-  }
+  Future<void> initialize() async {}
 
   @override
   Future<void> dispose() async {}
@@ -53,6 +55,77 @@ class TextEditorPlugin implements SqaPlugin {
 
   @override
   Widget buildSettingsPanel(BuildContext context) {
-    return const Center(child: Text('Text Editor Settings'));
+    return const _TextEditorSettings();
+  }
+}
+
+class _TextEditorSettings extends ConsumerWidget {
+  const _TextEditorSettings();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(textEditorProvider);
+    final notifier = ref.read(textEditorProvider.notifier);
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            'STORAGE CONFIGURATION',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              letterSpacing: 1.0,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ),
+        SqaCard(
+          padding: EdgeInsets.zero,
+          margin: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            children: [
+              SqaSettingsTile(
+                icon: Symbols.folder,
+                title: 'Save Directory',
+                subtitle: state.savePath ?? 'Documents/SQA_Notes (Default)',
+                trailing: IconButton(
+                  icon: const Icon(Symbols.edit, size: 16),
+                  onPressed: () async {
+                    final directoryPath = await getDirectoryPath(
+                      initialDirectory: state.savePath,
+                      confirmButtonText: 'Select Notes Folder',
+                    );
+                    if (directoryPath != null) {
+                      notifier.changeSavePath(directoryPath);
+                    }
+                  },
+                  tooltip: 'Change Save Directory',
+                ),
+              ),
+              const Divider(height: 1),
+              SqaSettingsTile(
+                icon: Symbols.format_list_numbered,
+                title: 'Document Limit',
+                subtitle: 'Max documents allowed',
+                trailing: Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: Text(
+                    '${state.maxDocuments}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -10,6 +10,7 @@ import '../providers/screenshot_provider.dart';
 import '../models/screenshot_state.dart';
 import '../../../ui/widgets/sqa_capture_overlay.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
+import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_annotation_toolbar.dart';
 
 class ScreenshotOverlay extends ConsumerStatefulWidget {
@@ -109,13 +110,29 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
           icon: Symbols.content_copy,
           tooltip: 'Copy to Clipboard',
           isLoading: isCapturing,
-          onPressed: () => notifier.finalize(shouldCopy: true),
+          onPressed: () async {
+            await notifier.finalize(shouldCopy: true);
+            if (!context.mounted) return;
+            SqaToast.show(
+              context,
+              'Screenshot copied to clipboard',
+              type: SqaToastType.success,
+            );
+          },
         ),
         SqaFloatingBarButton(
           icon: Symbols.save,
           tooltip: 'Save Screenshot',
           isLoading: isCapturing,
-          onPressed: () => notifier.finalize(),
+          onPressed: () async {
+            await notifier.finalize();
+            if (!context.mounted) return;
+            SqaToast.show(
+              context,
+              'Screenshot saved to folder',
+              type: SqaToastType.success,
+            );
+          },
         ),
         SqaFloatingBarButton(
           icon: Symbols.close,

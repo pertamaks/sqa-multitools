@@ -297,14 +297,16 @@ class SqaSelectionPainter extends CustomPainter {
       }
       canvas.drawPath(path, paint);
     } else if (ann.tool == ScreenshotTool.line) {
-      if (ann.points.length >= 2)
+      if (ann.points.length >= 2) {
         canvas.drawLine(ann.points.first, ann.points.last, paint);
+      }
     } else if (ann.tool == ScreenshotTool.rectangle) {
-      if (ann.points.length >= 2)
+      if (ann.points.length >= 2) {
         canvas.drawRect(
           Rect.fromPoints(ann.points.first, ann.points.last),
           paint,
         );
+      }
     } else if (ann.tool == ScreenshotTool.arrow) {
       if (ann.points.length >= 2) {
         canvas.drawLine(ann.points.first, ann.points.last, paint);

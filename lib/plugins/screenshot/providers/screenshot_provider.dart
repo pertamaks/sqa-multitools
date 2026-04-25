@@ -287,8 +287,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   Future<void> finalize({bool shouldCopy = false}) async {
     if (state.selectionRect == null &&
-        state.captureMode != CaptureMode.fullScreen)
+        state.captureMode != CaptureMode.fullScreen) {
       return;
+    }
 
     state = state.copyWith(isCapturing: true);
     final coordinator = ref.read(windowTransitionProvider);

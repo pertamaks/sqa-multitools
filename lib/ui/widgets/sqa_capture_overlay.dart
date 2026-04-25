@@ -562,8 +562,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             ValueListenableBuilder<Offset?>(
               valueListenable: _barOffsetNotifier,
               builder: (context, barPosition, _) {
-                if (barPosition == null || delegate.isCapturing)
+                if (barPosition == null || delegate.isCapturing) {
                   return const SizedBox.shrink();
+                }
 
                 final showBar =
                     delegate.isRecording ||

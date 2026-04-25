@@ -265,7 +265,7 @@ class SqaMarkdownCodeBlockParser extends CustomMarkdownParser {
       type: type,
       attributes: {
         'delta': delta.toJson(),
-        if (number != null) 'number': number,
+        'number': ?number,
       },
       children: children ?? [],
     );

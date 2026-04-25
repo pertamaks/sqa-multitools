@@ -121,20 +121,26 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
     }
 
     if (key == PreferencesService.keyHotkeyShowToolbar) {
-      if (info == state.recordToggle)
+      if (info == state.recordToggle) {
         return 'Conflict: Shortcut already assigned to Screen Recorder.';
-      if (info == state.screenshotToggle)
+      }
+      if (info == state.screenshotToggle) {
         return 'Conflict: Shortcut already assigned to Screenshot.';
+      }
     } else if (key == PreferencesService.keyHotkeyRecordToggle) {
-      if (info == state.showToolbar)
+      if (info == state.showToolbar) {
         return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      if (info == state.screenshotToggle)
+      }
+      if (info == state.screenshotToggle) {
         return 'Conflict: Shortcut already assigned to Screenshot.';
+      }
     } else if (key == PreferencesService.keyHotkeyScreenshotToggle) {
-      if (info == state.showToolbar)
+      if (info == state.showToolbar) {
         return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      if (info == state.recordToggle)
+      }
+      if (info == state.recordToggle) {
         return 'Conflict: Shortcut already assigned to Screen Recorder.';
+      }
     }
     return null;
   }

@@ -147,6 +147,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                               child: ScrollConfiguration(
                                 behavior: const SqaMouseDragScrollBehavior(),
                                 child: SingleChildScrollView(
+                                  key: const PageStorageKey(
+                                    'main_toolbar_scroll',
+                                  ),
                                   controller: _scrollController,
                                   scrollDirection: Axis.horizontal,
                                   clipBehavior: Clip.none,

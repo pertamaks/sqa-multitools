@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -5,14 +6,13 @@ import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
-import '../../../ui/widgets/sqa_toast.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_editor_state.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
-import 'dart:async';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,6 +25,15 @@ import 'widgets/html_node_encoder_parser.dart';
 import 'widgets/html_block_builder.dart';
 import 'widgets/text_node_encoder_parsers.dart';
 import 'widgets/quote_block_builder.dart';
+import 'widgets/sqa_span_inline_syntax.dart';
+import 'widgets/list_node_encoder_parsers.dart';
+import 'widgets/image_block_builder.dart';
+import 'widgets/image_node_encoder_parser.dart';
+import 'widgets/sqa_block_component_wrapper.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:super_clipboard/super_clipboard.dart';
+import '../../clipboard/utils/clipboard_extensions.dart';
+import '../../../ui/widgets/sqa_color_picker.dart';
 
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
@@ -38,6 +47,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   late EditorState _editorState;
   late EditorScrollController _editorScrollController;
   StreamSubscription<EditorTransactionValue>? _editorSubscription;
+  Timer? _syncTimer;
+  bool _isDisposed = false;
+  final ValueNotifier<int> _formattingNotifier = ValueNotifier<int>(0);
   late FocusNode _titleFocusNode;
   late FocusNode _editorFocusNode;
   bool _isEditingTitle = false;
@@ -65,6 +77,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           const SqaMarkdownCodeBlockParser(),
           const SqaMarkdownTableParser(),
           const SqaMarkdownHtmlParser(),
+          const SqaMarkdownImageParser(),
+        ],
+        inlineSyntaxes: [
+          SqaSpanInlineSyntax(),
         ],
       );
       // Ensure the document has at least one paragraph node for editing
@@ -88,6 +104,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     _editorSubscription = _editorState.transactionStream.listen((event) {
       if (event.$1 == TransactionTime.after) {
         _onEditorChanged();
+        // Bump formatting notifier to trigger toolbar rebuild
+        if (!_isDisposed && mounted) {
+          _formattingNotifier.value++;
+        }
       }
     });
   }
@@ -102,6 +122,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         const SqaQuoteNodeParser(),
         const SqaTableNodeParser(),
         const SqaHtmlNodeParser(),
+        const SqaBulletedListNodeParser(),
+        const SqaNumberedListNodeParser(),
+        const SqaTodoListNodeParser(),
+        const SqaImageNodeParser(),
       ],
     );
   }
@@ -119,6 +143,41 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           if (selection == null) return KeyEventResult.ignored;
 
           () async {
+            // 1. Handle Image Paste via super_clipboard
+            final reader = await SystemClipboard.instance?.read();
+            if (reader != null) {
+              for (final item in reader.items) {
+                if (item.canProvide(Formats.png)) {
+                  if (_isSelectionInTable()) {
+                    _showTableImageBlockMessage();
+                    return;
+                  }
+                  final bytes = await item.readFileValue(Formats.png);
+                  if (bytes != null) {
+                    final storageNotifier =
+                        ref.read(textEditorProvider.notifier);
+                    final relativePath = await storageNotifier.saveImageBytes(
+                      bytes,
+                      'png',
+                    );
+
+                    final transaction = editorState.transaction;
+                    final imageNode = Node(
+                      type: ImageBlockKeys.type,
+                      attributes: {
+                        ImageBlockKeys.url: relativePath,
+                        'alt': 'Pasted Image',
+                      },
+                    );
+                    transaction.insertNode(selection.end.path, imageNode);
+                    await editorState.apply(transaction);
+                    return; // Handled as image
+                  }
+                }
+              }
+            }
+
+            // 2. Handle Text Paste
             final data = await AppFlowyClipboard.getData();
             final text = data.text;
             if (text != null && text.isNotEmpty) {
@@ -129,7 +188,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   text.contains('> ') ||
                   text.contains('* ') ||
                   text.contains('- ') ||
-                  text.contains('1. ');
+                  text.contains('1. ') ||
+                  text.contains('![');
 
               if (isMarkdown) {
                 final document = markdownToDocument(
@@ -138,6 +198,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     const SqaMarkdownCodeBlockParser(),
                     const SqaMarkdownTableParser(),
                     const SqaMarkdownHtmlParser(),
+                    const SqaMarkdownImageParser(),
+                  ],
+                  inlineSyntaxes: [
+                    SqaSpanInlineSyntax(),
                   ],
                 );
                 final nodes = document.root.children.toList();
@@ -181,9 +245,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     ];
   }
 
-  Map<String, BlockComponentBuilder> _buildBlockComponentBuilders() {
-    final map = {...standardBlockComponentBuilderMap};
+  Map<String, BlockComponentBuilder> _buildBlockComponentBuilders(
+    String? storagePath,
+  ) {
     final theme = Theme.of(context);
+    final map = <String, BlockComponentBuilder>{...standardBlockComponentBuilderMap};
 
     // 1. Standard Paragraph Builder (Refined)
     map[ParagraphBlockKeys.type] = ParagraphBlockComponentBuilder(
@@ -260,6 +326,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
     // 13. SQA HTML Safety Net Builder
     map['raw_html'] = RawHtmlBlockComponentBuilder();
+
+    // 14. Custom Image Builder
+    map[ImageBlockKeys.type] = SqaImageBlockComponentBuilder(
+      storagePath: storagePath,
+    );
 
     return map;
   }
@@ -602,6 +673,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _syncTimer?.cancel();
+    _formattingNotifier.dispose();
     _nameController.dispose();
     _editorSubscription?.cancel();
     _editorState.dispose();
@@ -615,38 +689,51 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   }
 
   void _onEditorChanged() {
-    // Structural changes (like deleting a column) can leave the table in a
-    // transitional state for a micro-beat. We wait for the post-frame callback
-    // to ensure the internal re-indexing is complete before encoding.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+    _syncTimer?.cancel();
+    _syncTimer = Timer(const Duration(milliseconds: 300), () {
+      if (_isDisposed || !mounted) return;
 
-      try {
-        final currentContent =
-            ref.read(textEditorProvider).activeDocument?.content ?? '';
-        final newContent = _exportToMarkdown();
-        if (newContent != currentContent) {
-          ref.read(textEditorProvider.notifier).updateContent(newContent);
+      // Structural changes (like deleting a column) can leave the table in a
+      // transitional state for a micro-beat. We wait for the post-frame callback
+      // to ensure the internal re-indexing is complete before encoding.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isDisposed || !mounted) return;
+
+        try {
+          final currentContent =
+              ref.read(textEditorProvider).activeDocument?.content ?? '';
+          final newContent = _exportToMarkdown();
+          if (newContent != currentContent) {
+            ref.read(textEditorProvider.notifier).updateContent(newContent);
+          }
+        } catch (e) {
+          // Silently catch temporary encoding errors during structural transitions
+          debugPrint(
+            'Text Editor: Encoding skipped due to transitional state: $e',
+          );
         }
-      } catch (e) {
-        // Silently catch temporary encoding errors during structural transitions
-        debugPrint(
-          'Text Editor: Encoding skipped due to transitional state: $e',
-        );
-      }
+      });
     });
   }
 
+  void _toggleAttribute(String key) {
+    _editorState.toggleAttribute(key);
+    if (!_isDisposed && mounted) {
+      _formattingNotifier.value++;
+    }
+  }
+
   void _onTitleFocusChange() {
+    if (_isDisposed || !mounted) return;
     if (!_titleFocusNode.hasFocus && _isEditingTitle) {
       _submitTitle();
     }
   }
 
   void _submitTitle() {
-    if (!_isEditingTitle) return;
+    if (_isDisposed || !mounted || !_isEditingTitle) return;
     ref.read(textEditorProvider.notifier).updateName(_nameController.text);
-    setState(() => _isEditingTitle = false);
+    if (mounted) setState(() => _isEditingTitle = false);
   }
 
   Future<void> _handleBack() async {
@@ -663,7 +750,36 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       );
       if (confirm != true) return;
     }
+
+    // Cancel all pending background syncs before switching view
+    _syncTimer?.cancel();
+    _isDisposed = true;
+
     ref.read(textEditorProvider.notifier).setViewMode(TextEditorViewMode.list);
+  }
+
+  bool _isSelectionInTable() {
+    final selection = _editorState.selection;
+    if (selection == null) return false;
+
+    Node? node = _editorState.getNodeAtPath(selection.start.path);
+    while (node != null) {
+      if (node.type == TableBlockKeys.type ||
+          node.type == TableCellBlockKeys.type) {
+        return true;
+      }
+      node = node.parent;
+    }
+    return false;
+  }
+
+  void _showTableImageBlockMessage() {
+    if (!mounted) return;
+    SqaToast.show(
+      context,
+      'Image insertion inside tables is not supported yet.',
+      type: SqaToastType.warning,
+    );
   }
 
   bool _isAttributeToggled(String key) {
@@ -671,13 +787,15 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     if (selection == null) return false;
 
     if (selection.isCollapsed) {
-      return _editorState.toggledStyle[key] != null ||
-          (_editorState.getDeltaAttributesInSelectionStart()?[key] != null);
+      final toggledValue = _editorState.toggledStyle[key];
+      if (toggledValue != null) return toggledValue == true;
+
+      return _editorState.getDeltaAttributesInSelectionStart()?[key] == true;
     }
 
     final nodes = _editorState.getNodesInSelection(selection);
     return nodes.allSatisfyInSelection(selection, (delta) {
-      return delta.everyAttributes((attributes) => attributes[key] != null);
+      return delta.everyAttributes((attributes) => attributes[key] == true);
     });
   }
 
@@ -858,7 +976,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       editorState: _editorState,
                       autoFocus: true,
                       focusNode: _editorFocusNode,
-                      blockComponentBuilders: _buildBlockComponentBuilders(),
+                      blockComponentBuilders: _buildBlockComponentBuilders(
+                        state.savePath,
+                      ),
                       commandShortcutEvents: _buildCommandShortcuts(),
                       editorScrollController: _editorScrollController,
                       shrinkWrap: true,
@@ -934,7 +1054,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: barWidth),
           child: ListenableBuilder(
-            listenable: _editorState.selectionNotifier,
+            listenable: Listenable.merge([
+              _editorState.selectionNotifier,
+              _formattingNotifier,
+            ]),
             builder: (context, _) {
               return SqaFloatingBar(
                 children: [
@@ -1036,8 +1159,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     icon: Symbols.format_bold,
                     tooltip: 'Bold',
                     isSelected: _isAttributeToggled(AppFlowyRichTextKeys.bold),
-                    onPressed: () =>
-                        _editorState.toggleAttribute(AppFlowyRichTextKeys.bold),
+                    onPressed: () => _toggleAttribute(AppFlowyRichTextKeys.bold),
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.format_italic,
@@ -1045,7 +1167,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     isSelected: _isAttributeToggled(
                       AppFlowyRichTextKeys.italic,
                     ),
-                    onPressed: () => _editorState.toggleAttribute(
+                    onPressed: () => _toggleAttribute(
                       AppFlowyRichTextKeys.italic,
                     ),
                   ),
@@ -1055,8 +1177,71 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     isSelected: _isAttributeToggled(
                       AppFlowyRichTextKeys.underline,
                     ),
-                    onPressed: () => _editorState.toggleAttribute(
+                    onPressed: () => _toggleAttribute(
                       AppFlowyRichTextKeys.underline,
+                    ),
+                  ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.format_strikethrough,
+                    tooltip: 'Strikethrough',
+                    isSelected: _isAttributeToggled(
+                      AppFlowyRichTextKeys.strikethrough,
+                    ),
+                    onPressed: () => _toggleAttribute(
+                      AppFlowyRichTextKeys.strikethrough,
+                    ),
+                  ),
+                  const SqaFloatingBarDivider(),
+
+                  // Group 4: Colors
+                  SqaColorPicker(
+                    activeColor: _editorState
+                        .getDeltaAttributesInSelectionStart()?[
+                      AppFlowyRichTextKeys.textColor
+                    ] as String?,
+                    onColorSelected: (color) {
+                      final selection = _editorState.selection;
+                      if (selection != null) {
+                        _editorState.formatDelta(selection, {
+                          AppFlowyRichTextKeys.textColor: color,
+                        });
+                        if (!_isDisposed && mounted) {
+                          _formattingNotifier.value++;
+                        }
+                      }
+                    },
+                    child: SqaFloatingBarButton(
+                      icon: Symbols.format_color_text,
+                      tooltip: 'Text Color',
+                      isSelected:
+                          _isAttributeToggled(AppFlowyRichTextKeys.textColor),
+                      onPressed: () {},
+                    ),
+                  ),
+                  SqaColorPicker(
+                    isBackground: true,
+                    activeColor: _editorState
+                        .getDeltaAttributesInSelectionStart()?[
+                      AppFlowyRichTextKeys.backgroundColor
+                    ] as String?,
+                    onColorSelected: (color) {
+                      final selection = _editorState.selection;
+                      if (selection != null) {
+                        _editorState.formatDelta(selection, {
+                          AppFlowyRichTextKeys.backgroundColor: color,
+                        });
+                        if (!_isDisposed && mounted) {
+                          _formattingNotifier.value++;
+                        }
+                      }
+                    },
+                    child: SqaFloatingBarButton(
+                      icon: Symbols.format_color_fill,
+                      tooltip: 'Highlight Color',
+                      isSelected: _isAttributeToggled(
+                        AppFlowyRichTextKeys.backgroundColor,
+                      ),
+                      onPressed: () {},
                     ),
                   ),
                   const SqaFloatingBarDivider(),
@@ -1185,25 +1370,63 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       }
                     },
                   ),
+                  SqaFloatingBarButton(
+                    icon: Symbols.image,
+                    tooltip: 'Insert Image',
+                    onPressed: () async {
+                      final selection = _editorState.selection;
+                      if (selection == null) return;
+
+                      if (_isSelectionInTable()) {
+                        _showTableImageBlockMessage();
+                        return;
+                      }
+
+                      const XTypeGroup typeGroup = XTypeGroup(
+                        label: 'images',
+                        extensions: <String>['jpg', 'png', 'jpeg', 'gif'],
+                      );
+                      final XFile? file = await openFile(
+                        acceptedTypeGroups: <XTypeGroup>[typeGroup],
+                      );
+
+                      if (file != null) {
+                        final storageNotifier =
+                            ref.read(textEditorProvider.notifier);
+                        final relativePath =
+                            await storageNotifier.saveImageAttachment(
+                              file.path,
+                            );
+
+                        final transaction = _editorState.transaction;
+                        final imageNode = Node(
+                          type: ImageBlockKeys.type,
+                          attributes: {
+                            ImageBlockKeys.url: relativePath,
+                            'alt': file.name,
+                          },
+                        );
+                        transaction.insertNode(selection.end.path, imageNode);
+                        await _editorState.apply(transaction);
+                      }
+                    },
+                  ),
                   const SqaFloatingBarDivider(),
 
                   // Group 6: Clipboard Actions
                   SqaFloatingBarButton(
                     icon: Symbols.content_copy,
                     tooltip: 'Copy Markdown',
-                    onPressed: () {
+                    onPressed: () async {
                       final md = _exportToMarkdown();
-                      Clipboard.setData(ClipboardData(text: md));
+                      await Clipboard.setData(ClipboardData(text: md));
+                      if (!context.mounted) return;
+                      SqaToast.show(
+                        context,
+                        'Markdown copied to clipboard',
+                        type: SqaToastType.success,
+                      );
                     },
-                    secondaryActions: [
-                      SqaFloatingSubAction(
-                        icon: Symbols.text_snippet,
-                        tooltip: 'Copy as Rich Text',
-                        onPressed: () {
-                          // Placeholder for Rich Text implementation
-                        },
-                      ),
-                    ],
                   ),
                 ],
               );
@@ -1228,7 +1451,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
   void _closeLinkMenu() {
     _linkMenuController.close();
-    if (mounted) {
+    if (!_isDisposed && mounted) {
       setState(() {}); // Update toolbar button state
     }
   }
@@ -1532,23 +1755,6 @@ class SqaTableCellBlockComponentBuilder extends TableCellBlockComponentBuilder {
 }
 
 /// A concrete wrapper for BlockComponentWidget that allows themed child wrapping.
-class SqaBlockComponentWrapper extends BlockComponentStatelessWidget {
-  final Widget child;
-
-  const SqaBlockComponentWrapper({
-    super.key,
-    required super.node,
-    required super.configuration,
-    super.showActions = false,
-    super.actionBuilder,
-    super.actionTrailingBuilder,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) => child;
-}
-
 class _SqaLinkMenuWidget extends StatefulWidget {
   final String? initialUrl;
   final void Function(String) onSubmitted;

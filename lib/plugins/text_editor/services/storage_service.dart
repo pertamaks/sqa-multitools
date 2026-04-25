@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/text_document.dart';
@@ -8,7 +9,21 @@ class TextEditorStorageService {
   static const String _folderName = 'SQA_Notes';
   static const String _registryFile = 'registry.json';
 
+  final String? customBasePath;
+
+  TextEditorStorageService({this.customBasePath});
+
+  Future<Directory> get storageDir => _storageDir;
+
   Future<Directory> get _storageDir async {
+    if (customBasePath != null && customBasePath!.isNotEmpty) {
+      final dir = Directory(customBasePath!);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      return dir;
+    }
+
     final docsDir = await getApplicationDocumentsDirectory();
     final dir = Directory(
       '${docsDir.path}${Platform.pathSeparator}$_folderName',
@@ -17,6 +32,43 @@ class TextEditorStorageService {
       await dir.create(recursive: true);
     }
     return dir;
+  }
+
+  Future<Directory> get attachmentsDir async {
+    final dir = await _storageDir;
+    final attachments =
+        Directory('${dir.path}${Platform.pathSeparator}attachments');
+    if (!await attachments.exists()) {
+      await attachments.create(recursive: true);
+    }
+    return attachments;
+  }
+
+  /// Copies an external image into the local attachments folder.
+  /// Returns the relative path for use in Markdown.
+  Future<String> saveImageAttachment(String originalPath) async {
+    final attachments = await attachmentsDir;
+    final file = File(originalPath);
+    if (!await file.exists()) throw Exception('Source file not found');
+
+    final extension = file.path.split('.').last.toLowerCase();
+    final newName = 'img_${DateTime.now().millisecondsSinceEpoch}.$extension';
+    final newPath = '${attachments.path}${Platform.pathSeparator}$newName';
+
+    await file.copy(newPath);
+    return 'attachments/$newName';
+  }
+
+  /// Saves raw image bytes into the local attachments folder.
+  /// Returns the relative path for use in Markdown.
+  Future<String> saveImageBytes(Uint8List bytes, String extension) async {
+    final attachments = await attachmentsDir;
+    final newName =
+        'img_${DateTime.now().millisecondsSinceEpoch}.${extension.toLowerCase()}';
+    final newPath = '${attachments.path}${Platform.pathSeparator}$newName';
+
+    await File(newPath).writeAsBytes(bytes);
+    return 'attachments/$newName';
   }
 
   Future<List<TextDocument>> loadAllDocuments() async {
@@ -36,43 +88,40 @@ class TextEditorStorageService {
         }
       }
 
-      // Phase 1: Load documents from registry
-      final List<TextDocument> docs = [];
+      final List<TextDocument> validDocs = [];
+      final List<dynamic> updatedRegistry = [];
       final Set<String> registeredFilenames = {};
+      bool registryDirty = false;
 
+      // Phase 1: Validate registry against disk (with deduplication)
       for (var entry in registry) {
         final docMeta = TextDocument.fromJson(entry as Map<String, dynamic>);
-        final filename = _safeFilename(docMeta.name);
-        registeredFilenames.add('$filename.txt');
-        final file = File('${dir.path}${Platform.pathSeparator}$filename.txt');
+        final filename = '${_safeFilename(docMeta.name)}.txt';
+        final file = File('${dir.path}${Platform.pathSeparator}$filename');
 
-        if (await file.exists()) {
+        if (await file.exists() && !registeredFilenames.contains(filename)) {
           final content = await file.readAsString();
-          docs.add(docMeta.copyWith(content: content));
+          validDocs.add(docMeta.copyWith(content: content));
+          updatedRegistry.add(entry);
+          registeredFilenames.add(filename);
         } else {
-          // File missing from disk but in registry — keep with empty content
-          docs.add(docMeta.copyWith(content: ''));
+          // File missing from disk OR duplicate name in registry claiming same file
+          registryDirty = true;
         }
       }
 
       // Phase 2: Scan filesystem for orphan .txt files not in registry
-      bool registryDirty = false;
       await for (final entity in dir.list()) {
         if (entity is! File) continue;
         final basename = entity.uri.pathSegments.last;
-        // Skip the registry file itself and any non-.txt files
         if (basename == _registryFile || !basename.endsWith('.txt')) continue;
-        // Skip files already tracked by the registry
         if (registeredFilenames.contains(basename)) continue;
 
-        // Orphan file found — import it
-        final content = await entity.readAsString();
-        final rawName = basename.substring(
-          0,
-          basename.length - 4,
-        ); // strip .txt
+        // Orphan found — import it
+        String content = await entity.readAsString();
+        final rawName = basename.substring(0, basename.length - 4);
 
-        // Try to extract a title from the first H1 line
+        // Extract title from H1
         String docName = rawName;
         final lines = content.split('\n');
         if (lines.isNotEmpty && lines.first.trim().startsWith('# ')) {
@@ -80,39 +129,38 @@ class TextEditorStorageService {
           if (extracted.isNotEmpty) docName = extracted;
         }
 
+        // Handle naming collisions and sync disk
+        final finalName = await getNextAvailableName(docName);
+        final finalFilename = '${_safeFilename(finalName)}.txt';
+
+        if (finalFilename != basename) {
+          final newPath =
+              '${dir.path}${Platform.pathSeparator}$finalFilename';
+          await entity.rename(newPath);
+        }
+
         final newDoc = TextDocument(
           id: const Uuid().v4(),
-          name: docName,
+          name: finalName,
           content: content,
-          lastModified: await entity.lastModified(),
+          lastModified: await File(
+            '${dir.path}${Platform.pathSeparator}$finalFilename',
+          ).lastModified(),
         );
-        docs.add(newDoc);
 
-        // Auto-register in the registry so it persists
-        registry.add(newDoc.copyWith(content: '').toJson());
-        registeredFilenames.add(basename);
-
-        // If imported name differs from filename, rename the file to match
-        final expectedFilename = '${_safeFilename(docName)}.txt';
-        if (expectedFilename != basename) {
-          final newPath =
-              '${dir.path}${Platform.pathSeparator}$expectedFilename';
-          // Only rename if target doesn't already exist
-          if (!await File(newPath).exists()) {
-            await entity.rename(newPath);
-          }
-        }
+        validDocs.add(newDoc);
+        updatedRegistry.add(newDoc.copyWith(content: '').toJson());
+        registeredFilenames.add(finalFilename);
         registryDirty = true;
       }
 
-      // Persist updated registry if new files were imported
       if (registryDirty) {
         await registryFile.writeAsString(
-          const JsonEncoder.withIndent('  ').convert(registry),
+          const JsonEncoder.withIndent('  ').convert(updatedRegistry),
         );
       }
 
-      return docs;
+      return validDocs;
     } catch (e) {
       return [];
     }

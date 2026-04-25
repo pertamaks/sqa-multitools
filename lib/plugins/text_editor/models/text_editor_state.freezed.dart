@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TextEditorState {
 
- List<TextDocument> get documents; TextDocument? get activeDocument; TextEditorViewMode get viewMode; bool get isSaving; bool get isLoading; bool get hasUnsavedChanges; String? get errorMessage;
+ List<TextDocument> get documents; TextDocument? get activeDocument; TextEditorViewMode get viewMode; bool get isSaving; bool get isLoading; bool get hasUnsavedChanges; String? get errorMessage; String? get savePath; int get maxDocuments; String get searchQuery;
 /// Create a copy of TextEditorState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $TextEditorStateCopyWith<TextEditorState> get copyWith => _$TextEditorStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TextEditorState&&const DeepCollectionEquality().equals(other.documents, documents)&&(identical(other.activeDocument, activeDocument) || other.activeDocument == activeDocument)&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.hasUnsavedChanges, hasUnsavedChanges) || other.hasUnsavedChanges == hasUnsavedChanges)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TextEditorState&&const DeepCollectionEquality().equals(other.documents, documents)&&(identical(other.activeDocument, activeDocument) || other.activeDocument == activeDocument)&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.hasUnsavedChanges, hasUnsavedChanges) || other.hasUnsavedChanges == hasUnsavedChanges)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.savePath, savePath) || other.savePath == savePath)&&(identical(other.maxDocuments, maxDocuments) || other.maxDocuments == maxDocuments)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(documents),activeDocument,viewMode,isSaving,isLoading,hasUnsavedChanges,errorMessage);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(documents),activeDocument,viewMode,isSaving,isLoading,hasUnsavedChanges,errorMessage,savePath,maxDocuments,searchQuery);
 
 @override
 String toString() {
-  return 'TextEditorState(documents: $documents, activeDocument: $activeDocument, viewMode: $viewMode, isSaving: $isSaving, isLoading: $isLoading, hasUnsavedChanges: $hasUnsavedChanges, errorMessage: $errorMessage)';
+  return 'TextEditorState(documents: $documents, activeDocument: $activeDocument, viewMode: $viewMode, isSaving: $isSaving, isLoading: $isLoading, hasUnsavedChanges: $hasUnsavedChanges, errorMessage: $errorMessage, savePath: $savePath, maxDocuments: $maxDocuments, searchQuery: $searchQuery)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $TextEditorStateCopyWith<$Res>  {
   factory $TextEditorStateCopyWith(TextEditorState value, $Res Function(TextEditorState) _then) = _$TextEditorStateCopyWithImpl;
 @useResult
 $Res call({
- List<TextDocument> documents, TextDocument? activeDocument, TextEditorViewMode viewMode, bool isSaving, bool isLoading, bool hasUnsavedChanges, String? errorMessage
+ List<TextDocument> documents, TextDocument? activeDocument, TextEditorViewMode viewMode, bool isSaving, bool isLoading, bool hasUnsavedChanges, String? errorMessage, String? savePath, int maxDocuments, String searchQuery
 });
 
 
@@ -62,7 +62,7 @@ class _$TextEditorStateCopyWithImpl<$Res>
 
 /// Create a copy of TextEditorState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? documents = null,Object? activeDocument = freezed,Object? viewMode = null,Object? isSaving = null,Object? isLoading = null,Object? hasUnsavedChanges = null,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? documents = null,Object? activeDocument = freezed,Object? viewMode = null,Object? isSaving = null,Object? isLoading = null,Object? hasUnsavedChanges = null,Object? errorMessage = freezed,Object? savePath = freezed,Object? maxDocuments = null,Object? searchQuery = null,}) {
   return _then(_self.copyWith(
 documents: null == documents ? _self.documents : documents // ignore: cast_nullable_to_non_nullable
 as List<TextDocument>,activeDocument: freezed == activeDocument ? _self.activeDocument : activeDocument // ignore: cast_nullable_to_non_nullable
@@ -71,7 +71,10 @@ as TextEditorViewMode,isSaving: null == isSaving ? _self.isSaving : isSaving // 
 as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,hasUnsavedChanges: null == hasUnsavedChanges ? _self.hasUnsavedChanges : hasUnsavedChanges // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,savePath: freezed == savePath ? _self.savePath : savePath // ignore: cast_nullable_to_non_nullable
+as String?,maxDocuments: null == maxDocuments ? _self.maxDocuments : maxDocuments // ignore: cast_nullable_to_non_nullable
+as int,searchQuery: null == searchQuery ? _self.searchQuery : searchQuery // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 /// Create a copy of TextEditorState
@@ -168,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TextDocument> documents,  TextDocument? activeDocument,  TextEditorViewMode viewMode,  bool isSaving,  bool isLoading,  bool hasUnsavedChanges,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TextDocument> documents,  TextDocument? activeDocument,  TextEditorViewMode viewMode,  bool isSaving,  bool isLoading,  bool hasUnsavedChanges,  String? errorMessage,  String? savePath,  int maxDocuments,  String searchQuery)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TextEditorState() when $default != null:
-return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSaving,_that.isLoading,_that.hasUnsavedChanges,_that.errorMessage);case _:
+return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSaving,_that.isLoading,_that.hasUnsavedChanges,_that.errorMessage,_that.savePath,_that.maxDocuments,_that.searchQuery);case _:
   return orElse();
 
 }
@@ -189,10 +192,10 @@ return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSavi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TextDocument> documents,  TextDocument? activeDocument,  TextEditorViewMode viewMode,  bool isSaving,  bool isLoading,  bool hasUnsavedChanges,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TextDocument> documents,  TextDocument? activeDocument,  TextEditorViewMode viewMode,  bool isSaving,  bool isLoading,  bool hasUnsavedChanges,  String? errorMessage,  String? savePath,  int maxDocuments,  String searchQuery)  $default,) {final _that = this;
 switch (_that) {
 case _TextEditorState():
-return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSaving,_that.isLoading,_that.hasUnsavedChanges,_that.errorMessage);case _:
+return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSaving,_that.isLoading,_that.hasUnsavedChanges,_that.errorMessage,_that.savePath,_that.maxDocuments,_that.searchQuery);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +212,10 @@ return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSavi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TextDocument> documents,  TextDocument? activeDocument,  TextEditorViewMode viewMode,  bool isSaving,  bool isLoading,  bool hasUnsavedChanges,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TextDocument> documents,  TextDocument? activeDocument,  TextEditorViewMode viewMode,  bool isSaving,  bool isLoading,  bool hasUnsavedChanges,  String? errorMessage,  String? savePath,  int maxDocuments,  String searchQuery)?  $default,) {final _that = this;
 switch (_that) {
 case _TextEditorState() when $default != null:
-return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSaving,_that.isLoading,_that.hasUnsavedChanges,_that.errorMessage);case _:
+return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSaving,_that.isLoading,_that.hasUnsavedChanges,_that.errorMessage,_that.savePath,_that.maxDocuments,_that.searchQuery);case _:
   return null;
 
 }
@@ -224,7 +227,7 @@ return $default(_that.documents,_that.activeDocument,_that.viewMode,_that.isSavi
 
 
 class _TextEditorState implements TextEditorState {
-  const _TextEditorState({final  List<TextDocument> documents = const [], this.activeDocument, this.viewMode = TextEditorViewMode.list, this.isSaving = false, this.isLoading = false, this.hasUnsavedChanges = false, this.errorMessage}): _documents = documents;
+  const _TextEditorState({final  List<TextDocument> documents = const [], this.activeDocument, this.viewMode = TextEditorViewMode.list, this.isSaving = false, this.isLoading = false, this.hasUnsavedChanges = false, this.errorMessage, this.savePath, this.maxDocuments = 20, this.searchQuery = ''}): _documents = documents;
   
 
  final  List<TextDocument> _documents;
@@ -240,6 +243,9 @@ class _TextEditorState implements TextEditorState {
 @override@JsonKey() final  bool isLoading;
 @override@JsonKey() final  bool hasUnsavedChanges;
 @override final  String? errorMessage;
+@override final  String? savePath;
+@override@JsonKey() final  int maxDocuments;
+@override@JsonKey() final  String searchQuery;
 
 /// Create a copy of TextEditorState
 /// with the given fields replaced by the non-null parameter values.
@@ -251,16 +257,16 @@ _$TextEditorStateCopyWith<_TextEditorState> get copyWith => __$TextEditorStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TextEditorState&&const DeepCollectionEquality().equals(other._documents, _documents)&&(identical(other.activeDocument, activeDocument) || other.activeDocument == activeDocument)&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.hasUnsavedChanges, hasUnsavedChanges) || other.hasUnsavedChanges == hasUnsavedChanges)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TextEditorState&&const DeepCollectionEquality().equals(other._documents, _documents)&&(identical(other.activeDocument, activeDocument) || other.activeDocument == activeDocument)&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.hasUnsavedChanges, hasUnsavedChanges) || other.hasUnsavedChanges == hasUnsavedChanges)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.savePath, savePath) || other.savePath == savePath)&&(identical(other.maxDocuments, maxDocuments) || other.maxDocuments == maxDocuments)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_documents),activeDocument,viewMode,isSaving,isLoading,hasUnsavedChanges,errorMessage);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_documents),activeDocument,viewMode,isSaving,isLoading,hasUnsavedChanges,errorMessage,savePath,maxDocuments,searchQuery);
 
 @override
 String toString() {
-  return 'TextEditorState(documents: $documents, activeDocument: $activeDocument, viewMode: $viewMode, isSaving: $isSaving, isLoading: $isLoading, hasUnsavedChanges: $hasUnsavedChanges, errorMessage: $errorMessage)';
+  return 'TextEditorState(documents: $documents, activeDocument: $activeDocument, viewMode: $viewMode, isSaving: $isSaving, isLoading: $isLoading, hasUnsavedChanges: $hasUnsavedChanges, errorMessage: $errorMessage, savePath: $savePath, maxDocuments: $maxDocuments, searchQuery: $searchQuery)';
 }
 
 
@@ -271,7 +277,7 @@ abstract mixin class _$TextEditorStateCopyWith<$Res> implements $TextEditorState
   factory _$TextEditorStateCopyWith(_TextEditorState value, $Res Function(_TextEditorState) _then) = __$TextEditorStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<TextDocument> documents, TextDocument? activeDocument, TextEditorViewMode viewMode, bool isSaving, bool isLoading, bool hasUnsavedChanges, String? errorMessage
+ List<TextDocument> documents, TextDocument? activeDocument, TextEditorViewMode viewMode, bool isSaving, bool isLoading, bool hasUnsavedChanges, String? errorMessage, String? savePath, int maxDocuments, String searchQuery
 });
 
 
@@ -288,7 +294,7 @@ class __$TextEditorStateCopyWithImpl<$Res>
 
 /// Create a copy of TextEditorState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? documents = null,Object? activeDocument = freezed,Object? viewMode = null,Object? isSaving = null,Object? isLoading = null,Object? hasUnsavedChanges = null,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? documents = null,Object? activeDocument = freezed,Object? viewMode = null,Object? isSaving = null,Object? isLoading = null,Object? hasUnsavedChanges = null,Object? errorMessage = freezed,Object? savePath = freezed,Object? maxDocuments = null,Object? searchQuery = null,}) {
   return _then(_TextEditorState(
 documents: null == documents ? _self._documents : documents // ignore: cast_nullable_to_non_nullable
 as List<TextDocument>,activeDocument: freezed == activeDocument ? _self.activeDocument : activeDocument // ignore: cast_nullable_to_non_nullable
@@ -297,7 +303,10 @@ as TextEditorViewMode,isSaving: null == isSaving ? _self.isSaving : isSaving // 
 as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,hasUnsavedChanges: null == hasUnsavedChanges ? _self.hasUnsavedChanges : hasUnsavedChanges // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,savePath: freezed == savePath ? _self.savePath : savePath // ignore: cast_nullable_to_non_nullable
+as String?,maxDocuments: null == maxDocuments ? _self.maxDocuments : maxDocuments // ignore: cast_nullable_to_non_nullable
+as int,searchQuery: null == searchQuery ? _self.searchQuery : searchQuery // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

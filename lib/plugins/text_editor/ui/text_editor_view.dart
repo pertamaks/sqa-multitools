@@ -1012,8 +1012,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           ),
           _buildFloatingToolbar(context),
           const Positioned(
-            bottom: 8,
-            right: 8,
+            bottom: 4,
+            right: 4,
             child: SqaWindowSizeToggle(),
           ),
         ],

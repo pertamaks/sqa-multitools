@@ -29,7 +29,7 @@ class SqaWindowSizeToggle extends ConsumerWidget {
         angle: -math.pi / 2,
         child: Icon(
           iconData,
-          size: 24,
+          size: 18,
           weight: 700, // Bold as requested
           color: theme.colorScheme.primary.withValues(alpha: 0.8),
         ),

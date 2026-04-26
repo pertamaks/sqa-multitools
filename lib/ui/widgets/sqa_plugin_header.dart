@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
+import 'sqa_hover_icon_button.dart';
 import 'sqa_styles.dart';
 
 class SqaPluginHeader extends StatelessWidget {
@@ -35,16 +36,12 @@ class SqaPluginHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (onBack != null) ...[
-          IconButton(
-            icon: const Icon(Symbols.arrow_back, size: 20),
-            onPressed: onBack,
-            style: IconButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
-              ),
-            ),
+          SqaHoverIconButton(
+            icon: Symbols.arrow_back,
+            onPressed: onBack!,
+            tooltip: 'Back',
+            iconSize: 20,
+            padding: 8,
           ),
           const SizedBox(width: 8),
         ],

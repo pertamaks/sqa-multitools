@@ -26,7 +26,7 @@ class TextEditorPlugin implements SqaPlugin {
   IconData get icon => Symbols.edit_note;
 
   @override
-  String? get badge => 'ALPHA';
+  String? get badge => null;
 
   @override
   List<PermissionRequirement> get requiredPermissions => [];

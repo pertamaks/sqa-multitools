@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
+import 'sqa_hover_icon_button.dart';
 
 class SqaField extends StatefulWidget {
   const SqaField({
@@ -75,6 +76,9 @@ class _SqaFieldState extends State<SqaField> {
   late ScrollController _verticalScrollController;
   late ScrollController _gutterScrollController;
   late ScrollController _internalHorizontalScrollController;
+  bool _isHovered = false;
+  bool _isFocused = false;
+  late FocusNode _focusNode;
 
   int get _lineCount => _internalController.text.split('\n').length;
 
@@ -137,6 +141,11 @@ class _SqaFieldState extends State<SqaField> {
     _gutterScrollController = ScrollController();
     _internalHorizontalScrollController = ScrollController();
 
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() => _isFocused = _focusNode.hasFocus);
+    });
+
     _verticalScrollController.addListener(_syncGutterScroll);
   }
 
@@ -147,6 +156,22 @@ class _SqaFieldState extends State<SqaField> {
         _gutterScrollController.jumpTo(_verticalScrollController.offset);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _scrollPosition?.removeListener(_updateStickyOffset);
+    _internalController.removeListener(_onControllerChanged);
+    if (widget.controller == null) {
+      _internalController.dispose();
+    }
+    _verticalScrollController.removeListener(_syncGutterScroll);
+    _verticalScrollController.dispose();
+    _gutterScrollController.dispose();
+    _internalHorizontalScrollController.dispose();
+    _stickyTopNotifier.dispose();
+    super.dispose();
   }
 
   void _onControllerChanged() {
@@ -168,21 +193,6 @@ class _SqaFieldState extends State<SqaField> {
         widget.initialValue != oldWidget.initialValue) {
       _internalController.text = widget.initialValue!;
     }
-  }
-
-  @override
-  void dispose() {
-    _scrollPosition?.removeListener(_updateStickyOffset);
-    _internalController.removeListener(_onControllerChanged);
-    if (widget.controller == null) {
-      _internalController.dispose();
-    }
-    _verticalScrollController.removeListener(_syncGutterScroll);
-    _verticalScrollController.dispose();
-    _gutterScrollController.dispose();
-    _internalHorizontalScrollController.dispose();
-    _stickyTopNotifier.dispose();
-    super.dispose();
   }
 
   ScrollPosition? _scrollPosition;
@@ -252,23 +262,49 @@ class _SqaFieldState extends State<SqaField> {
           ),
           const SizedBox(height: 8),
         ],
-        Container(
-          width: double.infinity,
-          constraints: effectiveMaxHeight != null
-              ? BoxConstraints(maxHeight: effectiveMaxHeight)
-              : null,
-          key: _containerKey,
-          decoration: BoxDecoration(
-            color: widget.isTransparent
-                ? Colors.transparent
-                : colorScheme.surface,
-            borderRadius: SqaStyles.radiusLarge,
-            border: Border.all(
+        MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: Container(
+            width: double.infinity,
+            constraints: effectiveMaxHeight != null
+                ? BoxConstraints(maxHeight: effectiveMaxHeight)
+                : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              key: _containerKey,
+              decoration: BoxDecoration(
               color: widget.isTransparent
                   ? Colors.transparent
-                  : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  : (_isFocused
+                      ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                      : (_isHovered
+                          ? colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5)
+                          : colorScheme.surfaceContainerLow
+                              .withValues(alpha: 0.2))),
+              borderRadius: SqaStyles.radiusLarge,
+              border: Border.all(
+                color: widget.isTransparent
+                    ? Colors.transparent
+                    : (_isFocused
+                        ? colorScheme.primary.withValues(alpha: 0.3)
+                        : (_isHovered
+                            ? colorScheme.outlineVariant.withValues(alpha: 0.3)
+                            : colorScheme.outlineVariant
+                                .withValues(alpha: 0.1))),
+              ),
+              boxShadow: _isFocused
+                  ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : [],
             ),
-          ),
           child: ClipRRect(
             borderRadius: SqaStyles.radiusLarge,
             child: Stack(
@@ -284,9 +320,11 @@ class _SqaFieldState extends State<SqaField> {
                       decoration: BoxDecoration(
                         border: Border(
                           right: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withValues(
-                              alpha: 0.3,
-                            ),
+                            color: _isFocused
+                                ? colorScheme.primary.withValues(alpha: 0.4)
+                                : colorScheme.outlineVariant.withValues(
+                                    alpha: 0.15,
+                                  ),
                             width: 1,
                           ),
                         ),
@@ -313,6 +351,7 @@ class _SqaFieldState extends State<SqaField> {
                           builder: (context) {
                             final textField = TextField(
                               controller: _internalController,
+                              focusNode: _focusNode,
                               readOnly: widget.readOnly,
                               onChanged: widget.onChanged,
                               scrollPhysics:
@@ -419,8 +458,8 @@ class _SqaFieldState extends State<SqaField> {
                         child: child!,
                       );
                     },
-                    child: IconButton(
-                      icon: const Icon(Symbols.content_copy, size: 16),
+                    child: SqaHoverIconButton(
+                      icon: Symbols.content_copy,
                       onPressed: () {
                         Clipboard.setData(
                           ClipboardData(text: _internalController.text),
@@ -428,20 +467,16 @@ class _SqaFieldState extends State<SqaField> {
                         SqaToast.show(context, 'Copied to clipboard');
                       },
                       tooltip: 'Copy to clipboard',
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
                     ),
                   ),
               ],
             ),
           ),
         ),
-      ],
-    );
+      ),
+    ),
+  ],
+);
   }
 
   Widget _buildNativeGutter(ThemeData theme) {

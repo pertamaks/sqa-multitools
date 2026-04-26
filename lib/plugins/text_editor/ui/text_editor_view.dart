@@ -10,6 +10,7 @@ import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_window_size_toggle.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_editor_state.dart';
 import 'package:flutter/services.dart';
@@ -883,10 +884,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           _buildSaveStatus(context, state),
           const SizedBox(width: 4),
           // 2. Manual Save Button
-          IconButton(
-            icon: const Icon(Symbols.save, size: 20),
+          SqaHoverIconButton(
+            icon: Symbols.save,
             onPressed: state.isSaving
-                ? null
+                ? () {} // Disabled handled internally or by provider
                 : () async {
                     await notifier.saveDocument();
                     if (context.mounted) {
@@ -898,14 +899,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     }
                   },
             tooltip: 'Save document',
-            style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
-              ),
-            ),
+            iconSize: 20,
+            hoverColor: theme.colorScheme.primary,
           ),
         ],
       ),

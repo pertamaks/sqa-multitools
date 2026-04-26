@@ -10,5 +10,5 @@ class WindowConstants {
   static const double kExpandedWindowHeight = 500;
 
   /// The square mode dimension (nxn).
-  static const double kSquareModeSize = 850;
+  static const double kSquareModeSize = 800;
 }

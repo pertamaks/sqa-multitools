@@ -6,6 +6,7 @@ import 'sqa_fade_wrapper.dart';
 import 'sqa_scroll_behavior.dart';
 import 'sqa_inline_tooltip.dart';
 import 'sqa_scroll_visibility.dart';
+import 'sqa_hover_icon_button.dart';
 
 /// A centralized floating action bar for overlays (Screenshot, Screen Recorder).
 ///
@@ -338,56 +339,30 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
     final secondaryActions = widget.secondaryActions ?? [];
 
     // Primary Icon Content
-    Widget content = Icon(widget.icon, size: widget.iconSize);
     if (widget.isLoading) {
-      content = SizedBox(
-        width: widget.iconSize,
-        height: widget.iconSize,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-        ),
-      );
+      // Logic for loading state could be handled here or inside SqaHoverIconButton
     }
 
     // Standardized Primary Button
-    Widget primaryButton = IconButton(
-      icon: content,
-      onPressed: widget.isLoading ? null : widget.onPressed,
-      style:
-          IconButton.styleFrom(
-            backgroundColor: widget.isSelected
-                ? colorScheme.primaryContainer
-                : null,
-            foregroundColor: widget.isSelected
-                ? colorScheme.onPrimaryContainer
-                : widget.color ?? colorScheme.onSurface,
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-            minimumSize: const Size(40, 40),
-            padding: EdgeInsets.zero,
-            splashFactory: NoSplash.splashFactory,
-          ).copyWith(
-            overlayColor: SqaStyles.buttonOverlay(
-              context,
-              baseColor: widget.color,
-              silent: true,
-            ),
-          ),
+    Widget primaryButton = SqaHoverIconButton(
+      icon: widget.icon,
+      onPressed: widget.isLoading ? () {} : widget.onPressed ?? () {},
+      tooltip: widget.tooltip ?? '',
+      isSelected: widget.isSelected,
+      iconSize: widget.iconSize,
+      color: widget.color,
     );
 
     // List of Secondary Menu Buttons
     final List<Widget> secondaryWidgets = secondaryActions.map((action) {
       return SqaInlineTooltipTrigger(
         tooltip: action.tooltip,
-        child: IconButton(
-          icon: Icon(action.icon, size: widget.iconSize),
+        child: SqaHoverIconButton(
+          icon: action.icon,
           onPressed: action.onPressed,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          color: action.color ?? widget.color ?? colorScheme.onSurface,
-          style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ),
+          tooltip: action.tooltip ?? '',
+          iconSize: widget.iconSize,
+          color: action.color ?? widget.color,
         ),
       );
     }).toList();

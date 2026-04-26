@@ -65,7 +65,9 @@ class SqaAnnotationToolbar extends StatelessWidget {
           );
 
           // Inject Text Background toggle next to the Text tool
-          if (tool == ScreenshotTool.text && textHasBackground != null && currentTool == ScreenshotTool.text) {
+          if (tool == ScreenshotTool.text &&
+              textHasBackground != null &&
+              currentTool == ScreenshotTool.text) {
             return [
               toolButton,
               const SizedBox(width: 4),
@@ -73,7 +75,9 @@ class SqaAnnotationToolbar extends StatelessWidget {
               Icon(
                 Symbols.format_color_fill,
                 size: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ),
               SqaSwitch(
                 value: textHasBackground!,
@@ -117,7 +121,10 @@ class SqaAnnotationToolbar extends StatelessWidget {
       ScreenshotTool.marker => (icon: Symbols.brush, label: 'Highlighter'),
       ScreenshotTool.rectangle => (icon: Symbols.rectangle, label: 'Rectangle'),
       ScreenshotTool.text => (icon: Symbols.text_select_start, label: 'Text'),
-      ScreenshotTool.laser => (icon: Symbols.stylus_laser_pointer, label: 'Laser Pointer'),
+      ScreenshotTool.laser => (
+        icon: Symbols.stylus_laser_pointer,
+        label: 'Laser Pointer',
+      ),
       ScreenshotTool.eraser => (icon: Symbols.ink_eraser, label: 'Eraser'),
     };
   }

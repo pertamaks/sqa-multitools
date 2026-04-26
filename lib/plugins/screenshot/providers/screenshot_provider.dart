@@ -21,7 +21,6 @@ import '../../../core/window/window_utils.dart';
 import '../../../core/window/window_transition_coordinator.dart';
 import '../../../core/providers/capture_key_provider.dart';
 
-
 part 'screenshot_provider.g.dart';
 
 @riverpod
@@ -39,18 +38,20 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   void _loadPreferences() {
     final prefs = ref.read(preferencesServiceProvider);
-    final saveDir = prefs.rawPrefs.getString(PreferencesService.keyScreenshotSaveDir);
-    final format = prefs.rawPrefs.getString(PreferencesService.keyScreenshotFormat) ?? 'PNG';
-    state = state.copyWith(
-      saveDirectory: saveDir,
-      format: format,
+    final saveDir = prefs.rawPrefs.getString(
+      PreferencesService.keyScreenshotSaveDir,
     );
+    final format =
+        prefs.rawPrefs.getString(PreferencesService.keyScreenshotFormat) ??
+        'PNG';
+    state = state.copyWith(saveDirectory: saveDir, format: format);
   }
 
   Future<void> refreshRecentCaptures() async {
-    final dir = state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
+    final dir =
+        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
     final saveDir = Directory('$dir\\SQA_Screenshots');
-    
+
     if (!await saveDir.exists()) {
       state = state.copyWith(recentCaptures: []);
       return;
@@ -59,8 +60,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     try {
       final fileList = await saveDir
           .list()
-          .where((entity) => entity is File && 
-                ['.png', '.jpg', '.webp'].any((ext) => entity.path.toLowerCase().endsWith(ext)))
+          .where(
+            (entity) =>
+                entity is File &&
+                [
+                  '.png',
+                  '.jpg',
+                  '.webp',
+                ].any((ext) => entity.path.toLowerCase().endsWith(ext)),
+          )
           .cast<File>()
           .toList();
 
@@ -83,7 +91,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       validInfo.sort((a, b) => b.modified.compareTo(a.modified));
 
       state = state.copyWith(
-        recentCaptures: validInfo.length > 10 ? validInfo.sublist(0, 10) : validInfo,
+        recentCaptures: validInfo.length > 10
+            ? validInfo.sublist(0, 10)
+            : validInfo,
       );
     } catch (e) {
       debugPrint('[Screenshot] Failed to refresh captures: $e');
@@ -92,7 +102,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   void setSaveDirectory(String path) {
     state = state.copyWith(saveDirectory: path);
-    ref.read(preferencesServiceProvider).rawPrefs.setString(PreferencesService.keyScreenshotSaveDir, path);
+    ref
+        .read(preferencesServiceProvider)
+        .rawPrefs
+        .setString(PreferencesService.keyScreenshotSaveDir, path);
     refreshRecentCaptures();
   }
 
@@ -102,7 +115,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   void setFormat(String format) {
     state = state.copyWith(format: format);
-    ref.read(preferencesServiceProvider).rawPrefs.setString(PreferencesService.keyScreenshotFormat, format);
+    ref
+        .read(preferencesServiceProvider)
+        .rawPrefs
+        .setString(PreferencesService.keyScreenshotFormat, format);
   }
 
   void setTool(ScreenshotTool tool) {
@@ -175,7 +191,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       targetOffset: overlayRect.topLeft,
     );
 
-
     // 6. Finally reveal and focus
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
@@ -198,7 +213,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       targetSize: state.previousWindowSize,
       targetOffset: state.previousWindowPos,
     );
-
 
     // 3. NOW switch UI to Toolbar mode
     state = state.copyWith(
@@ -231,7 +245,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final pos = state.previousWindowPos ?? const Offset(100, 100);
 
     // Structural Move Only (Isolate from attribute changes to prevent flicker)
-    await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
+    await windowManager.setBounds(
+      Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height),
+    );
   }
 
   void setSelection(Rect? rect, [Display? display]) {
@@ -253,10 +269,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   void updateLastAnnotation(Annotation annotation) {
     if (state.annotations.isEmpty) return;
-    final updated = [...state.annotations.sublist(0, state.annotations.length - 1), annotation];
+    final updated = [
+      ...state.annotations.sublist(0, state.annotations.length - 1),
+      annotation,
+    ];
     state = state.copyWith(annotations: updated);
   }
-  
+
   void removeAnnotation(Annotation annotation) {
     final updated = state.annotations.where((a) => a != annotation).toList();
     state = state.copyWith(annotations: updated);
@@ -267,25 +286,29 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> finalize({bool shouldCopy = false}) async {
-    if (state.selectionRect == null && state.captureMode != CaptureMode.fullScreen) return;
+    if (state.selectionRect == null &&
+        state.captureMode != CaptureMode.fullScreen) {
+      return;
+    }
 
     state = state.copyWith(isCapturing: true);
     final coordinator = ref.read(windowTransitionProvider);
-    
+
     // 1. Ghost the window instantly as the absolute FIRST step
     // This makes the UI feel responsive and ensures the overlay doesn't appear in the screenshot
     await windowManager.setOpacity(0.01);
-    
+
     // Give Flutter and DWM a moment to hide the window
     await coordinator.waitForSync(resize: false, move: false);
-
 
     // Calculate final capture rect
     Rect finalRect;
     final windowPos = await windowManager.getPosition();
 
     if (state.selectionRect != null) {
-      finalRect = state.selectionRect!.shift(Offset(windowPos.dx, windowPos.dy));
+      finalRect = state.selectionRect!.shift(
+        Offset(windowPos.dx, windowPos.dy),
+      );
     } else {
       // Full screen fallback
       final primary = state.availableDisplays.firstWhere(
@@ -301,11 +324,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     // Construct save path
-    final dir = state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
+    final dir =
+        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
     final saveDir = Directory('$dir\\SQA_Screenshots');
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
-    final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[:.-]'), '').replaceAll(' ', '_');
+    final timestamp = DateTime.now()
+        .toString()
+        .replaceAll(RegExp(r'[:.-]'), '')
+        .replaceAll(' ', '_');
     final filename = 'SQA_SS_$timestamp.${state.format.toLowerCase()}';
     final savePath = '${saveDir.path}\\$filename';
 
@@ -313,14 +340,18 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       // 1. Capture Annotations (Foreground) - High DPI Aware
       final captureKey = ref.read(captureKeyProvider);
       Uint8List? annotationBytes;
-      
+
       try {
-        final boundary = captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        final boundary =
+            captureKey.currentContext?.findRenderObject()
+                as RenderRepaintBoundary?;
         if (boundary != null) {
           // Determine the scale factor of the locked monitor
           final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
           final image = await boundary.toImage(pixelRatio: ratio);
-          final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+          final byteData = await image.toByteData(
+            format: ui.ImageByteFormat.png,
+          );
           if (byteData != null) {
             annotationBytes = byteData.buffer.asUint8List();
           }
@@ -330,9 +361,11 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       }
 
       final tempDir = await getTemporaryDirectory();
-      final fgPath = '${tempDir.path}\\sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png';
-      final bgPath = '${tempDir.path}\\sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png';
-      
+      final fgPath =
+          '${tempDir.path}\\sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png';
+      final bgPath =
+          '${tempDir.path}\\sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png';
+
       if (annotationBytes != null) {
         await File(fgPath).writeAsBytes(annotationBytes);
       }
@@ -340,7 +373,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       // 2. Perform the Background Capture (Clean Screen)
       // Visual ghosting already handled above, giving OS time to hide window.
       await coordinator.waitForSync(resize: false, move: false, frame: true);
-      
+
       final bgFile = await FfmpegEngine.takeScreenshot(
         logicalBounds: finalRect,
         displays: state.availableDisplays,
@@ -353,11 +386,18 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
           // 3. Composite FG + BG via FFmpeg
           // Calculate pixel-perfect offsets
           final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
-          
+
           // The foreground image is the size of the whole overlay window.
           // We need to crop it to match the background screenshot's selectionRect.
-          final rect = state.selectionRect ?? Rect.fromLTWH(0, 0, finalRect.width / ratio, finalRect.height / ratio);
-          
+          final rect =
+              state.selectionRect ??
+              Rect.fromLTWH(
+                0,
+                0,
+                finalRect.width / ratio,
+                finalRect.height / ratio,
+              );
+
           final offX = (rect.left * ratio).round();
           final offY = (rect.top * ratio).round();
           final width = (rect.width * ratio).round();
@@ -372,9 +412,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
             cropW: width,
             cropH: height,
           );
-          
+
           if (!success) {
-             await bgFile.copy(savePath);
+            await bgFile.copy(savePath);
           }
         } else {
           await bgFile.copy(savePath);
@@ -383,17 +423,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       if (await File(savePath).exists() && shouldCopy) {
         await Process.run('powershell', [
-          '-Command', 
-          'Set-Clipboard -Path "$savePath"'
+          '-Command',
+          'Set-Clipboard -Path "$savePath"',
         ]);
       }
-      
+
       // Cleanup temp bits
       try {
         if (await File(fgPath).exists()) await File(fgPath).delete();
         if (await File(bgPath).exists()) await File(bgPath).delete();
       } catch (_) {}
-      
     } catch (e) {
       debugPrint('[Screenshot] Finalize Error: $e');
     } finally {
@@ -409,7 +448,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       // 3. NOW switch the UI state to Toolbar mode
       state = state.copyWith(
-        isCapturing: false, 
+        isCapturing: false,
         isOverlayVisible: false,
         selectionRect: null,
         targetedWindowRect: null,
@@ -432,7 +471,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
-      
+
       refreshRecentCaptures();
     }
   }
@@ -442,7 +481,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> openSaveDirectory() async {
-    final dir = state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
+    final dir =
+        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
     final saveDir = Directory('$dir\\SQA_Screenshots');
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
@@ -505,7 +545,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   /// Physically shrinks the overlay window to cover only the target monitor.
-  Future<void> _lockToMonitor(Rect targetRect, {Display? providedDisplay}) async {
+  Future<void> _lockToMonitor(
+    Rect targetRect, {
+    Display? providedDisplay,
+  }) async {
     if (!state.isOverlayVisible || state.isCapturing) return;
 
     final displays = state.availableDisplays;
@@ -519,7 +562,12 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       for (final d in displays) {
         final dPos = d.visiblePosition ?? Offset.zero;
-        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        final dRect = Rect.fromLTWH(
+          dPos.dx,
+          dPos.dy,
+          d.size.width,
+          d.size.height,
+        );
         if (dRect.contains(center)) {
           targetDisplay = d;
           break;

@@ -85,7 +85,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                               children: [
                                 _ConfigSnippet(
                                   icon: switch (state.captureMode) {
-                                    CaptureMode.fullScreen => Symbols.fullscreen,
+                                    CaptureMode.fullScreen =>
+                                      Symbols.fullscreen,
                                     CaptureMode.area => Symbols.crop_free,
                                     CaptureMode.window => Symbols.window,
                                   },
@@ -214,7 +215,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                               final confirm = await SqaModal.showConfirm(
                                 context,
                                 title: 'Delete Capture?',
-                                message: 'Are you sure you want to permanently delete this file?',
+                                message:
+                                    'Are you sure you want to permanently delete this file?',
                                 confirmLabel: 'Delete',
                                 confirmColor: theme.colorScheme.error,
                                 icon: Symbols.delete,
@@ -223,10 +225,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                 notifier.deleteCapture(info);
                               }
                             },
-                            onOpen: () => Process.start(
-                              'explorer.exe',
-                              [info.file.path],
-                            ),
+                            onOpen: () =>
+                                Process.start('explorer.exe', [info.file.path]),
                           ),
                           if (!isLast) const Divider(height: 1, indent: 56),
                         ],

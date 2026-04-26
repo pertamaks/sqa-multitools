@@ -41,6 +41,7 @@ class PreferencesService {
   static const String keyScreenshotSaveDir = 'screenshot_save_dir';
   static const String keyScreenshotFormat = 'screenshot_format';
   static const String keyScreenshotDelay = 'screenshot_delay';
+  static const String keyTextEditorSaveDir = 'text_editor_save_dir';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -182,6 +183,14 @@ class PreferencesService {
     } else {
       await _prefs.setString(key, jsonEncode(info.toJson()));
     }
+  }
+
+  String? getTextEditorSaveDir() {
+    return _prefs.getString(keyTextEditorSaveDir);
+  }
+
+  Future<void> setTextEditorSaveDir(String path) async {
+    await _prefs.setString(keyTextEditorSaveDir, path);
   }
 }
 

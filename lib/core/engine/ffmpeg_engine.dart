@@ -496,15 +496,19 @@ class FfmpegEngine {
   }) async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return false;
 
-    final filter = (cropX != null && cropY != null && cropW != null && cropH != null)
+    final filter =
+        (cropX != null && cropY != null && cropW != null && cropH != null)
         ? '[1:v]crop=$cropW:$cropH:$cropX:$cropY[fg_cropped];[0:v][fg_cropped]overlay=format=auto'
         : 'overlay=format=auto';
 
     final args = [
       '-y',
-      '-i', backgroundPath,
-      '-i', foregroundPath,
-      '-filter_complex', filter,
+      '-i',
+      backgroundPath,
+      '-i',
+      foregroundPath,
+      '-filter_complex',
+      filter,
       outputPath,
     ];
 

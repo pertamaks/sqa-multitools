@@ -113,15 +113,14 @@ class SqaModal<T> extends StatelessWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder:
-          (context) => SqaModal<void>.confirm(
-            title: title,
-            message: message,
-            confirmLabel: confirmLabel,
-            cancelLabel: cancelLabel,
-            confirmColor: confirmColor,
-            icon: icon,
-          ),
+      builder: (context) => SqaModal<void>.confirm(
+        title: title,
+        message: message,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+        confirmColor: confirmColor,
+        icon: icon,
+      ),
     );
   }
 
@@ -134,14 +133,20 @@ class SqaModal<T> extends StatelessWidget {
       title: Row(
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 20, color: confirmColor ?? theme.colorScheme.primary),
+            Icon(
+              icon,
+              size: 20,
+              color: confirmColor ?? theme.colorScheme.primary,
+            ),
             const SizedBox(width: 8),
           ],
           Expanded(
             child: Text(
               title,
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                fontSize:
+                    20, // Match SqaPluginHeader standard for consistent branding
               ),
             ),
           ),
@@ -153,21 +158,27 @@ class SqaModal<T> extends StatelessWidget {
             ),
         ],
       ),
-      content:
-          isConfirmMode
-              ? (message != null ? Text(message!) : null)
-              : SizedBox(
-                width: isTileMode ? 320 : 500,
-                height: isTileMode ? null : 400,
-                child:
-                    isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : items.isEmpty
-                        ? _buildEmpty(theme)
-                        : isTileMode
-                        ? _buildTileContent(context, theme)
-                        : _buildListContent(context, theme),
-              ),
+      content: isConfirmMode
+          ? (message != null
+                ? Text(
+                    message!,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                  )
+                : null)
+          : SizedBox(
+              width: isTileMode ? 320 : 500,
+              height: isTileMode ? null : 400,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : items.isEmpty
+                  ? _buildEmpty(theme)
+                  : isTileMode
+                  ? _buildTileContent(context, theme)
+                  : _buildListContent(context, theme),
+            ),
       actions: [
         if (isConfirmMode) ...[
           TextButton(
@@ -176,13 +187,12 @@ class SqaModal<T> extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style:
-                confirmColor != null
-                    ? FilledButton.styleFrom(
-                      backgroundColor: confirmColor,
-                      foregroundColor: Colors.white,
-                    )
-                    : null,
+            style: confirmColor != null
+                ? FilledButton.styleFrom(
+                    backgroundColor: confirmColor,
+                    foregroundColor: Colors.white,
+                  )
+                : null,
             child: Text(confirmLabel ?? 'Confirm'),
           ),
         ] else
@@ -214,92 +224,89 @@ class SqaModal<T> extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children:
-            items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final tile = tileBuilder!(item, index);
+        children: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final tile = tileBuilder!(item, index);
 
-              return SqaCard(
-                margin: const EdgeInsets.only(bottom: 12),
-                onTap: () => Navigator.of(context).pop(item),
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Thumbnail
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(8),
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 32 / 9,
-                        child:
-                            tile.imagePath != null
-                                ? Image.file(
-                                  File(tile.imagePath!),
-                                  fit: BoxFit.cover,
-                                  key: ValueKey(
-                                    tile.imagePath! +
-                                        DateTime.now().millisecond.toString(),
-                                  ),
-                                )
-                                : Container(
-                                  color:
-                                      theme.colorScheme.surfaceContainerHighest,
-                                  child: Center(
-                                    child: Icon(
-                                      Symbols.desktop_windows,
-                                      size: 32,
-                                      color: theme.colorScheme.onSurfaceVariant
-                                          .withValues(alpha: 0.3),
-                                    ),
-                                  ),
-                                ),
-                      ),
-                    ),
-                    // Label + Badge
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            tile.label,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+          return SqaCard(
+            margin: const EdgeInsets.only(bottom: 12),
+            onTap: () => Navigator.of(context).pop(item),
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 32 / 9,
+                    child: tile.imagePath != null
+                        ? Image.file(
+                            File(tile.imagePath!),
+                            fit: BoxFit.cover,
+                            key: ValueKey(
+                              tile.imagePath! +
+                                  DateTime.now().millisecond.toString(),
+                            ),
+                          )
+                        : Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: Center(
+                              child: Icon(
+                                Symbols.desktop_windows,
+                                size: 32,
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.3),
+                              ),
                             ),
                           ),
-                          if (tile.badge != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer
-                                    .withValues(alpha: 0.5),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                tile.badge!,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            }).toList(),
+                // Label + Badge
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        tile.label,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (tile.badge != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            tile.badge!,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11, // Standard Label size per GEMINI.md
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -321,15 +328,17 @@ class SqaModal<T> extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            subtitle:
-                listItem.subtitle != null
-                    ? Text(
-                      listItem.subtitle!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall,
-                    )
-                    : null,
+            subtitle: listItem.subtitle != null
+                ? Text(
+                    listItem.subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11, // Standard Label size per GEMINI.md
+                    ),
+                  )
+                : null,
             onTap: () => Navigator.of(context).pop(item),
           ),
         );

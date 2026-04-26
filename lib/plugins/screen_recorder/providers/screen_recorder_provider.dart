@@ -19,7 +19,6 @@ import 'package:hotkey_manager/hotkey_manager.dart';
 import '../../../core/window/window_utils.dart';
 import '../../../core/window/window_transition_coordinator.dart';
 
-
 part 'screen_recorder_provider.g.dart';
 
 @riverpod
@@ -55,8 +54,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     return const ScreenRecorderState();
   }
-
-
 
   /// Refreshes the list of available monitors and their friendly names.
   Future<void> refreshMonitors() async {
@@ -218,7 +215,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       targetSize: overlayRect.size,
       targetOffset: overlayRect.topLeft,
     );
-
 
     // Register hotkey with the stored instance
     await hotKeyManager.register(
@@ -450,8 +446,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
       // Take top 10
       state = state.copyWith(
-        recentRecordings:
-            validInfo.length > 10 ? validInfo.sublist(0, 10) : validInfo,
+        recentRecordings: validInfo.length > 10
+            ? validInfo.sublist(0, 10)
+            : validInfo,
       );
     } catch (e) {
       // Silent catch for unexpected file system errors
@@ -490,7 +487,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     await windowManager.setOpacity(0.01);
     await coordinator.waitForSync(resize: false, move: false);
 
-
     // 2. Perform background cleanup while invisible
     // (WE DEFER setIgnoreMouseEvents(false) to the very end)
 
@@ -514,7 +510,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       targetSize: targetSize,
       targetOffset: targetPos,
     );
-
 
     // 5. NOW switch the UI state to Toolbar mode
     state = state.copyWith(
@@ -542,7 +537,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
       setIgnoreMouseEvents(false),
     ]);
-    
+
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
@@ -552,7 +547,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final pos = state.previousWindowPos ?? const Offset(100, 100);
 
     // Structural Move Only (Isolate from attribute changes to prevent flicker)
-    await windowManager.setBounds(Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height));
+    await windowManager.setBounds(
+      Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height),
+    );
   }
 
   void togglePause() {
@@ -581,6 +578,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     state = state.copyWith(saveDirectory: path);
     refreshRecentRecordings();
   }
+
   void setCaptureMode(CaptureMode mode) =>
       state = state.copyWith(captureMode: mode);
 
@@ -683,8 +681,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   void clearAnnotations() => state = state.copyWith(annotations: []);
   void setColor(Color color) => state = state.copyWith(annotationColor: color);
-  void setTextHasBackground(bool value) => state = state.copyWith(textHasBackground: value);
-  
+  void setTextHasBackground(bool value) =>
+      state = state.copyWith(textHasBackground: value);
+
   // Window Targeting
   void setTargetingWindow(bool value) {
     state = state.copyWith(isTargetingWindow: value);
@@ -723,7 +722,10 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   /// Physically shrinks the overlay window to cover only the target monitor.
   /// This reduces DWM overhead and constrains interaction boundaries.
-  Future<void> _lockToMonitor(Rect targetRect, {Display? providedDisplay}) async {
+  Future<void> _lockToMonitor(
+    Rect targetRect, {
+    Display? providedDisplay,
+  }) async {
     if (!state.isOverlayVisible || state.isRecording) return;
 
     final displays = state.availableDisplays;
@@ -737,7 +739,12 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
       for (final d in displays) {
         final dPos = d.visiblePosition ?? Offset.zero;
-        final dRect = Rect.fromLTWH(dPos.dx, dPos.dy, d.size.width, d.size.height);
+        final dRect = Rect.fromLTWH(
+          dPos.dx,
+          dPos.dy,
+          d.size.width,
+          d.size.height,
+        );
         if (dRect.contains(center)) {
           targetDisplay = d;
           break;

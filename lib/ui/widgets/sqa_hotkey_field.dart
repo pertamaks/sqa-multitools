@@ -25,7 +25,7 @@ class SqaHotkeyField extends StatefulWidget {
 class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
   bool _isRecording = false;
   final FocusNode _focusNode = FocusNode();
-  
+
   LogicalKeyboardKey? _lastKey;
   final Set<HotKeyModifier> _modifiers = {};
 
@@ -46,17 +46,17 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
           'Safety Check: Global hotkeys MUST include at least one modifier (Alt, Ctrl, or Shift).',
           type: SqaToastType.error,
         );
-        // Don't stop yet if they haven't added a modifier? 
+        // Don't stop yet if they haven't added a modifier?
         // Actually it's better to stop and show error like the notifier does.
       }
-      
+
       final info = HotkeyInfo(
         keyCode: _lastKey!.keyId,
         modifierIndices: _modifiers.map((m) => m.index).toList(),
       );
       widget.onSave(info);
     }
-    
+
     setState(() {
       _isRecording = false;
     });
@@ -135,18 +135,16 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
               height: 32,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color:
-                    _isRecording
-                        ? colorScheme.primary.withValues(alpha: 0.1)
-                        : colorScheme.surfaceContainerHighest.withValues(
-                          alpha: 0.4,
-                        ),
+                color: _isRecording
+                    ? colorScheme.primary.withValues(alpha: 0.1)
+                    : colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.4,
+                      ),
                 borderRadius: SqaStyles.radiusSmall,
                 border: Border.all(
-                  color:
-                      _isRecording
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  color: _isRecording
+                      ? colorScheme.primary
+                      : colorScheme.outlineVariant.withValues(alpha: 0.5),
                   width: 1.0,
                 ),
               ),
@@ -157,26 +155,24 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                         ? Symbols.keyboard
                         : Symbols.keyboard_command_key,
                     size: 16,
-                    color:
-                        _isRecording
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
+                    color: _isRecording
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _isRecording
                           ? (_modifiers.isEmpty && _lastKey == null
-                              ? 'Press keys...'
-                              : _formatRecording())
+                                ? 'Press keys...'
+                                : _formatRecording())
                           : widget.value.toString(),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color:
-                            _isRecording
-                                ? colorScheme.primary
-                                : colorScheme.onSurface,
+                        color: _isRecording
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,
@@ -215,11 +211,11 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
     if (_modifiers.contains(HotKeyModifier.shift)) parts.add('SHIFT');
     if (_modifiers.contains(HotKeyModifier.control)) parts.add('CTRL');
     if (_modifiers.contains(HotKeyModifier.meta)) parts.add('META');
-    
+
     if (_lastKey != null) {
       parts.add(_lastKey!.keyLabel.toUpperCase());
     }
-    
+
     return parts.join(' + ');
   }
 }

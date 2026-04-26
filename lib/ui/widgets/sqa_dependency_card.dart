@@ -60,7 +60,7 @@ class SqaDependencyCard extends ConsumerWidget {
                 LinearProgressIndicator(
                   value:
                       status.downloadProgress != null &&
-                           status.downloadProgress! >= 0
+                          status.downloadProgress! >= 0
                       ? status.downloadProgress
                       : null,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,

@@ -69,14 +69,15 @@ class SqaAnnotationStage extends StatefulWidget {
   final List<ClickRipple> ripples;
   final Color clickFeedbackColor;
   final Color rightClickFeedbackColor;
-  final Listenable? repaintCapture; // Used to listen to animation controller or other external repaints
+  final Listenable?
+  repaintCapture; // Used to listen to animation controller or other external repaints
 
   // Interaction delegation
   final bool canDraw; // Allows drawing tools to activate
   final void Function(DragStartDetails details)? onAreaDragStart;
   final void Function(DragUpdateDetails details)? onAreaDragUpdate;
   final void Function(DragEndDetails details)? onAreaDragEnd;
-  
+
   final Key? captureKey;
   final bool textHasBackground;
 
@@ -119,7 +120,9 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   late FocusNode _textFocusNode;
 
   // Moving Annotation State
-  final ValueNotifier<Annotation?> _movingAnnotationNotifier = ValueNotifier(null);
+  final ValueNotifier<Annotation?> _movingAnnotationNotifier = ValueNotifier(
+    null,
+  );
 
   @override
   void initState() {
@@ -141,7 +144,8 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
         points: [rect.topLeft], // Store top-left for anchoring
         color: widget.annotationColor,
         text: text,
-        strokeWidth: rect.width, // We hijack strokeWidth to store the maxWidth for wrapping
+        strokeWidth: rect
+            .width, // We hijack strokeWidth to store the maxWidth for wrapping
         hasBackground: widget.textHasBackground,
       );
       widget.onAnnotationAdded(newAnnotation);
@@ -163,7 +167,9 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   }
 
   void _onHover(Offset position) {
-    if (widget.currentTool != ScreenshotTool.eraser && widget.currentTool != ScreenshotTool.pointer && widget.currentTool != ScreenshotTool.text) {
+    if (widget.currentTool != ScreenshotTool.eraser &&
+        widget.currentTool != ScreenshotTool.pointer &&
+        widget.currentTool != ScreenshotTool.text) {
       if (_hoveredAnnotation != null) {
         setState(() => _hoveredAnnotation = null);
       }
@@ -172,13 +178,19 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
 
     final hit = _findAnnotationAt(position);
     if (hit != _hoveredAnnotation) {
-      setState(() => _hoveredAnnotation = hit?.tool == ScreenshotTool.text || widget.currentTool == ScreenshotTool.eraser ? hit : null);
+      setState(
+        () => _hoveredAnnotation =
+            hit?.tool == ScreenshotTool.text ||
+                widget.currentTool == ScreenshotTool.eraser
+            ? hit
+            : null,
+      );
     }
   }
 
   Annotation? _findAnnotationAt(Offset position) {
     const double hitRadius = 15.0;
-    
+
     // Check in reverse order so we hit the top-most (most recent) annotation first
     final annotations = widget.annotations;
     for (int i = annotations.length - 1; i >= 0; i--) {
@@ -198,7 +210,9 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
       case ScreenshotTool.laser:
         // Use path segments
         for (int i = 0; i < ann.points.length - 1; i++) {
-          if (_distToSegment(p, ann.points[i], ann.points[i + 1]) < radius) return true;
+          if (_distToSegment(p, ann.points[i], ann.points[i + 1]) < radius) {
+            return true;
+          }
         }
         return false;
 
@@ -211,7 +225,10 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
 
       case ScreenshotTool.rectangle:
         if (ann.points.length >= 2) {
-          final rect = Rect.fromPoints(ann.points.first, ann.points.last).inflate(radius);
+          final rect = Rect.fromPoints(
+            ann.points.first,
+            ann.points.last,
+          ).inflate(radius);
           return rect.contains(p);
         }
         return false;
@@ -250,9 +267,11 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   double _distToSegment(Offset p, Offset a, Offset b) {
     final l2 = (a - b).distanceSquared;
     if (l2 == 0) return (p - a).distance;
-    var t = ((p.dx - a.dx) * (b.dx - a.dx) + (p.dy - a.dy) * (b.dy - a.dy)) / l2;
+    var t =
+        ((p.dx - a.dx) * (b.dx - a.dx) + (p.dy - a.dy) * (b.dy - a.dy)) / l2;
     t = math.max(0, math.min(1, t));
-    return (p - Offset(a.dx + t * (b.dx - a.dx), a.dy + t * (b.dy - a.dy))).distance;
+    return (p - Offset(a.dx + t * (b.dx - a.dx), a.dy + t * (b.dy - a.dy)))
+        .distance;
   }
 
   void _onPanStart(DragStartDetails details) {
@@ -270,7 +289,9 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
       return;
     }
 
-    if (widget.canDraw && (widget.currentTool == ScreenshotTool.text || widget.currentTool == ScreenshotTool.pointer)) {
+    if (widget.canDraw &&
+        (widget.currentTool == ScreenshotTool.text ||
+            widget.currentTool == ScreenshotTool.pointer)) {
       final hit = _findAnnotationAt(details.localPosition);
       if (hit != null && hit.tool == ScreenshotTool.text) {
         widget.onAnnotationRemoved(hit);
@@ -282,7 +303,12 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
 
     if (widget.canDraw && widget.currentTool != ScreenshotTool.pointer) {
       _drawingController.start();
-      _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
+      _drawingController.add(
+        Offset(
+          details.localPosition.dx.roundToDouble(),
+          details.localPosition.dy.roundToDouble(),
+        ),
+      );
 
       if (widget.currentTool == ScreenshotTool.laser) {
         _startLaserPruning();
@@ -294,12 +320,16 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
 
   void _startLaserPruning() {
     _laserPruneTimer?.cancel();
-    _laserPruneTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    _laserPruneTimer = Timer.periodic(const Duration(milliseconds: 50), (
+      timer,
+    ) {
       if (widget.currentTool != ScreenshotTool.laser) {
         _stopLaserPruning();
         return;
       }
-      _drawingController.prune(DateTime.now().subtract(const Duration(milliseconds: 1000)));
+      _drawingController.prune(
+        DateTime.now().subtract(const Duration(milliseconds: 1000)),
+      );
     });
   }
 
@@ -326,10 +356,21 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
     }
 
     if (widget.canDraw && widget.currentTool != ScreenshotTool.pointer) {
-      if (widget.currentTool == ScreenshotTool.text && _drawingController.points.isNotEmpty) {
-        _drawingController.replaceLast(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
+      if (widget.currentTool == ScreenshotTool.text &&
+          _drawingController.points.isNotEmpty) {
+        _drawingController.replaceLast(
+          Offset(
+            details.localPosition.dx.roundToDouble(),
+            details.localPosition.dy.roundToDouble(),
+          ),
+        );
       } else {
-        _drawingController.add(Offset(details.localPosition.dx.roundToDouble(), details.localPosition.dy.roundToDouble()));
+        _drawingController.add(
+          Offset(
+            details.localPosition.dx.roundToDouble(),
+            details.localPosition.dy.roundToDouble(),
+          ),
+        );
       }
     } else {
       widget.onAreaDragUpdate?.call(details);
@@ -350,7 +391,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
       if (_drawingController.points.isNotEmpty) {
         final start = _drawingController.points.first;
         final end = _drawingController.points.last;
-        
+
         // Default to a 300px box if they just clicked without dragging
         Rect rect = Rect.fromPoints(start, end);
         if (rect.width < 50) {
@@ -417,7 +458,11 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
                   activeColor: widget.annotationColor,
                   hoveredAnnotation: _hoveredAnnotation,
                   movingAnnotation: _movingAnnotationNotifier,
-                  repaint: Listenable.merge([_drawingController, _movingAnnotationNotifier, if (widget.repaintCapture != null) widget.repaintCapture!]),
+                  repaint: Listenable.merge([
+                    _drawingController,
+                    _movingAnnotationNotifier,
+                    if (widget.repaintCapture != null) widget.repaintCapture!,
+                  ]),
                 ),
               ),
             ),
@@ -431,8 +476,8 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
             top: _textInputRect!.top,
             width: _textInputRect!.width,
             child: TextField(
-                  onTapOutside: (_) {},
-                  controller: _textController,
+              onTapOutside: (_) {},
+              controller: _textController,
               focusNode: _textFocusNode,
               autofocus: true,
               maxLines: null,
@@ -445,18 +490,27 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
               ),
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderSide: BorderSide(color: widget.annotationColor.withValues(alpha: 0.5), style: BorderStyle.solid),
+                  borderSide: BorderSide(
+                    color: widget.annotationColor.withValues(alpha: 0.5),
+                    style: BorderStyle.solid,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: widget.annotationColor.withValues(alpha: 0.5), style: BorderStyle.solid),
+                  borderSide: BorderSide(
+                    color: widget.annotationColor.withValues(alpha: 0.5),
+                    style: BorderStyle.solid,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: widget.annotationColor, style: BorderStyle.solid),
+                  borderSide: BorderSide(
+                    color: widget.annotationColor,
+                    style: BorderStyle.solid,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.all(8),
-                fillColor: widget.textHasBackground 
-                  ? widget.annotationColor.withValues(alpha: 0.25)
-                  : Colors.transparent,
+                fillColor: widget.textHasBackground
+                    ? widget.annotationColor.withValues(alpha: 0.25)
+                    : Colors.transparent,
                 filled: true,
               ),
             ),

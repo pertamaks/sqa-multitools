@@ -73,3 +73,9 @@ GEMINI.md
 !README.txt
 !LICENSE.txt
 /tmp/
+
+# =============================================================================
+# Development / Experimental (SQA Checkpoint)
+# =============================================================================
+lib/plugins/text_editor_v2/
+assets/appflowy-editor-main/

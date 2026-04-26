@@ -1,30 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
+import 'sqa_hover_icon_button.dart';
 
 class SqaField extends StatefulWidget {
-  final String label;
-  final TextEditingController? controller;
-  final String? initialValue;
-  final IconData? icon;
-  final bool isMonospace;
-  final bool readOnly;
-  final bool isMultiline;
-  final int? maxLines;
-  final int? minLines;
-  final double? maxHeight;
-  final Widget? prefix;
-  final ScrollController? horizontalScrollController;
-  final bool wrap;
-  final ValueChanged<String>? onChanged;
-  final String? hintText;
-  final bool showCopyButton;
-  final Widget? trailing;
-  final int? collapsedMaxLines;
-  final bool showLineNumbers;
-
   const SqaField({
     super.key,
     required this.label,
@@ -46,7 +28,41 @@ class SqaField extends StatefulWidget {
     this.trailing,
     this.collapsedMaxLines,
     this.showLineNumbers = false,
+    this.isTransparent = false,
+    this.showLabel = true,
+    this.undoController,
+    this.onTapOutside,
+    this.fontSize = 13.0,
+    this.lineHeight = 1.5,
+    this.gutterFontSize,
   });
+
+  final String label;
+  final TextEditingController? controller;
+  final UndoHistoryController? undoController;
+  final String? initialValue;
+  final IconData? icon;
+  final bool isMonospace;
+  final bool readOnly;
+  final bool isMultiline;
+  final int? maxLines;
+  final int? minLines;
+  final double? maxHeight;
+  final Widget? prefix;
+  final ScrollController? horizontalScrollController;
+  final bool wrap;
+  final ValueChanged<String>? onChanged;
+  final TapRegionCallback? onTapOutside;
+  final String? hintText;
+  final bool showCopyButton;
+  final Widget? trailing;
+  final int? collapsedMaxLines;
+  final bool showLineNumbers;
+  final bool isTransparent;
+  final bool showLabel;
+  final double fontSize;
+  final double lineHeight;
+  final double? gutterFontSize;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -56,9 +72,13 @@ class _SqaFieldState extends State<SqaField> {
   late TextEditingController _internalController;
   bool _isExpanded = false;
   final GlobalKey _containerKey = GlobalKey();
-  final ValueNotifier<double> _stickyTopNotifier = ValueNotifier<double>(4.0);
+  final ValueNotifier<double> _stickyTopNotifier = ValueNotifier<double>(0.0);
   late ScrollController _verticalScrollController;
   late ScrollController _gutterScrollController;
+  late ScrollController _internalHorizontalScrollController;
+  bool _isHovered = false;
+  bool _isFocused = false;
+  late FocusNode _focusNode;
 
   int get _lineCount => _internalController.text.split('\n').length;
 
@@ -87,8 +107,7 @@ class _SqaFieldState extends State<SqaField> {
       final fieldTop = fieldOffsetInViewport.dy;
       final fieldHeight = containerBox.size.height;
       const buttonHeight = 32.0;
-      const padding = 4.0;
-
+      const padding = 0.0;
       double nextStickyTop = padding;
 
       if (fieldTop < 0 && _isExpanded) {
@@ -106,8 +125,8 @@ class _SqaFieldState extends State<SqaField> {
       }
     } catch (_) {
       // Scrollable not found or other coordinate error, fallback to top
-      if (_stickyTopNotifier.value != 4.0) {
-        _stickyTopNotifier.value = 4.0;
+      if (_stickyTopNotifier.value != 0.0) {
+        _stickyTopNotifier.value = 0.0;
       }
     }
   }
@@ -120,6 +139,12 @@ class _SqaFieldState extends State<SqaField> {
     _internalController.addListener(_onControllerChanged);
     _verticalScrollController = ScrollController();
     _gutterScrollController = ScrollController();
+    _internalHorizontalScrollController = ScrollController();
+
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() => _isFocused = _focusNode.hasFocus);
+    });
 
     _verticalScrollController.addListener(_syncGutterScroll);
   }
@@ -131,6 +156,22 @@ class _SqaFieldState extends State<SqaField> {
         _gutterScrollController.jumpTo(_verticalScrollController.offset);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _scrollPosition?.removeListener(_updateStickyOffset);
+    _internalController.removeListener(_onControllerChanged);
+    if (widget.controller == null) {
+      _internalController.dispose();
+    }
+    _verticalScrollController.removeListener(_syncGutterScroll);
+    _verticalScrollController.dispose();
+    _gutterScrollController.dispose();
+    _internalHorizontalScrollController.dispose();
+    _stickyTopNotifier.dispose();
+    super.dispose();
   }
 
   void _onControllerChanged() {
@@ -154,20 +195,6 @@ class _SqaFieldState extends State<SqaField> {
     }
   }
 
-  @override
-  void dispose() {
-    _scrollPosition?.removeListener(_updateStickyOffset);
-    _internalController.removeListener(_onControllerChanged);
-    if (widget.controller == null) {
-      _internalController.dispose();
-    }
-    _verticalScrollController.removeListener(_syncGutterScroll);
-    _verticalScrollController.dispose();
-    _gutterScrollController.dispose();
-    _stickyTopNotifier.dispose();
-    super.dispose();
-  }
-
   ScrollPosition? _scrollPosition;
 
   @override
@@ -187,8 +214,8 @@ class _SqaFieldState extends State<SqaField> {
     final colorScheme = theme.colorScheme;
 
     // Line height logic for height snapping
-    const fontSize = 13.0;
-    const fontHeight = 1.3;
+    final fontSize = widget.fontSize;
+    final fontHeight = widget.lineHeight;
     const vPadding = 12.0 * 2; // Total vertical padding of TextField
     final singleLineHeight = fontSize * fontHeight;
 
@@ -210,42 +237,74 @@ class _SqaFieldState extends State<SqaField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, size: 14, color: colorScheme.primary),
-                  const SizedBox(width: 6),
-                ],
-                Text(
-                  widget.label.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
-                    color: colorScheme.primary,
+        if (widget.showLabel) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  if (widget.icon != null) ...[
+                    Icon(widget.icon, size: 14, color: colorScheme.primary),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    widget.label.toUpperCase(),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                      color: colorScheme.primary,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            if (widget.trailing != null) widget.trailing!,
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          constraints: effectiveMaxHeight != null
-              ? BoxConstraints(maxHeight: effectiveMaxHeight)
-              : null,
-          key: _containerKey,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: SqaStyles.radiusLarge,
-            border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-            ),
+                ],
+              ),
+              if (widget.trailing != null) widget.trailing!,
+            ],
           ),
+          const SizedBox(height: 8),
+        ],
+        MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: Container(
+            width: double.infinity,
+            constraints: effectiveMaxHeight != null
+                ? BoxConstraints(maxHeight: effectiveMaxHeight)
+                : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              key: _containerKey,
+              decoration: BoxDecoration(
+              color: widget.isTransparent
+                  ? Colors.transparent
+                  : (_isFocused
+                      ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                      : (_isHovered
+                          ? colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5)
+                          : colorScheme.surfaceContainerLow
+                              .withValues(alpha: 0.2))),
+              borderRadius: SqaStyles.radiusLarge,
+              border: Border.all(
+                color: widget.isTransparent
+                    ? Colors.transparent
+                    : (_isFocused
+                        ? colorScheme.primary.withValues(alpha: 0.3)
+                        : (_isHovered
+                            ? colorScheme.outlineVariant.withValues(alpha: 0.3)
+                            : colorScheme.outlineVariant
+                                .withValues(alpha: 0.1))),
+              ),
+              boxShadow: _isFocused
+                  ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : [],
+            ),
           child: ClipRRect(
             borderRadius: SqaStyles.radiusLarge,
             child: Stack(
@@ -261,9 +320,11 @@ class _SqaFieldState extends State<SqaField> {
                       decoration: BoxDecoration(
                         border: Border(
                           right: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withValues(
-                              alpha: 0.3,
-                            ),
+                            color: _isFocused
+                                ? colorScheme.primary.withValues(alpha: 0.4)
+                                : colorScheme.outlineVariant.withValues(
+                                    alpha: 0.15,
+                                  ),
                             width: 1,
                           ),
                         ),
@@ -290,6 +351,7 @@ class _SqaFieldState extends State<SqaField> {
                           builder: (context) {
                             final textField = TextField(
                               controller: _internalController,
+                              focusNode: _focusNode,
                               readOnly: widget.readOnly,
                               onChanged: widget.onChanged,
                               scrollPhysics:
@@ -303,14 +365,22 @@ class _SqaFieldState extends State<SqaField> {
                                   ? widget.collapsedMaxLines
                                   : (widget.isMultiline ? widget.maxLines : 1),
                               minLines: widget.minLines ?? 1,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontFamily: widget.isMonospace
-                                    ? 'monospace'
-                                    : null,
+                              style: (widget.isMonospace
+                                      ? GoogleFonts.jetBrainsMono()
+                                      : theme.textTheme.bodyMedium)
+                                  ?.copyWith(
                                 fontSize: fontSize,
                                 height: fontHeight,
+                                color: colorScheme.onSurface,
+                              ),
+                              strutStyle: StrutStyle(
+                                fontSize: fontSize,
+                                height: fontHeight,
+                                forceStrutHeight: true,
+                                leadingDistribution: TextLeadingDistribution.even,
                               ),
                               decoration: InputDecoration(
+                                isDense: true,
                                 hintText: widget.hintText,
                                 hintStyle: TextStyle(
                                   color: colorScheme.onSurface.withValues(
@@ -326,6 +396,9 @@ class _SqaFieldState extends State<SqaField> {
                                 ),
                               ),
                               scrollController: _verticalScrollController,
+                              undoController: widget.undoController,
+                              onTapOutside: widget.onTapOutside,
+                              textAlignVertical: TextAlignVertical.top,
                             );
 
                             final scrollConfiguration = ScrollConfiguration(
@@ -338,16 +411,19 @@ class _SqaFieldState extends State<SqaField> {
                               child: textField,
                             );
 
-                            if (widget.horizontalScrollController != null &&
-                                !widget.wrap) {
+                            if (!widget.wrap) {
+                              final hController =
+                                  widget.horizontalScrollController ??
+                                  _internalHorizontalScrollController;
+
                               return Scrollbar(
-                                controller: widget.horizontalScrollController,
+                                controller: hController,
                                 thumbVisibility: true,
                                 thickness: 4.0,
                                 radius: const Radius.circular(2),
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
-                                  controller: widget.horizontalScrollController,
+                                  controller: hController,
                                   child: IntrinsicWidth(
                                     child: scrollConfiguration,
                                   ),
@@ -382,8 +458,8 @@ class _SqaFieldState extends State<SqaField> {
                         child: child!,
                       );
                     },
-                    child: IconButton(
-                      icon: const Icon(Symbols.content_copy, size: 16),
+                    child: SqaHoverIconButton(
+                      icon: Symbols.content_copy,
                       onPressed: () {
                         Clipboard.setData(
                           ClipboardData(text: _internalController.text),
@@ -391,20 +467,16 @@ class _SqaFieldState extends State<SqaField> {
                         SqaToast.show(context, 'Copied to clipboard');
                       },
                       tooltip: 'Copy to clipboard',
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
                     ),
                   ),
               ],
             ),
           ),
         ),
-      ],
-    );
+      ),
+    ),
+  ],
+);
   }
 
   Widget _buildNativeGutter(ThemeData theme) {
@@ -412,41 +484,38 @@ class _SqaFieldState extends State<SqaField> {
       listenable: _internalController,
       builder: (context, _) {
         final lineCount = '\n'.allMatches(_internalController.text).length + 1;
-        const fontSize = 13.0;
-        const fontHeight = 1.3;
-        final singleLineHeight = fontSize * fontHeight;
+        final fontSize = widget.fontSize;
+        final fontHeight = widget.lineHeight;
+        final gFontSize = widget.gutterFontSize ?? (fontSize * 0.9);
+        final numbers = List.generate(lineCount, (i) => '${i + 1}').join('\n');
 
         return Container(
           width: 40,
-          padding: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.only(top: 6.5),
           child: ScrollConfiguration(
             behavior: const _NoScrollbarBehavior(),
             child: SingleChildScrollView(
               controller: _gutterScrollController,
               physics: const NeverScrollableScrollPhysics(), // Sync only
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(lineCount, (index) {
-                  return SizedBox(
-                    height: singleLineHeight,
-                    width: double.infinity,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Text(
-                        '${index + 1}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSize,
-                          height: fontHeight,
-                          fontFamily: 'monospace',
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.3,
-                          ),
-                        ),
-                        textAlign: TextAlign.right,
-                      ),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Text(
+                  numbers,
+                  style: GoogleFonts.jetBrainsMono().copyWith(
+                    fontSize: gFontSize,
+                    height: (fontSize * fontHeight) / gFontSize,
+                    color: theme.colorScheme.onSurface.withValues(
+                      alpha: 0.3,
                     ),
-                  );
-                }),
+                  ),
+                  strutStyle: StrutStyle(
+                    fontSize: fontSize,
+                    height: fontHeight,
+                    forceStrutHeight: true,
+                    leadingDistribution: TextLeadingDistribution.even,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
               ),
             ),
           ),

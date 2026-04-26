@@ -2,16 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'sqa_styles.dart';
 import 'sqa_fade_wrapper.dart';
-
-/// A custom scroll behavior that enables mouse dragging for specific widgets.
-class _SqaMouseDragScrollBehavior extends MaterialScrollBehavior {
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-  };
-}
+import 'sqa_scroll_behavior.dart';
 
 class SqaSegmentedButton<T> extends StatefulWidget {
   final List<ButtonSegment<T>> segments;
@@ -99,7 +90,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       child: SqaFadeWrapper(
         axis: Axis.horizontal,
         child: ScrollConfiguration(
-          behavior: _SqaMouseDragScrollBehavior(),
+          behavior: const SqaMouseDragScrollBehavior(),
           child: Listener(
             onPointerSignal: (pointerSignal) {
               if (pointerSignal is PointerScrollEvent) {
@@ -109,8 +100,6 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              clipBehavior: Clip.hardEdge,
               child: segmentedButton,
             ),
           ),

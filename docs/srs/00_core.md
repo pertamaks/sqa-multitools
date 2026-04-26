@@ -71,9 +71,10 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
   - **SqaPluginScrollableContent:** A standard wrapper that centers content vertically when the window is expanded and provides scrolling for tall content.
   - **SqaToast:** Centralized notification system featuring a minimalist, translucent "Fluent Pill" design with zero elevation and 11px bold typography for non-intrusive feedback.
 - **Navigation:** Horizontally scrollable toolbar at the top.
-- **Visual Cues:** 
-  - `drag_indicator` icon to clearly denote the draggable window area.
-  - Scroll-aware edge fades (gradients) on the plugin icon area when content is scrollable.
+  - **Visual Cues**: 
+    - `drag_indicator` icon to clearly denote the draggable window area.
+    - Scroll-aware edge fades (gradients) on the plugin icon area when content is scrollable.
+    - **Persistent Scrollbars (Sliders)**: Standardized, always-visible scrollbars in all scrollable regions to ensure immediate visual feedback and navigation ease.
 
 ### Hardware Interfaces
 - **Not implemented** (Standard HID input only).

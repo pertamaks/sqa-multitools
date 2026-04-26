@@ -8,11 +8,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final windowTransitionProvider = Provider<WindowTransitionCoordinator>((ref) {
   final coordinator = WindowTransitionCoordinator();
   windowManager.addListener(coordinator);
-  
+
   ref.onDispose(() {
     windowManager.removeListener(coordinator);
   });
-  
+
   return coordinator;
 });
 
@@ -23,7 +23,7 @@ class WindowTransitionCoordinator extends WindowListener {
   Completer<void>? _moveCompleter;
 
   /// Waits for the window and Flutter UI to reach a stable state.
-  /// 
+  ///
   /// [resize]: Wait for OS window resize confirmation.
   /// [move]: Wait for OS window move confirmation.
   /// [targetSize]: Optional expected size to check via polling if the event is missed.
@@ -42,24 +42,33 @@ class WindowTransitionCoordinator extends WindowListener {
     // 1. Setup Resize Sync
     if (resize) {
       _resizeCompleter ??= Completer<void>();
-      
+
       // Polling Fallback: Check every 50ms if the event is missed
       if (targetSize != null) {
-        final pollTimer = Stream<void>.periodic(const Duration(milliseconds: 50)).listen((_) async {
-          final currentSize = await windowManager.getSize();
-          if ((currentSize.width - targetSize.width).abs() < 1.0 && 
-              (currentSize.height - targetSize.height).abs() < 1.0) {
-            if (_resizeCompleter != null && !_resizeCompleter!.isCompleted) {
-              _resizeCompleter!.complete();
-            }
-          }
-        });
+        final pollTimer =
+            Stream<void>.periodic(const Duration(milliseconds: 50)).listen((
+              _,
+            ) async {
+              final currentSize = await windowManager.getSize();
+              if ((currentSize.width - targetSize.width).abs() < 1.0 &&
+                  (currentSize.height - targetSize.height).abs() < 1.0) {
+                if (_resizeCompleter != null &&
+                    !_resizeCompleter!.isCompleted) {
+                  _resizeCompleter!.complete();
+                }
+              }
+            });
         subtasks.add(pollTimer);
       }
 
-      futures.add(_resizeCompleter!.future.timeout(timeout, onTimeout: () {
-        _resizeCompleter = null;
-      }));
+      futures.add(
+        _resizeCompleter!.future.timeout(
+          timeout,
+          onTimeout: () {
+            _resizeCompleter = null;
+          },
+        ),
+      );
     }
 
     // 2. Setup Move Sync
@@ -67,21 +76,29 @@ class WindowTransitionCoordinator extends WindowListener {
       _moveCompleter ??= Completer<void>();
 
       if (targetOffset != null) {
-        final pollTimer = Stream<void>.periodic(const Duration(milliseconds: 50)).listen((_) async {
-          final currentPos = await windowManager.getPosition();
-          if ((currentPos.dx - targetOffset.dx).abs() < 1.0 && 
-              (currentPos.dy - targetOffset.dy).abs() < 1.0) {
-            if (_moveCompleter != null && !_moveCompleter!.isCompleted) {
-              _moveCompleter!.complete();
-            }
-          }
-        });
+        final pollTimer =
+            Stream<void>.periodic(const Duration(milliseconds: 50)).listen((
+              _,
+            ) async {
+              final currentPos = await windowManager.getPosition();
+              if ((currentPos.dx - targetOffset.dx).abs() < 1.0 &&
+                  (currentPos.dy - targetOffset.dy).abs() < 1.0) {
+                if (_moveCompleter != null && !_moveCompleter!.isCompleted) {
+                  _moveCompleter!.complete();
+                }
+              }
+            });
         subtasks.add(pollTimer);
       }
 
-      futures.add(_moveCompleter!.future.timeout(timeout, onTimeout: () {
-        _moveCompleter = null;
-      }));
+      futures.add(
+        _moveCompleter!.future.timeout(
+          timeout,
+          onTimeout: () {
+            _moveCompleter = null;
+          },
+        ),
+      );
     }
 
     // 3. Setup Frame render sync
@@ -101,7 +118,7 @@ class WindowTransitionCoordinator extends WindowListener {
     for (var sub in subtasks) {
       sub.cancel();
     }
-    
+
     // Final settle frame
     await Future<void>.delayed(const Duration(milliseconds: 16));
   }

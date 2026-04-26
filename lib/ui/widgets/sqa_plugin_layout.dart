@@ -8,9 +8,10 @@ import 'sqa_fade_wrapper.dart';
 /// It integrates [SqaPluginHeader] and optionally [SqaTabBar] with consistent
 /// padding and spacing.
 class SqaPluginLayout extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final String description;
+  final Widget? titleWidget;
   final Color? color;
   final Widget? trailing;
   final List<Tab>? tabs;
@@ -21,9 +22,10 @@ class SqaPluginLayout extends StatelessWidget {
 
   const SqaPluginLayout({
     super.key,
-    required this.icon,
-    required this.title,
-    required this.description,
+    this.icon,
+    this.title = '',
+    this.description = '',
+    this.titleWidget,
     this.color,
     this.trailing,
     this.tabs,
@@ -41,23 +43,29 @@ class SqaPluginLayout extends StatelessWidget {
       content = SqaFadeWrapper(child: child);
     }
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          child: SqaPluginHeader(
-            icon: icon,
-            title: title,
-            description: description,
-            color: color,
-            trailing: trailing,
-            onBack: onBack,
-          ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: SqaPluginHeader(
+                icon: icon,
+                title: title,
+                description: description,
+                titleWidget: titleWidget,
+                color: color,
+                trailing: trailing,
+                onBack: onBack,
+              ),
+            ),
+            if (tabs != null && tabs!.isNotEmpty)
+              SqaTabBar(tabs: tabs!, controller: tabController),
+            Expanded(child: content),
+          ],
         ),
-        if (tabs != null && tabs!.isNotEmpty)
-          SqaTabBar(tabs: tabs!, controller: tabController),
-        Expanded(child: content),
-      ],
+      ),
     );
   }
 }

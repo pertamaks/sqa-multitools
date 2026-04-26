@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
+import 'sqa_hover_icon_button.dart';
 import 'sqa_styles.dart';
 
 class SqaPluginHeader extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final String description;
+  final Widget? titleWidget;
   final Color? color;
   final Widget? trailing;
   final VoidCallback? onBack;
@@ -14,9 +16,10 @@ class SqaPluginHeader extends StatelessWidget {
 
   const SqaPluginHeader({
     super.key,
-    required this.icon,
-    required this.title,
-    required this.description,
+    this.icon,
+    this.title = '',
+    this.description = '',
+    this.titleWidget,
     this.color,
     this.trailing,
     this.onBack,
@@ -30,57 +33,57 @@ class SqaPluginHeader extends StatelessWidget {
     final effectiveColor = color ?? colorScheme.primary;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (onBack != null) ...[
-          IconButton(
-            icon: const Icon(Symbols.arrow_back, size: 20),
-            onPressed: onBack,
-            style: IconButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
-              ),
-            ),
+          SqaHoverIconButton(
+            icon: Symbols.arrow_back,
+            onPressed: onBack!,
+            tooltip: 'Back',
+            iconSize: 20,
+            padding: 8,
           ),
           const SizedBox(width: 8),
         ],
-        GestureDetector(
-          onTap: onIconTap,
-          behavior: HitTestBehavior.opaque,
-          child: SqaIconContainer(
-            icon: icon,
-            color: effectiveColor,
-            size: 40,
-            iconSize: 24,
-            isCircular: false,
-            borderRadius: SqaStyles.radiusLarge,
+        if (icon != null) ...[
+          GestureDetector(
+            onTap: onIconTap,
+            behavior: HitTestBehavior.opaque,
+            child: SqaIconContainer(
+              icon: icon!,
+              color: effectiveColor,
+              size: 40,
+              iconSize: 24,
+              isCircular: false,
+              borderRadius: SqaStyles.radiusLarge,
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
+          const SizedBox(width: 16),
+        ],
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: effectiveColor,
-                ),
+          child:
+              titleWidget ??
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: effectiveColor,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                description,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
         ),
         if (trailing != null) ...[const SizedBox(width: 12), trailing!],
       ],

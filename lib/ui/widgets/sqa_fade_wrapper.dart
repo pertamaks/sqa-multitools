@@ -9,6 +9,8 @@ class SqaFadeWrapper extends StatefulWidget {
   final Widget child;
   final Axis axis;
   final double threshold;
+  final double depth;
+  final double pulseDepth;
   final bool showStart;
   final bool showEnd;
 
@@ -17,6 +19,8 @@ class SqaFadeWrapper extends StatefulWidget {
     required this.child,
     this.axis = Axis.vertical,
     this.threshold = 30.0,
+    this.depth = 0.04,
+    this.pulseDepth = 0.01,
     this.showStart = true,
     this.showEnd = true,
   });
@@ -98,9 +102,9 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
               final isVertical = widget.axis == Axis.vertical;
 
               // We adjust the stops based on pulse to give it that "alive" look
-              // Standard edge is ~10%, pulsing adds up to 2% depth.
-              final startStop = 0.08 + (0.02 * pulse);
-              final endStop = 0.92 - (0.02 * pulse);
+              // Standard edge is subtle (default 4%), pulsing adds minimal depth.
+              final startStop = widget.depth + (widget.pulseDepth * pulse);
+              final endStop = (1.0 - widget.depth) - (widget.pulseDepth * pulse);
 
               return LinearGradient(
                 begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,

@@ -100,7 +100,8 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                   onChanged: (v) => notifier.setMicrophone(v),
                 ),
               ),
-              if (ref.watch(ffmpegProvider).isReady && state.microphoneEnabled) ...[
+              if (ref.watch(ffmpegProvider).isReady &&
+                  state.microphoneEnabled) ...[
                 const Divider(height: 1, indent: 56),
                 SqaSettingsTile(
                   icon: Symbols.settings_input_component,
@@ -109,25 +110,24 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                   trailing: SqaDropdown<String?>(
                     value: state.selectedAudioDevice,
                     onChanged: (val) => notifier.setSelectedAudioDevice(val),
-                    items:
-                        state.availableAudioDevices.isEmpty
-                            ? <DropdownMenuItem<String?>>[
-                              const DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text('No devices found'),
-                              ),
-                            ]
-                            : state.availableAudioDevices
-                                .map<DropdownMenuItem<String?>>(
-                                  (e) => DropdownMenuItem<String?>(
-                                    value: e,
-                                    child: Text(
-                                      e,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                    items: state.availableAudioDevices.isEmpty
+                        ? <DropdownMenuItem<String?>>[
+                            const DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text('No devices found'),
+                            ),
+                          ]
+                        : state.availableAudioDevices
+                              .map<DropdownMenuItem<String?>>(
+                                (e) => DropdownMenuItem<String?>(
+                                  value: e,
+                                  child: Text(
+                                    e,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                )
-                                .toList(),
+                                ),
+                              )
+                              .toList(),
                   ),
                 ),
               ],
@@ -170,7 +170,8 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                 subtitle: 'Color for primary click ripples',
                 trailing: SqaDropdown<Color>(
                   value: state.clickFeedbackColor,
-                  onChanged: (Color? val) => notifier.setClickFeedbackColor(val!),
+                  onChanged: (Color? val) =>
+                      notifier.setClickFeedbackColor(val!),
                   items: _buildColorItems(),
                 ),
               ),
@@ -216,12 +217,9 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                 trailing: SqaDropdown<String>(
                   value: state.resolution,
                   onChanged: (String? val) => notifier.setResolution(val!),
-                  items:
-                      ['1080p', '720p', '480p', '360p']
-                          .map(
-                            (e) => DropdownMenuItem(value: e, child: Text(e)),
-                          )
-                          .toList(),
+                  items: ['1080p', '720p', '480p', '360p']
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
                 ),
               ),
               const Divider(height: 1, indent: 56),
@@ -232,15 +230,12 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                 trailing: SqaDropdown<int>(
                   value: state.framerate,
                   onChanged: (int? val) => notifier.setFramerate(val!),
-                  items:
-                      [60, 30, 15, 10]
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text('${e}fps'),
-                            ),
-                          )
-                          .toList(),
+                  items: [60, 30, 15, 10]
+                      .map(
+                        (e) =>
+                            DropdownMenuItem(value: e, child: Text('${e}fps')),
+                      )
+                      .toList(),
                 ),
               ),
               const Divider(height: 1, indent: 56),
@@ -251,15 +246,11 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                 trailing: SqaDropdown<int>(
                   value: state.delaySeconds,
                   onChanged: (int? val) => notifier.setDelay(val!),
-                  items:
-                      [0, 2, 5, 10]
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text('${e}s'),
-                            ),
-                          )
-                          .toList(),
+                  items: [0, 2, 5, 10]
+                      .map(
+                        (e) => DropdownMenuItem(value: e, child: Text('${e}s')),
+                      )
+                      .toList(),
                 ),
               ),
               const Divider(height: 1, indent: 56),
@@ -270,12 +261,9 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                 trailing: SqaDropdown<String>(
                   value: state.format,
                   onChanged: (String? val) => notifier.setFormat(val!),
-                  items:
-                      ['MP4', 'MKV']
-                          .map(
-                            (e) => DropdownMenuItem(value: e, child: Text(e)),
-                          )
-                          .toList(),
+                  items: ['MP4', 'MKV']
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
                 ),
               ),
             ],
@@ -340,13 +328,9 @@ class _ScreenRecorderSettings extends ConsumerWidget {
             label: 'Start / Stop Recording',
             value: ref.watch(hotkeySettingsProvider).recordToggle,
             onSave: (info) {
-              final error =
-                  ref
-                      .read(hotkeySettingsProvider.notifier)
-                      .updateHotkey(
-                        PreferencesService.keyHotkeyRecordToggle,
-                        info,
-                      );
+              final error = ref
+                  .read(hotkeySettingsProvider.notifier)
+                  .updateHotkey(PreferencesService.keyHotkeyRecordToggle, info);
               if (error != null) {
                 SqaToast.show(context, error, type: SqaToastType.error);
               } else {
@@ -383,13 +367,13 @@ class _ScreenRecorderSettings extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: e.$1,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Flexible(
-                  child: Text(e.$2, overflow: TextOverflow.ellipsis),
-                ),
+                Flexible(child: Text(e.$2, overflow: TextOverflow.ellipsis)),
               ],
             ),
           ),
@@ -489,7 +473,8 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
-                value: ffmpegStatus.downloadProgress != null &&
+                value:
+                    ffmpegStatus.downloadProgress != null &&
                         ffmpegStatus.downloadProgress! >= 0
                     ? ffmpegStatus.downloadProgress
                     : null,
@@ -534,7 +519,8 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
                               children: [
                                 _ConfigSnippet(
                                   icon: switch (state.captureMode) {
-                                    CaptureMode.fullScreen => Symbols.fullscreen,
+                                    CaptureMode.fullScreen =>
+                                      Symbols.fullscreen,
                                     CaptureMode.area => Symbols.crop_free,
                                     CaptureMode.window => Symbols.window,
                                   },
@@ -546,14 +532,12 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
                                 ),
                                 const SizedBox(height: 8),
                                 _ConfigSnippet(
-                                  icon:
-                                      state.microphoneEnabled
-                                          ? Symbols.mic
-                                          : Symbols.mic_off,
-                                  label:
-                                      state.microphoneEnabled
-                                          ? (state.selectedAudioDevice ?? 'Mic On')
-                                          : 'No Audio',
+                                  icon: state.microphoneEnabled
+                                      ? Symbols.mic
+                                      : Symbols.mic_off,
+                                  label: state.microphoneEnabled
+                                      ? (state.selectedAudioDevice ?? 'Mic On')
+                                      : 'No Audio',
                                 ),
                                 const SizedBox(height: 8),
                                 _ConfigSnippet(
@@ -578,7 +562,9 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
                           onTap: () {
                             ref
                                 .read(navigationServiceProvider)
-                                .jumpToPluginSettings(ScreenRecorderPlugin().id);
+                                .jumpToPluginSettings(
+                                  ScreenRecorderPlugin().id,
+                                );
                           },
                         ),
                       ),
@@ -688,10 +674,8 @@ class _ScreenRecorderViewState extends ConsumerState<_ScreenRecorderView> {
                                 notifier.deleteRecording(info);
                               }
                             },
-                            onOpen: () => Process.start(
-                              'explorer.exe',
-                              [info.file.path],
-                            ),
+                            onOpen: () =>
+                                Process.start('explorer.exe', [info.file.path]),
                           ),
                           if (!isLast) const Divider(height: 1, indent: 56),
                         ],

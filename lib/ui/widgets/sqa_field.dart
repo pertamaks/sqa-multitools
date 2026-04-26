@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
 
@@ -30,6 +31,9 @@ class SqaField extends StatefulWidget {
     this.showLabel = true,
     this.undoController,
     this.onTapOutside,
+    this.fontSize = 13.0,
+    this.lineHeight = 1.5,
+    this.gutterFontSize,
   });
 
   final String label;
@@ -55,6 +59,9 @@ class SqaField extends StatefulWidget {
   final bool showLineNumbers;
   final bool isTransparent;
   final bool showLabel;
+  final double fontSize;
+  final double lineHeight;
+  final double? gutterFontSize;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -64,7 +71,7 @@ class _SqaFieldState extends State<SqaField> {
   late TextEditingController _internalController;
   bool _isExpanded = false;
   final GlobalKey _containerKey = GlobalKey();
-  final ValueNotifier<double> _stickyTopNotifier = ValueNotifier<double>(4.0);
+  final ValueNotifier<double> _stickyTopNotifier = ValueNotifier<double>(0.0);
   late ScrollController _verticalScrollController;
   late ScrollController _gutterScrollController;
   late ScrollController _internalHorizontalScrollController;
@@ -96,8 +103,7 @@ class _SqaFieldState extends State<SqaField> {
       final fieldTop = fieldOffsetInViewport.dy;
       final fieldHeight = containerBox.size.height;
       const buttonHeight = 32.0;
-      const padding = 4.0;
-
+      const padding = 0.0;
       double nextStickyTop = padding;
 
       if (fieldTop < 0 && _isExpanded) {
@@ -115,8 +121,8 @@ class _SqaFieldState extends State<SqaField> {
       }
     } catch (_) {
       // Scrollable not found or other coordinate error, fallback to top
-      if (_stickyTopNotifier.value != 4.0) {
-        _stickyTopNotifier.value = 4.0;
+      if (_stickyTopNotifier.value != 0.0) {
+        _stickyTopNotifier.value = 0.0;
       }
     }
   }
@@ -198,8 +204,8 @@ class _SqaFieldState extends State<SqaField> {
     final colorScheme = theme.colorScheme;
 
     // Line height logic for height snapping
-    const fontSize = 13.0;
-    const fontHeight = 1.3;
+    final fontSize = widget.fontSize;
+    final fontHeight = widget.lineHeight;
     const vPadding = 12.0 * 2; // Total vertical padding of TextField
     final singleLineHeight = fontSize * fontHeight;
 
@@ -320,14 +326,22 @@ class _SqaFieldState extends State<SqaField> {
                                   ? widget.collapsedMaxLines
                                   : (widget.isMultiline ? widget.maxLines : 1),
                               minLines: widget.minLines ?? 1,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontFamily: widget.isMonospace
-                                    ? 'monospace'
-                                    : null,
+                              style: (widget.isMonospace
+                                      ? GoogleFonts.jetBrainsMono()
+                                      : theme.textTheme.bodyMedium)
+                                  ?.copyWith(
                                 fontSize: fontSize,
                                 height: fontHeight,
+                                color: colorScheme.onSurface,
+                              ),
+                              strutStyle: StrutStyle(
+                                fontSize: fontSize,
+                                height: fontHeight,
+                                forceStrutHeight: true,
+                                leadingDistribution: TextLeadingDistribution.even,
                               ),
                               decoration: InputDecoration(
+                                isDense: true,
                                 hintText: widget.hintText,
                                 hintStyle: TextStyle(
                                   color: colorScheme.onSurface.withValues(
@@ -345,6 +359,7 @@ class _SqaFieldState extends State<SqaField> {
                               scrollController: _verticalScrollController,
                               undoController: widget.undoController,
                               onTapOutside: widget.onTapOutside,
+                              textAlignVertical: TextAlignVertical.top,
                             );
 
                             final scrollConfiguration = ScrollConfiguration(
@@ -434,41 +449,38 @@ class _SqaFieldState extends State<SqaField> {
       listenable: _internalController,
       builder: (context, _) {
         final lineCount = '\n'.allMatches(_internalController.text).length + 1;
-        const fontSize = 13.0;
-        const fontHeight = 1.3;
-        final singleLineHeight = fontSize * fontHeight;
+        final fontSize = widget.fontSize;
+        final fontHeight = widget.lineHeight;
+        final gFontSize = widget.gutterFontSize ?? (fontSize * 0.9);
+        final numbers = List.generate(lineCount, (i) => '${i + 1}').join('\n');
 
         return Container(
           width: 40,
-          padding: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.only(top: 6.5),
           child: ScrollConfiguration(
             behavior: const _NoScrollbarBehavior(),
             child: SingleChildScrollView(
               controller: _gutterScrollController,
               physics: const NeverScrollableScrollPhysics(), // Sync only
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(lineCount, (index) {
-                  return SizedBox(
-                    height: singleLineHeight,
-                    width: double.infinity,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Text(
-                        '${index + 1}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSize,
-                          height: fontHeight,
-                          fontFamily: 'monospace',
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.3,
-                          ),
-                        ),
-                        textAlign: TextAlign.right,
-                      ),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Text(
+                  numbers,
+                  style: GoogleFonts.jetBrainsMono().copyWith(
+                    fontSize: gFontSize,
+                    height: (fontSize * fontHeight) / gFontSize,
+                    color: theme.colorScheme.onSurface.withValues(
+                      alpha: 0.3,
                     ),
-                  );
-                }),
+                  ),
+                  strutStyle: StrutStyle(
+                    fontSize: fontSize,
+                    height: fontHeight,
+                    forceStrutHeight: true,
+                    leadingDistribution: TextLeadingDistribution.even,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
               ),
             ),
           ),

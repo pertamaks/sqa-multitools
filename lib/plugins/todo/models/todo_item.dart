@@ -41,6 +41,19 @@ extension TodoTimeBlockX on TodoTimeBlock {
     }
   }
 
+  bool isPast(DateTime now) {
+    switch (this) {
+      case TodoTimeBlock.current: return false;
+      case TodoTimeBlock.morning: return now.hour >= 9;
+      case TodoTimeBlock.midMorning: return now.hour >= 11;
+      case TodoTimeBlock.noon: return now.hour >= 13;
+      case TodoTimeBlock.afternoon: return now.hour >= 15;
+      case TodoTimeBlock.lateAfternoon: return now.hour >= 17;
+      case TodoTimeBlock.evening: return now.hour >= 20;
+      case TodoTimeBlock.night: return false;
+    }
+  }
+
   // Keep for legacy or default usage
   String get displayName => getDisplayName(true);
 }

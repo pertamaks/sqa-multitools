@@ -40,20 +40,25 @@ class TodoListItem extends ConsumerWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final createdAtDate = DateTime(item.createdAt.year, item.createdAt.month, item.createdAt.day);
-    final isOverdue = !isTerminal && !isDeferred && createdAtDate.isBefore(today);
+    final isToday = createdAtDate.isAtSameMomentAs(today);
+    final isOverdueByDay = !isTerminal && !isDeferred && createdAtDate.isBefore(today);
+    final isOverdueByTime = !isTerminal && !isDeferred && isToday && item.timeBlock.isPast(now);
 
-    return SqaCard(
-      padding: EdgeInsets.zero, // Padding will be handled by internal InkWell
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: _buildActionIcons(context, ref),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: InkWell(
-              onTap: isOverdue ? null : onTap,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SqaCard(
+          padding: EdgeInsets.zero, // Padding will be handled by internal InkWell
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: _buildActionIcons(context, ref),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: InkWell(
+                  onTap: isOverdueByDay ? null : onTap,
               borderRadius: BorderRadius.zero, // Keep it within the column
               overlayColor: SqaStyles.buttonOverlay(context),
               child: Padding(
@@ -70,20 +75,20 @@ class TodoListItem extends ConsumerWidget {
                       ),
                     ),
                     if (item.category.isNotEmpty || 
-                        (item.timeBlock != TodoTimeBlock.current && !isOverdue && !isDeferred && !isDelegated) ||
-                        isOverdue ||
+                        (item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated) ||
+                        isOverdueByDay ||
                         isDeferred ||
                         isDelegated)
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Row(
                           children: [
-                            if (isOverdue)
+                            if (isOverdueByDay)
                               Padding(
                                 padding: const EdgeInsets.only(right: 8.0),
                                 child: _buildBadge(
                                   context,
-                                  _getOverdueText(today, createdAtDate),
+                                  'Overdue',
                                   colorScheme.error.withValues(alpha: 0.1),
                                   colorScheme.error,
                                 ),
@@ -115,9 +120,9 @@ class TodoListItem extends ConsumerWidget {
                                 colorScheme.primaryContainer,
                                 colorScheme.onPrimaryContainer,
                               ),
-                            if (item.category.isNotEmpty && item.timeBlock != TodoTimeBlock.current && !isOverdue && !isDeferred && !isDelegated)
+                            if (item.category.isNotEmpty && item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
                               const SizedBox(width: 8),
-                            if (item.timeBlock != TodoTimeBlock.current && !isOverdue && !isDeferred && !isDelegated)
+                            if (item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
                               _buildBadge(
                                 context,
                                 item.timeBlock.getDisplayName(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true),
@@ -152,7 +157,7 @@ class TodoListItem extends ConsumerWidget {
                   ),
                 ),
                 menuChildren: [
-                  if (!isOverdue)
+                  if (!isOverdueByDay)
                     _buildMenuItem(
                       context,
                       icon: Symbols.edit,
@@ -161,9 +166,9 @@ class TodoListItem extends ConsumerWidget {
                     ),
                   _buildMenuItem(
                     context,
-                    icon: isOverdue ? Symbols.bolt : Symbols.schedule,
-                    label: isOverdue ? 'Do Now' : 'Defer',
-                    onPressed: isOverdue 
+                    icon: isOverdueByDay ? Symbols.bolt : Symbols.schedule,
+                    label: isOverdueByDay ? 'Do Now' : 'Defer',
+                    onPressed: isOverdueByDay 
                       ? () {
                           ref.read(todoProvider.notifier).updateTodo(
                             item.copyWith(
@@ -229,7 +234,15 @@ class TodoListItem extends ConsumerWidget {
               ),
             ),
           ],
+        ),
       ),
+        if (isOverdueByTime)
+          Positioned(
+            top: -10,
+            left: 16,
+            child: _buildQuestionLabel(context),
+          ),
+      ],
     );
   }
 
@@ -266,13 +279,6 @@ class TodoListItem extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  String _getOverdueText(DateTime today, DateTime createdAt) {
-    final days = today.difference(createdAt).inDays;
-    if (days == 1) return 'Yesterday';
-    if (days < 7) return '$days Days Ago';
-    return DateFormat('MMM d').format(createdAt);
   }
 
   Widget _buildActionIcons(BuildContext context, WidgetRef ref) {
@@ -331,13 +337,42 @@ class TodoListItem extends ConsumerWidget {
     );
   }
 
-  void _showNotesDialog(BuildContext context, WidgetRef ref) async {
+  Widget _buildQuestionLabel(BuildContext context) {
     final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.5),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        "Time's up — how did it go?",
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
+  void _showNotesDialog(BuildContext context, WidgetRef ref) async {
     final TextEditingController controller = TextEditingController(text: item.notes);
 
     final bool? result = await showDialog<bool>(
       context: context,
-      builder: (context) => SqaModal.custom(
+      builder: (context) => SqaModal<void>.custom(
         title: 'Focus Notes',
         icon: Symbols.list_alt_check,
         customActions: [
@@ -435,13 +470,10 @@ class TodoListItem extends ConsumerWidget {
 
   void _showDeferDialog(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final createdAtDate = DateTime(item.createdAt.year, item.createdAt.month, item.createdAt.day);
-    final isOverdue = item.status != TodoStatus.done && item.status != TodoStatus.deferred && createdAtDate.isBefore(today);
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (context) => SqaModal.custom(
+      builder: (context) => SqaModal<void>.custom(
         title: 'Defer Focus',
         icon: Symbols.schedule,
         child: Column(

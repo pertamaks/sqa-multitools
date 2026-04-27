@@ -11,6 +11,7 @@ import '../../plugins/settings/settings_plugin.dart';
 import '../../plugins/security_payloads/security_payloads_plugin.dart';
 import '../../plugins/beautifier/beautifier_plugin.dart';
 import '../../plugins/text_editor/text_editor_plugin.dart';
+import '../../plugins/todo/todo_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
 
@@ -25,6 +26,7 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     SecurityPayloadsPlugin(),
     BeautifierPlugin(),
     TextEditorPlugin(),
+    TodoPlugin(),
     if (ref.watch(supporterTierProvider) >= 2) QaOraclePlugin(),
   ];
 });
@@ -183,6 +185,17 @@ class NavigationService {
 
     final settingsPlugin = _ref.read(settingsPluginProvider);
     _ref.read(activePluginProvider.notifier).setPlugin(settingsPlugin);
+  }
+
+  /// Jumps to the Todo plugin
+  void jumpToTodo(String sourcePluginId) {
+    _ref.read(navigationHistoryProvider.notifier).setHistory(sourcePluginId);
+    
+    final allPlugins = _ref.read(availablePluginsProvider);
+    final todoPlugin = allPlugins.where((p) => p.id == 'com.sqa.plugin.todo').firstOrNull;
+    if (todoPlugin != null) {
+      _ref.read(activePluginProvider.notifier).setPlugin(todoPlugin);
+    }
   }
 
   /// Returns to the previous plugin if history exists, otherwise closes the active plugin

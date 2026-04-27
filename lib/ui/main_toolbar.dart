@@ -15,6 +15,9 @@ import 'widgets/sqa_fade_wrapper.dart';
 import 'widgets/sqa_bug_squasher.dart';
 import 'widgets/sqa_scroll_behavior.dart';
 import 'widgets/sqa_inline_tooltip.dart';
+import '../plugins/todo/providers/todo_notification_provider.dart';
+import '../plugins/todo/providers/todo_provider.dart';
+import '../plugins/todo/models/todo_settings.dart';
 
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
@@ -33,6 +36,22 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   void initState() {
     windowManager.addListener(this);
     _scrollController = ScrollController();
+    
+    // Auto-open Todo view logic
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listenManual(todoNotificationProvider, (previous, next) async {
+        if (next == true) {
+          final settings = await ref.read(todoSettingsProvider.future);
+          if (settings.autoOpenOnReminder) {
+            final current = ref.read(activePluginProvider);
+            if (current?.id != 'com.sqa.plugin.todo') {
+              ref.read(navigationServiceProvider).jumpToTodo(current?.id ?? '');
+            }
+          }
+        }
+      });
+    });
+    
     super.initState();
   }
 
@@ -116,6 +135,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     SqaPlugin? activePlugin,
     SqaPlugin settingsPlugin,
     int supporterTier,
+    bool hasTodoReminder,
   ) {
     return GestureDetector(
       onPanStart: (_) => windowManager.startDragging(),
@@ -182,9 +202,10 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                                 plugin.name,
                                               ),
                                               isActive: isActive,
-                                              badge: _buildBadgeIcon(plugin),
+                                              badge: _buildBadgeIcon(plugin, hasTodoReminder),
                                               badgeColor: _getBadgeColor(
                                                 plugin,
+                                                hasTodoReminder,
                                               ),
                                               onPressed: () =>
                                                   _togglePlugin(plugin),
@@ -249,7 +270,15 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
 
   // --- Helper Methods ---
 
-  Widget? _buildBadgeIcon(SqaPlugin plugin) {
+  Widget? _buildBadgeIcon(SqaPlugin plugin, bool hasTodoReminder) {
+    if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) {
+      return const Icon(
+        Symbols.notifications_active,
+        size: 10,
+        color: Colors.white,
+        weight: 700,
+      );
+    }
     if (plugin.badge == 'BETA') {
       return const Icon(
         Symbols.labs,
@@ -280,7 +309,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     return null;
   }
 
-  Color? _getBadgeColor(SqaPlugin plugin) {
+  Color? _getBadgeColor(SqaPlugin plugin, bool hasTodoReminder) {
+    if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) return Colors.red;
     if (plugin.badge == 'BETA') return Colors.blue;
     if (plugin.badge == 'ALPHA') return Colors.amber;
     return null;
@@ -302,6 +332,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final enabledPlugins = ref.watch(enabledPluginsProvider);
     final settingsPlugin = ref.watch(settingsPluginProvider);
     final supporterTier = ref.watch(supporterTierProvider);
+    final hasTodoReminder = ref.watch(todoNotificationProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final isScreenshotVisible = ref.watch(screenshotProvider).isOverlayVisible;
     final isRecorderVisible = ref
@@ -333,6 +364,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 activePlugin,
                 settingsPlugin,
                 supporterTier,
+                hasTodoReminder,
               ),
             ),
           if (!isOverlayActive &&

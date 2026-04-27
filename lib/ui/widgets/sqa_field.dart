@@ -248,7 +248,7 @@ class _SqaFieldState extends State<SqaField> {
                     const SizedBox(width: 6),
                   ],
                   Text(
-                    widget.label.toUpperCase(),
+                    widget.label,
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
@@ -339,7 +339,7 @@ class _SqaFieldState extends State<SqaField> {
                     right: widget.showCopyButton ? 44 : 0,
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: widget.isMultiline
                         ? CrossAxisAlignment.start
                         : CrossAxisAlignment.center,
@@ -376,7 +376,6 @@ class _SqaFieldState extends State<SqaField> {
                               strutStyle: StrutStyle(
                                 fontSize: fontSize,
                                 height: fontHeight,
-                                forceStrutHeight: true,
                                 leadingDistribution: TextLeadingDistribution.even,
                               ),
                               decoration: InputDecoration(
@@ -388,11 +387,9 @@ class _SqaFieldState extends State<SqaField> {
                                   ),
                                 ),
                                 border: InputBorder.none,
-                                contentPadding: EdgeInsets.fromLTRB(
-                                  widget.showLineNumbers ? 8 : 16,
-                                  12,
-                                  16, // Standard horizontal padding
-                                  12,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
                                 ),
                               ),
                               scrollController: _verticalScrollController,
@@ -566,8 +563,8 @@ class _SqaFieldState extends State<SqaField> {
             const SizedBox(width: 8),
             Text(
               _isExpanded
-                  ? 'SHOW LESS'
-                  : '+ $hiddenLines MORE LINES... (SHOW ALL)',
+                  ? 'Show Less'
+                  : '+ $hiddenLines More Lines... (Show All)',
               style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.primary,

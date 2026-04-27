@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'sqa_card.dart';
 import 'sqa_styles.dart';
+import 'sqa_fade_wrapper.dart';
 
 /// Data model for a tile-style picker item (with optional thumbnail image).
 class SqaPickerTile {
@@ -23,7 +24,7 @@ class SqaPickerItem {
 }
 
 /// A centralized modal system supporting selection pickers and confirmation prompts.
-class SqaModal<T> extends StatelessWidget {
+class SqaModal<T> extends StatefulWidget {
   final String title;
   final String? message;
   final List<T> items;
@@ -38,7 +39,9 @@ class SqaModal<T> extends StatelessWidget {
   final IconData emptyIcon;
   final String emptyLabel;
 
-  // Confirm mode
+  // Custom mode
+  final Widget? child;
+  final List<Widget>? customActions;
   final String? confirmLabel;
   final String? cancelLabel;
   final Color? confirmColor;
@@ -61,7 +64,9 @@ class SqaModal<T> extends StatelessWidget {
        confirmLabel = null,
        cancelLabel = null,
        confirmColor = null,
-       icon = null;
+       icon = null,
+       child = null,
+       customActions = null;
 
   /// Creates a **list-style** picker with simple icon + label rows.
   const SqaModal.list({
@@ -80,7 +85,9 @@ class SqaModal<T> extends StatelessWidget {
        confirmLabel = null,
        cancelLabel = null,
        confirmColor = null,
-       icon = null;
+       icon = null,
+       child = null,
+       customActions = null;
 
   /// Creates a **confirmation** modal with a title and message.
   const SqaModal.confirm({
@@ -99,7 +106,30 @@ class SqaModal<T> extends StatelessWidget {
        isLoading = false,
        emptyIcon = Symbols.search_off,
        emptyLabel = '',
-       onRefresh = null;
+       onRefresh = null,
+       child = null,
+       customActions = null;
+
+  /// Creates a **custom** modal with a title and arbitrary child content.
+  const SqaModal.custom({
+    super.key,
+    required this.title,
+    required this.child,
+    this.customActions,
+    this.confirmLabel,
+    this.cancelLabel,
+    this.confirmColor,
+    this.icon,
+  }) : isTileMode = false,
+       isConfirmMode = false,
+       items = const [],
+       tileBuilder = null,
+       itemBuilder = null,
+       isLoading = false,
+       emptyIcon = Symbols.search_off,
+       emptyLabel = '',
+       onRefresh = null,
+       message = null;
 
   /// Static helper to show a confirmation dialog.
   static Future<bool?> showConfirm(
@@ -125,24 +155,38 @@ class SqaModal<T> extends StatelessWidget {
   }
 
   @override
+  State<SqaModal<T>> createState() => _SqaModalState<T>();
+}
+
+class _SqaModalState<T> extends State<SqaModal<T>> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+      titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       title: Row(
         children: [
-          if (icon != null) ...[
+          if (widget.icon != null) ...[
             Icon(
-              icon,
+              widget.icon,
               size: 20,
-              color: confirmColor ?? theme.colorScheme.primary,
+              color: widget.confirmColor ?? theme.colorScheme.primary,
             ),
             const SizedBox(width: 8),
           ],
           Expanded(
             child: Text(
-              title,
+              widget.title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize:
@@ -150,50 +194,93 @@ class SqaModal<T> extends StatelessWidget {
               ),
             ),
           ),
-          if (onRefresh != null)
+          if (widget.onRefresh != null)
             IconButton(
               icon: const Icon(Icons.refresh, size: 16),
-              onPressed: onRefresh,
+              onPressed: widget.onRefresh,
               tooltip: 'Refresh',
             ),
         ],
       ),
-      content: isConfirmMode
-          ? (message != null
-                ? Text(
-                    message!,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
+      contentPadding: EdgeInsets.zero,
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: widget.isTileMode ? 320 : 500,
+          maxWidth: widget.isTileMode ? 320 : 500,
+          maxHeight: 500, // Reduced to ensure it triggers scrolling on more screens
+        ),
+        child: widget.isLoading
+            ? const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : (widget.isConfirmMode
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: widget.message != null
+                        ? Text(
+                            widget.message!,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              height: 1.5,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   )
-                : null)
-          : SizedBox(
-              width: isTileMode ? 320 : 500,
-              height: isTileMode ? null : 400,
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : items.isEmpty
-                  ? _buildEmpty(theme)
-                  : isTileMode
-                  ? _buildTileContent(context, theme)
-                  : _buildListContent(context, theme),
-            ),
-      actions: [
-        if (isConfirmMode) ...[
+                : ScrollConfiguration(
+                    behavior: const _NoScrollbarBehavior(),
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      thickness: 6.0,
+                      radius: const Radius.circular(3),
+                      child: SqaFadeWrapper(
+                        depth: 0.08, // Increased for better visibility in modal
+                        threshold: 20.0, // Trigger sooner
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 16), // Align scrollbar with buttons
+                          child: (widget.child != null)
+                              ? SingleChildScrollView(
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.only(left: 24, right: 12),
+                                  child: widget.child!,
+                                )
+                              : (widget.items.isEmpty
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(left: 24),
+                                      child: _buildEmpty(theme),
+                                    )
+                                  : (widget.isTileMode
+                                      ? _buildTileContent(context, theme)
+                                      : _buildListContent(context, theme))),
+                        ),
+                      ),
+                    ),
+                  )),
+      ),
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      actionsAlignment: MainAxisAlignment.end,
+      actions: widget.customActions ?? [
+        if (widget.isConfirmMode || widget.child != null) ...[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(cancelLabel ?? 'Cancel'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: Text(widget.cancelLabel ?? 'Cancel'),
           ),
+          const SizedBox(width: 4), // Tighter internal spacing
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: confirmColor != null
+            style: (widget.confirmColor != null
                 ? FilledButton.styleFrom(
-                    backgroundColor: confirmColor,
+                    backgroundColor: widget.confirmColor,
                     foregroundColor: Colors.white,
                   )
-                : null,
-            child: Text(confirmLabel ?? 'Confirm'),
+                : FilledButton.styleFrom()).copyWith(
+              padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+            ),
+            child: Text(widget.confirmLabel ?? 'Confirm'),
           ),
         ] else
           TextButton(
@@ -209,10 +296,10 @@ class SqaModal<T> extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(emptyIcon, size: 48, color: Colors.grey),
+          Icon(widget.emptyIcon, size: 48, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
-            emptyLabel,
+            widget.emptyLabel,
             style: theme.textTheme.titleSmall?.copyWith(color: Colors.grey),
           ),
         ],
@@ -221,128 +308,152 @@ class SqaModal<T> extends StatelessWidget {
   }
 
   Widget _buildTileContent(BuildContext context, ThemeData theme) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: items.asMap().entries.map((entry) {
-          final index = entry.key;
-          final item = entry.value;
-          final tile = tileBuilder!(item, index);
+    return Scrollbar(
+      controller: _scrollController,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.only(right: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: widget.items.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final tile = widget.tileBuilder!(item, index);
 
-          return SqaCard(
-            margin: const EdgeInsets.only(bottom: 12),
-            onTap: () => Navigator.of(context).pop(item),
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Thumbnail
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(8),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 32 / 9,
-                    child: tile.imagePath != null
-                        ? Image.file(
-                            File(tile.imagePath!),
-                            fit: BoxFit.cover,
-                            key: ValueKey(
-                              tile.imagePath! +
-                                  DateTime.now().millisecond.toString(),
+            return SqaCard(
+              margin: const EdgeInsets.only(bottom: 12),
+              onTap: () => Navigator.of(context).pop(item),
+              padding: EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Thumbnail
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(8),
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 32 / 9,
+                      child: tile.imagePath != null
+                          ? Image.file(
+                              File(tile.imagePath!),
+                              fit: BoxFit.cover,
+                              key: ValueKey(
+                                tile.imagePath! +
+                                    DateTime.now().millisecond.toString(),
+                              ),
+                            )
+                          : Container(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              child: Center(
+                                child: Icon(
+                                  Symbols.desktop_windows,
+                                  size: 32,
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.3),
+                                ),
+                              ),
                             ),
-                          )
-                        : Container(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: Center(
-                              child: Icon(
-                                Symbols.desktop_windows,
-                                size: 32,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.3),
+                    ),
+                  ),
+                  // Label + Badge
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          tile.label,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (tile.badge != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              tile.badge!,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11, // Standard Label size per GEMINI.md
                               ),
                             ),
                           ),
+                      ],
+                    ),
                   ),
-                ),
-                // Label + Badge
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        tile.label,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (tile.badge != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer
-                                .withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            tile.badge!,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11, // Standard Label size per GEMINI.md
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
 
   Widget _buildListContent(BuildContext context, ThemeData theme) {
-    return ListView.separated(
-      itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        final listItem = itemBuilder!(item, index);
+    return Scrollbar(
+      controller: _scrollController,
+      thumbVisibility: true,
+      child: ListView.separated(
+        controller: _scrollController,
+        itemCount: widget.items.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final item = widget.items[index];
+          final listItem = widget.itemBuilder!(item, index);
 
-        return SqaCard(
-          padding: EdgeInsets.zero,
-          child: ListTile(
-            leading: Icon(listItem.icon, size: 20),
-            title: Text(
-              listItem.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          return SqaCard(
+            padding: EdgeInsets.zero,
+            child: ListTile(
+              leading: Icon(listItem.icon, size: 20),
+              title: Text(
+                listItem.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: listItem.subtitle != null
+                  ? Text(
+                      listItem.subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11, // Standard Label size per GEMINI.md
+                      ),
+                    )
+                  : null,
+              onTap: () => Navigator.of(context).pop(item),
             ),
-            subtitle: listItem.subtitle != null
-                ? Text(
-                    listItem.subtitle!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11, // Standard Label size per GEMINI.md
-                    ),
-                  )
-                : null,
-            onTap: () => Navigator.of(context).pop(item),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
+  }
+}
+
+class _NoScrollbarBehavior extends MaterialScrollBehavior {
+  const _NoScrollbarBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
   }
 }

@@ -12,6 +12,11 @@ _TodoState _$TodoStateFromJson(Map<String, dynamic> json) => _TodoState(
           ?.map((e) => TodoItem.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  recurringTodos:
+      (json['recurringTodos'] as List<dynamic>?)
+          ?.map((e) => RecurringTodo.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   currentTab:
       $enumDecodeNullable(_$TodoTabEnumMap, json['currentTab']) ??
       TodoTab.today,
@@ -22,9 +27,14 @@ _TodoState _$TodoStateFromJson(Map<String, dynamic> json) => _TodoState(
 Map<String, dynamic> _$TodoStateToJson(_TodoState instance) =>
     <String, dynamic>{
       'todos': instance.todos,
+      'recurringTodos': instance.recurringTodos,
       'currentTab': _$TodoTabEnumMap[instance.currentTab]!,
       'hasActiveReminder': instance.hasActiveReminder,
       'previousPluginId': instance.previousPluginId,
     };
 
-const _$TodoTabEnumMap = {TodoTab.today: 'today', TodoTab.history: 'history'};
+const _$TodoTabEnumMap = {
+  TodoTab.today: 'today',
+  TodoTab.recurring: 'recurring',
+  TodoTab.history: 'history',
+};

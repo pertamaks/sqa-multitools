@@ -8,10 +8,12 @@ import '../../../../ui/widgets/sqa_smart_text.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_button.dart';
 import '../../../../ui/widgets/sqa_field.dart';
+import '../../../../ui/widgets/sqa_toast.dart';
+import '../../../../ui/widgets/sqa_popup_menu.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 
-class TodoListItem extends ConsumerWidget {
+class TodoListItem extends ConsumerStatefulWidget {
   final TodoItem item;
   final int? displayIndex;
   final VoidCallback? onToggle;
@@ -28,267 +30,266 @@ class TodoListItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TodoListItem> createState() => _TodoListItemState();
+}
+
+class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+    _animation = Tween<double>(begin: 0.2, end: 0.6).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    
+    _checkAnimation();
+  }
+
+  void _checkAnimation() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final createdAtDate = DateTime(widget.item.createdAt.year, widget.item.createdAt.month, widget.item.createdAt.day);
+    final isToday = createdAtDate.isAtSameMomentAs(today);
+    
+    final isDone = widget.item.status == TodoStatus.done;
+    final isDelegated = widget.item.status == TodoStatus.delegated;
+    final isTerminal = isDone || isDelegated;
+    final isDeferred = widget.item.status == TodoStatus.deferred;
+
+    final isCurrent = !isTerminal && !isDeferred && isToday && widget.item.timeBlock.isCurrent(now);
+    
+    if (isCurrent) {
+      if (!_controller.isAnimating) {
+        _controller.repeat(reverse: true);
+      }
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+        _controller.reset();
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(TodoListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _checkAnimation();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isDone = item.status == TodoStatus.done;
-    final isDeferred = item.status == TodoStatus.deferred;
-    final isDelegated = item.status == TodoStatus.delegated;
+    final isDone = widget.item.status == TodoStatus.done;
+    final isDeferred = widget.item.status == TodoStatus.deferred;
+    final isDelegated = widget.item.status == TodoStatus.delegated;
     final isTerminal = isDone || isDelegated;
     
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final createdAtDate = DateTime(item.createdAt.year, item.createdAt.month, item.createdAt.day);
+    final createdAtDate = DateTime(widget.item.createdAt.year, widget.item.createdAt.month, widget.item.createdAt.day);
     final isToday = createdAtDate.isAtSameMomentAs(today);
     final isOverdueByDay = !isTerminal && !isDeferred && createdAtDate.isBefore(today);
-    final isOverdueByTime = !isTerminal && !isDeferred && isToday && item.timeBlock.isPast(now);
+    final duration = widget.item.durationPreset.minutes;
+    final endTime = widget.item.createdAt.add(Duration(minutes: duration));
+    final isOverdueByTime = !isTerminal && !isDeferred && isToday && now.isAfter(endTime);
+    final isCurrent = !isTerminal && !isDeferred && isToday && !isOverdueByTime && widget.item.timeBlock.isCurrent(now);
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        SqaCard(
-          padding: EdgeInsets.zero, // Padding will be handled by internal InkWell
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: _buildActionIcons(context, ref),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: InkWell(
-                  onTap: isOverdueByDay ? null : onTap,
-              borderRadius: BorderRadius.zero, // Keep it within the column
-              overlayColor: SqaStyles.buttonOverlay(context),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SqaSmartText(
-                      text: displayIndex != null ? 'Focus ${displayIndex! + 1}: ${item.title}' : item.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        decoration: isTerminal ? TextDecoration.lineThrough : null,
-                        color: isTerminal ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
-                        fontWeight: displayIndex != null ? FontWeight.bold : null,
-                      ),
-                    ),
-                    if (item.category.isNotEmpty || 
-                        (item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated) ||
-                        isOverdueByDay ||
-                        isDeferred ||
-                        isDelegated)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Row(
+        AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return SqaCard(
+              padding: EdgeInsets.zero,
+              borderSide: isCurrent 
+                ? BorderSide(
+                    color: colorScheme.primary.withValues(alpha: _animation.value),
+                    width: 1.5,
+                  )
+                : null,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: _buildActionIcons(context, ref),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: isOverdueByDay ? null : widget.onTap,
+                      borderRadius: BorderRadius.zero,
+                      overlayColor: SqaStyles.buttonOverlay(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (isOverdueByDay)
+                            SqaSmartText(
+                              text: widget.displayIndex != null ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}' : widget.item.title,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                decoration: isTerminal ? TextDecoration.lineThrough : null,
+                                color: isTerminal ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
+                                fontWeight: widget.displayIndex != null ? FontWeight.bold : null,
+                              ),
+                            ),
+                            if (widget.item.category.isNotEmpty || 
+                                (widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated) ||
+                                isOverdueByDay ||
+                                isDeferred ||
+                                isDelegated)
                               Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: _buildBadge(
-                                  context,
-                                  'Overdue',
-                                  colorScheme.error.withValues(alpha: 0.1),
-                                  colorScheme.error,
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Row(
+                                  children: [
+                                    if (isOverdueByDay)
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: _buildBadge(
+                                          context,
+                                          'Overdue',
+                                          colorScheme.error.withValues(alpha: 0.1),
+                                          colorScheme.error,
+                                        ),
+                                      ),
+                                    if (isDeferred && widget.item.deferredUntil != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: _buildBadge(
+                                          context,
+                                          'Deferred: ${DateFormat('MMM d').format(widget.item.deferredUntil!)}',
+                                          colorScheme.surfaceContainerHighest,
+                                          colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    if (isDelegated)
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: _buildBadge(
+                                          context,
+                                          'Delegated to: ${widget.item.delegatedTo}',
+                                          colorScheme.primaryContainer.withValues(alpha: 0.2),
+                                          colorScheme.primary,
+                                        ),
+                                      ),
+                                    if (widget.item.category.isNotEmpty)
+                                      _buildBadge(
+                                        context,
+                                        widget.item.category,
+                                        colorScheme.primaryContainer,
+                                        colorScheme.onPrimaryContainer,
+                                      ),
+                                    if (widget.item.category.isNotEmpty && widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
+                                      const SizedBox(width: 8),
+                                    if (widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
+                                      _buildBadge(
+                                        context,
+                                        widget.item.timeBlock.getDisplayName(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true),
+                                        colorScheme.secondaryContainer,
+                                        colorScheme.onSecondaryContainer,
+                                      ),
+                                  ],
                                 ),
-                              ),
-                            if (isDeferred && item.deferredUntil != null)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: _buildBadge(
-                                  context,
-                                  'Deferred: ${DateFormat('MMM d').format(item.deferredUntil!)}',
-                                  colorScheme.surfaceContainerHighest,
-                                  colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            if (isDelegated)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: _buildBadge(
-                                  context,
-                                  'Delegated to: ${item.delegatedTo}',
-                                  colorScheme.primaryContainer.withValues(alpha: 0.2),
-                                  colorScheme.primary,
-                                ),
-                              ),
-                            if (item.category.isNotEmpty)
-                              _buildBadge(
-                                context,
-                                item.category,
-                                colorScheme.primaryContainer,
-                                colorScheme.onPrimaryContainer,
-                              ),
-                            if (item.category.isNotEmpty && item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
-                              const SizedBox(width: 8),
-                            if (item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
-                              _buildBadge(
-                                context,
-                                item.timeBlock.getDisplayName(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true),
-                                colorScheme.secondaryContainer,
-                                colorScheme.onSecondaryContainer,
                               ),
                           ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (onDelete != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: MenuAnchor(
-                alignmentOffset: const Offset(-100, 4),
-                style: MenuStyle(
-                  backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
-                  surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-                  padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-                  elevation: WidgetStateProperty.all(8.0),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: SqaStyles.radiusLarge,
-                      side: BorderSide(
-                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  if (widget.onDelete != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: SqaPopupMenu(
+                        alignmentOffset: const Offset(-100, 4),
+                        icon: Icon(
+                          Symbols.more_vert,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        children: [
+                          if (!isOverdueByDay)
+                            SqaPopupMenuItem(
+                              icon: const Icon(Symbols.edit),
+                              label: 'Edit Focus',
+                              onPressed: widget.onTap,
+                            ),
+                          SqaPopupMenuItem(
+                            icon: Icon(isOverdueByDay ? Symbols.bolt : Symbols.schedule),
+                            label: isOverdueByDay ? 'Do Now' : 'Defer',
+                            onPressed: isOverdueByDay 
+                              ? () {
+                                  ref.read(todoProvider.notifier).updateTodo(
+                                    widget.item.copyWith(
+                                      createdAt: DateTime.now(),
+                                      timeBlock: TodoTimeBlock.current,
+                                      priority: TodoPriority.critical,
+                                    ),
+                                  );
+                                }
+                              : () => _showDeferDialog(context, ref),
+                          ),
+                          SqaPopupMenuItem(
+                            icon: const Icon(Symbols.person_add),
+                            label: 'Delegate',
+                            onPressed: () => _showDelegateDialog(context, ref),
+                          ),
+                          SqaPopupMenuItem(
+                            icon: const Icon(Symbols.report_problem),
+                            label: 'Mark as Exception',
+                            onPressed: () {},
+                          ),
+                          SqaPopupMenuItem(
+                            icon: const Icon(Symbols.cancel),
+                            label: 'Cancel Focus',
+                            onPressed: () {},
+                          ),
+                          Divider(
+                            height: 1,
+                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                          ),
+                          SqaPopupMenuItem(
+                            icon: const Icon(Symbols.delete),
+                            label: 'Delete',
+                            isDestructive: true,
+                            onPressed: widget.onDelete,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                menuChildren: [
-                  if (!isOverdueByDay)
-                    _buildMenuItem(
-                      context,
-                      icon: Symbols.edit,
-                      label: 'Edit Focus',
-                      onPressed: onTap,
-                    ),
-                  _buildMenuItem(
-                    context,
-                    icon: isOverdueByDay ? Symbols.bolt : Symbols.schedule,
-                    label: isOverdueByDay ? 'Do Now' : 'Defer',
-                    onPressed: isOverdueByDay 
-                      ? () {
-                          ref.read(todoProvider.notifier).updateTodo(
-                            item.copyWith(
-                              createdAt: DateTime.now(),
-                              timeBlock: TodoTimeBlock.current,
-                              priority: TodoPriority.critical,
-                            ),
-                          );
-                        }
-                      : () => _showDeferDialog(context, ref),
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Symbols.person_add,
-                    label: 'Delegate',
-                    onPressed: () => _showDelegateDialog(context, ref),
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Symbols.report_problem,
-                    label: 'Mark as Exception',
-                    onPressed: () {}, // To be implemented
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Symbols.cancel,
-                    label: 'Cancel Focus',
-                    onPressed: () {}, // To be implemented
-                  ),
-                  Divider(
-                    height: 1,
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Symbols.delete,
-                    label: 'Delete',
-                    isDestructive: true,
-                    onPressed: onDelete,
-                  ),
                 ],
-                builder: (context, controller, child) {
-                  return IconButton(
-                    icon: Icon(
-                      Symbols.more_vert,
-                      size: 20,
-                      color: controller.isOpen ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                    ),
-                    style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-                    ).copyWith(
-                      overlayColor: SqaStyles.buttonOverlay(context),
-                    ),
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
-                    },
-                  );
-                },
               ),
-            ),
-          ],
+            );
+          },
         ),
-      ),
-        if (isOverdueByTime)
-          Positioned(
-            top: -10,
-            left: 16,
-            child: _buildQuestionLabel(context),
-          ),
       ],
-    );
-  }
-
-  Widget _buildMenuItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback? onPressed,
-    bool isDestructive = false,
-  }) {
-    final theme = Theme.of(context);
-    final color = isDestructive ? theme.colorScheme.error : theme.colorScheme.onSurface;
-
-    return MenuItemButton(
-      onPressed: onPressed,
-      style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        minimumSize: const Size(160, 36),
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: color,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildActionIcons(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDone = item.status == TodoStatus.done;
-    final isDelegated = item.status == TodoStatus.delegated;
+    final isDone = widget.item.status == TodoStatus.done;
+    final isDelegated = widget.item.status == TodoStatus.delegated;
     final isTerminal = isDone || isDelegated;
+    final isDeferred = widget.item.status == TodoStatus.deferred;
 
-    final isDeferred = item.status == TodoStatus.deferred;
+    final settings = ref.watch(todoSettingsProvider).value;
+    final helpCount = settings?.longPressHelpCount ?? 0;
+    final showHelp = helpCount < 5;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -306,69 +307,51 @@ class TodoListItem extends ConsumerWidget {
             constraints: const BoxConstraints(),
           ),
         if (!isDeferred && !isDelegated) ...[
-          IconButton(
-            icon: Icon(
-              isTerminal ? Symbols.check_box : Symbols.check_box_outline_blank,
-              size: 22,
-              color: isTerminal ? colorScheme.primary : colorScheme.onSurfaceVariant,
-              fill: isTerminal ? 1 : 0,
-            ),
-            onPressed: onToggle,
-            tooltip: isTerminal ? 'Mark as Todo' : 'Mark as Done',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          if (!isTerminal) ...[
-            const SizedBox(width: 8),
-            IconButton(
+          GestureDetector(
+            onLongPress: isTerminal ? null : () {
+              _incrementHelpCount(ref);
+              _showNotesDialog(context, ref);
+            },
+            child: IconButton(
               icon: Icon(
-                Symbols.list_alt_check,
+                isTerminal ? Symbols.check_box : Symbols.check_box_outline_blank,
                 size: 22,
-                color: item.notes.isNotEmpty ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                color: isTerminal ? colorScheme.primary : (widget.item.notes.isNotEmpty ? colorScheme.primary : colorScheme.onSurfaceVariant),
+                fill: isTerminal ? 1 : 0,
               ),
-              onPressed: () => _showNotesDialog(context, ref),
-              tooltip: 'Add Notes & Done',
+              onPressed: () {
+                _incrementHelpCount(ref);
+                final isDoneNow = !isTerminal;
+                widget.onToggle?.call();
+                if (isDoneNow) {
+                  SqaToast.show(context, 'Focus completed!', type: SqaToastType.success);
+                } else {
+                  SqaToast.show(context, 'Focus restored to Todo list');
+                }
+              },
+              tooltip: isTerminal 
+                ? 'Mark as Todo' 
+                : (showHelp ? 'Mark as Done (Long press to add notes)' : 'Mark as Done'),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
-          ],
+          ),
         ],
       ],
     );
   }
 
-  Widget _buildQuestionLabel(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.5),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Text(
-        "Time's up — how did it go?",
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.primary,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
-        ),
-      ),
-    );
+  void _incrementHelpCount(WidgetRef ref) {
+    final settings = ref.read(todoSettingsProvider).value;
+    if (settings != null && settings.longPressHelpCount < 5) {
+      ref.read(todoSettingsProvider.notifier).updateSettings(
+        settings.copyWith(longPressHelpCount: settings.longPressHelpCount + 1),
+      );
+    }
   }
 
   void _showNotesDialog(BuildContext context, WidgetRef ref) async {
-    final TextEditingController controller = TextEditingController(text: item.notes);
+    final TextEditingController controller = TextEditingController(text: widget.item.notes);
 
     final bool? result = await showDialog<bool>(
       context: context,
@@ -409,17 +392,20 @@ class TodoListItem extends ConsumerWidget {
       final newStatus = TodoStatus.done;
       final notes = SqaField.toSentenceCase(controller.text.trim());
       ref.read(todoProvider.notifier).updateTodo(
-        item.copyWith(
+        widget.item.copyWith(
           status: newStatus,
           notes: notes,
           completedAt: DateTime.now(),
         ),
       );
+      if (context.mounted) {
+        SqaToast.show(context, 'Focus completed with notes!', type: SqaToastType.success);
+      }
     }
   }
 
   void _showDelegateDialog(BuildContext context, WidgetRef ref) async {
-    final TextEditingController controller = TextEditingController(text: item.delegatedTo);
+    final TextEditingController controller = TextEditingController(text: widget.item.delegatedTo);
 
     final bool? result = await showDialog<bool>(
       context: context,
@@ -458,12 +444,15 @@ class TodoListItem extends ConsumerWidget {
       final delegatedTo = controller.text.trim();
       if (delegatedTo.isNotEmpty) {
         ref.read(todoProvider.notifier).updateTodo(
-          item.copyWith(
+          widget.item.copyWith(
             status: TodoStatus.delegated,
             delegatedTo: delegatedTo,
             completedAt: DateTime.now(),
           ),
         );
+        if (context.mounted) {
+          SqaToast.show(context, 'Focus delegated to $delegatedTo');
+        }
       }
     }
   }
@@ -483,11 +472,12 @@ class TodoListItem extends ConsumerWidget {
               context,
               icon: Symbols.update,
               title: 'Same Time Tomorrow',
-              subtitle: 'Tomorrow at ${DateFormat(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true ? 'HH:mm' : 'h:mm a').format(item.createdAt)}',
+              subtitle: 'Tomorrow at ${DateFormat(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true ? 'HH:mm' : 'h:mm a').format(widget.item.createdAt)}',
               onTap: () {
-                final date = DateTime(now.year, now.month, now.day + 1, item.createdAt.hour, item.createdAt.minute);
-                ref.read(todoProvider.notifier).deferTodo(item.id, date);
+                final date = DateTime(now.year, now.month, now.day + 1, widget.item.createdAt.hour, widget.item.createdAt.minute);
+                ref.read(todoProvider.notifier).deferTodo(widget.item.id, date);
                 Navigator.pop(context);
+                SqaToast.show(context, 'Focus deferred to tomorrow');
               },
             ),
             const SizedBox(height: 8),
@@ -498,8 +488,9 @@ class TodoListItem extends ConsumerWidget {
               subtitle: 'Tomorrow at ${ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true ? '09:00' : '9:00 AM'}',
               onTap: () {
                 final date = DateTime(now.year, now.month, now.day + 1, 9, 0);
-                ref.read(todoProvider.notifier).deferTodo(item.id, date);
+                ref.read(todoProvider.notifier).deferTodo(widget.item.id, date);
                 Navigator.pop(context);
+                SqaToast.show(context, 'Focus deferred to tomorrow morning');
               },
             ),
             const SizedBox(height: 8),
@@ -510,8 +501,9 @@ class TodoListItem extends ConsumerWidget {
               subtitle: DateFormat('EEEE, MMM d').format(now.add(const Duration(days: 7))),
               onTap: () {
                 final date = now.add(const Duration(days: 7));
-                ref.read(todoProvider.notifier).deferTodo(item.id, date);
+                ref.read(todoProvider.notifier).deferTodo(widget.item.id, date);
                 Navigator.pop(context);
+                SqaToast.show(context, 'Focus deferred to next week');
               },
             ),
             const SizedBox(height: 8),
@@ -528,8 +520,11 @@ class TodoListItem extends ConsumerWidget {
                   lastDate: now.add(const Duration(days: 365)),
                 );
                 if (picked != null) {
-                  ref.read(todoProvider.notifier).deferTodo(item.id, picked);
-                  if (context.mounted) Navigator.pop(context);
+                  ref.read(todoProvider.notifier).deferTodo(widget.item.id, picked);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    SqaToast.show(context, 'Focus deferred to ${DateFormat('MMM d').format(picked)}');
+                  }
                 }
               },
             ),

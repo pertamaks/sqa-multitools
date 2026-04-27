@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TodoState {
 
- List<TodoItem> get todos; TodoTab get currentTab; bool get hasActiveReminder; String? get previousPluginId;
+ List<TodoItem> get todos; List<RecurringTodo> get recurringTodos; TodoTab get currentTab; bool get hasActiveReminder; String? get previousPluginId;
 /// Create a copy of TodoState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TodoStateCopyWith<TodoState> get copyWith => _$TodoStateCopyWithImpl<TodoState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TodoState&&const DeepCollectionEquality().equals(other.todos, todos)&&(identical(other.currentTab, currentTab) || other.currentTab == currentTab)&&(identical(other.hasActiveReminder, hasActiveReminder) || other.hasActiveReminder == hasActiveReminder)&&(identical(other.previousPluginId, previousPluginId) || other.previousPluginId == previousPluginId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TodoState&&const DeepCollectionEquality().equals(other.todos, todos)&&const DeepCollectionEquality().equals(other.recurringTodos, recurringTodos)&&(identical(other.currentTab, currentTab) || other.currentTab == currentTab)&&(identical(other.hasActiveReminder, hasActiveReminder) || other.hasActiveReminder == hasActiveReminder)&&(identical(other.previousPluginId, previousPluginId) || other.previousPluginId == previousPluginId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(todos),currentTab,hasActiveReminder,previousPluginId);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(todos),const DeepCollectionEquality().hash(recurringTodos),currentTab,hasActiveReminder,previousPluginId);
 
 @override
 String toString() {
-  return 'TodoState(todos: $todos, currentTab: $currentTab, hasActiveReminder: $hasActiveReminder, previousPluginId: $previousPluginId)';
+  return 'TodoState(todos: $todos, recurringTodos: $recurringTodos, currentTab: $currentTab, hasActiveReminder: $hasActiveReminder, previousPluginId: $previousPluginId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TodoStateCopyWith<$Res>  {
   factory $TodoStateCopyWith(TodoState value, $Res Function(TodoState) _then) = _$TodoStateCopyWithImpl;
 @useResult
 $Res call({
- List<TodoItem> todos, TodoTab currentTab, bool hasActiveReminder, String? previousPluginId
+ List<TodoItem> todos, List<RecurringTodo> recurringTodos, TodoTab currentTab, bool hasActiveReminder, String? previousPluginId
 });
 
 
@@ -65,10 +65,11 @@ class _$TodoStateCopyWithImpl<$Res>
 
 /// Create a copy of TodoState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? todos = null,Object? currentTab = null,Object? hasActiveReminder = null,Object? previousPluginId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? todos = null,Object? recurringTodos = null,Object? currentTab = null,Object? hasActiveReminder = null,Object? previousPluginId = freezed,}) {
   return _then(_self.copyWith(
 todos: null == todos ? _self.todos : todos // ignore: cast_nullable_to_non_nullable
-as List<TodoItem>,currentTab: null == currentTab ? _self.currentTab : currentTab // ignore: cast_nullable_to_non_nullable
+as List<TodoItem>,recurringTodos: null == recurringTodos ? _self.recurringTodos : recurringTodos // ignore: cast_nullable_to_non_nullable
+as List<RecurringTodo>,currentTab: null == currentTab ? _self.currentTab : currentTab // ignore: cast_nullable_to_non_nullable
 as TodoTab,hasActiveReminder: null == hasActiveReminder ? _self.hasActiveReminder : hasActiveReminder // ignore: cast_nullable_to_non_nullable
 as bool,previousPluginId: freezed == previousPluginId ? _self.previousPluginId : previousPluginId // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TodoItem> todos,  TodoTab currentTab,  bool hasActiveReminder,  String? previousPluginId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<TodoItem> todos,  List<RecurringTodo> recurringTodos,  TodoTab currentTab,  bool hasActiveReminder,  String? previousPluginId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TodoState() when $default != null:
-return $default(_that.todos,_that.currentTab,_that.hasActiveReminder,_that.previousPluginId);case _:
+return $default(_that.todos,_that.recurringTodos,_that.currentTab,_that.hasActiveReminder,_that.previousPluginId);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.todos,_that.currentTab,_that.hasActiveReminder,_that.previ
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TodoItem> todos,  TodoTab currentTab,  bool hasActiveReminder,  String? previousPluginId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<TodoItem> todos,  List<RecurringTodo> recurringTodos,  TodoTab currentTab,  bool hasActiveReminder,  String? previousPluginId)  $default,) {final _that = this;
 switch (_that) {
 case _TodoState():
-return $default(_that.todos,_that.currentTab,_that.hasActiveReminder,_that.previousPluginId);case _:
+return $default(_that.todos,_that.recurringTodos,_that.currentTab,_that.hasActiveReminder,_that.previousPluginId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.todos,_that.currentTab,_that.hasActiveReminder,_that.previ
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TodoItem> todos,  TodoTab currentTab,  bool hasActiveReminder,  String? previousPluginId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<TodoItem> todos,  List<RecurringTodo> recurringTodos,  TodoTab currentTab,  bool hasActiveReminder,  String? previousPluginId)?  $default,) {final _that = this;
 switch (_that) {
 case _TodoState() when $default != null:
-return $default(_that.todos,_that.currentTab,_that.hasActiveReminder,_that.previousPluginId);case _:
+return $default(_that.todos,_that.recurringTodos,_that.currentTab,_that.hasActiveReminder,_that.previousPluginId);case _:
   return null;
 
 }
@@ -212,7 +213,7 @@ return $default(_that.todos,_that.currentTab,_that.hasActiveReminder,_that.previ
 @JsonSerializable()
 
 class _TodoState implements TodoState {
-  const _TodoState({final  List<TodoItem> todos = const [], this.currentTab = TodoTab.today, this.hasActiveReminder = false, this.previousPluginId = null}): _todos = todos;
+  const _TodoState({final  List<TodoItem> todos = const [], final  List<RecurringTodo> recurringTodos = const [], this.currentTab = TodoTab.today, this.hasActiveReminder = false, this.previousPluginId = null}): _todos = todos,_recurringTodos = recurringTodos;
   factory _TodoState.fromJson(Map<String, dynamic> json) => _$TodoStateFromJson(json);
 
  final  List<TodoItem> _todos;
@@ -220,6 +221,13 @@ class _TodoState implements TodoState {
   if (_todos is EqualUnmodifiableListView) return _todos;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_todos);
+}
+
+ final  List<RecurringTodo> _recurringTodos;
+@override@JsonKey() List<RecurringTodo> get recurringTodos {
+  if (_recurringTodos is EqualUnmodifiableListView) return _recurringTodos;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_recurringTodos);
 }
 
 @override@JsonKey() final  TodoTab currentTab;
@@ -239,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TodoState&&const DeepCollectionEquality().equals(other._todos, _todos)&&(identical(other.currentTab, currentTab) || other.currentTab == currentTab)&&(identical(other.hasActiveReminder, hasActiveReminder) || other.hasActiveReminder == hasActiveReminder)&&(identical(other.previousPluginId, previousPluginId) || other.previousPluginId == previousPluginId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TodoState&&const DeepCollectionEquality().equals(other._todos, _todos)&&const DeepCollectionEquality().equals(other._recurringTodos, _recurringTodos)&&(identical(other.currentTab, currentTab) || other.currentTab == currentTab)&&(identical(other.hasActiveReminder, hasActiveReminder) || other.hasActiveReminder == hasActiveReminder)&&(identical(other.previousPluginId, previousPluginId) || other.previousPluginId == previousPluginId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_todos),currentTab,hasActiveReminder,previousPluginId);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_todos),const DeepCollectionEquality().hash(_recurringTodos),currentTab,hasActiveReminder,previousPluginId);
 
 @override
 String toString() {
-  return 'TodoState(todos: $todos, currentTab: $currentTab, hasActiveReminder: $hasActiveReminder, previousPluginId: $previousPluginId)';
+  return 'TodoState(todos: $todos, recurringTodos: $recurringTodos, currentTab: $currentTab, hasActiveReminder: $hasActiveReminder, previousPluginId: $previousPluginId)';
 }
 
 
@@ -259,7 +267,7 @@ abstract mixin class _$TodoStateCopyWith<$Res> implements $TodoStateCopyWith<$Re
   factory _$TodoStateCopyWith(_TodoState value, $Res Function(_TodoState) _then) = __$TodoStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<TodoItem> todos, TodoTab currentTab, bool hasActiveReminder, String? previousPluginId
+ List<TodoItem> todos, List<RecurringTodo> recurringTodos, TodoTab currentTab, bool hasActiveReminder, String? previousPluginId
 });
 
 
@@ -276,10 +284,11 @@ class __$TodoStateCopyWithImpl<$Res>
 
 /// Create a copy of TodoState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? todos = null,Object? currentTab = null,Object? hasActiveReminder = null,Object? previousPluginId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? todos = null,Object? recurringTodos = null,Object? currentTab = null,Object? hasActiveReminder = null,Object? previousPluginId = freezed,}) {
   return _then(_TodoState(
 todos: null == todos ? _self._todos : todos // ignore: cast_nullable_to_non_nullable
-as List<TodoItem>,currentTab: null == currentTab ? _self.currentTab : currentTab // ignore: cast_nullable_to_non_nullable
+as List<TodoItem>,recurringTodos: null == recurringTodos ? _self._recurringTodos : recurringTodos // ignore: cast_nullable_to_non_nullable
+as List<RecurringTodo>,currentTab: null == currentTab ? _self.currentTab : currentTab // ignore: cast_nullable_to_non_nullable
 as TodoTab,hasActiveReminder: null == hasActiveReminder ? _self.hasActiveReminder : hasActiveReminder // ignore: cast_nullable_to_non_nullable
 as bool,previousPluginId: freezed == previousPluginId ? _self.previousPluginId : previousPluginId // ignore: cast_nullable_to_non_nullable
 as String?,

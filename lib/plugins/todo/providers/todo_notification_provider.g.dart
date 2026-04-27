@@ -41,7 +41,7 @@ final class TodoNotificationProvider
   }
 }
 
-String _$todoNotificationHash() => r'5fe4d4f0814bedf2267fb71287636655821757dd';
+String _$todoNotificationHash() => r'e4facce7752644843fba86be64bc1bd31f32cc4b';
 
 abstract class _$TodoNotification extends $Notifier<bool> {
   bool build();

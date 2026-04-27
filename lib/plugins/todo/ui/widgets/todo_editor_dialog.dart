@@ -9,7 +9,7 @@ import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_field.dart';
 import '../../../../ui/widgets/sqa_dropdown.dart';
 import '../../../../ui/widgets/sqa_button.dart';
-import '../../../../ui/widgets/sqa_styles.dart';
+import '../../../../ui/widgets/sqa_toast.dart';
 
 class TodoEditorDialog extends ConsumerStatefulWidget {
   final TodoItem? initialItem;
@@ -99,10 +99,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return SqaModal.custom(
+    return SqaModal<void>.custom(
       title: widget.initialItem == null ? 'Add Focus' : 'Edit Focus',
       confirmLabel: widget.initialItem == null ? 'Create' : 'Save',
       // I should handle the return value in show() or use customActions.
@@ -311,6 +308,9 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
         category: _categoryController.text.trim(),
         notes: notes,
       );
+      if (context.mounted) {
+        SqaToast.show(context, 'Focus block added!', type: SqaToastType.success);
+      }
     } else {
       final wasDeferred = widget.initialItem?.status == TodoStatus.deferred;
       final isNowTodo = _status == TodoStatus.todo;
@@ -328,6 +328,9 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
           createdAt: (wasDeferred && isNowTodo) ? DateTime.now() : widget.initialItem!.createdAt,
         ),
       );
+      if (context.mounted) {
+        SqaToast.show(context, 'Focus updated!', type: SqaToastType.success);
+      }
     }
     Navigator.of(context).pop();
   }

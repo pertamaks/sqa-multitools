@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/todo_item.dart';
 import '../models/todo_settings.dart';
+import '../models/recurring_todo.dart';
 
 class TodoStorageService {
   static const String _folderName = 'SQA_Todo';
   static const String _settingsFile = 'todo_settings.json';
+  static const String _recurringFile = 'recurring_todos.json';
 
   Future<Directory> get _storageDir async {
     final docsDir = await getApplicationDocumentsDirectory();
@@ -48,8 +50,8 @@ class TodoStorageService {
       List<TodoItem> existing = [];
       if (await file.exists()) {
         try {
-          final List<dynamic> jsonList = jsonDecode(await file.readAsString());
-          existing = jsonList.map((e) => TodoItem.fromJson(e)).toList();
+          final jsonList = jsonDecode(await file.readAsString()) as List<dynamic>;
+          existing = jsonList.map((e) => TodoItem.fromJson(e as Map<String, dynamic>)).toList();
         } catch (_) {}
       }
 
@@ -71,12 +73,31 @@ class TodoStorageService {
     await for (final entity in dir.list()) {
       if (entity is File && entity.path.contains('todo_data_') && entity.path.endsWith('.json')) {
         try {
-          final List<dynamic> jsonList = jsonDecode(await entity.readAsString());
-          allTodos.addAll(jsonList.map((e) => TodoItem.fromJson(e)));
+          final jsonList = jsonDecode(await entity.readAsString()) as List<dynamic>;
+          allTodos.addAll(jsonList.map((e) => TodoItem.fromJson(e as Map<String, dynamic>)));
         } catch (_) {}
       }
     }
     return allTodos;
+  }
+
+  Future<void> saveRecurringTodos(List<RecurringTodo> recurring) async {
+    final dir = await _storageDir;
+    final file = File('${dir.path}${Platform.pathSeparator}$_recurringFile');
+    final jsonContent = jsonEncode(recurring.map((e) => e.toJson()).toList());
+    await file.writeAsString(jsonContent);
+  }
+
+  Future<List<RecurringTodo>> loadRecurringTodos() async {
+    final dir = await _storageDir;
+    final file = File('${dir.path}${Platform.pathSeparator}$_recurringFile');
+    if (await file.exists()) {
+      try {
+        final jsonList = jsonDecode(await file.readAsString()) as List<dynamic>;
+        return jsonList.map((e) => RecurringTodo.fromJson(e as Map<String, dynamic>)).toList();
+      } catch (_) {}
+    }
+    return [];
   }
 
   Future<void> saveSettings(TodoSettings settings) async {
@@ -90,7 +111,7 @@ class TodoStorageService {
     final file = File('${dir.path}${Platform.pathSeparator}$_settingsFile');
     if (await file.exists()) {
       try {
-        return TodoSettings.fromJson(jsonDecode(await file.readAsString()));
+        return TodoSettings.fromJson(jsonDecode(await file.readAsString()) as Map<String, dynamic>);
       } catch (_) {}
     }
     return const TodoSettings();

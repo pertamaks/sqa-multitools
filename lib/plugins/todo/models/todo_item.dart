@@ -41,6 +41,20 @@ extension TodoTimeBlockX on TodoTimeBlock {
     }
   }
 
+  bool isCurrent(DateTime now) {
+    final hour = now.hour;
+    switch (this) {
+      case TodoTimeBlock.current: return true;
+      case TodoTimeBlock.morning: return hour >= 6 && hour < 9;
+      case TodoTimeBlock.midMorning: return hour >= 9 && hour < 11;
+      case TodoTimeBlock.noon: return hour >= 11 && hour < 13;
+      case TodoTimeBlock.afternoon: return hour >= 13 && hour < 15;
+      case TodoTimeBlock.lateAfternoon: return hour >= 15 && hour < 17;
+      case TodoTimeBlock.evening: return hour >= 17 && hour < 20;
+      case TodoTimeBlock.night: return hour >= 20 || hour < 6;
+    }
+  }
+
   bool isPast(DateTime now) {
     switch (this) {
       case TodoTimeBlock.current: return false;
@@ -68,7 +82,17 @@ enum TodoDurationPreset {
   @JsonValue(45)
   min45,
   @JsonValue(90)
-  min90,
+  min90;
+
+  int get minutes {
+    switch (this) {
+      case TodoDurationPreset.min5: return 5;
+      case TodoDurationPreset.min15: return 15;
+      case TodoDurationPreset.min25: return 25;
+      case TodoDurationPreset.min45: return 45;
+      case TodoDurationPreset.min90: return 90;
+    }
+  }
 }
 
 enum TodoPriority {

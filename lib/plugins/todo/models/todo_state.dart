@@ -1,11 +1,13 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'todo_item.dart';
+import 'recurring_todo.dart';
 
 part 'todo_state.freezed.dart';
 part 'todo_state.g.dart';
 
 enum TodoTab {
   today,
+  recurring,
   history,
 }
 
@@ -13,6 +15,7 @@ enum TodoTab {
 abstract class TodoState with _$TodoState {
   const factory TodoState({
     @Default([]) List<TodoItem> todos,
+    @Default([]) List<RecurringTodo> recurringTodos,
     @Default(TodoTab.today) TodoTab currentTab,
     @Default(false) bool hasActiveReminder,
     @Default(null) String? previousPluginId,

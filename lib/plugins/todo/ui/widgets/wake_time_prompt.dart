@@ -5,8 +5,7 @@ import '../../providers/todo_provider.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_button.dart';
 import '../../../../ui/widgets/sqa_switch.dart';
-import '../../../../ui/widgets/sqa_time_segment.dart';
-import '../../../../ui/widgets/sqa_segmented_button.dart';
+import '../../../../ui/widgets/sqa_time_picker.dart';
 
 class WakeTimePrompt extends ConsumerStatefulWidget {
   const WakeTimePrompt({super.key});
@@ -97,25 +96,15 @@ class _WakeTimePromptState extends ConsumerState<WakeTimePrompt> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Center(
-            child: SqaSegmentedButton<bool>(
-              stretches: false,
-              fontSize: 10,
-              visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-              segments: const [
-                ButtonSegment(value: false, label: Text('12h')),
-                ButtonSegment(value: true, label: Text('24h')),
-              ],
-              selected: {_use24Hour},
-              onSelectionChanged: (v) => setState(() => _use24Hour = v.first),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTimeSelector(),
-            ],
+          SqaTimePicker(
+            hour: _hour,
+            minute: _minute,
+            use24Hour: _use24Hour,
+            onFormatChanged: (v) => setState(() => _use24Hour = v),
+            onTimeChanged: (h, m) => setState(() {
+              _hour = h;
+              _minute = m;
+            }),
           ),
           const SizedBox(height: 24),
           Row(
@@ -129,66 +118,6 @@ class _WakeTimePromptState extends ConsumerState<WakeTimePrompt> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTimeSelector() {
-    int displayHour = _hour;
-    if (!_use24Hour) {
-      displayHour = _hour % 12;
-      if (displayHour == 0) displayHour = 12;
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SqaTimeSegment(
-          value: displayHour,
-          minValue: _use24Hour ? 0 : 1,
-          maxValue: _use24Hour ? 23 : 12,
-          onChanged: (v) {
-            setState(() {
-              if (_use24Hour) {
-                _hour = v;
-              } else {
-                bool isPM = _hour >= 12;
-                int h = v % 12;
-                _hour = isPM ? h + 12 : h;
-              }
-            });
-          },
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 24.0),
-          child: Text(':', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-        ),
-        SqaTimeSegment(
-          value: _minute,
-          maxValue: 59,
-          onChanged: (v) => setState(() => _minute = v),
-        ),
-        if (!_use24Hour) ...[
-          const SizedBox(width: 16),
-          SqaSegmentedButton<bool>(
-            stretches: false,
-            fontSize: 10,
-            visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-            segments: const [
-              ButtonSegment(value: false, label: Text('AM')),
-              ButtonSegment(value: true, label: Text('PM')),
-            ],
-            selected: {_hour >= 12},
-            onSelectionChanged: (v) {
-              setState(() {
-                bool isPM = v.first;
-                int h = _hour % 12;
-                _hour = isPM ? h + 12 : h;
-              });
-            },
-          ),
-        ],
-      ],
     );
   }
 

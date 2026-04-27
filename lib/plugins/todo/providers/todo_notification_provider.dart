@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'todo_provider.dart';
 import '../models/todo_item.dart';
@@ -32,7 +31,6 @@ class TodoNotification extends _$TodoNotification {
     final diffMinutes = now.difference(wakeTime).inMinutes;
     if (diffMinutes < 0) return; // Haven't woken up yet?
 
-    final cycleIndex = diffMinutes ~/ 90;
     final minutesIntoCycle = diffMinutes % 90;
 
     // Trigger if we are in the first 2 minutes of a new cycle

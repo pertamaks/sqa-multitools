@@ -11,6 +11,7 @@ import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_field.dart';
+import '../../../ui/widgets/sqa_popup_menu.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
 
@@ -245,43 +246,25 @@ class TextListView extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
-    return MenuAnchor(
+    return SqaPopupMenu(
       alignmentOffset: const Offset(-100, 8),
-      style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
-        surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-        elevation: WidgetStateProperty.all(8.0),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: SqaStyles.radiusLarge,
-            side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-            ),
-          ),
+      tooltip: 'Actions',
+      icon: const Icon(Symbols.more_vert, size: 20),
+      children: [
+        SqaPopupMenuItem(
+          icon: const Icon(Symbols.edit),
+          label: 'Edit',
+          onPressed: () => notifier.openEditor(doc),
         ),
-      ),
-      menuChildren: [
-        _buildActionItem(
-          context,
-          'Edit',
-          Symbols.edit,
-          null,
-          () => notifier.openEditor(doc),
+        SqaPopupMenuItem(
+          icon: Icon(doc.isPinned ? Symbols.keep_off : Symbols.keep),
+          label: doc.isPinned ? 'Unpin from Top' : 'Pin to Top',
+          onPressed: () => notifier.togglePin(doc.id),
         ),
-        _buildActionItem(
-          context,
-          doc.isPinned ? 'Unpin from Top' : 'Pin to Top',
-          doc.isPinned ? Symbols.keep_off : Symbols.keep,
-          null,
-          () => notifier.togglePin(doc.id),
-        ),
-        _buildActionItem(
-          context,
-          'Copy Content',
-          Symbols.content_copy,
-          null,
-          () async {
+        SqaPopupMenuItem(
+          icon: const Icon(Symbols.content_copy),
+          label: 'Copy Content',
+          onPressed: () async {
             await notifier.copyContent(doc.content);
             if (!context.mounted) return;
             SqaToast.show(
@@ -291,74 +274,33 @@ class TextListView extends ConsumerWidget {
             );
           },
         ),
-        _buildActionItem(context, 'Delete', Symbols.delete, Colors.red, () async {
-          final confirm = await SqaModal.showConfirm(
-            context,
-            title: 'Delete Document',
-            message:
-                'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
-            confirmLabel: 'Delete',
-            confirmColor: theme.colorScheme.error,
-            icon: Symbols.delete_forever,
-          );
-          if (confirm == true) {
-            notifier.deleteDocument(doc.id);
-          }
-        }),
-      ],
-      builder: (context, controller, child) {
-        return IconButton(
-          icon: const Icon(Symbols.more_vert, size: 20),
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
+        Divider(
+          height: 1,
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+        SqaPopupMenuItem(
+          icon: const Icon(Symbols.delete),
+          label: 'Delete',
+          isDestructive: true,
+          onPressed: () async {
+            final confirm = await SqaModal.showConfirm(
+              context,
+              title: 'Delete Document',
+              message:
+                  'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
+              confirmLabel: 'Delete',
+              confirmColor: theme.colorScheme.error,
+              icon: Symbols.delete_forever,
+            );
+            if (confirm == true) {
+              notifier.deleteDocument(doc.id);
             }
           },
-          tooltip: 'Actions',
-          style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ),
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildActionItem(
-    BuildContext context,
-    String label,
-    IconData icon,
-    Color? color,
-    VoidCallback onPressed,
-  ) {
-    final theme = Theme.of(context);
-    final effectiveColor = color ?? theme.colorScheme.onSurface;
-
-    return MenuItemButton(
-      onPressed: onPressed,
-      style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: const Size(140, 36),
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: effectiveColor),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: effectiveColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildNewDocumentButton(
     BuildContext context,

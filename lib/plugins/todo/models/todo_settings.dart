@@ -12,6 +12,7 @@ abstract class TodoSettings with _$TodoSettings {
     @Default(false) bool autoOpenOnReminder,
     @Default(30) int historyRetentionDays,
     @Default(true) bool use24HourFormat,
+    @Default(0) int longPressHelpCount,
     DateTime? lastWakeTimePromptDate,
   }) = _TodoSettings;
 

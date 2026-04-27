@@ -12,6 +12,9 @@ class SqaSegmentedButton<T> extends StatefulWidget {
   final EdgeInsets? padding;
   final bool isChild;
   final bool hasChild;
+  final bool stretches;
+  final double fontSize;
+  final VisualDensity? visualDensity;
 
   const SqaSegmentedButton({
     super.key,
@@ -22,6 +25,9 @@ class SqaSegmentedButton<T> extends StatefulWidget {
     this.padding,
     this.isChild = false,
     this.hasChild = false,
+    this.stretches = true,
+    this.fontSize = 12,
+    this.visualDensity,
   });
 
   @override
@@ -45,7 +51,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
     // We only use expandedInsets if the segments are few enough to fit on screen.
     // This prevents the "infinite width" crash in SingleChildScrollView and
     // ensures the edge-to-edge look for standard 2-3 segment controls.
-    final bool shouldStretch = widget.segments.length <= 3;
+    final bool shouldStretch = widget.stretches && widget.segments.length <= 3;
 
     final segmentedButton = SegmentedButton<T>(
       segments: widget.segments,
@@ -55,9 +61,9 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       expandedInsets: shouldStretch ? EdgeInsets.zero : null,
       style:
           SegmentedButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            textStyle: const TextStyle(
-              fontSize: 12,
+            visualDensity: widget.visualDensity ?? VisualDensity.compact,
+            textStyle: TextStyle(
+              fontSize: widget.fontSize,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12),

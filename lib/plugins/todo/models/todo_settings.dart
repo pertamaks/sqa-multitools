@@ -11,6 +11,7 @@ abstract class TodoSettings with _$TodoSettings {
     @Default(true) bool askWakeTimeDaily,
     @Default(false) bool autoOpenOnReminder,
     @Default(30) int historyRetentionDays,
+    @Default(true) bool use24HourFormat,
     DateTime? lastWakeTimePromptDate,
   }) = _TodoSettings;
 

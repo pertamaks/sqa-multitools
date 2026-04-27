@@ -12,6 +12,7 @@ class SqaDropdown<T> extends StatefulWidget {
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?>? onChanged;
   final int? widthInChars;
+  final bool enabled;
 
   const SqaDropdown({
     super.key,
@@ -19,6 +20,7 @@ class SqaDropdown<T> extends StatefulWidget {
     required this.items,
     this.onChanged,
     this.widthInChars,
+    this.enabled = true,
   });
 
   @override
@@ -164,13 +166,13 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
         return Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {
+            onTap: widget.enabled ? () {
               if (isShowing) {
                 controller.close();
               } else {
                 controller.open();
               }
-            },
+            } : null,
             borderRadius: SqaStyles.radiusSmall,
             overlayColor: SqaStyles.buttonOverlay(context),
             child: ConstrainedBox(
@@ -185,13 +187,13 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                   color: isShowing
                       ? colorScheme.primary.withValues(alpha: 0.1)
                       : colorScheme.surfaceContainerHighest.withValues(
-                          alpha: 0.4,
+                          alpha: widget.enabled ? 0.4 : 0.2,
                         ),
                   borderRadius: SqaStyles.radiusSmall,
                   border: Border.all(
                     color: isShowing
                         ? colorScheme.primary.withValues(alpha: 0.5)
-                        : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        : colorScheme.outlineVariant.withValues(alpha: widget.enabled ? 0.5 : 0.2),
                     width: 1.0,
                   ),
                 ),
@@ -203,7 +205,7 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
+                          color: widget.enabled ? colorScheme.onSurface : colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

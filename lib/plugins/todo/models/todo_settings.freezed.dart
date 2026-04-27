@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TodoSettings {
 
- int? get wakeHour; int? get wakeMinute; bool get askWakeTimeDaily; bool get autoOpenOnReminder; int get historyRetentionDays; DateTime? get lastWakeTimePromptDate;
+ int? get wakeHour; int? get wakeMinute; bool get askWakeTimeDaily; bool get autoOpenOnReminder; int get historyRetentionDays; bool get use24HourFormat; DateTime? get lastWakeTimePromptDate;
 /// Create a copy of TodoSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TodoSettingsCopyWith<TodoSettings> get copyWith => _$TodoSettingsCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TodoSettings&&(identical(other.wakeHour, wakeHour) || other.wakeHour == wakeHour)&&(identical(other.wakeMinute, wakeMinute) || other.wakeMinute == wakeMinute)&&(identical(other.askWakeTimeDaily, askWakeTimeDaily) || other.askWakeTimeDaily == askWakeTimeDaily)&&(identical(other.autoOpenOnReminder, autoOpenOnReminder) || other.autoOpenOnReminder == autoOpenOnReminder)&&(identical(other.historyRetentionDays, historyRetentionDays) || other.historyRetentionDays == historyRetentionDays)&&(identical(other.lastWakeTimePromptDate, lastWakeTimePromptDate) || other.lastWakeTimePromptDate == lastWakeTimePromptDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TodoSettings&&(identical(other.wakeHour, wakeHour) || other.wakeHour == wakeHour)&&(identical(other.wakeMinute, wakeMinute) || other.wakeMinute == wakeMinute)&&(identical(other.askWakeTimeDaily, askWakeTimeDaily) || other.askWakeTimeDaily == askWakeTimeDaily)&&(identical(other.autoOpenOnReminder, autoOpenOnReminder) || other.autoOpenOnReminder == autoOpenOnReminder)&&(identical(other.historyRetentionDays, historyRetentionDays) || other.historyRetentionDays == historyRetentionDays)&&(identical(other.use24HourFormat, use24HourFormat) || other.use24HourFormat == use24HourFormat)&&(identical(other.lastWakeTimePromptDate, lastWakeTimePromptDate) || other.lastWakeTimePromptDate == lastWakeTimePromptDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,wakeHour,wakeMinute,askWakeTimeDaily,autoOpenOnReminder,historyRetentionDays,lastWakeTimePromptDate);
+int get hashCode => Object.hash(runtimeType,wakeHour,wakeMinute,askWakeTimeDaily,autoOpenOnReminder,historyRetentionDays,use24HourFormat,lastWakeTimePromptDate);
 
 @override
 String toString() {
-  return 'TodoSettings(wakeHour: $wakeHour, wakeMinute: $wakeMinute, askWakeTimeDaily: $askWakeTimeDaily, autoOpenOnReminder: $autoOpenOnReminder, historyRetentionDays: $historyRetentionDays, lastWakeTimePromptDate: $lastWakeTimePromptDate)';
+  return 'TodoSettings(wakeHour: $wakeHour, wakeMinute: $wakeMinute, askWakeTimeDaily: $askWakeTimeDaily, autoOpenOnReminder: $autoOpenOnReminder, historyRetentionDays: $historyRetentionDays, use24HourFormat: $use24HourFormat, lastWakeTimePromptDate: $lastWakeTimePromptDate)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TodoSettingsCopyWith<$Res>  {
   factory $TodoSettingsCopyWith(TodoSettings value, $Res Function(TodoSettings) _then) = _$TodoSettingsCopyWithImpl;
 @useResult
 $Res call({
- int? wakeHour, int? wakeMinute, bool askWakeTimeDaily, bool autoOpenOnReminder, int historyRetentionDays, DateTime? lastWakeTimePromptDate
+ int? wakeHour, int? wakeMinute, bool askWakeTimeDaily, bool autoOpenOnReminder, int historyRetentionDays, bool use24HourFormat, DateTime? lastWakeTimePromptDate
 });
 
 
@@ -65,14 +65,15 @@ class _$TodoSettingsCopyWithImpl<$Res>
 
 /// Create a copy of TodoSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? wakeHour = freezed,Object? wakeMinute = freezed,Object? askWakeTimeDaily = null,Object? autoOpenOnReminder = null,Object? historyRetentionDays = null,Object? lastWakeTimePromptDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? wakeHour = freezed,Object? wakeMinute = freezed,Object? askWakeTimeDaily = null,Object? autoOpenOnReminder = null,Object? historyRetentionDays = null,Object? use24HourFormat = null,Object? lastWakeTimePromptDate = freezed,}) {
   return _then(_self.copyWith(
 wakeHour: freezed == wakeHour ? _self.wakeHour : wakeHour // ignore: cast_nullable_to_non_nullable
 as int?,wakeMinute: freezed == wakeMinute ? _self.wakeMinute : wakeMinute // ignore: cast_nullable_to_non_nullable
 as int?,askWakeTimeDaily: null == askWakeTimeDaily ? _self.askWakeTimeDaily : askWakeTimeDaily // ignore: cast_nullable_to_non_nullable
 as bool,autoOpenOnReminder: null == autoOpenOnReminder ? _self.autoOpenOnReminder : autoOpenOnReminder // ignore: cast_nullable_to_non_nullable
 as bool,historyRetentionDays: null == historyRetentionDays ? _self.historyRetentionDays : historyRetentionDays // ignore: cast_nullable_to_non_nullable
-as int,lastWakeTimePromptDate: freezed == lastWakeTimePromptDate ? _self.lastWakeTimePromptDate : lastWakeTimePromptDate // ignore: cast_nullable_to_non_nullable
+as int,use24HourFormat: null == use24HourFormat ? _self.use24HourFormat : use24HourFormat // ignore: cast_nullable_to_non_nullable
+as bool,lastWakeTimePromptDate: freezed == lastWakeTimePromptDate ? _self.lastWakeTimePromptDate : lastWakeTimePromptDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? wakeHour,  int? wakeMinute,  bool askWakeTimeDaily,  bool autoOpenOnReminder,  int historyRetentionDays,  DateTime? lastWakeTimePromptDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? wakeHour,  int? wakeMinute,  bool askWakeTimeDaily,  bool autoOpenOnReminder,  int historyRetentionDays,  bool use24HourFormat,  DateTime? lastWakeTimePromptDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TodoSettings() when $default != null:
-return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.autoOpenOnReminder,_that.historyRetentionDays,_that.lastWakeTimePromptDate);case _:
+return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.autoOpenOnReminder,_that.historyRetentionDays,_that.use24HourFormat,_that.lastWakeTimePromptDate);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.aut
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? wakeHour,  int? wakeMinute,  bool askWakeTimeDaily,  bool autoOpenOnReminder,  int historyRetentionDays,  DateTime? lastWakeTimePromptDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? wakeHour,  int? wakeMinute,  bool askWakeTimeDaily,  bool autoOpenOnReminder,  int historyRetentionDays,  bool use24HourFormat,  DateTime? lastWakeTimePromptDate)  $default,) {final _that = this;
 switch (_that) {
 case _TodoSettings():
-return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.autoOpenOnReminder,_that.historyRetentionDays,_that.lastWakeTimePromptDate);case _:
+return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.autoOpenOnReminder,_that.historyRetentionDays,_that.use24HourFormat,_that.lastWakeTimePromptDate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.aut
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? wakeHour,  int? wakeMinute,  bool askWakeTimeDaily,  bool autoOpenOnReminder,  int historyRetentionDays,  DateTime? lastWakeTimePromptDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? wakeHour,  int? wakeMinute,  bool askWakeTimeDaily,  bool autoOpenOnReminder,  int historyRetentionDays,  bool use24HourFormat,  DateTime? lastWakeTimePromptDate)?  $default,) {final _that = this;
 switch (_that) {
 case _TodoSettings() when $default != null:
-return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.autoOpenOnReminder,_that.historyRetentionDays,_that.lastWakeTimePromptDate);case _:
+return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.autoOpenOnReminder,_that.historyRetentionDays,_that.use24HourFormat,_that.lastWakeTimePromptDate);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.wakeHour,_that.wakeMinute,_that.askWakeTimeDaily,_that.aut
 @JsonSerializable()
 
 class _TodoSettings implements TodoSettings {
-  const _TodoSettings({this.wakeHour, this.wakeMinute, this.askWakeTimeDaily = true, this.autoOpenOnReminder = false, this.historyRetentionDays = 30, this.lastWakeTimePromptDate});
+  const _TodoSettings({this.wakeHour, this.wakeMinute, this.askWakeTimeDaily = true, this.autoOpenOnReminder = false, this.historyRetentionDays = 30, this.use24HourFormat = true, this.lastWakeTimePromptDate});
   factory _TodoSettings.fromJson(Map<String, dynamic> json) => _$TodoSettingsFromJson(json);
 
 @override final  int? wakeHour;
@@ -222,6 +223,7 @@ class _TodoSettings implements TodoSettings {
 @override@JsonKey() final  bool askWakeTimeDaily;
 @override@JsonKey() final  bool autoOpenOnReminder;
 @override@JsonKey() final  int historyRetentionDays;
+@override@JsonKey() final  bool use24HourFormat;
 @override final  DateTime? lastWakeTimePromptDate;
 
 /// Create a copy of TodoSettings
@@ -237,16 +239,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TodoSettings&&(identical(other.wakeHour, wakeHour) || other.wakeHour == wakeHour)&&(identical(other.wakeMinute, wakeMinute) || other.wakeMinute == wakeMinute)&&(identical(other.askWakeTimeDaily, askWakeTimeDaily) || other.askWakeTimeDaily == askWakeTimeDaily)&&(identical(other.autoOpenOnReminder, autoOpenOnReminder) || other.autoOpenOnReminder == autoOpenOnReminder)&&(identical(other.historyRetentionDays, historyRetentionDays) || other.historyRetentionDays == historyRetentionDays)&&(identical(other.lastWakeTimePromptDate, lastWakeTimePromptDate) || other.lastWakeTimePromptDate == lastWakeTimePromptDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TodoSettings&&(identical(other.wakeHour, wakeHour) || other.wakeHour == wakeHour)&&(identical(other.wakeMinute, wakeMinute) || other.wakeMinute == wakeMinute)&&(identical(other.askWakeTimeDaily, askWakeTimeDaily) || other.askWakeTimeDaily == askWakeTimeDaily)&&(identical(other.autoOpenOnReminder, autoOpenOnReminder) || other.autoOpenOnReminder == autoOpenOnReminder)&&(identical(other.historyRetentionDays, historyRetentionDays) || other.historyRetentionDays == historyRetentionDays)&&(identical(other.use24HourFormat, use24HourFormat) || other.use24HourFormat == use24HourFormat)&&(identical(other.lastWakeTimePromptDate, lastWakeTimePromptDate) || other.lastWakeTimePromptDate == lastWakeTimePromptDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,wakeHour,wakeMinute,askWakeTimeDaily,autoOpenOnReminder,historyRetentionDays,lastWakeTimePromptDate);
+int get hashCode => Object.hash(runtimeType,wakeHour,wakeMinute,askWakeTimeDaily,autoOpenOnReminder,historyRetentionDays,use24HourFormat,lastWakeTimePromptDate);
 
 @override
 String toString() {
-  return 'TodoSettings(wakeHour: $wakeHour, wakeMinute: $wakeMinute, askWakeTimeDaily: $askWakeTimeDaily, autoOpenOnReminder: $autoOpenOnReminder, historyRetentionDays: $historyRetentionDays, lastWakeTimePromptDate: $lastWakeTimePromptDate)';
+  return 'TodoSettings(wakeHour: $wakeHour, wakeMinute: $wakeMinute, askWakeTimeDaily: $askWakeTimeDaily, autoOpenOnReminder: $autoOpenOnReminder, historyRetentionDays: $historyRetentionDays, use24HourFormat: $use24HourFormat, lastWakeTimePromptDate: $lastWakeTimePromptDate)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$TodoSettingsCopyWith<$Res> implements $TodoSettingsCopyWi
   factory _$TodoSettingsCopyWith(_TodoSettings value, $Res Function(_TodoSettings) _then) = __$TodoSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- int? wakeHour, int? wakeMinute, bool askWakeTimeDaily, bool autoOpenOnReminder, int historyRetentionDays, DateTime? lastWakeTimePromptDate
+ int? wakeHour, int? wakeMinute, bool askWakeTimeDaily, bool autoOpenOnReminder, int historyRetentionDays, bool use24HourFormat, DateTime? lastWakeTimePromptDate
 });
 
 
@@ -274,14 +276,15 @@ class __$TodoSettingsCopyWithImpl<$Res>
 
 /// Create a copy of TodoSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? wakeHour = freezed,Object? wakeMinute = freezed,Object? askWakeTimeDaily = null,Object? autoOpenOnReminder = null,Object? historyRetentionDays = null,Object? lastWakeTimePromptDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? wakeHour = freezed,Object? wakeMinute = freezed,Object? askWakeTimeDaily = null,Object? autoOpenOnReminder = null,Object? historyRetentionDays = null,Object? use24HourFormat = null,Object? lastWakeTimePromptDate = freezed,}) {
   return _then(_TodoSettings(
 wakeHour: freezed == wakeHour ? _self.wakeHour : wakeHour // ignore: cast_nullable_to_non_nullable
 as int?,wakeMinute: freezed == wakeMinute ? _self.wakeMinute : wakeMinute // ignore: cast_nullable_to_non_nullable
 as int?,askWakeTimeDaily: null == askWakeTimeDaily ? _self.askWakeTimeDaily : askWakeTimeDaily // ignore: cast_nullable_to_non_nullable
 as bool,autoOpenOnReminder: null == autoOpenOnReminder ? _self.autoOpenOnReminder : autoOpenOnReminder // ignore: cast_nullable_to_non_nullable
 as bool,historyRetentionDays: null == historyRetentionDays ? _self.historyRetentionDays : historyRetentionDays // ignore: cast_nullable_to_non_nullable
-as int,lastWakeTimePromptDate: freezed == lastWakeTimePromptDate ? _self.lastWakeTimePromptDate : lastWakeTimePromptDate // ignore: cast_nullable_to_non_nullable
+as int,use24HourFormat: null == use24HourFormat ? _self.use24HourFormat : use24HourFormat // ignore: cast_nullable_to_non_nullable
+as bool,lastWakeTimePromptDate: freezed == lastWakeTimePromptDate ? _self.lastWakeTimePromptDate : lastWakeTimePromptDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

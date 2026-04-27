@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/todo_item.dart';
 import '../../providers/todo_provider.dart';
@@ -33,6 +35,8 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   TodoTimeBlock _timeBlock = TodoTimeBlock.current;
   TodoDurationPreset _durationPreset = TodoDurationPreset.min25;
   TodoPriority _priority = TodoPriority.normal;
+  TodoStatus _status = TodoStatus.todo;
+  DateTime? _deferredUntil;
 
   @override
   void initState() {
@@ -46,6 +50,8 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
       _timeBlock = item.timeBlock;
       _durationPreset = item.durationPreset;
       _priority = item.priority;
+      _status = item.status;
+      _deferredUntil = item.deferredUntil;
     } else {
       _suggestInitialState();
     }
@@ -74,9 +80,11 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
       case TodoTimeBlock.evening:
         return TodoDurationPreset.min25;
       case TodoTimeBlock.morning:
+      case TodoTimeBlock.midMorning:
       case TodoTimeBlock.afternoon:
+      case TodoTimeBlock.lateAfternoon:
         return TodoDurationPreset.min45;
-      case TodoTimeBlock.tonight:
+      case TodoTimeBlock.night:
         return TodoDurationPreset.min15;
     }
   }
@@ -95,7 +103,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     final colorScheme = theme.colorScheme;
 
     return SqaModal.custom(
-      title: widget.initialItem == null ? 'Add Task' : 'Edit Task',
+      title: widget.initialItem == null ? 'Add Focus' : 'Edit Focus',
       confirmLabel: widget.initialItem == null ? 'Create' : 'Save',
       // I should handle the return value in show() or use customActions.
       customActions: [
@@ -116,9 +124,10 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SqaField(
-            label: 'Task Name',
+            label: 'Focus Title',
             controller: _titleController,
             hintText: 'What needs to be done?',
+            showCopyButton: false,
           ),
           const SizedBox(height: 16),
           Row(
@@ -131,7 +140,11 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     const SizedBox(height: 8),
                     SqaDropdown<TodoTimeBlock>(
                       value: _timeBlock,
-                      items: TodoTimeBlock.values.map((v) => DropdownMenuItem(value: v, child: Text(v.displayName))).toList(),
+                      enabled: _status == TodoStatus.todo,
+                      items: _getAvailableTimeBlocks().map((v) {
+                        final use24h = ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
+                        return DropdownMenuItem(value: v, child: Text(v.getDisplayName(use24h)));
+                      }).toList(),
                       onChanged: (v) {
                         if (v != null) {
                           setState(() {
@@ -149,20 +162,50 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel(context, 'Duration'),
+                    _buildLabel(context, _status == TodoStatus.deferred ? 'Reschedule' : 'Duration'),
                     const SizedBox(height: 8),
-                    SqaDropdown<TodoDurationPreset>(
-                      value: _durationPreset,
-                      items: _getAvailableDurations(_timeBlock).map((v) => DropdownMenuItem(value: v, child: Text('${_getDurationMinutes(v)} min'))).toList(),
-                      onChanged: (v) {
-                        if (v != null) setState(() => _durationPreset = v);
-                      },
-                    ),
+                    if (_status == TodoStatus.deferred)
+                      SqaButton(
+                        label: _deferredUntil != null ? DateFormat('MMM d, yyyy').format(_deferredUntil!) : 'Pick Date',
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _deferredUntil ?? DateTime.now().add(const Duration(days: 1)),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                          );
+                          if (picked != null) setState(() => _deferredUntil = picked);
+                        },
+                        type: SqaButtonType.tonal,
+                        icon: Symbols.calendar_today,
+                      )
+                    else
+                      SqaDropdown<TodoDurationPreset>(
+                        value: _durationPreset,
+                        items: _getAvailableDurations(_timeBlock).map((v) => DropdownMenuItem(value: v, child: Text('${_getDurationMinutes(v)} min'))).toList(),
+                        onChanged: (v) {
+                          if (v != null) setState(() => _durationPreset = v);
+                        },
+                      ),
                   ],
                 ),
               ),
             ],
           ),
+          if (_status == TodoStatus.deferred) ...[
+            const SizedBox(height: 16),
+            SqaButton(
+              label: 'Do Now',
+              onPressed: () => setState(() {
+                _status = TodoStatus.todo;
+                _deferredUntil = null;
+                _timeBlock = TodoTimeBlock.current;
+                _priority = TodoPriority.critical;
+              }),
+              type: SqaButtonType.primary,
+              icon: Symbols.bolt,
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -188,6 +231,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                   label: 'Category / Tag',
                   controller: _categoryController,
                   hintText: 'e.g. Work, Personal',
+                  showCopyButton: false,
                 ),
               ),
             ],
@@ -220,14 +264,23 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   List<TodoDurationPreset> _getAvailableDurations(TodoTimeBlock block) {
     switch (block) {
       case TodoTimeBlock.current:
-      case TodoTimeBlock.noon:
-      case TodoTimeBlock.evening:
         return [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
       case TodoTimeBlock.morning:
+      case TodoTimeBlock.midMorning:
+        // Peak cognitive performance
         return [TodoDurationPreset.min25, TodoDurationPreset.min45, TodoDurationPreset.min90];
+      case TodoTimeBlock.noon:
+        // Anchor point
+        return [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
       case TodoTimeBlock.afternoon:
+      case TodoTimeBlock.lateAfternoon:
+        // Lighter tasks / Second wind
         return [TodoDurationPreset.min25, TodoDurationPreset.min45];
-      case TodoTimeBlock.tonight:
+      case TodoTimeBlock.evening:
+        // Wind-down
+        return [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+      case TodoTimeBlock.night:
+        // Simple tasks only
         return [TodoDurationPreset.min5, TodoDurationPreset.min15];
     }
   }
@@ -246,27 +299,69 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     if (_titleController.text.trim().isEmpty) return;
 
     final notifier = ref.read(todoProvider.notifier);
+    final title = SqaField.toSentenceCase(_titleController.text.trim());
+    final notes = SqaField.toSentenceCase(_notesController.text.trim());
+
     if (widget.initialItem == null) {
       notifier.addTodo(
-        _titleController.text.trim(),
+        title,
         timeBlock: _timeBlock,
         durationPreset: _durationPreset,
         priority: _priority,
         category: _categoryController.text.trim(),
-        notes: _notesController.text.trim(),
+        notes: notes,
       );
     } else {
+      final wasDeferred = widget.initialItem?.status == TodoStatus.deferred;
+      final isNowTodo = _status == TodoStatus.todo;
+
       notifier.updateTodo(
         widget.initialItem!.copyWith(
-          title: _titleController.text.trim(),
+          title: title,
           timeBlock: _timeBlock,
           durationPreset: _durationPreset,
           priority: _priority,
           category: _categoryController.text.trim(),
-          notes: _notesController.text.trim(),
+          notes: notes,
+          status: _status,
+          deferredUntil: _deferredUntil,
+          createdAt: (wasDeferred && isNowTodo) ? DateTime.now() : widget.initialItem!.createdAt,
         ),
       );
     }
     Navigator.of(context).pop();
+  }
+
+  List<TodoTimeBlock> _getAvailableTimeBlocks() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    // If it's a deferred task, we only show 'Current' (as it's a placeholder)
+    // but actually the dropdown is disabled anyway for non-today tasks.
+    // This logic is primarily for Today tasks.
+
+    return TodoTimeBlock.values.where((block) {
+      // Always include the current selection to avoid dropdown errors
+      if (block == _timeBlock) return true;
+
+      switch (block) {
+        case TodoTimeBlock.current:
+          return true;
+        case TodoTimeBlock.morning:
+          return hour < 9;
+        case TodoTimeBlock.midMorning:
+          return hour < 11;
+        case TodoTimeBlock.noon:
+          return hour < 13;
+        case TodoTimeBlock.afternoon:
+          return hour < 15;
+        case TodoTimeBlock.lateAfternoon:
+          return hour < 17;
+        case TodoTimeBlock.evening:
+          return hour < 20;
+        case TodoTimeBlock.night:
+          return true;
+      }
+    }).toList();
   }
 }

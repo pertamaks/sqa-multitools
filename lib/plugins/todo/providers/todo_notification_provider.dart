@@ -54,18 +54,16 @@ class TodoNotification extends _$TodoNotification {
 
   /// Maps a DateTime to a TimeBlock based on the wake anchor
   TodoTimeBlock suggestTimeBlock(int wakeHour, int wakeMinute, DateTime time) {
-    final wakeTime = DateTime(time.year, time.month, time.day, wakeHour, wakeMinute);
     final hour = time.hour;
 
     if (hour >= 6 && hour < 9) return TodoTimeBlock.morning;
-    if (hour >= 9 && hour < 12) return TodoTimeBlock.morning; // Mid-morning is still morning in our enum
-    if (hour >= 12 && hour < 13) return TodoTimeBlock.noon;
-    if (hour >= 13 && hour < 17) return TodoTimeBlock.afternoon;
+    if (hour >= 9 && hour < 11) return TodoTimeBlock.midMorning;
+    if (hour >= 11 && hour < 13) return TodoTimeBlock.noon;
+    if (hour >= 13 && hour < 15) return TodoTimeBlock.afternoon;
+    if (hour >= 15 && hour < 17) return TodoTimeBlock.lateAfternoon;
     if (hour >= 17 && hour < 20) return TodoTimeBlock.evening;
-    return TodoTimeBlock.tonight;
-  }
-
-  void clearReminder() {
+    return TodoTimeBlock.night;
+  } void clearReminder() {
     state = false;
   }
 }

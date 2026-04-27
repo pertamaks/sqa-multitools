@@ -52,6 +52,7 @@ Modular plugin for SQA-Multitools utilizing the `SqaPlugin` interface.
 - **Style:** Standard SQA Unified Design System.
 - **Tabs:** "Today" and "History".
 - **Interaction:** `SqaModal` for editing, `SqaCard` for list items.
+- **Destructive Actions:** Confirmation via `SqaModal.showDanger` for all task deletions.
 - **Navigation:** Reuses `NavigationService` for `goBack()` functionality.
 
 ## 5. Non-Functional Requirements

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TodoItem {
 
- String get id; String get title; TodoTimeBlock get timeBlock; TodoDurationPreset get durationPreset; TodoPriority get priority; TodoStatus get status; String get category; String get notes; DateTime get createdAt; DateTime? get completedAt;
+ String get id; String get title; TodoTimeBlock get timeBlock; TodoDurationPreset get durationPreset; TodoPriority get priority; TodoStatus get status; String get category; String get notes; String get delegatedTo; DateTime get createdAt; DateTime? get completedAt; DateTime? get deferredUntil;
 /// Create a copy of TodoItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TodoItemCopyWith<TodoItem> get copyWith => _$TodoItemCopyWithImpl<TodoItem>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TodoItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.timeBlock, timeBlock) || other.timeBlock == timeBlock)&&(identical(other.durationPreset, durationPreset) || other.durationPreset == durationPreset)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.status, status) || other.status == status)&&(identical(other.category, category) || other.category == category)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TodoItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.timeBlock, timeBlock) || other.timeBlock == timeBlock)&&(identical(other.durationPreset, durationPreset) || other.durationPreset == durationPreset)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.status, status) || other.status == status)&&(identical(other.category, category) || other.category == category)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.delegatedTo, delegatedTo) || other.delegatedTo == delegatedTo)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.deferredUntil, deferredUntil) || other.deferredUntil == deferredUntil));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,timeBlock,durationPreset,priority,status,category,notes,createdAt,completedAt);
+int get hashCode => Object.hash(runtimeType,id,title,timeBlock,durationPreset,priority,status,category,notes,delegatedTo,createdAt,completedAt,deferredUntil);
 
 @override
 String toString() {
-  return 'TodoItem(id: $id, title: $title, timeBlock: $timeBlock, durationPreset: $durationPreset, priority: $priority, status: $status, category: $category, notes: $notes, createdAt: $createdAt, completedAt: $completedAt)';
+  return 'TodoItem(id: $id, title: $title, timeBlock: $timeBlock, durationPreset: $durationPreset, priority: $priority, status: $status, category: $category, notes: $notes, delegatedTo: $delegatedTo, createdAt: $createdAt, completedAt: $completedAt, deferredUntil: $deferredUntil)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TodoItemCopyWith<$Res>  {
   factory $TodoItemCopyWith(TodoItem value, $Res Function(TodoItem) _then) = _$TodoItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, TodoTimeBlock timeBlock, TodoDurationPreset durationPreset, TodoPriority priority, TodoStatus status, String category, String notes, DateTime createdAt, DateTime? completedAt
+ String id, String title, TodoTimeBlock timeBlock, TodoDurationPreset durationPreset, TodoPriority priority, TodoStatus status, String category, String notes, String delegatedTo, DateTime createdAt, DateTime? completedAt, DateTime? deferredUntil
 });
 
 
@@ -65,7 +65,7 @@ class _$TodoItemCopyWithImpl<$Res>
 
 /// Create a copy of TodoItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? timeBlock = null,Object? durationPreset = null,Object? priority = null,Object? status = null,Object? category = null,Object? notes = null,Object? createdAt = null,Object? completedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? timeBlock = null,Object? durationPreset = null,Object? priority = null,Object? status = null,Object? category = null,Object? notes = null,Object? delegatedTo = null,Object? createdAt = null,Object? completedAt = freezed,Object? deferredUntil = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -75,8 +75,10 @@ as TodoDurationPreset,priority: null == priority ? _self.priority : priority // 
 as TodoPriority,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as TodoStatus,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String,delegatedTo: null == delegatedTo ? _self.delegatedTo : delegatedTo // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,deferredUntil: freezed == deferredUntil ? _self.deferredUntil : deferredUntil // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  TodoTimeBlock timeBlock,  TodoDurationPreset durationPreset,  TodoPriority priority,  TodoStatus status,  String category,  String notes,  DateTime createdAt,  DateTime? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  TodoTimeBlock timeBlock,  TodoDurationPreset durationPreset,  TodoPriority priority,  TodoStatus status,  String category,  String notes,  String delegatedTo,  DateTime createdAt,  DateTime? completedAt,  DateTime? deferredUntil)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TodoItem() when $default != null:
-return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.priority,_that.status,_that.category,_that.notes,_that.createdAt,_that.completedAt);case _:
+return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.priority,_that.status,_that.category,_that.notes,_that.delegatedTo,_that.createdAt,_that.completedAt,_that.deferredUntil);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  TodoTimeBlock timeBlock,  TodoDurationPreset durationPreset,  TodoPriority priority,  TodoStatus status,  String category,  String notes,  DateTime createdAt,  DateTime? completedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  TodoTimeBlock timeBlock,  TodoDurationPreset durationPreset,  TodoPriority priority,  TodoStatus status,  String category,  String notes,  String delegatedTo,  DateTime createdAt,  DateTime? completedAt,  DateTime? deferredUntil)  $default,) {final _that = this;
 switch (_that) {
 case _TodoItem():
-return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.priority,_that.status,_that.category,_that.notes,_that.createdAt,_that.completedAt);case _:
+return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.priority,_that.status,_that.category,_that.notes,_that.delegatedTo,_that.createdAt,_that.completedAt,_that.deferredUntil);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  TodoTimeBlock timeBlock,  TodoDurationPreset durationPreset,  TodoPriority priority,  TodoStatus status,  String category,  String notes,  DateTime createdAt,  DateTime? completedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  TodoTimeBlock timeBlock,  TodoDurationPreset durationPreset,  TodoPriority priority,  TodoStatus status,  String category,  String notes,  String delegatedTo,  DateTime createdAt,  DateTime? completedAt,  DateTime? deferredUntil)?  $default,) {final _that = this;
 switch (_that) {
 case _TodoItem() when $default != null:
-return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.priority,_that.status,_that.category,_that.notes,_that.createdAt,_that.completedAt);case _:
+return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.priority,_that.status,_that.category,_that.notes,_that.delegatedTo,_that.createdAt,_that.completedAt,_that.deferredUntil);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.id,_that.title,_that.timeBlock,_that.durationPreset,_that.
 @JsonSerializable()
 
 class _TodoItem implements TodoItem {
-  const _TodoItem({required this.id, required this.title, this.timeBlock = TodoTimeBlock.current, this.durationPreset = TodoDurationPreset.min25, this.priority = TodoPriority.normal, this.status = TodoStatus.todo, this.category = '', this.notes = '', required this.createdAt, this.completedAt});
+  const _TodoItem({required this.id, required this.title, this.timeBlock = TodoTimeBlock.current, this.durationPreset = TodoDurationPreset.min25, this.priority = TodoPriority.normal, this.status = TodoStatus.todo, this.category = '', this.notes = '', this.delegatedTo = '', required this.createdAt, this.completedAt, this.deferredUntil});
   factory _TodoItem.fromJson(Map<String, dynamic> json) => _$TodoItemFromJson(json);
 
 @override final  String id;
@@ -229,8 +231,10 @@ class _TodoItem implements TodoItem {
 @override@JsonKey() final  TodoStatus status;
 @override@JsonKey() final  String category;
 @override@JsonKey() final  String notes;
+@override@JsonKey() final  String delegatedTo;
 @override final  DateTime createdAt;
 @override final  DateTime? completedAt;
+@override final  DateTime? deferredUntil;
 
 /// Create a copy of TodoItem
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TodoItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.timeBlock, timeBlock) || other.timeBlock == timeBlock)&&(identical(other.durationPreset, durationPreset) || other.durationPreset == durationPreset)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.status, status) || other.status == status)&&(identical(other.category, category) || other.category == category)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TodoItem&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.timeBlock, timeBlock) || other.timeBlock == timeBlock)&&(identical(other.durationPreset, durationPreset) || other.durationPreset == durationPreset)&&(identical(other.priority, priority) || other.priority == priority)&&(identical(other.status, status) || other.status == status)&&(identical(other.category, category) || other.category == category)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.delegatedTo, delegatedTo) || other.delegatedTo == delegatedTo)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt)&&(identical(other.deferredUntil, deferredUntil) || other.deferredUntil == deferredUntil));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,timeBlock,durationPreset,priority,status,category,notes,createdAt,completedAt);
+int get hashCode => Object.hash(runtimeType,id,title,timeBlock,durationPreset,priority,status,category,notes,delegatedTo,createdAt,completedAt,deferredUntil);
 
 @override
 String toString() {
-  return 'TodoItem(id: $id, title: $title, timeBlock: $timeBlock, durationPreset: $durationPreset, priority: $priority, status: $status, category: $category, notes: $notes, createdAt: $createdAt, completedAt: $completedAt)';
+  return 'TodoItem(id: $id, title: $title, timeBlock: $timeBlock, durationPreset: $durationPreset, priority: $priority, status: $status, category: $category, notes: $notes, delegatedTo: $delegatedTo, createdAt: $createdAt, completedAt: $completedAt, deferredUntil: $deferredUntil)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$TodoItemCopyWith<$Res> implements $TodoItemCopyWith<$Res>
   factory _$TodoItemCopyWith(_TodoItem value, $Res Function(_TodoItem) _then) = __$TodoItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, TodoTimeBlock timeBlock, TodoDurationPreset durationPreset, TodoPriority priority, TodoStatus status, String category, String notes, DateTime createdAt, DateTime? completedAt
+ String id, String title, TodoTimeBlock timeBlock, TodoDurationPreset durationPreset, TodoPriority priority, TodoStatus status, String category, String notes, String delegatedTo, DateTime createdAt, DateTime? completedAt, DateTime? deferredUntil
 });
 
 
@@ -282,7 +286,7 @@ class __$TodoItemCopyWithImpl<$Res>
 
 /// Create a copy of TodoItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? timeBlock = null,Object? durationPreset = null,Object? priority = null,Object? status = null,Object? category = null,Object? notes = null,Object? createdAt = null,Object? completedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? timeBlock = null,Object? durationPreset = null,Object? priority = null,Object? status = null,Object? category = null,Object? notes = null,Object? delegatedTo = null,Object? createdAt = null,Object? completedAt = freezed,Object? deferredUntil = freezed,}) {
   return _then(_TodoItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -292,8 +296,10 @@ as TodoDurationPreset,priority: null == priority ? _self.priority : priority // 
 as TodoPriority,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as TodoStatus,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String,delegatedTo: null == delegatedTo ? _self.delegatedTo : delegatedTo // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,deferredUntil: freezed == deferredUntil ? _self.deferredUntil : deferredUntil // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

@@ -83,6 +83,24 @@ class Todo extends _$Todo {
     await ref.read(todoStorageProvider).saveTodos(updatedTodos);
   }
 
+  Future<void> deferTodo(String id, DateTime until) async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    final List<TodoItem> updatedTodos = currentState.todos.map((t) {
+      if (t.id == id) {
+        return t.copyWith(
+          status: TodoStatus.deferred,
+          deferredUntil: until,
+        );
+      }
+      return t;
+    }).toList();
+
+    state = AsyncData(currentState.copyWith(todos: updatedTodos));
+    await ref.read(todoStorageProvider).saveTodos(updatedTodos);
+  }
+
   Future<void> deleteTodo(String id) async {
     final currentState = state.value;
     if (currentState == null) return;

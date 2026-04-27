@@ -41,7 +41,7 @@ final class TodoNotificationProvider
   }
 }
 
-String _$todoNotificationHash() => r'5a9d4b9f46bf55ff476bc10a6eb141a07c457a74';
+String _$todoNotificationHash() => r'5fe4d4f0814bedf2267fb71287636655821757dd';
 
 abstract class _$TodoNotification extends $Notifier<bool> {
   bool build();
@@ -105,4 +105,4 @@ final class TodoCyclesProvider
   }
 }
 
-String _$todoCyclesHash() => r'dc8412597671ad92bf7aee168324bc29f8300f0d';
+String _$todoCyclesHash() => r'9c32ebb717a631e553eebd1f2769ecaff8378c32';

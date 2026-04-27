@@ -35,6 +35,8 @@ class SqaField extends StatefulWidget {
     this.fontSize = 13.0,
     this.lineHeight = 1.5,
     this.gutterFontSize,
+    this.showSentenceCaseButton = false,
+    this.autofocus = false,
   });
 
   final String label;
@@ -63,9 +65,51 @@ class SqaField extends StatefulWidget {
   final double fontSize;
   final double lineHeight;
   final double? gutterFontSize;
+  final bool showSentenceCaseButton;
+  final bool autofocus;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
+
+  static String toSentenceCase(String text) {
+    if (text.isEmpty) return text;
+
+    // Split by sentence boundaries (., !, ?) followed by whitespace or end of string
+    final RegExp sentencePattern = RegExp(r'([^.!?]+[.!?]*\s*)');
+    final matches = sentencePattern.allMatches(text);
+
+    if (matches.isEmpty) {
+      // Just one sentence/word
+      return text[0].toUpperCase() + text.substring(1).toLowerCase();
+    }
+
+    String result = '';
+    for (final match in matches) {
+      final sentence = match.group(0)!;
+      if (sentence.trim().isEmpty) {
+        result += sentence;
+        continue;
+      }
+
+      // Find first letter
+      int firstLetterIdx = -1;
+      for (int i = 0; i < sentence.length; i++) {
+        if (RegExp(r'[a-zA-Z]').hasMatch(sentence[i])) {
+          firstLetterIdx = i;
+          break;
+        }
+      }
+
+      if (firstLetterIdx == -1) {
+        result += sentence;
+      } else {
+        result += sentence.substring(0, firstLetterIdx) +
+            sentence[firstLetterIdx].toUpperCase() +
+            sentence.substring(firstLetterIdx + 1).toLowerCase();
+      }
+    }
+    return result;
+  }
 }
 
 class _SqaFieldState extends State<SqaField> {
@@ -352,6 +396,7 @@ class _SqaFieldState extends State<SqaField> {
                             final textField = TextField(
                               controller: _internalController,
                               focusNode: _focusNode,
+                              autofocus: widget.autofocus,
                               readOnly: widget.readOnly,
                               onChanged: widget.onChanged,
                               scrollPhysics:
@@ -444,27 +489,44 @@ class _SqaFieldState extends State<SqaField> {
                     child: _buildExpansionFooter(theme),
                   ),
 
-                // 4. Sticky Copy Button
-                if (widget.showCopyButton)
+                // 4. Sticky Action Buttons
+                if (widget.showCopyButton || widget.showSentenceCaseButton)
                   ValueListenableBuilder<double>(
                     valueListenable: _stickyTopNotifier,
                     builder: (context, stickyTop, child) {
                       return Positioned(
                         top: stickyTop,
                         right: 4,
-                        child: child!,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.showSentenceCaseButton)
+                              SqaHoverIconButton(
+                                icon: Symbols.text_fields,
+                                onPressed: () {
+                                  final text = _internalController.text;
+                                  if (text.isEmpty) return;
+                                  final converted = SqaField.toSentenceCase(text);
+                                  _internalController.text = converted;
+                                  if (widget.onChanged != null) widget.onChanged!(converted);
+                                },
+                                tooltip: 'Convert to Sentence case',
+                              ),
+                            if (widget.showCopyButton)
+                              SqaHoverIconButton(
+                                icon: Symbols.content_copy,
+                                onPressed: () {
+                                  Clipboard.setData(
+                                    ClipboardData(text: _internalController.text),
+                                  );
+                                  SqaToast.show(context, 'Copied to clipboard');
+                                },
+                                tooltip: 'Copy to clipboard',
+                              ),
+                          ],
+                        ),
                       );
                     },
-                    child: SqaHoverIconButton(
-                      icon: Symbols.content_copy,
-                      onPressed: () {
-                        Clipboard.setData(
-                          ClipboardData(text: _internalController.text),
-                        );
-                        SqaToast.show(context, 'Copied to clipboard');
-                      },
-                      tooltip: 'Copy to clipboard',
-                    ),
                   ),
               ],
             ),

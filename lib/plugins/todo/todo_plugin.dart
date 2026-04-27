@@ -13,13 +13,13 @@ class TodoPlugin implements SqaPlugin {
   String get id => 'com.sqa.plugin.todo';
 
   @override
-  String get name => 'Todo List';
+  String get name => 'Focus Block';
 
   @override
   String get description => 'Task management with cognitive energy cycles.';
 
   @override
-  IconData get icon => Symbols.checklist;
+  IconData get icon => Symbols.blur_on;
 
   @override
   String? get badge => null;
@@ -104,7 +104,7 @@ class _TodoSettings extends ConsumerWidget {
                 SqaSettingsTile(
                   icon: Symbols.open_in_new,
                   title: 'Auto-Open on Reminder',
-                  subtitle: 'Jump to todo list when a block starts',
+                  subtitle: 'Jump to focus block list when a block starts',
                   trailing: SqaSwitch(
                     value: settings.autoOpenOnReminder,
                     onChanged: (v) => ref.read(todoSettingsProvider.notifier).updateSettings(

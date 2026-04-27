@@ -6,23 +6,43 @@ part 'todo_item.g.dart';
 enum TodoTimeBlock {
   current,
   morning,
+  midMorning,
   noon,
   afternoon,
+  lateAfternoon,
   evening,
-  tonight,
+  night,
 }
 
 extension TodoTimeBlockX on TodoTimeBlock {
-  String get displayName {
-    switch (this) {
-      case TodoTimeBlock.current: return 'Current';
-      case TodoTimeBlock.morning: return 'Morning';
-      case TodoTimeBlock.noon: return 'Noon';
-      case TodoTimeBlock.afternoon: return 'Afternoon';
-      case TodoTimeBlock.evening: return 'Evening';
-      case TodoTimeBlock.tonight: return 'Tonight';
+  String getDisplayName(bool use24Hour) {
+    if (use24Hour) {
+      switch (this) {
+        case TodoTimeBlock.current: return 'Current';
+        case TodoTimeBlock.morning: return 'Morning (06:00-09:00)';
+        case TodoTimeBlock.midMorning: return 'Mid Morning (09:00-11:00)';
+        case TodoTimeBlock.noon: return 'Noon (12:00)';
+        case TodoTimeBlock.afternoon: return 'Afternoon (13:00-15:00)';
+        case TodoTimeBlock.lateAfternoon: return 'Late Afternoon (15:00-17:00)';
+        case TodoTimeBlock.evening: return 'Evening (18:00-20:00)';
+        case TodoTimeBlock.night: return 'Night (20:00+)';
+      }
+    } else {
+      switch (this) {
+        case TodoTimeBlock.current: return 'Current';
+        case TodoTimeBlock.morning: return 'Morning (6-9 AM)';
+        case TodoTimeBlock.midMorning: return 'Mid Morning (9-11 AM)';
+        case TodoTimeBlock.noon: return 'Noon (12 PM)';
+        case TodoTimeBlock.afternoon: return 'Afternoon (1-3 PM)';
+        case TodoTimeBlock.lateAfternoon: return 'Late Afternoon (3-5 PM)';
+        case TodoTimeBlock.evening: return 'Evening (6-8 PM)';
+        case TodoTimeBlock.night: return 'Night (8 PM+)';
+      }
     }
   }
+
+  // Keep for legacy or default usage
+  String get displayName => getDisplayName(true);
 }
 
 enum TodoDurationPreset {
@@ -60,6 +80,8 @@ enum TodoStatus {
   todo,
   inProgress,
   done,
+  deferred,
+  delegated,
 }
 
 extension TodoStatusX on TodoStatus {
@@ -68,6 +90,8 @@ extension TodoStatusX on TodoStatus {
       case TodoStatus.todo: return 'Todo';
       case TodoStatus.inProgress: return 'In Progress';
       case TodoStatus.done: return 'Done';
+      case TodoStatus.deferred: return 'Deferred';
+      case TodoStatus.delegated: return 'Delegated';
     }
   }
 }
@@ -83,8 +107,10 @@ abstract class TodoItem with _$TodoItem {
     @Default(TodoStatus.todo) TodoStatus status,
     @Default('') String category,
     @Default('') String notes,
+    @Default('') String delegatedTo,
     required DateTime createdAt,
     DateTime? completedAt,
+    DateTime? deferredUntil,
   }) = _TodoItem;
 
   factory TodoItem.fromJson(Map<String, dynamic> json) => _$TodoItemFromJson(json);

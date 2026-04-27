@@ -14,6 +14,7 @@ _TodoSettings _$TodoSettingsFromJson(Map<String, dynamic> json) =>
       autoOpenOnReminder: json['autoOpenOnReminder'] as bool? ?? false,
       historyRetentionDays:
           (json['historyRetentionDays'] as num?)?.toInt() ?? 30,
+      use24HourFormat: json['use24HourFormat'] as bool? ?? true,
       lastWakeTimePromptDate: json['lastWakeTimePromptDate'] == null
           ? null
           : DateTime.parse(json['lastWakeTimePromptDate'] as String),
@@ -27,5 +28,6 @@ Map<String, dynamic> _$TodoSettingsToJson(
   'askWakeTimeDaily': instance.askWakeTimeDaily,
   'autoOpenOnReminder': instance.autoOpenOnReminder,
   'historyRetentionDays': instance.historyRetentionDays,
+  'use24HourFormat': instance.use24HourFormat,
   'lastWakeTimePromptDate': instance.lastWakeTimePromptDate?.toIso8601String(),
 };

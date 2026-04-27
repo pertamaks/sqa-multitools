@@ -26,10 +26,14 @@ _TodoItem _$TodoItemFromJson(Map<String, dynamic> json) => _TodoItem(
       TodoStatus.todo,
   category: json['category'] as String? ?? '',
   notes: json['notes'] as String? ?? '',
+  delegatedTo: json['delegatedTo'] as String? ?? '',
   createdAt: DateTime.parse(json['createdAt'] as String),
   completedAt: json['completedAt'] == null
       ? null
       : DateTime.parse(json['completedAt'] as String),
+  deferredUntil: json['deferredUntil'] == null
+      ? null
+      : DateTime.parse(json['deferredUntil'] as String),
 );
 
 Map<String, dynamic> _$TodoItemToJson(_TodoItem instance) => <String, dynamic>{
@@ -41,17 +45,21 @@ Map<String, dynamic> _$TodoItemToJson(_TodoItem instance) => <String, dynamic>{
   'status': _$TodoStatusEnumMap[instance.status]!,
   'category': instance.category,
   'notes': instance.notes,
+  'delegatedTo': instance.delegatedTo,
   'createdAt': instance.createdAt.toIso8601String(),
   'completedAt': instance.completedAt?.toIso8601String(),
+  'deferredUntil': instance.deferredUntil?.toIso8601String(),
 };
 
 const _$TodoTimeBlockEnumMap = {
   TodoTimeBlock.current: 'current',
   TodoTimeBlock.morning: 'morning',
+  TodoTimeBlock.midMorning: 'midMorning',
   TodoTimeBlock.noon: 'noon',
   TodoTimeBlock.afternoon: 'afternoon',
+  TodoTimeBlock.lateAfternoon: 'lateAfternoon',
   TodoTimeBlock.evening: 'evening',
-  TodoTimeBlock.tonight: 'tonight',
+  TodoTimeBlock.night: 'night',
 };
 
 const _$TodoDurationPresetEnumMap = {
@@ -73,4 +81,6 @@ const _$TodoStatusEnumMap = {
   TodoStatus.todo: 'todo',
   TodoStatus.inProgress: 'inProgress',
   TodoStatus.done: 'done',
+  TodoStatus.deferred: 'deferred',
+  TodoStatus.delegated: 'delegated',
 };

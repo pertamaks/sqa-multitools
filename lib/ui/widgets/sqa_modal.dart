@@ -154,6 +154,28 @@ class SqaModal<T> extends StatefulWidget {
     );
   }
 
+  /// Static helper to show a danger/destructive confirmation dialog.
+  static Future<bool?> showDanger(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String confirmLabel = 'Delete',
+    String cancelLabel = 'Cancel',
+    IconData icon = Symbols.delete,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => SqaModal<void>.confirm(
+        title: title,
+        message: message,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+        confirmColor: Theme.of(context).colorScheme.error,
+        icon: icon,
+      ),
+    );
+  }
+
   @override
   State<SqaModal<T>> createState() => _SqaModalState<T>();
 }

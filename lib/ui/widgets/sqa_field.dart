@@ -180,6 +180,7 @@ class _SqaFieldState extends State<SqaField> {
     super.initState();
     _internalController =
         widget.controller ?? TextEditingController(text: widget.initialValue);
+    _lastLineCount = _internalController.text.split('\n').length;
     _internalController.addListener(_onControllerChanged);
     _verticalScrollController = ScrollController();
     _gutterScrollController = ScrollController();
@@ -218,11 +219,27 @@ class _SqaFieldState extends State<SqaField> {
     super.dispose();
   }
 
+  int _lastLineCount = 0;
+
   void _onControllerChanged() {
+    final currentLineCount = _lineCount;
     if (widget.collapsedMaxLines != null) {
-      // Rebuild to update hidden line count footer
-      setState(() {});
+      // Auto-expand ONLY if the user is manually typing (adding 1 line at a time)
+      // If they paste a large block (delta > 1), we keep it collapsed for stability.
+      final lineDelta = currentLineCount - _lastLineCount;
+
+      if (_isFocused &&
+          !_isExpanded &&
+          lineDelta == 1 &&
+          currentLineCount > widget.collapsedMaxLines!) {
+        setState(() {
+          _isExpanded = true;
+        });
+      } else {
+        setState(() {});
+      }
     }
+    _lastLineCount = currentLineCount;
   }
 
   @override

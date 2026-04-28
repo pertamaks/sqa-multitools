@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../beautifier_plugin.dart';
+import '../widgets/beautifier_highlighter.dart';
 
 part 'beautifier_state.freezed.dart';
 

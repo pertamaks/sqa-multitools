@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sqa_plugin_header.dart';
 import 'sqa_tab_bar.dart';
-import 'sqa_fade_wrapper.dart';
 
 /// A standardized layout wrapper for all SQA plugins.
 ///
@@ -34,15 +33,8 @@ class SqaPluginLayout extends StatelessWidget {
     this.onBack,
     this.useMask = true,
   });
-
   @override
   Widget build(BuildContext context) {
-    Widget content = child;
-
-    if (useMask) {
-      content = SqaFadeWrapper(child: child);
-    }
-
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 800),
@@ -62,7 +54,7 @@ class SqaPluginLayout extends StatelessWidget {
             ),
             if (tabs != null && tabs!.isNotEmpty)
               SqaTabBar(tabs: tabs!, controller: tabController),
-            Expanded(child: content),
+            Expanded(child: child),
           ],
         ),
       ),

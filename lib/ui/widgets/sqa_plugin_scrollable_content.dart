@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_fade_wrapper.dart';
 
 /// A wrapper widget for plugin content that handles centering and scrolling.
 ///
@@ -55,10 +56,13 @@ class _SqaPluginScrollableContentState
 
         return Scrollbar(
           controller: _effectiveController,
-          child: SingleChildScrollView(
-            controller: _effectiveController,
-            padding: widget.padding,
-            child: content,
+          child: SqaFadeWrapper(
+            axis: Axis.vertical,
+            child: SingleChildScrollView(
+              controller: _effectiveController,
+              padding: widget.padding,
+              child: content,
+            ),
           ),
         );
       },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/todo_provider.dart';
+import '../providers/todo_notification_provider.dart';
 import '../models/todo_state.dart';
 import '../models/todo_item.dart';
 import 'widgets/todo_list_item.dart';
@@ -42,6 +43,7 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WakeTimePrompt.showIfNeeded(context, ref);
+      ref.read(todoNotificationProvider.notifier).clearReminder();
     });
   }
 

@@ -22,6 +22,9 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Stopwatch:** Count-up time tracking for testing intervals.
 - **Unix Timestamp:** Quick access to the current Unix Epoch time.
 - **Simple Counter:** Manual tracking for test cases or events.
+- **Background Persistence:** Tickers remain active when navigating away from the plugin or switching tabs via `keepAlive: true` providers.
+- **Audio Feedback:** Plays an alarm sound (`alarm.mp3`) upon timer completion.
+
 
 ### User Classes & Characteristics
 - **Standard User:** QA Engineers and Developers.
@@ -59,6 +62,8 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Processing**: Standard integer increment/decrement logic.
 - **Conditional Layout**: Reset button only appears when counter value is non-zero.
 - **Outputs**: Large format integer display (`displaySmall`).
+- **Safety**: Resetting the counter requires explicit confirmation via `SqaModal.showDanger`.
+
 
 ## 4. External Interface Requirements
 ### User Interface (UI)
@@ -70,6 +75,9 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Counter Tool**: Use a horizontal Row for `[-]` `0` `[+]` aligned centered.
 - **Layout**: Use `SqaPluginScrollableContent` to ensure all tabs (Clock, Timer, Unix, Counter) are vertically centered when the window is expanded.
 - **Actions**: Smart toggle buttons for "Start/Pause" and "Reset" using `SqaButton`.
+- **UI Architecture**: The plugin UI is modularized into dedicated tab view components: `ClockTabView`, `TimerTabView`, `UnixTabView`, and `CounterTabView`.
+- **Precision Centering**: Timer/Clock colons include vertical baseline compensation for perfect alignment.
+
 
 ### Hardware Interfaces
 - **Not implemented**.
@@ -85,7 +93,7 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - Accuracy: +/- 10ms.
 
 ### Safety & Security
-- **Not implemented**.
+- **Data Protection**: Resetting the counter or a running timer requires explicit confirmation via `SqaModal.showDanger` to prevent accidental data loss.
 
 ### Reliability
 - Time consistency: High.

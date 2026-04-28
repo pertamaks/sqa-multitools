@@ -129,7 +129,7 @@ final class TodoProvider extends $AsyncNotifierProvider<Todo, TodoState> {
   Todo create() => Todo();
 }
 
-String _$todoHash() => r'2fb5d6a0a42b48d927b493f4ab730b9444027ff5';
+String _$todoHash() => r'24ba2da38ec4790e4b449462322d14b8d4dd0920';
 
 abstract class _$Todo extends $AsyncNotifier<TodoState> {
   FutureOr<TodoState> build();

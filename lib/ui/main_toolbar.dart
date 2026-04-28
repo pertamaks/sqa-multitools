@@ -18,6 +18,8 @@ import 'widgets/sqa_inline_tooltip.dart';
 import '../plugins/todo/providers/todo_notification_provider.dart';
 import '../plugins/todo/providers/todo_provider.dart';
 import '../plugins/todo/models/todo_settings.dart';
+import '../plugins/timer/providers/timer_provider.dart';
+
 
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
@@ -136,7 +138,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     SqaPlugin settingsPlugin,
     int supporterTier,
     bool hasTodoReminder,
+    bool isTimerRunning,
   ) {
+
     return GestureDetector(
       onPanStart: (_) => windowManager.startDragging(),
       behavior: HitTestBehavior.opaque,
@@ -202,10 +206,12 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                                 plugin.name,
                                               ),
                                               isActive: isActive,
-                                              badge: _buildBadgeIcon(plugin, hasTodoReminder),
+                                              badge: _buildBadgeIcon(plugin, hasTodoReminder, isTimerRunning),
                                               badgeColor: _getBadgeColor(
                                                 plugin,
                                                 hasTodoReminder,
+                                                isTimerRunning,
+                                                colorScheme,
                                               ),
                                               onPressed: () =>
                                                   _togglePlugin(plugin),
@@ -270,15 +276,14 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
 
   // --- Helper Methods ---
 
-  Widget? _buildBadgeIcon(SqaPlugin plugin, bool hasTodoReminder) {
+  Widget? _buildBadgeIcon(SqaPlugin plugin, bool hasTodoReminder, bool isTimerRunning) {
     if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) {
-      return const Icon(
-        Symbols.notifications_active,
-        size: 10,
-        color: Colors.white,
-        weight: 700,
-      );
+      return const SizedBox.shrink();
     }
+    if (plugin.id == 'com.sqa.timer' && isTimerRunning) {
+      return const SizedBox.shrink();
+    }
+
     if (plugin.badge == 'BETA') {
       return const Icon(
         Symbols.labs,
@@ -309,8 +314,10 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     return null;
   }
 
-  Color? _getBadgeColor(SqaPlugin plugin, bool hasTodoReminder) {
-    if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) return Colors.red;
+  Color? _getBadgeColor(SqaPlugin plugin, bool hasTodoReminder, bool isTimerRunning, ColorScheme colorScheme) {
+    if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) return colorScheme.primary;
+    if (plugin.id == 'com.sqa.timer' && isTimerRunning) return colorScheme.primary;
+
     if (plugin.badge == 'BETA') return Colors.blue;
     if (plugin.badge == 'ALPHA') return Colors.amber;
     return null;
@@ -333,7 +340,10 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final settingsPlugin = ref.watch(settingsPluginProvider);
     final supporterTier = ref.watch(supporterTierProvider);
     final hasTodoReminder = ref.watch(todoNotificationProvider);
+    final timerState = ref.watch(timerProvider);
+    final isTimerRunning = timerState.isRunning;
     final colorScheme = Theme.of(context).colorScheme;
+
     final isScreenshotVisible = ref.watch(screenshotProvider).isOverlayVisible;
     final isRecorderVisible = ref
         .watch(screenRecorderProvider)
@@ -365,7 +375,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 settingsPlugin,
                 supporterTier,
                 hasTodoReminder,
+                isTimerRunning,
               ),
+
             ),
           if (!isOverlayActive &&
               supporterTier >= 3 &&
@@ -412,9 +424,12 @@ class ToolIcon extends ConsumerWidget {
     );
 
     if (badge != null) {
+      final isDot = badge is SizedBox;
       iconWidget = Badge(
-        label: badge!,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+        label: isDot ? null : badge!,
+        smallSize: 8,
+        largeSize: isDot ? 8 : 16,
+        padding: isDot ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
         offset: const Offset(4, -4),
         backgroundColor: badgeColor ?? colorScheme.primary,
         child: iconWidget,

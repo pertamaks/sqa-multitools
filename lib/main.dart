@@ -13,6 +13,7 @@ import 'plugins/screen_recorder/providers/screen_recorder_provider.dart';
 import 'plugins/screenshot/providers/screenshot_provider.dart';
 import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
+import 'ui/widgets/sqa_styles.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -168,6 +169,40 @@ class SqaMultitoolsApp extends ConsumerWidget {
               }),
               interactive: true,
             ),
+            datePickerTheme: DatePickerThemeData(
+              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              dayOverlayColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.hovered)) return lightScheme?.primary.withValues(alpha: 0.08);
+                if (states.contains(WidgetState.pressed)) return lightScheme?.primary.withValues(alpha: 0.12);
+                return null;
+              }),
+              headerHeadlineStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              headerHelpStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              dayStyle: const TextStyle(fontSize: 14),
+            ),
+            timePickerTheme: TimePickerThemeData(
+              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              hourMinuteShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+              dayPeriodShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+              hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return lightScheme!.primaryContainer;
+                return lightScheme!.surfaceContainerHigh;
+              }),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return lightScheme!.onPrimaryContainer;
+                return lightScheme!.onSurface;
+              }),
+              dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return lightScheme!.primary;
+                return Colors.transparent;
+              }),
+              dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return lightScheme!.onPrimary;
+                return lightScheme!.onSurfaceVariant;
+              }),
+              hourMinuteTextStyle: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              dayPeriodTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
           ),
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
@@ -195,6 +230,40 @@ class SqaMultitoolsApp extends ConsumerWidget {
                 return darkScheme?.primary.withValues(alpha: 0.5);
               }),
               interactive: true,
+            ),
+            datePickerTheme: DatePickerThemeData(
+              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              dayOverlayColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.hovered)) return darkScheme?.primary.withValues(alpha: 0.08);
+                if (states.contains(WidgetState.pressed)) return darkScheme?.primary.withValues(alpha: 0.12);
+                return null;
+              }),
+              headerHeadlineStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              headerHelpStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              dayStyle: const TextStyle(fontSize: 14),
+            ),
+            timePickerTheme: TimePickerThemeData(
+              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              hourMinuteShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+              dayPeriodShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+              hourMinuteColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return darkScheme!.primaryContainer;
+                return darkScheme!.surfaceContainerHigh;
+              }),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return darkScheme!.onPrimaryContainer;
+                return darkScheme!.onSurface;
+              }),
+              dayPeriodColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return darkScheme!.primary;
+                return Colors.transparent;
+              }),
+              dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return darkScheme!.onPrimary;
+                return darkScheme!.onSurfaceVariant;
+              }),
+              hourMinuteTextStyle: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              dayPeriodTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
           builder: (context, child) {

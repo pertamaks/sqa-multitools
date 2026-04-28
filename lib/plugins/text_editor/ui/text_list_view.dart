@@ -11,16 +11,36 @@ import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_field.dart';
+import '../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../ui/widgets/sqa_search_filter_bar.dart';
+import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
 
-class TextListView extends ConsumerWidget {
+enum TextListFilter { all, pinned, recent }
+
+class TextListView extends ConsumerStatefulWidget {
   const TextListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TextListView> createState() => _TextListViewState();
+}
+
+class _TextListViewState extends ConsumerState<TextListView> {
+  TextListFilter _selectedFilter = TextListFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(textEditorProvider);
-    final filteredDocs = ref.watch(filteredDocumentsProvider);
+    var filteredDocs = ref.watch(filteredDocumentsProvider);
+    
+    // Apply UI Filter
+    if (_selectedFilter == TextListFilter.pinned) {
+      filteredDocs = filteredDocs.where((d) => d.isPinned).toList();
+    } else if (_selectedFilter == TextListFilter.recent) {
+      filteredDocs = List.from(filteredDocs)..sort((a, b) => b.lastModified.compareTo(a.lastModified));
+    }
+
     final notifier = ref.read(textEditorProvider.notifier);
     final theme = Theme.of(context);
 
@@ -63,7 +83,7 @@ class TextListView extends ConsumerWidget {
             ? _buildEmptyState(context, notifier)
             : Column(
                 children: [
-                  _buildSearchBar(context, ref),
+                  _buildSearchBar(context),
                   const SizedBox(height: 16),
                   if (filteredDocs.isEmpty)
                     _buildNoResultsState(context)
@@ -130,28 +150,37 @@ class TextListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(textEditorProvider);
+  Widget _buildSearchBar(BuildContext context) {
     final notifier = ref.read(textEditorProvider.notifier);
 
-    return SqaField(
-      label: 'Search Documents',
-      showLabel: false,
-      hintText: 'Search by title or content...',
-      initialValue: state.searchQuery,
-      icon: Symbols.search,
-      onChanged: (value) => notifier.setSearchQuery(value),
-      isTransparent: false,
-      showCopyButton: false,
-      trailing: state.searchQuery.isNotEmpty
-          ? IconButton(
-              icon: const Icon(Symbols.close, size: 16),
-              onPressed: () => notifier.setSearchQuery(''),
-              tooltip: 'Clear search',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            )
-          : null,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: SqaSearchFilterBar(
+        hintText: 'Search documents...',
+        onChanged: (value) => notifier.setSearchQuery(value),
+        isFilterActive: _selectedFilter != TextListFilter.all,
+        filterOptions: Row(
+          children: [
+            Expanded(
+              child: SqaSegmentedButton<TextListFilter>(
+                stretches: true,
+                storageKey: 'text_list_filter',
+                segments: const [
+                  ButtonSegment(value: TextListFilter.all, label: Text('All')),
+                  ButtonSegment(value: TextListFilter.pinned, label: Text('Pinned')),
+                  ButtonSegment(value: TextListFilter.recent, label: Text('Recent')),
+                ],
+                selected: {_selectedFilter},
+                onSelectionChanged: (set) {
+                  setState(() {
+                    _selectedFilter = set.first;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -245,43 +274,25 @@ class TextListView extends ConsumerWidget {
   ) {
     final theme = Theme.of(context);
 
-    return MenuAnchor(
+    return SqaPopupMenu(
       alignmentOffset: const Offset(-100, 8),
-      style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
-        surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-        elevation: WidgetStateProperty.all(8.0),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: SqaStyles.radiusLarge,
-            side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-            ),
-          ),
+      tooltip: 'Actions',
+      icon: const Icon(Symbols.more_vert, size: 20),
+      children: [
+        SqaPopupMenuItem(
+          icon: const Icon(Symbols.edit),
+          label: 'Edit',
+          onPressed: () => notifier.openEditor(doc),
         ),
-      ),
-      menuChildren: [
-        _buildActionItem(
-          context,
-          'Edit',
-          Symbols.edit,
-          null,
-          () => notifier.openEditor(doc),
+        SqaPopupMenuItem(
+          icon: Icon(doc.isPinned ? Symbols.keep_off : Symbols.keep),
+          label: doc.isPinned ? 'Unpin from Top' : 'Pin to Top',
+          onPressed: () => notifier.togglePin(doc.id),
         ),
-        _buildActionItem(
-          context,
-          doc.isPinned ? 'Unpin from Top' : 'Pin to Top',
-          doc.isPinned ? Symbols.keep_off : Symbols.keep,
-          null,
-          () => notifier.togglePin(doc.id),
-        ),
-        _buildActionItem(
-          context,
-          'Copy Content',
-          Symbols.content_copy,
-          null,
-          () async {
+        SqaPopupMenuItem(
+          icon: const Icon(Symbols.content_copy),
+          label: 'Copy Content',
+          onPressed: () async {
             await notifier.copyContent(doc.content);
             if (!context.mounted) return;
             SqaToast.show(
@@ -291,74 +302,33 @@ class TextListView extends ConsumerWidget {
             );
           },
         ),
-        _buildActionItem(context, 'Delete', Symbols.delete, Colors.red, () async {
-          final confirm = await SqaModal.showConfirm(
-            context,
-            title: 'Delete Document',
-            message:
-                'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
-            confirmLabel: 'Delete',
-            confirmColor: theme.colorScheme.error,
-            icon: Symbols.delete_forever,
-          );
-          if (confirm == true) {
-            notifier.deleteDocument(doc.id);
-          }
-        }),
-      ],
-      builder: (context, controller, child) {
-        return IconButton(
-          icon: const Icon(Symbols.more_vert, size: 20),
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
+        Divider(
+          height: 1,
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+        SqaPopupMenuItem(
+          icon: const Icon(Symbols.delete),
+          label: 'Delete',
+          isDestructive: true,
+          onPressed: () async {
+            final confirm = await SqaModal.showConfirm(
+              context,
+              title: 'Delete Document',
+              message:
+                  'Are you sure you want to delete "${doc.name}"? This action cannot be undone.',
+              confirmLabel: 'Delete',
+              confirmColor: theme.colorScheme.error,
+              icon: Symbols.delete_forever,
+            );
+            if (confirm == true) {
+              notifier.deleteDocument(doc.id);
             }
           },
-          tooltip: 'Actions',
-          style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ),
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildActionItem(
-    BuildContext context,
-    String label,
-    IconData icon,
-    Color? color,
-    VoidCallback onPressed,
-  ) {
-    final theme = Theme.of(context);
-    final effectiveColor = color ?? theme.colorScheme.onSurface;
-
-    return MenuItemButton(
-      onPressed: onPressed,
-      style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: const Size(140, 36),
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: effectiveColor),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: effectiveColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildNewDocumentButton(
     BuildContext context,

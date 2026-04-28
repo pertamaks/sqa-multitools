@@ -54,7 +54,7 @@ final class FilteredDocumentsProvider
   }
 }
 
-String _$filteredDocumentsHash() => r'696dcd53ddccdf919ccc9bb842bf64c7ba242fb1';
+String _$filteredDocumentsHash() => r'cd73bf1cf0805281f843374e3f06096cfc4f25d1';
 
 @ProviderFor(TextEditor)
 final textEditorProvider = TextEditorProvider._();
@@ -88,7 +88,7 @@ final class TextEditorProvider
   }
 }
 
-String _$textEditorHash() => r'e8e9d8d26c2a80b993ec244634632007417066ee';
+String _$textEditorHash() => r'239ee76e6d6e631f60b5de00941ec92d1470382d';
 
 abstract class _$TextEditor extends $Notifier<TextEditorState> {
   TextEditorState build();

@@ -89,8 +89,8 @@ class _SecurityPayloadsViewState extends ConsumerState<_SecurityPayloadsView>
           title: 'Security Payloads',
           description: 'Educational lab for fuzzing and vulnerability testing.',
           tabs: const [
-            Tab(text: 'Web'),
-            Tab(text: 'System'),
+            Tab(text: 'Web', icon: Icon(Symbols.web)),
+            Tab(text: 'System', icon: Icon(Symbols.computer)),
           ],
           tabController: _tabController,
           child: TabBarView(

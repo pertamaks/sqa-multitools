@@ -12,6 +12,11 @@ class SqaSegmentedButton<T> extends StatefulWidget {
   final EdgeInsets? padding;
   final bool isChild;
   final bool hasChild;
+  final bool stretches;
+  final double fontSize;
+  final VisualDensity? visualDensity;
+  final String? storageKey;
+  final ScrollController? scrollController;
 
   const SqaSegmentedButton({
     super.key,
@@ -22,6 +27,11 @@ class SqaSegmentedButton<T> extends StatefulWidget {
     this.padding,
     this.isChild = false,
     this.hasChild = false,
+    this.stretches = true,
+    this.fontSize = 12,
+    this.visualDensity,
+    this.storageKey,
+    this.scrollController,
   });
 
   @override
@@ -29,11 +39,62 @@ class SqaSegmentedButton<T> extends StatefulWidget {
 }
 
 class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
+  late final bool _ownsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ownsController = widget.scrollController == null;
+    _scrollController = widget.scrollController ?? ScrollController();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToSelected();
+    });
+  }
+
+  @override
+  void didUpdateWidget(SqaSegmentedButton<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected != oldWidget.selected || widget.segments.length != oldWidget.segments.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToSelected();
+      });
+    }
+  }
+
+  void _scrollToSelected() {
+    if (!_scrollController.hasClients) return;
+    
+    final position = _scrollController.position;
+    if (position.maxScrollExtent <= 0) return;
+
+    if (widget.selected.isEmpty) return;
+    final selectedValue = widget.selected.first;
+    final index = widget.segments.indexWhere((s) => s.value == selectedValue);
+    if (index == -1) return;
+
+    final N = widget.segments.length;
+    final viewportDimension = position.viewportDimension;
+    final totalWidth = position.maxScrollExtent + viewportDimension;
+    
+    final buttonCenter = totalWidth * (index + 0.5) / N;
+    final targetOffset = buttonCenter - (viewportDimension / 2);
+    
+    final clampedOffset = targetOffset.clamp(0.0, position.maxScrollExtent);
+
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    if (_ownsController) {
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 
@@ -45,7 +106,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
     // We only use expandedInsets if the segments are few enough to fit on screen.
     // This prevents the "infinite width" crash in SingleChildScrollView and
     // ensures the edge-to-edge look for standard 2-3 segment controls.
-    final bool shouldStretch = widget.segments.length <= 3;
+    final bool shouldStretch = widget.stretches && widget.segments.length <= 3;
 
     final segmentedButton = SegmentedButton<T>(
       segments: widget.segments,
@@ -55,9 +116,9 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       expandedInsets: shouldStretch ? EdgeInsets.zero : null,
       style:
           SegmentedButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            textStyle: const TextStyle(
-              fontSize: 12,
+            visualDensity: widget.visualDensity ?? VisualDensity.compact,
+            textStyle: TextStyle(
+              fontSize: widget.fontSize,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -98,6 +159,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
               }
             },
             child: SingleChildScrollView(
+              key: widget.storageKey != null ? PageStorageKey<String>(widget.storageKey!) : null,
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               child: segmentedButton,

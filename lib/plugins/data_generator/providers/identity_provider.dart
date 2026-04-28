@@ -96,6 +96,9 @@ class Identity extends _$Identity {
         final bs = _faker.company.bs();
         result = '$name\n"$bs"';
         break;
+      case IdentityType.name:
+        result = _faker.name.fullName();
+        break;
     }
 
     return FakerFix.fix(result, includeExtension: state.includeExtension);

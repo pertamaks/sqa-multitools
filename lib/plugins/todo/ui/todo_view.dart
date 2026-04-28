@@ -98,6 +98,7 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
   Widget _buildTodayList(BuildContext context, TodoState state) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final theme = Theme.of(context);
     
     // Today view: Tasks created today OR incomplete tasks from the past
     // BUT excluding deferred tasks
@@ -158,7 +159,30 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
     });
 
     if (pending.isEmpty && completed.isEmpty && deferredTodos.isEmpty) {
-      return const Center(child: Text('No tasks for today. Time to rest?'));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Symbols.wb_sunny, size: 48, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              const SizedBox(height: 16),
+              Text(
+                'No focus created for today.',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add a new focus block to get started.',
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return SqaPluginScrollableContent(
@@ -191,13 +215,43 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
                   );
                 },
               ),
+            ] else if (timesUp.isEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+                  borderRadius: SqaStyles.radiusLarge,
+                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Symbols.verified, size: 48, color: theme.colorScheme.primary),
+                    const SizedBox(height: 16),
+                    Text(
+                      'All Caught Up!',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'You have completed all active focus blocks.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
             if (timesUp.isNotEmpty) ...[
               if (active.isNotEmpty) const SizedBox(height: 16),
               _buildTimesUpGroup(context, timesUp),
             ],
             if (completed.isNotEmpty) ...[
-              if (pending.isNotEmpty) const SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildCompletedGroup(context, completed),
             ],
             if (deferredTodos.isNotEmpty) ...[

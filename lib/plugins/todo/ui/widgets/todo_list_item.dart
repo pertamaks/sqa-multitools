@@ -20,6 +20,7 @@ class TodoListItem extends ConsumerStatefulWidget {
   final VoidCallback? onToggle;
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
+  final bool isReadOnly;
 
   const TodoListItem({
     super.key,
@@ -28,6 +29,7 @@ class TodoListItem extends ConsumerStatefulWidget {
     this.onToggle,
     this.onDelete,
     this.onTap,
+    this.isReadOnly = false,
   });
 
   @override
@@ -108,6 +110,27 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
     final endTime = widget.item.createdAt.add(Duration(minutes: duration));
     final isOverdueByTime = !isTerminal && !isDeferred && isToday && now.isAfter(endTime);
     final isCurrent = !isTerminal && !isDeferred && isToday && !isOverdueByTime && widget.item.timeBlock.isCurrent(now);
+    
+    String? completionBadgeText;
+
+    if (widget.isReadOnly && widget.item.completedAt != null) {
+      final timeStr = DateFormat('h:mm a').format(widget.item.completedAt!);
+      final lateDiff = widget.item.completedAt!.difference(endTime);
+      
+      if (lateDiff.isNegative) {
+        completionBadgeText = 'On Time · $timeStr';
+      } else {
+        String diffStr;
+        if (lateDiff.inDays > 0) {
+          diffStr = '+${lateDiff.inDays}d';
+        } else if (lateDiff.inHours > 0) {
+          diffStr = '+${lateDiff.inHours}hr';
+        } else {
+          diffStr = '+${lateDiff.inMinutes}m';
+        }
+        completionBadgeText = 'Completed Late ($diffStr) · $timeStr';
+      }
+    }
 
     return Stack(
       clipBehavior: Clip.none,
@@ -132,7 +155,9 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                   const SizedBox(width: 16),
                   Expanded(
                     child: InkWell(
-                      onTap: isOverdueByDay || widget.item.recurringTodoId != null ? null : widget.onTap,
+                      onTap: widget.isReadOnly 
+                          ? () => _showHistorySummaryModal(context)
+                          : (isOverdueByDay || widget.item.recurringTodoId != null ? null : widget.onTap),
                       borderRadius: BorderRadius.zero,
                       overlayColor: SqaStyles.buttonOverlay(context),
                       child: Padding(
@@ -152,7 +177,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                                   child: SqaSmartText(
                                     text: widget.displayIndex != null ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}' : widget.item.title,
                                     style: theme.textTheme.titleSmall?.copyWith(
-                                      decoration: isTerminal ? TextDecoration.lineThrough : null,
+                                      decoration: isTerminal && !widget.isReadOnly ? TextDecoration.lineThrough : null,
                                       color: isTerminal ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
                                       fontWeight: widget.displayIndex != null ? FontWeight.bold : null,
                                     ),
@@ -164,40 +189,34 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                                 (widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated) ||
                                 isOverdueByDay ||
                                 isDeferred ||
-                                isDelegated)
+                                isDelegated ||
+                                completionBadgeText != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
-                                child: Row(
+                                child: Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 4.0,
                                   children: [
-                                    if (isOverdueByDay)
-                                      Padding(
-                                        padding: const EdgeInsets.only(right: 8.0),
-                                        child: _buildBadge(
-                                          context,
-                                          'Overdue',
-                                          colorScheme.error.withValues(alpha: 0.1),
-                                          colorScheme.error,
-                                        ),
+                                    if (isOverdueByDay && !widget.isReadOnly)
+                                      _buildBadge(
+                                        context,
+                                        'Overdue',
+                                        colorScheme.error.withValues(alpha: 0.1),
+                                        colorScheme.error,
                                       ),
                                     if (isDeferred && widget.item.deferredUntil != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(right: 8.0),
-                                        child: _buildBadge(
-                                          context,
-                                          'Deferred: ${DateFormat('MMM d').format(widget.item.deferredUntil!)}',
-                                          colorScheme.surfaceContainerHighest,
-                                          colorScheme.onSurfaceVariant,
-                                        ),
+                                      _buildBadge(
+                                        context,
+                                        'Deferred: ${DateFormat('MMM d').format(widget.item.deferredUntil!)}',
+                                        colorScheme.surfaceContainerHighest,
+                                        colorScheme.onSurfaceVariant,
                                       ),
                                     if (isDelegated)
-                                      Padding(
-                                        padding: const EdgeInsets.only(right: 8.0),
-                                        child: _buildBadge(
-                                          context,
-                                          'Delegated to: ${widget.item.delegatedTo}',
-                                          colorScheme.primaryContainer.withValues(alpha: 0.2),
-                                          colorScheme.primary,
-                                        ),
+                                      _buildBadge(
+                                        context,
+                                        'Delegated to: ${widget.item.delegatedTo}',
+                                        colorScheme.primaryContainer.withValues(alpha: 0.2),
+                                        colorScheme.primary,
                                       ),
                                     if (widget.item.category.isNotEmpty)
                                       _buildBadge(
@@ -206,14 +225,19 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                                         colorScheme.primaryContainer,
                                         colorScheme.onPrimaryContainer,
                                       ),
-                                    if (widget.item.category.isNotEmpty && widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
-                                      const SizedBox(width: 8),
-                                    if (widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
+                                    if (!widget.isReadOnly && widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
                                       _buildBadge(
                                         context,
                                         widget.item.timeBlock.getDisplayName(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true),
                                         colorScheme.secondaryContainer,
                                         colorScheme.onSecondaryContainer,
+                                      ),
+                                    if (completionBadgeText != null)
+                                      _buildBadge(
+                                        context,
+                                        completionBadgeText!,
+                                        colorScheme.surfaceContainerHighest,
+                                        colorScheme.onSurfaceVariant,
                                       ),
                                   ],
                                 ),
@@ -223,7 +247,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                       ),
                     ),
                   ),
-                  if (widget.onDelete != null)
+                  if (widget.onDelete != null && !widget.isReadOnly)
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: SqaPopupMenu(
@@ -310,19 +334,34 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
       mainAxisSize: MainAxisSize.min,
       children: [
         if (isDelegated)
-          IconButton(
-            icon: Icon(
-              Symbols.person_add,
-              size: 22,
-              color: colorScheme.primary,
-            ),
-            onPressed: () => _showDelegateDialog(context, ref),
-            tooltip: 'Update Delegation',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
+          widget.isReadOnly 
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(Symbols.person_add, size: 22, color: colorScheme.primary),
+              )
+            : IconButton(
+                icon: Icon(
+                  Symbols.person_add,
+                  size: 22,
+                  color: colorScheme.primary,
+                ),
+                onPressed: () => _showDelegateDialog(context, ref),
+                tooltip: 'Update Delegation',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
         if (!isDeferred && !isDelegated) ...[
-          GestureDetector(
+          widget.isReadOnly
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  isTerminal ? Symbols.check_box : Symbols.check_box_outline_blank,
+                  size: 22,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  fill: isTerminal ? 1 : 0,
+                ),
+              )
+            : GestureDetector(
             onLongPress: isTerminal ? null : () {
               _incrementHelpCount(ref);
               _showNotesDialog(context, ref);
@@ -353,6 +392,130 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
           ),
         ],
       ],
+    );
+  }
+
+  void _showHistorySummaryModal(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final item = widget.item;
+
+    showDialog(
+      context: context,
+      builder: (context) => SqaModal<void>.custom(
+        title: 'Focus Summary',
+        icon: Symbols.history,
+        customActions: [
+          SqaButton(
+            label: 'Close',
+            onPressed: () => Navigator.pop(context),
+            type: SqaButtonType.primary,
+          ),
+        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSummaryRow(context, Symbols.info, 'Status', item.status.name.toUpperCase()),
+            _buildSummaryRow(
+              context, 
+              Symbols.calendar_today, 
+              'Created', 
+              DateFormat('MMM d, y • h:mm a').format(item.createdAt)
+            ),
+            if (item.timeBlock != TodoTimeBlock.current)
+              _buildSummaryRow(
+                context, 
+                Symbols.hourglass_empty, 
+                'Time Block', 
+                item.timeBlock.getDisplayName(ref.read(todoSettingsProvider).value?.use24HourFormat ?? true)
+              ),
+            if (item.completedAt != null)
+              _buildSummaryRow(
+                context, 
+                Symbols.check_circle, 
+                'Completed', 
+                DateFormat('MMM d, y • h:mm a').format(item.completedAt!)
+              ),
+            if (item.deferredUntil != null)
+              _buildSummaryRow(
+                context, 
+                Symbols.schedule, 
+                'Deferred Until', 
+                DateFormat('MMM d, y').format(item.deferredUntil!)
+              ),
+            if (item.delegatedTo != null && item.delegatedTo!.isNotEmpty)
+              _buildSummaryRow(context, Symbols.person, 'Delegated To', item.delegatedTo!),
+            
+            if (item.notes.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(height: 1, thickness: 0.5),
+              const SizedBox(height: 16),
+              Text(
+                'Notes',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: SqaStyles.radiusMedium,
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Text(
+                  item.notes,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(BuildContext context, IconData icon, String label, String value) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            '$label:',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

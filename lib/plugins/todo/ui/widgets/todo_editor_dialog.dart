@@ -259,27 +259,41 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   }
 
   List<TodoDurationPreset> _getAvailableDurations(TodoTimeBlock block) {
+    List<TodoDurationPreset> presets;
     switch (block) {
       case TodoTimeBlock.current:
-        return [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        break;
       case TodoTimeBlock.morning:
       case TodoTimeBlock.midMorning:
         // Peak cognitive performance
-        return [TodoDurationPreset.min25, TodoDurationPreset.min45, TodoDurationPreset.min90];
+        presets = [TodoDurationPreset.min25, TodoDurationPreset.min45, TodoDurationPreset.min90];
+        break;
       case TodoTimeBlock.noon:
         // Anchor point
-        return [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        break;
       case TodoTimeBlock.afternoon:
       case TodoTimeBlock.lateAfternoon:
         // Lighter tasks / Second wind
-        return [TodoDurationPreset.min25, TodoDurationPreset.min45];
+        presets = [TodoDurationPreset.min25, TodoDurationPreset.min45];
+        break;
       case TodoTimeBlock.evening:
         // Wind-down
-        return [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        break;
       case TodoTimeBlock.night:
         // Simple tasks only
-        return [TodoDurationPreset.min5, TodoDurationPreset.min15];
+        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15];
+        break;
     }
+    
+    // Always include the current selection to avoid dropdown element errors
+    if (!presets.contains(_durationPreset)) {
+      presets = [...presets, _durationPreset];
+      presets.sort((a, b) => _getDurationMinutes(a).compareTo(_getDurationMinutes(b)));
+    }
+    return presets;
   }
 
   int _getDurationMinutes(TodoDurationPreset p) {

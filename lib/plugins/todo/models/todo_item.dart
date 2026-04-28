@@ -148,6 +148,7 @@ abstract class TodoItem with _$TodoItem {
     required DateTime createdAt,
     DateTime? completedAt,
     DateTime? deferredUntil,
+    String? recurringTodoId,
   }) = _TodoItem;
 
   factory TodoItem.fromJson(Map<String, dynamic> json) => _$TodoItemFromJson(json);

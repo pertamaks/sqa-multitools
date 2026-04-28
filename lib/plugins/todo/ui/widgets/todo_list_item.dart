@@ -10,6 +10,7 @@ import '../../../../ui/widgets/sqa_button.dart';
 import '../../../../ui/widgets/sqa_field.dart';
 import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_date_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 
@@ -131,7 +132,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                   const SizedBox(width: 16),
                   Expanded(
                     child: InkWell(
-                      onTap: isOverdueByDay ? null : widget.onTap,
+                      onTap: isOverdueByDay || widget.item.recurringTodoId != null ? null : widget.onTap,
                       borderRadius: BorderRadius.zero,
                       overlayColor: SqaStyles.buttonOverlay(context),
                       child: Padding(
@@ -139,13 +140,25 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SqaSmartText(
-                              text: widget.displayIndex != null ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}' : widget.item.title,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                decoration: isTerminal ? TextDecoration.lineThrough : null,
-                                color: isTerminal ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
-                                fontWeight: widget.displayIndex != null ? FontWeight.bold : null,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (widget.item.recurringTodoId != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 6.0, top: 2.0),
+                                    child: Icon(Symbols.sync, size: 16, color: colorScheme.onSurfaceVariant),
+                                  ),
+                                Expanded(
+                                  child: SqaSmartText(
+                                    text: widget.displayIndex != null ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}' : widget.item.title,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      decoration: isTerminal ? TextDecoration.lineThrough : null,
+                                      color: isTerminal ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
+                                      fontWeight: widget.displayIndex != null ? FontWeight.bold : null,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             if (widget.item.category.isNotEmpty || 
                                 (widget.item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated) ||
@@ -221,32 +234,34 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
                           color: colorScheme.onSurfaceVariant,
                         ),
                         children: [
-                          if (!isOverdueByDay)
+                          if (widget.item.recurringTodoId == null) ...[
+                            if (!isOverdueByDay)
+                              SqaPopupMenuItem(
+                                icon: const Icon(Symbols.edit),
+                                label: 'Edit Focus',
+                                onPressed: widget.onTap,
+                              ),
                             SqaPopupMenuItem(
-                              icon: const Icon(Symbols.edit),
-                              label: 'Edit Focus',
-                              onPressed: widget.onTap,
+                              icon: Icon(isOverdueByDay ? Symbols.bolt : Symbols.schedule),
+                              label: isOverdueByDay ? 'Do Now' : 'Defer',
+                              onPressed: isOverdueByDay 
+                                ? () {
+                                    ref.read(todoProvider.notifier).updateTodo(
+                                      widget.item.copyWith(
+                                        createdAt: DateTime.now(),
+                                        timeBlock: TodoTimeBlock.current,
+                                        priority: TodoPriority.critical,
+                                      ),
+                                    );
+                                  }
+                                : () => _showDeferDialog(context, ref),
                             ),
-                          SqaPopupMenuItem(
-                            icon: Icon(isOverdueByDay ? Symbols.bolt : Symbols.schedule),
-                            label: isOverdueByDay ? 'Do Now' : 'Defer',
-                            onPressed: isOverdueByDay 
-                              ? () {
-                                  ref.read(todoProvider.notifier).updateTodo(
-                                    widget.item.copyWith(
-                                      createdAt: DateTime.now(),
-                                      timeBlock: TodoTimeBlock.current,
-                                      priority: TodoPriority.critical,
-                                    ),
-                                  );
-                                }
-                              : () => _showDeferDialog(context, ref),
-                          ),
-                          SqaPopupMenuItem(
-                            icon: const Icon(Symbols.person_add),
-                            label: 'Delegate',
-                            onPressed: () => _showDelegateDialog(context, ref),
-                          ),
+                            SqaPopupMenuItem(
+                              icon: const Icon(Symbols.person_add),
+                              label: 'Delegate',
+                              onPressed: () => _showDelegateDialog(context, ref),
+                            ),
+                          ],
                           SqaPopupMenuItem(
                             icon: const Icon(Symbols.report_problem),
                             label: 'Mark as Exception',
@@ -457,8 +472,26 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
     }
   }
 
+  int _getHourForTimeBlock(TodoTimeBlock block, int defaultHour) {
+    switch (block) {
+      case TodoTimeBlock.morning: return 6;
+      case TodoTimeBlock.midMorning: return 9;
+      case TodoTimeBlock.noon: return 11;
+      case TodoTimeBlock.afternoon: return 13;
+      case TodoTimeBlock.lateAfternoon: return 15;
+      case TodoTimeBlock.evening: return 17;
+      case TodoTimeBlock.night: return 20;
+      case TodoTimeBlock.current: return defaultHour;
+    }
+  }
+
   void _showDeferDialog(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
+    final is24h = ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
+    
+    final blockHour = _getHourForTimeBlock(widget.item.timeBlock, widget.item.createdAt.hour);
+    final blockMinute = widget.item.timeBlock == TodoTimeBlock.current ? widget.item.createdAt.minute : 0;
+    final blockDate = DateTime(now.year, now.month, now.day, blockHour, blockMinute);
 
     showDialog<void>(
       context: context,
@@ -471,10 +504,12 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
             _buildDeferOption(
               context,
               icon: Symbols.update,
-              title: 'Same Time Tomorrow',
-              subtitle: 'Tomorrow at ${DateFormat(ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true ? 'HH:mm' : 'h:mm a').format(widget.item.createdAt)}',
+              title: widget.item.timeBlock == TodoTimeBlock.current ? 'Same Time Tomorrow' : 'Same Time Block Tomorrow',
+              subtitle: widget.item.timeBlock == TodoTimeBlock.current 
+                  ? 'Tomorrow at ${DateFormat(is24h ? 'HH:mm' : 'h:mm a').format(blockDate)}'
+                  : 'Tomorrow, ${widget.item.timeBlock.getDisplayName(is24h)}',
               onTap: () {
-                final date = DateTime(now.year, now.month, now.day + 1, widget.item.createdAt.hour, widget.item.createdAt.minute);
+                final date = DateTime(now.year, now.month, now.day + 1, blockHour, blockMinute);
                 ref.read(todoProvider.notifier).deferTodo(widget.item.id, date);
                 Navigator.pop(context);
                 SqaToast.show(context, 'Focus deferred to tomorrow');
@@ -513,8 +548,8 @@ class _TodoListItemState extends ConsumerState<TodoListItem> with SingleTickerPr
               title: 'Pick a Day',
               subtitle: 'Select a custom date',
               onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
+                final picked = await SqaDatePicker.show(
+                  context,
                   initialDate: now.add(const Duration(days: 1)),
                   firstDate: now,
                   lastDate: now.add(const Duration(days: 365)),

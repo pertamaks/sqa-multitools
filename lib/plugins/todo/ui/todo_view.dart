@@ -8,6 +8,7 @@ import 'widgets/todo_editor_dialog.dart';
 import 'widgets/recurring_todo_editor_dialog.dart';
 import 'widgets/recurring_todo_item.dart';
 import 'widgets/wake_time_prompt.dart';
+import 'widgets/todo_history_view.dart';
 import '../../../core/providers/plugin_provider.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
@@ -514,45 +515,9 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
       return createdDate.isBefore(today) && t.status == TodoStatus.done;
     }).toList();
 
-    if (historyTodos.isEmpty) {
-      return const Center(child: Text('No history yet.'));
-    }
-
-    // Group by date
-    final Map<DateTime, List<TodoItem>> grouped = {};
-    for (final t in historyTodos) {
-      final date = DateTime(t.createdAt.year, t.createdAt.month, t.createdAt.day);
-      grouped.putIfAbsent(date, () => []).add(t);
-    }
-
-    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    return SqaPluginScrollableContent(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: sortedDates.map((date) {
-            final items = grouped[date]!;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Text(
-                    '${date.year}-${date.month}-${date.day}',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                ...items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: TodoListItem(item: item),
-                )),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: TodoHistoryView(historyTodos: historyTodos),
     );
   }
 

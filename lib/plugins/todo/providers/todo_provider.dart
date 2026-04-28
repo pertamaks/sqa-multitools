@@ -47,8 +47,93 @@ class Todo extends _$Todo {
       recurringTodos: recurringTodos,
     );
     
-    // 3. Sync recurring todos
-    return _syncRecurringTodos(initialState, settings);
+    // 3. Auto-complete past recurring todos
+    final autoCompleteState = _autoCompletePastRecurringTodos(initialState);
+
+    // 4. Sync recurring todos
+    final recurringSyncedState = _syncRecurringTodos(autoCompleteState, settings);
+    
+    // 5. Sync deferred todos
+    return _syncDeferredTodos(recurringSyncedState, settings);
+  }
+
+  TodoState _autoCompletePastRecurringTodos(TodoState currentState) {
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    
+    final List<TodoItem> updatedTodos = [];
+    bool changed = false;
+
+    for (final todo in currentState.todos) {
+      if (todo.recurringTodoId != null && 
+          todo.status != TodoStatus.done && 
+          todo.status != TodoStatus.delegated) {
+        
+        final createdAtDate = DateTime(todo.createdAt.year, todo.createdAt.month, todo.createdAt.day);
+        
+        // If it was created before today and is still pending, auto-complete it
+        if (createdAtDate.isBefore(today)) {
+          // Set completedAt to the end of its intended day so history stays accurate
+          final endOfDay = DateTime(todo.createdAt.year, todo.createdAt.month, todo.createdAt.day, 23, 59, 59);
+          
+          updatedTodos.add(todo.copyWith(
+            status: TodoStatus.done,
+            completedAt: endOfDay,
+          ));
+          changed = true;
+          continue;
+        }
+      }
+      updatedTodos.add(todo);
+    }
+
+    if (changed) {
+      ref.read(todoStorageProvider).saveTodos(updatedTodos);
+      return currentState.copyWith(todos: updatedTodos);
+    }
+    
+    return currentState;
+  }
+
+  TodoState _syncDeferredTodos(TodoState currentState, TodoSettings settings) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    final List<TodoItem> updatedTodos = [];
+    bool changed = false;
+
+    for (final todo in currentState.todos) {
+      if (todo.status == TodoStatus.deferred && todo.deferredUntil != null) {
+        final deferredDate = DateTime(todo.deferredUntil!.year, todo.deferredUntil!.month, todo.deferredUntil!.day);
+        
+        // If the deferred date is today or in the past, promote it back to the active block
+        if (deferredDate.isBefore(today) || deferredDate.isAtSameMomentAs(today)) {
+          
+          // Use the specific deferred time so it doesn't expire prematurely if scheduled for later today.
+          // If deferred via DatePicker (midnight), fallback to 'now'.
+          final bool isMidnight = todo.deferredUntil!.hour == 0 && todo.deferredUntil!.minute == 0;
+          final targetCreatedAt = isMidnight 
+              ? now 
+              : DateTime(now.year, now.month, now.day, todo.deferredUntil!.hour, todo.deferredUntil!.minute);
+
+          updatedTodos.add(todo.copyWith(
+            status: TodoStatus.todo,
+            deferredUntil: null,
+            createdAt: targetCreatedAt,
+            // Removed: timeBlock: TodoTimeBlock.current (so it retains its original time block like afternoon, evening, etc.)
+          ));
+          changed = true;
+          continue;
+        }
+      }
+      updatedTodos.add(todo);
+    }
+
+    if (changed) {
+      ref.read(todoStorageProvider).saveTodos(updatedTodos);
+      return currentState.copyWith(todos: updatedTodos);
+    }
+    
+    return currentState;
   }
 
   TodoState _syncRecurringTodos(TodoState currentState, TodoSettings settings) {
@@ -112,6 +197,7 @@ class Todo extends _$Todo {
           category: recurring.category,
           notes: recurring.notes,
           createdAt: DateTime(now.year, now.month, now.day, recurring.hour, recurring.minute),
+          recurringTodoId: recurring.id,
         );
         newTodos.add(newItem);
         updatedRecurring.add(recurring.copyWith(lastGeneratedDate: now));

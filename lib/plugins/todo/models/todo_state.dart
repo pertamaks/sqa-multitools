@@ -11,6 +11,13 @@ enum TodoTab {
   history,
 }
 
+enum HistoryFilter {
+  last7Days,
+  thisMonth,
+  lastMonth,
+  custom,
+}
+
 @freezed
 abstract class TodoState with _$TodoState {
   const factory TodoState({

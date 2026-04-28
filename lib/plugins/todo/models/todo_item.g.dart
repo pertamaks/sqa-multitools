@@ -34,6 +34,7 @@ _TodoItem _$TodoItemFromJson(Map<String, dynamic> json) => _TodoItem(
   deferredUntil: json['deferredUntil'] == null
       ? null
       : DateTime.parse(json['deferredUntil'] as String),
+  recurringTodoId: json['recurringTodoId'] as String?,
 );
 
 Map<String, dynamic> _$TodoItemToJson(_TodoItem instance) => <String, dynamic>{
@@ -49,6 +50,7 @@ Map<String, dynamic> _$TodoItemToJson(_TodoItem instance) => <String, dynamic>{
   'createdAt': instance.createdAt.toIso8601String(),
   'completedAt': instance.completedAt?.toIso8601String(),
   'deferredUntil': instance.deferredUntil?.toIso8601String(),
+  'recurringTodoId': instance.recurringTodoId,
 };
 
 const _$TodoTimeBlockEnumMap = {

@@ -79,7 +79,7 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
       trailing: _tabController.index == 2
           ? null
           : SqaButton(
-              label: _tabController.index == 1 ? 'Add Recurring' : 'Add Focus',
+              label: _tabController.index == 1 ? 'Recurring' : 'Focus',
               icon: Symbols.add,
               onPressed: () => _showAddTodoDialog(context),
               type: SqaButtonType.primary,

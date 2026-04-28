@@ -21,9 +21,17 @@ class TodoHistoryView extends ConsumerStatefulWidget {
 }
 
 class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
+  final ScrollController _filterScrollController = ScrollController();
+  
   String _searchQuery = '';
   HistoryFilter _selectedFilter = HistoryFilter.last7Days;
   DateTimeRange? _customDateRange;
+
+  @override
+  void dispose() {
+    _filterScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +96,8 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                 Expanded(
                   child: SqaSegmentedButton<HistoryFilter>(
                     stretches: true,
+                    storageKey: 'todo_history_filter',
+                    scrollController: _filterScrollController,
                     segments: const [
                       ButtonSegment(value: HistoryFilter.last7Days, label: Text('Last 7 Days')),
                       ButtonSegment(value: HistoryFilter.thisMonth, label: Text('This Month')),

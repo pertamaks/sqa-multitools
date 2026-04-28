@@ -12,16 +12,35 @@ import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../ui/widgets/sqa_search_filter_bar.dart';
+import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
 
-class TextListView extends ConsumerWidget {
+enum TextListFilter { all, pinned, recent }
+
+class TextListView extends ConsumerStatefulWidget {
   const TextListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TextListView> createState() => _TextListViewState();
+}
+
+class _TextListViewState extends ConsumerState<TextListView> {
+  TextListFilter _selectedFilter = TextListFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(textEditorProvider);
-    final filteredDocs = ref.watch(filteredDocumentsProvider);
+    var filteredDocs = ref.watch(filteredDocumentsProvider);
+    
+    // Apply UI Filter
+    if (_selectedFilter == TextListFilter.pinned) {
+      filteredDocs = filteredDocs.where((d) => d.isPinned).toList();
+    } else if (_selectedFilter == TextListFilter.recent) {
+      filteredDocs = List.from(filteredDocs)..sort((a, b) => b.lastModified.compareTo(a.lastModified));
+    }
+
     final notifier = ref.read(textEditorProvider.notifier);
     final theme = Theme.of(context);
 
@@ -64,7 +83,7 @@ class TextListView extends ConsumerWidget {
             ? _buildEmptyState(context, notifier)
             : Column(
                 children: [
-                  _buildSearchBar(context, ref),
+                  _buildSearchBar(context),
                   const SizedBox(height: 16),
                   if (filteredDocs.isEmpty)
                     _buildNoResultsState(context)
@@ -131,28 +150,37 @@ class TextListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(textEditorProvider);
+  Widget _buildSearchBar(BuildContext context) {
     final notifier = ref.read(textEditorProvider.notifier);
 
-    return SqaField(
-      label: 'Search Documents',
-      showLabel: false,
-      hintText: 'Search by title or content...',
-      initialValue: state.searchQuery,
-      icon: Symbols.search,
-      onChanged: (value) => notifier.setSearchQuery(value),
-      isTransparent: false,
-      showCopyButton: false,
-      trailing: state.searchQuery.isNotEmpty
-          ? IconButton(
-              icon: const Icon(Symbols.close, size: 16),
-              onPressed: () => notifier.setSearchQuery(''),
-              tooltip: 'Clear search',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            )
-          : null,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: SqaSearchFilterBar(
+        hintText: 'Search documents...',
+        onChanged: (value) => notifier.setSearchQuery(value),
+        isFilterActive: _selectedFilter != TextListFilter.all,
+        filterOptions: Row(
+          children: [
+            Expanded(
+              child: SqaSegmentedButton<TextListFilter>(
+                stretches: true,
+                storageKey: 'text_list_filter',
+                segments: const [
+                  ButtonSegment(value: TextListFilter.all, label: Text('All')),
+                  ButtonSegment(value: TextListFilter.pinned, label: Text('Pinned')),
+                  ButtonSegment(value: TextListFilter.recent, label: Text('Recent')),
+                ],
+                selected: {_selectedFilter},
+                onSelectionChanged: (set) {
+                  setState(() {
+                    _selectedFilter = set.first;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

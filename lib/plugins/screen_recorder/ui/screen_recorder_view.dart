@@ -310,6 +310,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                 notifier.validateNewName(name, info),
                             onOpen: () =>
                                 Process.start('explorer.exe', [info.file.path]),
+                            onOpenFolder: () => notifier.openSaveDirectory(),
                           ),
                           if (!isLast) const Divider(height: 1, indent: 56),
                         ],

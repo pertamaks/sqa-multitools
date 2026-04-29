@@ -329,7 +329,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // Construct save path
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir/SQA_Recordings');
+    final saveDir = Directory('$dir\\SQA_Recordings');
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final filename =
@@ -406,7 +406,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
     if (!ref.mounted) return;
-    final saveDir = Directory('$dir/SQA_Recordings');
+    final saveDir = Directory('$dir\\SQA_Recordings');
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
       state = state.copyWith(recentRecordings: []);
@@ -508,7 +508,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Future<void> openSaveDirectory() async {
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir/SQA_Recordings');
+    final saveDir = Directory('$dir\\SQA_Recordings');
 
     // fallback to root dir if subfolder doesn't exist yet
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);

@@ -46,6 +46,14 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Color Selection:** A palette or picker to choose annotation colors.
 - **Interactivity:** Real-time feedback during drawing.
 
+### Screenshot Hub
+- **Description**: Centralized dashboard to configure and trigger captures, and manage recent files.
+- **Recent Captures**: A list of the latest screenshots allowing for:
+    - **Playback**: Immediate preview or "Open File" action.
+    - **Renaming**: Standardized **SqaModal.showPrompt** for safe file renaming with real-time character validation and duplicate checking.
+    - **Deletion**: Protected by **SqaModal.showDanger** confirmation prompt.
+    - **Action Management**: Secondary actions are consolidated into a **SqaPopupMenu** to maintain a consistent UI standard across plugins.
+
 ## 4. External Interface Requirements
 ### User Interfaces (UI)
 - **Style:** Material 3 capture interface/overlay.

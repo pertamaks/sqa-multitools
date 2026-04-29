@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'widgets/text_editor_toolbar.dart';
+import 'widgets/text_editor_link_menu.dart';
+import 'widgets/text_editor_save_status.dart';
+import 'widgets/table_block_builder.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
-import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_toast.dart';
@@ -31,11 +35,8 @@ import 'widgets/sqa_span_inline_syntax.dart';
 import 'widgets/list_node_encoder_parsers.dart';
 import 'widgets/image_block_builder.dart';
 import 'widgets/image_node_encoder_parser.dart';
-import 'widgets/sqa_block_component_wrapper.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import '../../clipboard/utils/clipboard_extensions.dart';
-import '../../../ui/widgets/sqa_color_picker.dart';
 
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
@@ -717,13 +718,6 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     });
   }
 
-  void _toggleAttribute(String key) {
-    _editorState.toggleAttribute(key);
-    if (!_isDisposed && mounted) {
-      _formattingNotifier.value++;
-    }
-  }
-
   void _onTitleFocusChange() {
     if (_isDisposed || !mounted) return;
     if (!_titleFocusNode.hasFocus && _isEditingTitle) {
@@ -740,14 +734,12 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   Future<void> _handleBack() async {
     final hasUnsavedChanges = ref.read(textEditorProvider).hasUnsavedChanges;
     if (hasUnsavedChanges) {
-      final confirm = await SqaModal.showConfirm(
+      final confirm = await SqaModal.showDanger(
         context,
         title: 'Discard Changes?',
         message:
             'You have unsaved changes. Are you sure you want to discard them?',
         confirmLabel: 'Discard',
-        confirmColor: Theme.of(context).colorScheme.error,
-        icon: Symbols.warning,
       );
       if (confirm != true) return;
     }
@@ -881,7 +873,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // 1. Status Indicator (Always visible, changes color)
-          _buildSaveStatus(context, state),
+          TextEditorSaveStatus(state: state),
           const SizedBox(width: 4),
           // 2. Manual Save Button
           SqaHoverIconButton(
@@ -1005,434 +997,16 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
               ),
             ),
           ),
-          _buildFloatingToolbar(context),
-          const Positioned(
-            bottom: 4,
-            right: 4,
-            child: SqaWindowSizeToggle(),
+          TextEditorToolbar(
+            editorState: _editorState,
+            formattingNotifier: _formattingNotifier,
+            onShowLinkMenu: _showLinkMenuAtSelection,
+            exportToMarkdown: _exportToMarkdown,
+            isAttributeToggled: _isAttributeToggled,
+            isLinkMenuOpen: _linkMenuController.isOpen,
           ),
+          const Positioned(bottom: 4, right: 4, child: SqaWindowSizeToggle()),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSaveStatus(BuildContext context, TextEditorState state) {
-    final theme = Theme.of(context);
-    final hasUnsavedChanges = state.hasUnsavedChanges;
-    final isSaving = state.isSaving;
-
-    // Logic:
-    // - Colored check ONLY if NOT dirty AND NOT saving
-    final bool isSaved = !hasUnsavedChanges && !isSaving;
-
-    return Tooltip(
-      message: isSaved
-          ? 'All changes saved'
-          : (isSaving ? 'Saving...' : 'Unsaved changes'),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Icon(
-          Symbols.check_circle,
-          size: 20,
-          color: isSaved
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingToolbar(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final barWidth = (screenWidth - 140).clamp(0.0, 800.0);
-
-    return Positioned(
-      bottom: 24,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: barWidth),
-          child: ListenableBuilder(
-            listenable: Listenable.merge([
-              _editorState.selectionNotifier,
-              _formattingNotifier,
-            ]),
-            builder: (context, _) {
-              return SqaFloatingBar(
-                children: [
-                  // Group 1: History
-                  SqaFloatingBarButton(
-                    icon: Symbols.undo,
-                    tooltip: 'Undo',
-                    onPressed: _editorState.undoManager.undoStack.isNonEmpty
-                        ? () => _editorState.undoManager.undo()
-                        : null,
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.redo,
-                    tooltip: 'Redo',
-                    onPressed: _editorState.undoManager.redoStack.isNonEmpty
-                        ? () => _editorState.undoManager.redo()
-                        : null,
-                  ),
-                  const SqaFloatingBarDivider(),
-
-                  // Group 2: Block Identity (Action-First)
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_h1,
-                    tooltip: 'Heading 1',
-                    onPressed: () => _editorState.formatNode(
-                      _editorState.selection,
-                      (node) => node.copyWith(
-                        type: HeadingBlockKeys.type,
-                        attributes: {
-                          HeadingBlockKeys.level: 1,
-                          HeadingBlockKeys.delta: node.delta?.toJson() ?? [],
-                        },
-                      ),
-                    ),
-                    secondaryActions: [
-                      SqaFloatingSubAction(
-                        icon: Symbols.format_h2,
-                        tooltip: 'Heading 2',
-                        onPressed: () => _editorState.formatNode(
-                          _editorState.selection,
-                          (node) => node.copyWith(
-                            type: HeadingBlockKeys.type,
-                            attributes: {
-                              HeadingBlockKeys.level: 2,
-                              HeadingBlockKeys.delta:
-                                  node.delta?.toJson() ?? [],
-                            },
-                          ),
-                        ),
-                      ),
-                      SqaFloatingSubAction(
-                        icon: Symbols.format_h3,
-                        tooltip: 'Heading 3',
-                        onPressed: () => _editorState.formatNode(
-                          _editorState.selection,
-                          (node) => node.copyWith(
-                            type: HeadingBlockKeys.type,
-                            attributes: {
-                              HeadingBlockKeys.level: 3,
-                              HeadingBlockKeys.delta:
-                                  node.delta?.toJson() ?? [],
-                            },
-                          ),
-                        ),
-                      ),
-                      SqaFloatingSubAction(
-                        icon: Symbols.text_fields,
-                        tooltip: 'Standard Text',
-                        onPressed: () => _editorState.formatNode(
-                          _editorState.selection,
-                          (node) => node.copyWith(
-                            type: ParagraphBlockKeys.type,
-                            attributes: {
-                              ParagraphBlockKeys.delta:
-                                  node.delta?.toJson() ?? [],
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_quote,
-                    tooltip: 'Quote',
-                    onPressed: () => _editorState.formatNode(
-                      _editorState.selection,
-                      (node) => node.copyWith(
-                        type: QuoteBlockKeys.type,
-                        attributes: {
-                          QuoteBlockKeys.delta: node.delta?.toJson() ?? [],
-                        },
-                      ),
-                    ),
-                  ),
-                  const SqaFloatingBarDivider(),
-
-                  // Group 3: Typography
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_bold,
-                    tooltip: 'Bold',
-                    isSelected: _isAttributeToggled(AppFlowyRichTextKeys.bold),
-                    onPressed: () =>
-                        _toggleAttribute(AppFlowyRichTextKeys.bold),
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_italic,
-                    tooltip: 'Italic',
-                    isSelected: _isAttributeToggled(
-                      AppFlowyRichTextKeys.italic,
-                    ),
-                    onPressed: () =>
-                        _toggleAttribute(AppFlowyRichTextKeys.italic),
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_underlined,
-                    tooltip: 'Underline',
-                    isSelected: _isAttributeToggled(
-                      AppFlowyRichTextKeys.underline,
-                    ),
-                    onPressed: () =>
-                        _toggleAttribute(AppFlowyRichTextKeys.underline),
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_strikethrough,
-                    tooltip: 'Strikethrough',
-                    isSelected: _isAttributeToggled(
-                      AppFlowyRichTextKeys.strikethrough,
-                    ),
-                    onPressed: () =>
-                        _toggleAttribute(AppFlowyRichTextKeys.strikethrough),
-                  ),
-                  const SqaFloatingBarDivider(),
-
-                  // Group 4: Colors
-                  SqaColorPicker(
-                    activeColor:
-                        _editorState
-                                .getDeltaAttributesInSelectionStart()?[AppFlowyRichTextKeys
-                                .textColor]
-                            as String?,
-                    onColorSelected: (color) {
-                      final selection = _editorState.selection;
-                      if (selection != null) {
-                        _editorState.formatDelta(selection, {
-                          AppFlowyRichTextKeys.textColor: color,
-                        });
-                        if (!_isDisposed && mounted) {
-                          _formattingNotifier.value++;
-                        }
-                      }
-                    },
-                    child: SqaFloatingBarButton(
-                      icon: Symbols.format_color_text,
-                      tooltip: 'Text Color',
-                      isSelected: _isAttributeToggled(
-                        AppFlowyRichTextKeys.textColor,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
-                  SqaColorPicker(
-                    isBackground: true,
-                    activeColor:
-                        _editorState
-                                .getDeltaAttributesInSelectionStart()?[AppFlowyRichTextKeys
-                                .backgroundColor]
-                            as String?,
-                    onColorSelected: (color) {
-                      final selection = _editorState.selection;
-                      if (selection != null) {
-                        _editorState.formatDelta(selection, {
-                          AppFlowyRichTextKeys.backgroundColor: color,
-                        });
-                        if (!_isDisposed && mounted) {
-                          _formattingNotifier.value++;
-                        }
-                      }
-                    },
-                    child: SqaFloatingBarButton(
-                      icon: Symbols.format_color_fill,
-                      tooltip: 'Highlight Color',
-                      isSelected: _isAttributeToggled(
-                        AppFlowyRichTextKeys.backgroundColor,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
-                  const SqaFloatingBarDivider(),
-
-                  // Group 4: Lists (Action-First)
-                  SqaFloatingBarButton(
-                    icon: Symbols.format_list_bulleted,
-                    tooltip: 'Bulleted List',
-                    onPressed: () => _editorState.formatNode(
-                      _editorState.selection,
-                      (node) => node.copyWith(
-                        type: BulletedListBlockKeys.type,
-                        attributes: {
-                          BulletedListBlockKeys.delta:
-                              node.delta?.toJson() ?? [],
-                        },
-                      ),
-                    ),
-                    secondaryActions: [
-                      SqaFloatingSubAction(
-                        icon: Symbols.format_list_numbered,
-                        tooltip: 'Numbered List',
-                        onPressed: () => _editorState.formatNode(
-                          _editorState.selection,
-                          (node) => node.copyWith(
-                            type: NumberedListBlockKeys.type,
-                            attributes: {
-                              NumberedListBlockKeys.delta:
-                                  node.delta?.toJson() ?? [],
-                              NumberedListBlockKeys.number: 1,
-                            },
-                          ),
-                        ),
-                      ),
-                      SqaFloatingSubAction(
-                        icon: Symbols.checklist,
-                        tooltip: 'Todo List',
-                        onPressed: () => _editorState.formatNode(
-                          _editorState.selection,
-                          (node) => node.copyWith(
-                            type: TodoListBlockKeys.type,
-                            attributes: {
-                              TodoListBlockKeys.delta:
-                                  node.delta?.toJson() ?? [],
-                              TodoListBlockKeys.checked: false,
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SqaFloatingBarDivider(),
-
-                  // Group 5: Layout & Objects
-                  SqaFloatingBarButton(
-                    icon: Symbols.code_blocks,
-                    tooltip: 'Code Block',
-                    isSelected:
-                        _editorState.selection != null &&
-                        _editorState
-                            .getNodesInSelection(_editorState.selection!)
-                            .any((n) => n.type == 'code'),
-                    onPressed: () {
-                      final selection = _editorState.selection;
-                      if (selection == null) return;
-
-                      final nodes = _editorState.getNodesInSelection(selection);
-                      final isCodeBlock = nodes.any((n) => n.type == 'code');
-
-                      if (isCodeBlock) {
-                        _editorState.formatNode(
-                          selection,
-                          (node) => node.copyWith(
-                            type: ParagraphBlockKeys.type,
-                            attributes: {
-                              ParagraphBlockKeys.delta:
-                                  node.delta?.toJson() ?? [],
-                            },
-                          ),
-                        );
-                      } else {
-                        _editorState.formatNode(
-                          selection,
-                          (node) => node.copyWith(
-                            type: 'code',
-                            attributes: {
-                              'delta': node.delta?.toJson() ?? [],
-                              'language': 'javascript', // Default
-                            },
-                          ),
-                        );
-                      }
-                    },
-                    secondaryActions: [
-                      SqaFloatingSubAction(
-                        icon: Symbols.code,
-                        tooltip: 'Inline Code',
-                        onPressed: () => _editorState.toggleAttribute(
-                          AppFlowyRichTextKeys.code,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.link,
-                    tooltip: 'Hyperlink',
-                    isSelected:
-                        _isAttributeToggled(AppFlowyRichTextKeys.href) ||
-                        _linkMenuController.isOpen,
-                    onPressed: _showLinkMenuAtSelection,
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.table_chart,
-                    tooltip: 'Insert Table',
-                    onPressed: () {
-                      final selection = _editorState.selection;
-                      if (selection != null) {
-                        final transaction = _editorState.transaction;
-                        final table = TableNode.fromList([
-                          ['', ''],
-                          ['', ''],
-                          ['', ''],
-                        ]);
-                        transaction.insertNode(selection.end.path, table.node);
-                        _editorState.apply(transaction);
-                      }
-                    },
-                  ),
-                  SqaFloatingBarButton(
-                    icon: Symbols.image,
-                    tooltip: 'Insert Image',
-                    onPressed: () async {
-                      final selection = _editorState.selection;
-                      if (selection == null) return;
-
-                      if (_isSelectionInTable()) {
-                        _showTableImageBlockMessage();
-                        return;
-                      }
-
-                      const XTypeGroup typeGroup = XTypeGroup(
-                        label: 'images',
-                        extensions: <String>['jpg', 'png', 'jpeg', 'gif'],
-                      );
-                      final XFile? file = await openFile(
-                        acceptedTypeGroups: <XTypeGroup>[typeGroup],
-                      );
-
-                      if (file != null) {
-                        final storageNotifier = ref.read(
-                          textEditorProvider.notifier,
-                        );
-                        final relativePath = await storageNotifier
-                            .saveImageAttachment(file.path);
-
-                        final transaction = _editorState.transaction;
-                        final imageNode = Node(
-                          type: ImageBlockKeys.type,
-                          attributes: {
-                            ImageBlockKeys.url: relativePath,
-                            'alt': file.name,
-                          },
-                        );
-                        transaction.insertNode(selection.end.path, imageNode);
-                        await _editorState.apply(transaction);
-                      }
-                    },
-                  ),
-                  const SqaFloatingBarDivider(),
-
-                  // Group 6: Clipboard Actions
-                  SqaFloatingBarButton(
-                    icon: Symbols.content_copy,
-                    tooltip: 'Copy Markdown',
-                    onPressed: () async {
-                      final md = _exportToMarkdown();
-                      await Clipboard.setData(ClipboardData(text: md));
-                      if (!context.mounted) return;
-                      SqaToast.show(
-                        context,
-                        'Markdown copied to clipboard',
-                        type: SqaToastType.success,
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
       ),
     );
   }
@@ -1642,7 +1216,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
     return SizedBox(
       width: 300,
-      child: _SqaLinkMenuWidget(
+      child: SqaLinkMenuWidget(
         initialUrl: initialUrl,
         onSubmitted: (url) {
           final targetSelection =
@@ -1686,241 +1260,3 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 }
 
 /// A custom Table builder that wraps the table in a themed environment for handles.
-class SqaTableBlockComponentBuilder extends TableBlockComponentBuilder {
-  SqaTableBlockComponentBuilder({
-    super.configuration,
-    super.tableStyle,
-    super.menuBuilder,
-  });
-
-  @override
-  BlockComponentWidget build(BlockComponentContext blockComponentContext) {
-    final widget = super.build(blockComponentContext);
-    final theme = Theme.of(blockComponentContext.buildContext);
-
-    return SqaBlockComponentWrapper(
-      node: widget.node,
-      configuration: widget.configuration,
-      showActions: widget.showActions,
-      actionBuilder: widget.actionBuilder,
-      actionTrailingBuilder: widget.actionTrailingBuilder,
-      child: SqaFadeWrapper(
-        axis: Axis.horizontal,
-        showStart: true,
-        showEnd: true,
-        child: Theme(
-          data: theme.copyWith(
-            iconTheme: IconThemeData(
-              color: theme.colorScheme.onSurfaceVariant,
-              size: 18,
-            ),
-            // MAINTENANCE: Standardize the hardcoded Card widgets in appflowy_editor's TableActionButton
-            cardTheme: CardThemeData(
-              color: theme.colorScheme.surfaceContainerHigh,
-              elevation: 0,
-              margin: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-                side: BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(
-                    alpha: 0.4,
-                  ),
-                  width: 1,
-                ),
-              ),
-            ),
-          ),
-          child: widget,
-        ),
-      ),
-    );
-  }
-}
-
-/// A customized TableCellBlockComponentBuilder that injects SQA-standard row handles.
-/// In appflowy_editor, the row-level interaction handles are provided by the cell builder.
-class SqaTableCellBlockComponentBuilder extends TableCellBlockComponentBuilder {
-  SqaTableCellBlockComponentBuilder({super.menuBuilder});
-
-  @override
-  BlockComponentWidget build(BlockComponentContext blockComponentContext) {
-    final widget = super.build(blockComponentContext);
-
-    // Standardize the row handle behavior via the block wrapper pattern
-    return SqaBlockComponentWrapper(
-      node: widget.node,
-      configuration: widget.configuration,
-      child: widget,
-    );
-  }
-}
-
-/// A concrete wrapper for BlockComponentWidget that allows themed child wrapping.
-class _SqaLinkMenuWidget extends StatefulWidget {
-  final String? initialUrl;
-  final void Function(String) onSubmitted;
-  final VoidCallback onRemove;
-
-  const _SqaLinkMenuWidget({
-    this.initialUrl,
-    required this.onSubmitted,
-    required this.onRemove,
-  });
-
-  @override
-  State<_SqaLinkMenuWidget> createState() => _SqaLinkMenuWidgetState();
-}
-
-class _SqaLinkMenuWidgetState extends State<_SqaLinkMenuWidget> {
-  late TextEditingController _controller;
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialUrl);
-    _focusNode = FocusNode();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode.requestFocus();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(Symbols.link, size: 18, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                widget.initialUrl == null ? 'Add Link' : 'Edit Link',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
-            decoration: InputDecoration(
-              hintText: 'Paste or type a link...',
-              hintStyle: TextStyle(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-              ),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.3,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: SqaStyles.radiusMedium,
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: SqaStyles.radiusMedium,
-                borderSide: BorderSide(
-                  color: theme.colorScheme.primary,
-                  width: 1.5,
-                ),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  Symbols.check_circle,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
-                onPressed: () => widget.onSubmitted(_controller.text),
-              ),
-            ),
-            onSubmitted: widget.onSubmitted,
-          ),
-          if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            const Divider(height: 1, thickness: 0.5),
-            const SizedBox(height: 8),
-            _buildLinkMenuItem(
-              icon: Symbols.open_in_new,
-              label: 'Open Link',
-              onTap: () async {
-                final uri = Uri.tryParse(widget.initialUrl!);
-                if (uri != null) {
-                  await launchUrl(uri);
-                }
-              },
-            ),
-            _buildLinkMenuItem(
-              icon: Symbols.content_copy,
-              label: 'Copy Link',
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: widget.initialUrl!));
-                SqaToast.show(context, 'Link copied to clipboard');
-              },
-            ),
-            _buildLinkMenuItem(
-              icon: Symbols.link_off,
-              label: 'Remove Link',
-              color: theme.colorScheme.error,
-              onTap: widget.onRemove,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLinkMenuItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: SqaStyles.radiusMedium,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: color ?? theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: color ?? theme.colorScheme.onSurface,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -49,7 +49,11 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 ### Recording Hub
 - **Config Summary**: Real-time summary of the active session configuration (Mode, Audio, Quality) shown in the main view.
 - **Tune Shortcut**: An interactive `Symbols.tune` button replaces the static recorder icon, providing a direct jump to the technical settings panel.
-- **Recent Recordings**: A list of the latest captures allowing for immediate playback (via system explorer) or deletion. Deletions must be preceded by a **SqaModal** confirmation prompt to prevent accidental data loss.
+- **Recent Recordings**: A list of the latest captures allowing for:
+    - **Playback**: Immediate playback via system explorer or "Open File" action.
+    - **Renaming**: Standardized **SqaModal.showPrompt** for safe file renaming. Includes real-time validation for Windows-prohibited characters (`< > : " / \ | ? *`) and duplicate name checking to prevent data corruption.
+    - **Deletion**: Must be preceded by a **SqaModal.showDanger** confirmation prompt to prevent accidental data loss (Rule 17).
+    - **Action Management**: All secondary actions are consolidated into a centralized **SqaPopupMenu** to maintain a clean, decluttered hub interface (Rule 5 & 7).
 
 ### Recording Settings
 Settings are organized into logical groups within the dedicated settings panel:
@@ -59,7 +63,15 @@ Settings are organized into logical groups within the dedicated settings panel:
 - **System & Files**: Custom directory selection utilizing native Windows folder picker and export format selection (MP4, MKV).
 - **Dependency Guarding**: Settings panel utilizes `SqaDependencyCard` to track if FFmpeg (required for audio discovery and recording) is missing and provides a unified download UI. Technical settings are hidden until resolved.
 
-## 4. Implementation Strategy (Technical Analysis)
+## 4. Architecture
+The plugin follows a modular structure for maintainability and consistency:
+- **`screen_recorder_plugin.dart`**: Main entry point and registration.
+- **`ui/screen_recorder_view.dart`**: Primary application layout and Recording Hub.
+- **`ui/screen_recorder_settings.dart`**: Technical configuration panel.
+- **`ui/widgets/`**: Shared components like `RecordingTile` and `ConfigSnippet`.
+- **`ui/screen_recorder_overlay.dart`**: Desktop-wide transparent layer for capture selection and click feedback.
+
+## 5. Implementation Strategy (Technical Analysis)
 ### Capture Mechanism
 - **Engine**: Implementation via the centralized `FfmpegEngine` in `core/engine/`.
 - **Absolute Coordinate Mapping**: Uses an absolute physical mapping system relative to the virtual desktop origin (top-left-most monitor). This ensures 100% precision for secondary monitors and negative logical offsets.

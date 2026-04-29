@@ -176,8 +176,137 @@ class SqaModal<T> extends StatefulWidget {
     );
   }
 
+  /// Static helper to show a prompt dialog with a text field.
+  static Future<String?> showPrompt(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String initialValue = '',
+    String confirmLabel = 'Save',
+    String cancelLabel = 'Cancel',
+    IconData icon = Symbols.edit,
+    String? Function(String)? validator,
+  }) async {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => _PromptDialog(
+        title: title,
+        message: message,
+        initialValue: initialValue,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+        icon: icon,
+        validator: validator,
+      ),
+    );
+  }
+
   @override
   State<SqaModal<T>> createState() => _SqaModalState<T>();
+}
+
+class _PromptDialog extends StatefulWidget {
+  final String title;
+  final String message;
+  final String initialValue;
+  final String confirmLabel;
+  final String cancelLabel;
+  final IconData icon;
+  final String? Function(String)? validator;
+
+  const _PromptDialog({
+    required this.title,
+    required this.message,
+    required this.initialValue,
+    required this.confirmLabel,
+    required this.cancelLabel,
+    required this.icon,
+    this.validator,
+  });
+
+  @override
+  State<_PromptDialog> createState() => _PromptDialogState();
+}
+
+class _PromptDialogState extends State<_PromptDialog> {
+  late TextEditingController _controller;
+  late String _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.initialValue;
+    _controller = TextEditingController(text: widget.initialValue)
+      ..selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: widget.initialValue.length,
+      );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final error = widget.validator?.call(_currentValue);
+    final isValid = error == null;
+
+    return SqaModal<void>.custom(
+      title: widget.title,
+      icon: widget.icon,
+      confirmLabel: widget.confirmLabel,
+      cancelLabel: widget.cancelLabel,
+      confirmColor: isValid ? null : Colors.grey,
+      customActions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(widget.cancelLabel),
+        ),
+        const SizedBox(width: 4),
+        FilledButton(
+          onPressed: isValid
+              ? () => Navigator.of(context).pop(_currentValue)
+              : null,
+          child: Text(widget.confirmLabel),
+        ),
+      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.message,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            autofocus: true,
+            controller: _controller,
+            onChanged: (v) {
+              setState(() => _currentValue = v);
+            },
+            onSubmitted: isValid ? (v) => Navigator.of(context).pop(v) : null,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 12,
+              ),
+              errorText: error,
+              errorStyle: const TextStyle(fontSize: 10),
+            ),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
 }
 
 class _SqaModalState<T> extends State<SqaModal<T>> {

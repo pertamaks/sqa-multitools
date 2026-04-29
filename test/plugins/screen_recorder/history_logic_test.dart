@@ -38,10 +38,7 @@ void main() {
   });
 
   test('ScreenRecorderNotifier - history logic listing and sorting', () async {
-    final container = ProviderContainer();
-    final notifier = container.read(screenRecorderProvider.notifier);
-
-    // 1. Create dummy files with staggered modification times
+    // 1. Create dummy files with staggered modification times (BEFORE provider init)
     final file1 = File('${recordingsDir.path}/SQA_REC_OLD.mp4');
     await file1.writeAsString('old');
 
@@ -51,7 +48,12 @@ void main() {
     final file2 = File('${recordingsDir.path}/SQA_REC_NEW.mp4');
     await file2.writeAsString('new');
 
-    // 2. Trigger refresh
+    // 2. Initialize provider (this triggers initial build and refresh)
+    final container = ProviderContainer();
+    container.listen(screenRecorderProvider, (_, _) {}); // Keep alive
+    final notifier = container.read(screenRecorderProvider.notifier);
+
+    // 3. Manually trigger and await refresh to ensure we catch the files
     await notifier.refreshRecentRecordings();
 
     // Check state
@@ -78,5 +80,17 @@ void main() {
 
     // Verify file is actually gone from disk
     expect(await firstRecord.file.exists(), isFalse);
+
+    // 5. Test renaming
+    final remainingRecord = state.recentRecordings[0];
+    await notifier.renameRecording(remainingRecord, 'SQA_RENAMED');
+
+    state = container.read(screenRecorderProvider);
+    expect(state.recentRecordings.length, 1);
+    expect(state.recentRecordings[0].file.path, contains('SQA_RENAMED.mp4'));
+
+    // Verify physical file exists with new name
+    final renamedFile = File('${recordingsDir.path}/SQA_RENAMED.mp4');
+    expect(await renamedFile.exists(), isTrue);
   });
 }

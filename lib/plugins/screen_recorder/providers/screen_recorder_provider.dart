@@ -329,12 +329,12 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // Construct save path
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory('$dir/SQA_Recordings');
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final filename =
         'SQA_REC_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}_${DateTime.now().hour.toString().padLeft(2, '0')}${DateTime.now().minute.toString().padLeft(2, '0')}${DateTime.now().second.toString().padLeft(2, '0')}.${state.format.toLowerCase()}';
-    final savePath = '${saveDir.path}\\$filename';
+    final savePath = '${saveDir.path}/$filename';
 
     try {
       final config = FfmpegVideoConfig(
@@ -406,7 +406,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
     if (!ref.mounted) return;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory('$dir/SQA_Recordings');
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
       state = state.copyWith(recentRecordings: []);
@@ -414,11 +414,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     }
 
     try {
-      final fileList = await saveDir
-          .list()
-          .where((entity) => entity is File)
-          .cast<File>()
-          .toList();
+      final entities = await saveDir.list().toList();
+      final fileList = entities.whereType<File>().toList();
 
       // Fetch metadata asynchronously for all files
       final infoList = await Future.wait(
@@ -466,10 +463,52 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     }
   }
 
+  Future<void> renameRecording(RecordingInfo info, String newName) async {
+    try {
+      if (await info.file.exists()) {
+        final dir = info.file.parent.path;
+        final extension = info.file.path.split('.').last;
+        final newPath = '$dir/$newName.$extension';
+
+        await info.file.rename(newPath);
+        await refreshRecentRecordings();
+      }
+    } catch (e) {
+      debugPrint('[ScreenRecorder] Failed to rename recording: $e');
+    }
+  }
+
+  String? validateNewName(String name, RecordingInfo currentInfo) {
+    if (name.trim().isEmpty) return 'Name cannot be empty';
+
+    // Windows prohibited characters: < > : " / \ | ? *
+    final prohibited = RegExp(r'[<>:"/\\|?*]');
+    if (prohibited.hasMatch(name)) {
+      return 'Contains invalid characters: < > : " / \\ | ? *';
+    }
+
+    // Check for duplicates
+    final filename = currentInfo.file.uri.pathSegments.last;
+    final nameWithoutExt = filename.contains('.')
+        ? filename.substring(0, filename.lastIndexOf('.'))
+        : filename;
+
+    if (name == nameWithoutExt) return null; // No change
+
+    final extension = filename.split('.').last;
+    final targetPath = '${currentInfo.file.parent.path}/$name.$extension';
+
+    if (File(targetPath).existsSync()) {
+      return 'A file with this name already exists';
+    }
+
+    return null;
+  }
+
   Future<void> openSaveDirectory() async {
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory('$dir/SQA_Recordings');
 
     // fallback to root dir if subfolder doesn't exist yet
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);

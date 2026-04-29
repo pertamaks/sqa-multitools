@@ -20,7 +20,7 @@ final class UnixNotifierProvider
         argument: null,
         retry: null,
         name: r'unixProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class UnixNotifierProvider
   }
 }
 
-String _$unixNotifierHash() => r'b7cce0b89ed72c7034893612167726a55645b43e';
+String _$unixNotifierHash() => r'267a46d39d1841d7a4c5574c83e69b58b08fb478';
 
 abstract class _$UnixNotifier extends $Notifier<UnixState> {
   UnixState build();

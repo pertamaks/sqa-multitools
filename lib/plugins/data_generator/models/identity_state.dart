@@ -3,7 +3,7 @@ import 'package:faker_dart/faker_dart.dart';
 
 part 'identity_state.freezed.dart';
 
-enum IdentityType { email, address, phone, internet, company }
+enum IdentityType { email, address, phone, internet, company, name }
 
 @freezed
 abstract class IdentityState with _$IdentityState {

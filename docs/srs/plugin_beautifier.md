@@ -34,9 +34,21 @@ Manual selection of languages powered by `flutter_code_editor` and `highlight`:
 - `SqaDropdown` for language selection.
 - `SqaSettingsButton` for accessing plugin-specific options.
 
+## Architecture
+The plugin follows a modular structure for maintainability and consistency:
+- **`beautifier_plugin.dart`**: Main entry point and registration.
+- **`ui/beautifier_view.dart`**: Primary application logic and layout.
+- **`ui/beautifier_settings.dart`**: Dedicated configuration panel.
+- **`widgets/beautifier_highlighter.dart`**: Encapsulated highlighter logic and language definitions.
+
+## Safety & Confirmation
+To prevent data loss of unsaved source code, the plugin implements strict confirmation logic (GEMINI.md Rule 17):
+- **Clear Action**: Clicking the "Clear" button triggers a red `SqaModal.showDanger` modal if the input or output fields contain text.
+- **Discard Label**: The confirmation action is explicitly labeled "Clear" to signal destruction.
+
 ## Implementation Details
 - **ID**: `com.sqa.beautifier`
-- **Icon**: `Symbols.code_blocks`.
-- **Badge**: `ALPHA`.
+- **Icon**: `Symbols.code_blocks`
+- **Badge**: `null` (Stable)
 - **State Management**: `flutter_riverpod` with `freezed` for immutable `BeautifierState`.
 - **Provider**: `beautifierProvider`.

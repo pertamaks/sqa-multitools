@@ -39,10 +39,16 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
     - **Inheritance**: Custom builders (e.g., `SqaTableBlockComponentBuilder`, `SqaTableCellBlockComponentBuilder`) inherit from `appflowy_editor` base classes to inject SQA logic.
     - **Stabilization**: Structural mutations (e.g., column deletion) utilize `addPostFrameCallback` to prevent indexing race conditions.
     - **Themed Wrapping**: `SqaBlockComponentWrapper` standardizes action handle behavior and local block themes.
+- **Atomic Component Architecture (V2 Overhaul)**: 
+    - **Decomposition**: The massive `TextEditorView` orchestrator delegates complex UI rendering to specialized, atomic widgets.
+    - **Toolbar**: `TextEditorToolbar` handles all selection-based rich-text formatting and link insertion triggers.
+    - **Link Menu**: `SqaLinkMenuWidget` manages URL input and validation.
+    - **Save Indicator**: `TextEditorSaveStatus` reacts to `TextEditorState` to provide passive feedback.
 - **Adaptive Physics**: Custom `AnimationController` listeners with scroll-offset compensation and `_lastWidth` tracking for drift-free retraction.
 - **Peeking Logic**: `SqaScrollVisibilityTrigger` (centralized widget) for intelligent clipping detection.
 - **Editor Engine**: `appflowy_editor` for block-based document handling and seamless Markdown round-trip serialization.
 - **High-Fidelity Serialization**:
+    - **Centralized Engine**: `SqaMarkdownService` orchestrates both Parsing (Document Loader) and Serialization (Document Encoder) by registering `appflowy` standard parsers alongside SQA custom parsers.
     - **Whitespace Firewall**: Custom `SqaHeadingNodeParser` and `SqaParagraphNodeParser` enforce mandatory double-newline (\n\n) separation to prevent structural 'bleeding' and Setext-heading ambiguity.
     - **Metadata Retention**: `SqaTableNodeParser` and `SqaCodeBlockNodeParser` preserve alignment markers and nested indentation.
     - **HTML Safety Net**: `SqaMarkdownHtmlParser` (loader) and `SqaHtmlNodeParser` (encoder) capture and reconstruct raw HTML tags, storing them in dedicated `raw_html` nodes.

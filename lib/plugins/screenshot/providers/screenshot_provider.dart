@@ -502,6 +502,48 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
   }
 
+  Future<void> renameCapture(CaptureInfo info, String newName) async {
+    try {
+      if (await info.file.exists()) {
+        final dir = info.file.parent.path;
+        final extension = info.file.path.split('.').last;
+        final newPath = '$dir/$newName.$extension';
+
+        await info.file.rename(newPath);
+        await refreshRecentCaptures();
+      }
+    } catch (e) {
+      debugPrint('[Screenshot] Failed to rename capture: $e');
+    }
+  }
+
+  String? validateNewName(String name, CaptureInfo currentInfo) {
+    if (name.trim().isEmpty) return 'Name cannot be empty';
+
+    // Windows prohibited characters: < > : " / \ | ? *
+    final prohibited = RegExp(r'[<>:"/\\|?*]');
+    if (prohibited.hasMatch(name)) {
+      return 'Contains invalid characters: < > : " / \\ | ? *';
+    }
+
+    // Check for duplicates
+    final filename = currentInfo.file.uri.pathSegments.last;
+    final nameWithoutExt = filename.contains('.')
+        ? filename.substring(0, filename.lastIndexOf('.'))
+        : filename;
+
+    if (name == nameWithoutExt) return null; // No change
+
+    final extension = filename.split('.').last;
+    final targetPath = '${currentInfo.file.parent.path}/$name.$extension';
+
+    if (File(targetPath).existsSync()) {
+      return 'A file with this name already exists';
+    }
+
+    return null;
+  }
+
   // Hotkey registration
   Future<void> registerGlobalHotkeys() async {
     try {

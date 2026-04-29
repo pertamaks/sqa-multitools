@@ -31,7 +31,16 @@ Every payload is contained within an expandable card that provides:
 - **Monospace Typography**: All payloads and injected URLs use monospace fonts for clarity.
 - **Zero Hacks**: Built strictly using `SqaCard`, `SqaField`, and `SqaInfoBanner`.
 
+## Architecture
+The plugin follows a modular structure for maintainability and consistency:
+- **`security_payloads_plugin.dart`**: Main entry point and registration.
+- **`ui/security_payloads_view.dart`**: Primary application layout and tab coordination.
+- **`ui/tabs/`**: Contains tab-specific views (`WebTabView`, `SystemTabView`).
+- **`ui/widgets/`**: Shared components like `PayloadCard` and `SecurityDisclaimer`.
+
 ## Implementation Details
 - **ID**: `com.sqa.plugin.security_payloads`
 - **Icon**: `Symbols.security`
-- **Badge**: `null` (Production ready)
+- **Badge**: `null` (Stable)
+- **State Management**: `flutter_riverpod` with `freezed` for immutable `SecurityPayloadsState`.
+- **Provider**: `securityPayloadsProvider`.

@@ -4,7 +4,7 @@ import 'package:dart_style/dart_style.dart';
 import 'package:xml/xml.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_writer/yaml_writer.dart';
-import '../beautifier_plugin.dart';
+import '../widgets/beautifier_highlighter.dart';
 import '../models/beautifier_state.dart';
 import '../../../core/services/preferences_service.dart';
 import '../utils/sql_formatter.dart';

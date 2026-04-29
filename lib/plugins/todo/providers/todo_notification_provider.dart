@@ -5,7 +5,7 @@ import '../models/todo_item.dart';
 
 part 'todo_notification_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class TodoNotification extends _$TodoNotification {
   Timer? _timer;
 
@@ -67,7 +67,7 @@ class TodoNotification extends _$TodoNotification {
 }
 
 /// Provides a list of 90-minute block start times for the current day
-@riverpod
+@Riverpod(keepAlive: true)
 List<DateTime> todoCycles(Ref ref) {
   final settings = ref.watch(todoSettingsProvider).value;
   if (settings == null || settings.wakeHour == null) return [];

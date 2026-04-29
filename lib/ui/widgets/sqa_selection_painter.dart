@@ -333,8 +333,8 @@ class SqaSelectionPainter extends CustomPainter {
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
     final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
-    const double arrowSize = 14;
-    const double arrowAngle = 0.5;
+    const double arrowSize = 20; // Increased from 14
+    const double arrowAngle = 0.4; // Sharpened from 0.5
 
     final headPath = Path()
       ..moveTo(end.dx, end.dy)
@@ -449,12 +449,18 @@ class SqaSelectionPainter extends CustomPainter {
     Paint paint,
     Color color,
   ) {
-    canvas.drawLine(start, end, paint);
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
     final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
-    const double arrowSize = 12;
-    const double arrowAngle = 0.5;
+    const double arrowSize = 20; // Consistent with _drawArrowHead
+    const double arrowAngle = 0.4;
+
+    // Shorten the main line slightly so the stroke doesn't bleed through the sharp tip
+    final lineEnd = Offset(
+      end.dx - 2 * math.cos(angle),
+      end.dy - 2 * math.sin(angle),
+    );
+    canvas.drawLine(start, lineEnd, paint);
 
     final headPath = Path()
       ..moveTo(end.dx, end.dy)

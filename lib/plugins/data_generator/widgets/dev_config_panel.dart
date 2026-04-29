@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/utils/locale_names.dart';
-import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_action_button_group.dart';
+import '../../../ui/widgets/sqa_modal.dart';
 import '../providers/dev_provider.dart';
 import '../providers/identity_provider.dart';
 import '../models/dev_state.dart';
@@ -20,53 +20,28 @@ class DevConfigPanel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (state.selectedType == DevType.json ||
-            state.selectedType == DevType.date) ...[
-          if (state.selectedType == DevType.json)
-            SqaSegmentedButton<JsonCategory>(
-              isChild: true,
-              segments: [
-                const ButtonSegment(
-                  value: JsonCategory.simple,
-                  label: Text('Simple'),
-                  icon: Icon(Symbols.token),
-                ),
-                const ButtonSegment(
-                  value: JsonCategory.medium,
-                  label: Text('Medium'),
-                  icon: Icon(Symbols.data_object),
-                ),
-                const ButtonSegment(
-                  value: JsonCategory.complex,
-                  label: Text('Complex'),
-                  icon: Icon(Symbols.account_tree),
-                ),
-              ],
-              selected: {state.selectedJsonCategory},
-              onSelectionChanged: (set) => notifier.setJsonCategory(set.first),
-            )
-          else
-            SqaSegmentedButton<DateCategory>(
-              isChild: true,
-              segments: [
-                const ButtonSegment(
-                  value: DateCategory.past,
-                  label: Text('Past'),
-                  icon: Icon(Symbols.history),
-                ),
-                const ButtonSegment(
-                  value: DateCategory.future,
-                  label: Text('Future'),
-                  icon: Icon(Symbols.update),
-                ),
-              ],
-              selected: {state.selectedDateCategory},
-              onSelectionChanged: (set) => notifier.setDateCategory(set.first),
-            ),
-          const SizedBox(height: 16),
-        ],
         SqaActionButtonGroup(
-          onClear: () => notifier.clear(),
+          onClear: () async {
+            if (state.selectedType == DevType.uuid && state.uuidHistory.isNotEmpty) {
+              final confirmed = await SqaModal.showDanger(
+                context,
+                title: 'Clear History',
+                message: 'Are you sure you want to clear the UUID history? This action cannot be undone.',
+                confirmLabel: 'Clear',
+              );
+              if (confirmed != true) return;
+            } else if ((state.resultsMap[state.selectedType] ?? []).isNotEmpty) {
+               // Confirmation for other dev results if they exist
+               final confirmed = await SqaModal.showDanger(
+                context,
+                title: 'Clear Results',
+                message: 'Discard currently generated results?',
+                confirmLabel: 'Discard',
+              );
+              if (confirmed != true) return;
+            }
+            notifier.clear();
+          },
           actionLabel: 'Generate',
           actionIcon: Symbols.wand_stars,
           onAction: () => notifier.generate(),

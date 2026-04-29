@@ -18,7 +18,7 @@ The tool is called **Data Generator**. It automates the creation of mock test da
 This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` interface.
 
 ### Product Functions
-- **Identity Generation:** Create mock Emails, Addresses, and Phone Numbers.
+- **Identity Generation:** Create mock Names, Emails, Addresses, and Phone Numbers.
 - **Lorem Generation:** Create mock text based on Character count (Bytes), Words (Sentences), Sentences (Paragraphs), and Chapters.
 - **Glyphs Generation:** Quick access to localized snippets (JA, ZH, AR, VI) and Special Characters.
 - **Developer Utilities:** 
@@ -54,7 +54,9 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Result Preview**: For multi-line text (Paragraphs, Chapters, JSON), results are displayed in formatted monospace blocks.
 - **Date Facets**: Generates 5 separate, individual `SqaField` segments for different date formats (ISO, RFC, SQL, etc.) to allow granular copying.
 - **UUID History**: Displays the latest UUID in a primary field, with a dedicated "HISTORY (LAST 10)" `SqaField` below it.
-- **UI Order**: Sub-category selectors are positioned between the main category tab and the primary Generate action for a streamlined workflow.
+- **UI Architecture**: The plugin UI is modularized into dedicated tab view components: `IdentityTabView`, `LoremTabView`, `GlyphsTabView`, and `DevTabView`.
+- **Layout**: Use `SqaPluginScrollableContent` to vertically center the generator form and results in the primary window.
+- **Safety**: Destructive "Clear" actions (e.g. wiping UUID history or discarding generated results) require explicit confirmation via `SqaModal.showConfirm` or `SqaModal.showDanger`.
 
 ## 4. External Interface Requirements
 ### User Interface (UI)
@@ -81,7 +83,8 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - Speed: Immediate generation on click.
 
 ### Safety & Security
-- Data privacy: **Not implemented**.
+- **Data Protection**: `SqaModal.showConfirm` and `SqaModal.showDanger` prompts protect against accidental data loss when clearing history or results.
+- **Data Privacy**: **Not implemented**.
 
 ### Reliability
 - Randomness consistency: High.

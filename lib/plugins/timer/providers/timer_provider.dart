@@ -5,7 +5,7 @@ import '../../../core/services/audio_service.dart';
 
 part 'timer_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
   Timer? _ticker;
   DateTime? _lastTickTime;

@@ -10,7 +10,6 @@ import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_toast.dart';
-import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../ui/widgets/sqa_search_filter_bar.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';

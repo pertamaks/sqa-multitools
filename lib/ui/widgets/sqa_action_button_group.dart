@@ -52,7 +52,7 @@ class SqaActionButtonGroup extends StatelessWidget {
         const SizedBox(width: 8),
 
         // Primary Action
-        SqaButton.tonal(
+        SqaButton.primary(
           label: actionLabel,
           icon: actionIcon,
           onPressed: onAction,

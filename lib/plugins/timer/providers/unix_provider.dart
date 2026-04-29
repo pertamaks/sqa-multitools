@@ -4,7 +4,7 @@ import '../models/unix_state.dart';
 
 part 'unix_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class UnixNotifier extends _$UnixNotifier {
   Timer? _ticker;
 

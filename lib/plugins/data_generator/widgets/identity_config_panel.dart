@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../../core/utils/locale_names.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_action_button_group.dart';
+import '../../../ui/widgets/sqa_modal.dart';
 import '../providers/identity_provider.dart';
 import '../models/identity_state.dart';
 
@@ -46,7 +47,18 @@ class _IdentityConfigPanelState extends ConsumerState<IdentityConfigPanel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SqaActionButtonGroup(
-          onClear: () => notifier.clear(),
+          onClear: () async {
+            if ((state.resultsMap[state.selectedType] ?? []).isNotEmpty) {
+              final confirmed = await SqaModal.showDanger(
+                context,
+                title: 'Clear Results',
+                message: 'Discard currently generated results?',
+                confirmLabel: 'Discard',
+              );
+              if (confirmed != true) return;
+            }
+            notifier.clear();
+          },
           actionLabel: 'Generate',
           actionIcon: Symbols.wand_stars,
           onAction: () => notifier.generate(),

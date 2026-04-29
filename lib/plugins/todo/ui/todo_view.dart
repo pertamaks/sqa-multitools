@@ -10,6 +10,7 @@ import 'widgets/recurring_todo_editor_dialog.dart';
 import 'widgets/recurring_todo_item.dart';
 import 'widgets/wake_time_prompt.dart';
 import 'widgets/todo_history_view.dart';
+import 'widgets/todo_list_group.dart';
 import '../../../core/providers/plugin_provider.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
@@ -27,7 +28,8 @@ class TodoView extends ConsumerStatefulWidget {
   ConsumerState<TodoView> createState() => _TodoViewState();
 }
 
-class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderStateMixin {
+class _TodoViewState extends ConsumerState<TodoView>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -36,7 +38,9 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        ref.read(todoProvider.notifier).setTab(TodoTab.values[_tabController.index]);
+        ref
+            .read(todoProvider.notifier)
+            .setTab(TodoTab.values[_tabController.index]);
         setState(() {}); // Rebuild to update trailing button label
       }
     });
@@ -71,9 +75,14 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
       icon: showBack ? null : Symbols.blur_on,
       title: 'Focus Block',
       description: 'Cognitive energy-aware focus blocks',
-      onBack: showBack ? () => ref.read(navigationServiceProvider).goBack() : null,
+      onBack: showBack
+          ? () => ref.read(navigationServiceProvider).goBack()
+          : null,
       tabs: [
-        Tab(text: DateFormat('EEEE, MMM d').format(DateTime.now()), icon: const Icon(Symbols.today)),
+        Tab(
+          text: DateFormat('EEEE, MMM d').format(DateTime.now()),
+          icon: const Icon(Symbols.today),
+        ),
         const Tab(text: 'Recurring', icon: Icon(Symbols.sync)),
         const Tab(text: 'History', icon: Icon(Symbols.history)),
       ],
@@ -101,45 +110,79 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final theme = Theme.of(context);
-    
+
     // Today view: Tasks created today OR incomplete tasks from the past
     // BUT excluding deferred tasks
     final todayTodos = state.todos.where((t) {
-      final createdDate = DateTime(t.createdAt.year, t.createdAt.month, t.createdAt.day);
-      final isTerminal = t.status == TodoStatus.done || t.status == TodoStatus.delegated;
-      final isActuallyToday = createdDate.isAtSameMomentAs(today) || !isTerminal;
+      final createdDate = DateTime(
+        t.createdAt.year,
+        t.createdAt.month,
+        t.createdAt.day,
+      );
+      final isTerminal =
+          t.status == TodoStatus.done || t.status == TodoStatus.delegated;
+      final isActuallyToday =
+          createdDate.isAtSameMomentAs(today) || !isTerminal;
       return isActuallyToday && t.status != TodoStatus.deferred;
     }).toList();
 
-    final pending = todayTodos.where((t) => t.status != TodoStatus.done && t.status != TodoStatus.delegated).toList();
-    
+    final pending = todayTodos
+        .where(
+          (t) =>
+              t.status != TodoStatus.done && t.status != TodoStatus.delegated,
+        )
+        .toList();
+
     // Split pending into active and timesUp
     final timesUp = pending.where((t) {
-      final createdAtDate = DateTime(t.createdAt.year, t.createdAt.month, t.createdAt.day);
+      final createdAtDate = DateTime(
+        t.createdAt.year,
+        t.createdAt.month,
+        t.createdAt.day,
+      );
       final isToday = createdAtDate.isAtSameMomentAs(today);
       if (!isToday) return false;
       final duration = t.durationPreset.minutes;
       final endTime = t.createdAt.add(Duration(minutes: duration));
       return now.isAfter(endTime);
     }).toList();
-    
+
     final active = pending.where((t) => !timesUp.contains(t)).toList();
 
-    final completed = todayTodos.where((t) => t.status == TodoStatus.done || t.status == TodoStatus.delegated).toList();
+    final completed = todayTodos
+        .where(
+          (t) =>
+              t.status == TodoStatus.done || t.status == TodoStatus.delegated,
+        )
+        .toList();
 
-    final deferredTodos = state.todos.where((t) => t.status == TodoStatus.deferred).toList();
+    final deferredTodos = state.todos
+        .where((t) => t.status == TodoStatus.deferred)
+        .toList();
 
     // Sort pending items
     pending.sort((a, b) {
       // 'Do Now' focuses (Critical Priority + Current Time Block) go to the absolute top
-      final aDoNow = a.priority == TodoPriority.critical && a.timeBlock == TodoTimeBlock.current;
-      final bDoNow = b.priority == TodoPriority.critical && b.timeBlock == TodoTimeBlock.current;
+      final aDoNow =
+          a.priority == TodoPriority.critical &&
+          a.timeBlock == TodoTimeBlock.current;
+      final bDoNow =
+          b.priority == TodoPriority.critical &&
+          b.timeBlock == TodoTimeBlock.current;
       if (aDoNow != bDoNow) {
         return aDoNow ? -1 : 1;
       }
 
-      final aDate = DateTime(a.createdAt.year, a.createdAt.month, a.createdAt.day);
-      final bDate = DateTime(b.createdAt.year, b.createdAt.month, b.createdAt.day);
+      final aDate = DateTime(
+        a.createdAt.year,
+        a.createdAt.month,
+        a.createdAt.day,
+      );
+      final bDate = DateTime(
+        b.createdAt.year,
+        b.createdAt.month,
+        b.createdAt.day,
+      );
       final aOverdue = aDate.isBefore(today);
       final bOverdue = bDate.isBefore(today);
 
@@ -167,7 +210,13 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Symbols.wb_sunny, size: 48, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              Icon(
+                Symbols.wb_sunny,
+                size: 48,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.5,
+                ),
+              ),
               const SizedBox(height: 16),
               Text(
                 'No focus created for today.',
@@ -179,7 +228,9 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
               const SizedBox(height: 8),
               Text(
                 'Add a new focus block to get started.',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -193,8 +244,7 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
         child: Column(
           children: [
             if (active.isNotEmpty) ...[
-              _buildSectionHeader(
-                context,
+              TodoListSectionHeader(
                 icon: Symbols.bolt,
                 title: 'Active Focus',
                 count: active.length,
@@ -222,13 +272,21 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
                 width: double.infinity,
                 padding: const EdgeInsets.all(24.0),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.2,
+                  ),
                   borderRadius: SqaStyles.radiusLarge,
-                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    Icon(Symbols.verified, size: 48, color: theme.colorScheme.primary),
+                    Icon(
+                      Symbols.verified,
+                      size: 48,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'All Caught Up!',
@@ -250,15 +308,60 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
             ],
             if (timesUp.isNotEmpty) ...[
               if (active.isNotEmpty) const SizedBox(height: 16),
-              _buildTimesUpGroup(context, timesUp),
+              TodoExpansionGroup(
+                icon: Symbols.alarm_off,
+                title: "Time's Up — How did it go?",
+                items: timesUp,
+                onToggle: _toggleTodo,
+                onDelete: (item) => _deleteTodo(context, item),
+                onTap: (item) => TodoEditorDialog.show(context, item: item),
+              ),
             ],
             if (completed.isNotEmpty) ...[
               const SizedBox(height: 16),
-              _buildCompletedGroup(context, completed),
+              TodoExpansionGroup(
+                icon: Symbols.check_circle,
+                title: 'Completed Focus Blocks',
+                items: completed,
+                opacity: 0.7,
+                onToggle: (item) {
+                  ref
+                      .read(todoProvider.notifier)
+                      .updateTodo(
+                        item.copyWith(
+                          status: TodoStatus.todo,
+                          completedAt: null,
+                          delegatedTo: '',
+                        ),
+                      );
+                },
+                onDelete: (item) => _deleteTodo(context, item),
+                onTap: (item) => TodoEditorDialog.show(context, item: item),
+              ),
             ],
             if (deferredTodos.isNotEmpty) ...[
               const SizedBox(height: 16),
-              _buildDeferredGroup(context, deferredTodos),
+              TodoExpansionGroup(
+                icon: Symbols.schedule_send,
+                title: 'Deferred Focus Blocks',
+                items: deferredTodos,
+                opacity: 0.7,
+                onToggle: (item) {
+                  ref
+                      .read(todoProvider.notifier)
+                      .updateTodo(
+                        item.copyWith(
+                          status: TodoStatus.todo,
+                          deferredUntil: null,
+                          createdAt: DateTime.now(),
+                          timeBlock: TodoTimeBlock.current,
+                          priority: TodoPriority.critical,
+                        ),
+                      );
+                },
+                onDelete: (item) => _deleteTodo(context, item),
+                onTap: (item) => TodoEditorDialog.show(context, item: item),
+              ),
             ],
           ],
         ),
@@ -267,20 +370,25 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
   }
 
   void _toggleTodo(TodoItem item) {
-    final newStatus = item.status == TodoStatus.done ? TodoStatus.todo : TodoStatus.done;
-    ref.read(todoProvider.notifier).updateTodo(
-      item.copyWith(
-        status: newStatus,
-        completedAt: newStatus == TodoStatus.done ? DateTime.now() : null,
-      ),
-    );
+    final newStatus = item.status == TodoStatus.done
+        ? TodoStatus.todo
+        : TodoStatus.done;
+    ref
+        .read(todoProvider.notifier)
+        .updateTodo(
+          item.copyWith(
+            status: newStatus,
+            completedAt: newStatus == TodoStatus.done ? DateTime.now() : null,
+          ),
+        );
   }
 
   Future<void> _deleteTodo(BuildContext context, TodoItem item) async {
     final confirmed = await SqaModal.showDanger(
       context,
       title: 'Delete Focus',
-      message: 'Are you sure you want to delete "${item.title}"? This action cannot be undone.',
+      message:
+          'Are you sure you want to delete "${item.title}"? This action cannot be undone.',
     );
     if (confirmed == true) {
       ref.read(todoProvider.notifier).deleteTodo(item.id);
@@ -290,284 +398,17 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
     }
   }
 
-  Widget _buildTimesUpGroup(BuildContext context, List<TodoItem> items) {
-    final theme = Theme.of(context);
-    final subtleColor = theme.colorScheme.onSurfaceVariant;
-    
-    return ListTileTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-      child: Theme(
-        data: theme.copyWith(
-          dividerColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: Row(
-            children: [
-              Icon(Symbols.alarm_off, size: 20, color: subtleColor),
-              const SizedBox(width: 12),
-              Text(
-                'Time\'s Up — How did it go?',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: subtleColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: subtleColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${items.length}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: subtleColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          childrenPadding: const EdgeInsets.only(top: 12),
-          initiallyExpanded: false,
-          shape: const RoundedRectangleBorder(side: BorderSide.none),
-          collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
-          children: items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: TodoListItem(
-              item: item,
-              onToggle: () => _toggleTodo(item),
-              onDelete: () => _deleteTodo(context, item),
-              onTap: () => TodoEditorDialog.show(context, item: item),
-            ),
-          )).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompletedGroup(BuildContext context, List<TodoItem> items) {
-    final theme = Theme.of(context);
-    
-    return ListTileTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-      child: Theme(
-        data: theme.copyWith(
-          dividerColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: Row(
-            children: [
-              Icon(Symbols.check_circle, size: 20, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 12),
-              Text(
-                'Completed Focus Blocks',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${items.length}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          childrenPadding: const EdgeInsets.only(top: 12),
-          shape: const RoundedRectangleBorder(side: BorderSide.none),
-          collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
-          children: items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Opacity(
-              opacity: 0.7,
-              child: TodoListItem(
-                item: item,
-                onToggle: () {
-                  ref.read(todoProvider.notifier).updateTodo(
-                    item.copyWith(
-                      status: TodoStatus.todo,
-                      completedAt: null,
-                      delegatedTo: '',
-                    ),
-                  );
-                },
-                onDelete: () async {
-                  final confirmed = await SqaModal.showDanger(
-                    context,
-                    title: 'Delete Focus',
-                    message: 'Are you sure you want to delete "${item.title}"? This action cannot be undone.',
-                  );
-                  if (confirmed == true) {
-                    ref.read(todoProvider.notifier).deleteTodo(item.id);
-                    if (context.mounted) {
-                      SqaToast.show(context, 'Focus deleted.');
-                    }
-                  }
-                },
-                onTap: () => TodoEditorDialog.show(context, item: item),
-              ),
-            ),
-          )).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeferredGroup(BuildContext context, List<TodoItem> items) {
-    final theme = Theme.of(context);
-    
-    return ListTileTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-      child: Theme(
-        data: theme.copyWith(
-          dividerColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: Row(
-            children: [
-              Icon(Symbols.schedule_send, size: 20, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 12),
-              Text(
-                'Deferred Focus Blocks',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${items.length}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          childrenPadding: const EdgeInsets.only(top: 12),
-          shape: const RoundedRectangleBorder(side: BorderSide.none),
-          collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
-          children: items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Opacity(
-              opacity: 0.7,
-              child: TodoListItem(
-                item: item,
-                onToggle: () {
-                  // Do Now: Promote deferred focus to today's top hierarchy
-                  ref.read(todoProvider.notifier).updateTodo(
-                    item.copyWith(
-                      status: TodoStatus.todo,
-                      deferredUntil: null,
-                      createdAt: DateTime.now(),
-                      timeBlock: TodoTimeBlock.current,
-                      priority: TodoPriority.critical,
-                    ),
-                  );
-                },
-                onDelete: () async {
-                  final confirmed = await SqaModal.showDanger(
-                    context,
-                    title: 'Delete Focus',
-                    message: 'Are you sure you want to delete "${item.title}"? This action cannot be undone.',
-                  );
-                  if (confirmed == true) {
-                    ref.read(todoProvider.notifier).deleteTodo(item.id);
-                    if (context.mounted) {
-                      SqaToast.show(context, 'Focus deleted.');
-                    }
-                  }
-                },
-                onTap: () => TodoEditorDialog.show(context, item: item),
-              ),
-            ),
-          )).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required int count,
-    bool isPrimary = false,
-  }) {
-    final theme = Theme.of(context);
-    final color = isPrimary ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: isPrimary ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              '$count',
-              style: theme.textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildHistoryList(BuildContext context, TodoState state) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     // History view: Completed tasks before today
     final historyTodos = state.todos.where((t) {
-      final createdDate = DateTime(t.createdAt.year, t.createdAt.month, t.createdAt.day);
+      final createdDate = DateTime(
+        t.createdAt.year,
+        t.createdAt.month,
+        t.createdAt.day,
+      );
       return createdDate.isBefore(today) && t.status == TodoStatus.done;
     }).toList();
 
@@ -593,11 +434,18 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Symbols.sync, size: 48, color: Theme.of(context).colorScheme.outlineVariant),
+            Icon(
+              Symbols.sync,
+              size: 48,
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
             const SizedBox(height: 16),
             const Text('No recurring focus blocks yet.'),
             const SizedBox(height: 8),
-            const Text('Add one to auto-generate focus blocks daily.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text(
+              'Add one to auto-generate focus blocks daily.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ],
         ),
       );
@@ -609,8 +457,7 @@ class _TodoViewState extends ConsumerState<TodoView> with SingleTickerProviderSt
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader(
-              context,
+            TodoListSectionHeader(
               icon: Symbols.sync,
               title: 'Recurring Agendas',
               count: recurring.length,

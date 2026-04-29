@@ -50,12 +50,13 @@ Modular plugin for SQA-Multitools utilizing the `SqaPlugin` interface.
 
 ## 4. User Interface (UI)
 - **Style:** Standard SQA Unified Design System.
-- **Tabs:** "Today" and "History".
+- **Tabs:** "Today", "Recurring", and "History".
 - **Interaction:** `SqaModal` for editing, `SqaCard` for list items.
+- **Atomic Components:** UI is decomposed into `TodoListItem`, `TodoItemBadges`, `TodoItemDialogs`, and `TodoExpansionGroup` for high maintainability.
 - **Destructive Actions:** Confirmation via `SqaModal.showDanger` for all task deletions.
 - **Navigation:** Reuses `NavigationService` for `goBack()` functionality.
 
 ## 5. Non-Functional Requirements
 - **Reliability:** Data must persist across app restarts.
 - **Performance:** UI remains responsive even with large task lists.
-- **Maintainability:** Strict adherence to `GEMINI.md` architectural rules.
+- **Maintainability:** Strict adherence to `GEMINI.md` architectural rules and atomic component decomposition.

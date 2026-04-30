@@ -12,7 +12,10 @@ class TodoNotification extends _$TodoNotification {
   @override
   bool build() {
     // Start a timer to check every minute
-    _timer = Timer.periodic(const Duration(minutes: 1), (_) => _checkReminders());
+    _timer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _checkReminders(),
+    );
     ref.onDispose(() => _timer?.cancel());
     return false; // hasActiveReminder
   }
@@ -22,11 +25,17 @@ class TodoNotification extends _$TodoNotification {
     if (settings.wakeHour == null) return;
 
     final now = DateTime.now();
-    final wakeTime = DateTime(now.year, now.month, now.day, settings.wakeHour!, settings.wakeMinute!);
-    
+    final wakeTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      settings.wakeHour!,
+      settings.wakeMinute!,
+    );
+
     // Calculate 90-minute blocks from wakeTime
     // Blocks: wakeTime, wakeTime + 90m, wakeTime + 180m, ...
-    
+
     // Find if current time is the "start" of a 90-minute block (e.g., within first 5 mins)
     final diffMinutes = now.difference(wakeTime).inMinutes;
     if (diffMinutes < 0) return; // Haven't woken up yet?
@@ -36,7 +45,7 @@ class TodoNotification extends _$TodoNotification {
     // Trigger if we are in the first 2 minutes of a new cycle
     if (minutesIntoCycle >= 0 && minutesIntoCycle < 2) {
       state = true;
-      // If auto-open is enabled, we could trigger navigation here, 
+      // If auto-open is enabled, we could trigger navigation here,
       // but we should probably do that in a separate logic to avoid side-effects in build.
     }
   }
@@ -44,7 +53,13 @@ class TodoNotification extends _$TodoNotification {
   /// Helper to get the current 90-minute block index or info
   int getCurrentCycleIndex(int wakeHour, int wakeMinute) {
     final now = DateTime.now();
-    final wakeTime = DateTime(now.year, now.month, now.day, wakeHour, wakeMinute);
+    final wakeTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      wakeHour,
+      wakeMinute,
+    );
     final diffMinutes = now.difference(wakeTime).inMinutes;
     if (diffMinutes < 0) return -1;
     return diffMinutes ~/ 90;
@@ -61,7 +76,9 @@ class TodoNotification extends _$TodoNotification {
     if (hour >= 15 && hour < 17) return TodoTimeBlock.lateAfternoon;
     if (hour >= 17 && hour < 20) return TodoTimeBlock.evening;
     return TodoTimeBlock.night;
-  } void clearReminder() {
+  }
+
+  void clearReminder() {
     state = false;
   }
 }
@@ -73,7 +90,13 @@ List<DateTime> todoCycles(Ref ref) {
   if (settings == null || settings.wakeHour == null) return [];
 
   final now = DateTime.now();
-  final wakeTime = DateTime(now.year, now.month, now.day, settings.wakeHour!, settings.wakeMinute!);
-  
+  final wakeTime = DateTime(
+    now.year,
+    now.month,
+    now.day,
+    settings.wakeHour!,
+    settings.wakeMinute!,
+  );
+
   return List.generate(10, (i) => wakeTime.add(Duration(minutes: i * 90)));
 }

@@ -22,17 +22,20 @@ class DevConfigPanel extends ConsumerWidget {
       children: [
         SqaActionButtonGroup(
           onClear: () async {
-            if (state.selectedType == DevType.uuid && state.uuidHistory.isNotEmpty) {
+            if (state.selectedType == DevType.uuid &&
+                state.uuidHistory.isNotEmpty) {
               final confirmed = await SqaModal.showDanger(
                 context,
                 title: 'Clear History',
-                message: 'Are you sure you want to clear the UUID history? This action cannot be undone.',
+                message:
+                    'Are you sure you want to clear the UUID history? This action cannot be undone.',
                 confirmLabel: 'Clear',
               );
               if (confirmed != true) return;
-            } else if ((state.resultsMap[state.selectedType] ?? []).isNotEmpty) {
-               // Confirmation for other dev results if they exist
-               final confirmed = await SqaModal.showDanger(
+            } else if ((state.resultsMap[state.selectedType] ?? [])
+                .isNotEmpty) {
+              // Confirmation for other dev results if they exist
+              final confirmed = await SqaModal.showDanger(
                 context,
                 title: 'Clear Results',
                 message: 'Discard currently generated results?',

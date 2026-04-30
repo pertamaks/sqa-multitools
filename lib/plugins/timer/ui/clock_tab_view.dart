@@ -149,11 +149,10 @@ class TimeDisplay extends StatelessWidget {
 
   Widget _buildClockColon(TextStyle? style) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0), // Nudge up slightly to center
-      child: Text(
-        ':',
-        style: style,
-      ),
+      padding: const EdgeInsets.only(
+        bottom: 4.0,
+      ), // Nudge up slightly to center
+      child: Text(':', style: style),
     );
   }
 }

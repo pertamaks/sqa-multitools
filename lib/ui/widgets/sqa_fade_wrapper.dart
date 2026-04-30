@@ -108,7 +108,8 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
               // We adjust the stops based on pulse to give it that "alive" look
               // Standard edge is subtle (default 4%), pulsing adds minimal depth.
               final startStop = widget.depth + (widget.pulseDepth * pulse);
-              final endStop = (1.0 - widget.depth) - (widget.pulseDepth * pulse);
+              final endStop =
+                  (1.0 - widget.depth) - (widget.pulseDepth * pulse);
 
               return LinearGradient(
                 begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,

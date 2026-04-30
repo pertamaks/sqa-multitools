@@ -16,5 +16,6 @@ abstract class TodoSettings with _$TodoSettings {
     DateTime? lastWakeTimePromptDate,
   }) = _TodoSettings;
 
-  factory TodoSettings.fromJson(Map<String, dynamic> json) => _$TodoSettingsFromJson(json);
+  factory TodoSettings.fromJson(Map<String, dynamic> json) =>
+      _$TodoSettingsFromJson(json);
 }

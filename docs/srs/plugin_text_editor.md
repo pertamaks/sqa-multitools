@@ -28,9 +28,12 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
 - **Rich Text Extensions**: Native support for **Strikethrough**, **Text Color**, and **Highlight Color** via a premium grid-based color picker.
 - **Fidelity-First Encoding**: Colors are preserved during Markdown export using standard HTML `<span style="...">` tags, ensuring absolute data parity across different Markdown editors.
 
-### 2.4 Table Editor
-- **Contextual Actions**: Standardized `MenuAnchor` system for both row and column operations (insert, delete, clear).
-- **Styling Control**: High-fidelity background color picker and standardized 1.0px grid lines with a subtle 0.4 alpha transparency.
+### 2.5 High-Fidelity Read-Only Viewer
+- **Dual-Engine Rendering**: Utilizes the `markdown` package for structure and a secondary `html` parser for text nodes, ensuring 100% fidelity for complex HTML/Markdown hybrids.
+- **Structural Table Support**: Implements `SqaGridTable` with a column-major layout to support vertical row-spanning (`rowspan`) and complex HTML table attributes.
+- **Interactive Deep Linking**: Automated anchor generation for headers and explicit support for `<a id="...">` and `[^footnote]` anchors with smooth, animated scrolling.
+- **GFM Admonitions**: Premium rendering for GitHub-style callouts (`[!NOTE]`, `[!CAUTION]`, etc.) with themed icons and backgrounds.
+- **Footnote Section**: Semantic detection and dedicated styling for GFM footnotes, featuring a visual separator and compact typography.
 
 ## 3. Technical Implementation
 - **State management**: `flutter_riverpod` with generated notifiers.
@@ -55,6 +58,11 @@ The **Text Editor Plugin** is a premium Text management and editing tool for SQA
     - **Quote Fidelity**: `SqaQuoteNodeParser` ensures the `> ` prefix and mandatory double-newline (\n\n) separation to prevent structural corruption.
     - **Color & Style Fidelity**: `SqaDeltaMarkdownEncoder` and `SqaSpanInlineSyntax` provide a dual-stage pipeline for serializing/deserializing colors as HTML spans, maintaining strict data parity without breaking GFM strikethrough logic.
     - **UI Reconstruction**: `RawHtmlBlockComponentBuilder` renders preserved HTML in a themed mono-spaced container for visual clarity.
+- **Read-Only Viewer Engine**:
+    - **Visitor Pattern**: Custom `SqaMarkdownVisitor` and `SqaInlineSpanVisitor` for precise mapping of AST nodes to SQA widgets.
+    - **GlobalKey Registry**: Stable `Map<String, GlobalKey>` mapping for reliable deep-link target identification across rebuilds.
+    - **Column-Major Grid**: Specialized layout logic in `SqaGridTable` to handle cell expansion across vertical grid stacks.
+    - **Anchor Navigation**: Uses `Scrollable.ensureVisible` with stable keys to provide smooth internal document navigation.
 
 ## 4. UI Standards
 - **Standardized Layout**: Follows the global SQA standard: **800px Max-Width** (Centered) with a seamless `surfaceContainerLow` background filling the window edges.

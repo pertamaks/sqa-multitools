@@ -125,35 +125,43 @@ class TimerTabView extends ConsumerWidget {
                 width: 120,
               ),
               const SizedBox(width: 12),
-              Builder(builder: (context) {
-                final isAtInitial = state.remaining == state.initialDuration && !state.isRunning;
-                final isCountdown = state.initialDuration > Duration.zero;
-                final showStopwatchMode = isCountdown && isAtInitial;
+              Builder(
+                builder: (context) {
+                  final isAtInitial =
+                      state.remaining == state.initialDuration &&
+                      !state.isRunning;
+                  final isCountdown = state.initialDuration > Duration.zero;
+                  final showStopwatchMode = isCountdown && isAtInitial;
 
-                return SqaButton.tonal(
-                  onPressed: () async {
-                    if (showStopwatchMode) {
-                      notifier.setDuration(Duration.zero);
-                      return;
-                    }
+                  return SqaButton.tonal(
+                    onPressed: () async {
+                      if (showStopwatchMode) {
+                        notifier.setDuration(Duration.zero);
+                        return;
+                      }
 
-                    // Safety: Confirmation for Reset if progress was made or it's running
-                    if (state.remaining != state.initialDuration || state.isRunning) {
-                      final confirmed = await SqaModal.showDanger(
-                        context,
-                        title: 'Reset Timer',
-                        message: 'Are you sure you want to reset the timer? Current progress will be lost.',
-                        confirmLabel: 'Reset',
-                      );
-                      if (confirmed != true) return;
-                    }
-                    notifier.reset();
-                  },
-                  icon: showStopwatchMode ? Symbols.timer : Symbols.restart_alt,
-                  label: showStopwatchMode ? 'Stopwatch' : 'Reset',
-                  width: 120,
-                );
-              }),
+                      // Safety: Confirmation for Reset if progress was made or it's running
+                      if (state.remaining != state.initialDuration ||
+                          state.isRunning) {
+                        final confirmed = await SqaModal.showDanger(
+                          context,
+                          title: 'Reset Timer',
+                          message:
+                              'Are you sure you want to reset the timer? Current progress will be lost.',
+                          confirmLabel: 'Reset',
+                        );
+                        if (confirmed != true) return;
+                      }
+                      notifier.reset();
+                    },
+                    icon: showStopwatchMode
+                        ? Symbols.timer
+                        : Symbols.restart_alt,
+                    label: showStopwatchMode ? 'Stopwatch' : 'Reset',
+                    width: 120,
+                  );
+                },
+              ),
             ],
           ),
         ],

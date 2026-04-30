@@ -166,13 +166,15 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
         return Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: widget.enabled ? () {
-              if (isShowing) {
-                controller.close();
-              } else {
-                controller.open();
-              }
-            } : null,
+            onTap: widget.enabled
+                ? () {
+                    if (isShowing) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  }
+                : null,
             borderRadius: SqaStyles.radiusSmall,
             overlayColor: SqaStyles.buttonOverlay(context),
             child: ConstrainedBox(
@@ -193,7 +195,9 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                   border: Border.all(
                     color: isShowing
                         ? colorScheme.primary.withValues(alpha: 0.5)
-                        : colorScheme.outlineVariant.withValues(alpha: widget.enabled ? 0.5 : 0.2),
+                        : colorScheme.outlineVariant.withValues(
+                            alpha: widget.enabled ? 0.5 : 0.2,
+                          ),
                     width: 1.0,
                   ),
                 ),
@@ -205,7 +209,9 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: widget.enabled ? colorScheme.onSurface : colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: widget.enabled
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

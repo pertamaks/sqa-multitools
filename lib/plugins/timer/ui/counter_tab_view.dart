@@ -62,7 +62,8 @@ class CounterTabView extends ConsumerWidget {
                       final confirmed = await SqaModal.showDanger(
                         context,
                         title: 'Reset Counter',
-                        message: 'Are you sure you want to reset the counter to zero?',
+                        message:
+                            'Are you sure you want to reset the counter to zero?',
                         confirmLabel: 'Reset',
                       );
                       if (confirmed == true) {

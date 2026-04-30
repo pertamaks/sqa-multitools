@@ -28,7 +28,9 @@ class SqaDatePicker {
               backgroundColor: colorScheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
-                side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                ),
               ),
               elevation: 24,
             ),
@@ -43,16 +45,25 @@ class SqaDatePicker {
                 borderRadius: SqaStyles.radiusMedium,
                 borderSide: BorderSide(color: colorScheme.primary),
               ),
-              labelStyle: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              labelStyle: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
             datePickerTheme: DatePickerThemeData(
               backgroundColor: colorScheme.surfaceContainerHigh,
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
-                side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                ),
               ),
               headerBackgroundColor: colorScheme.surfaceContainerHighest,
               headerForegroundColor: colorScheme.onSurface,
@@ -65,8 +76,13 @@ class SqaDatePicker {
               dayShape: WidgetStateProperty.all(
                 RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
               ),
-              headerHelpStyle: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-              headerHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
+              headerHelpStyle: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              headerHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
             ),
           ),
           child: child!,
@@ -101,7 +117,9 @@ class SqaDatePicker {
               backgroundColor: colorScheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
-                side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                ),
               ),
               elevation: 24,
             ),
@@ -116,20 +134,31 @@ class SqaDatePicker {
                 borderRadius: SqaStyles.radiusMedium,
                 borderSide: BorderSide(color: colorScheme.primary),
               ),
-              labelStyle: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              labelStyle: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
             datePickerTheme: DatePickerThemeData(
               backgroundColor: colorScheme.surfaceContainerHigh,
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
-                side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                ),
               ),
               rangePickerShape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
-                side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+                ),
               ),
               headerBackgroundColor: colorScheme.surfaceContainerHighest,
               headerForegroundColor: colorScheme.onSurface,
@@ -142,8 +171,11 @@ class SqaDatePicker {
               dayShape: WidgetStateProperty.all(
                 RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
               ),
-              rangePickerHeaderHelpStyle: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-              rangePickerHeaderHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
+              rangePickerHeaderHelpStyle: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              rangePickerHeaderHeadlineStyle: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
             ),
           ),
           child: Center(

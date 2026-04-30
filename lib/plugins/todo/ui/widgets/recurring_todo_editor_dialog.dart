@@ -25,20 +25,28 @@ class RecurringTodoEditorDialog extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<RecurringTodoEditorDialog> createState() => _RecurringTodoEditorDialogState();
+  ConsumerState<RecurringTodoEditorDialog> createState() =>
+      _RecurringTodoEditorDialogState();
 }
 
-class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorDialog> {
+class _RecurringTodoEditorDialogState
+    extends ConsumerState<RecurringTodoEditorDialog> {
   late TextEditingController _titleController;
   late TextEditingController _notesController;
   late TextEditingController _categoryController;
   late TextEditingController _everyNDaysController;
-  
+
   TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
   TodoDurationPreset _durationPreset = TodoDurationPreset.min25;
   TodoPriority _priority = TodoPriority.normal;
   RecurrenceType _recurrenceType = RecurrenceType.daily;
-  List<int> _weeklyDays = [1, 2, 3, 4, 5]; // Mon-Fri default for weekly if selected
+  List<int> _weeklyDays = [
+    1,
+    2,
+    3,
+    4,
+    5,
+  ]; // Mon-Fri default for weekly if selected
 
   @override
   void initState() {
@@ -47,8 +55,10 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
     _titleController = TextEditingController(text: item?.title ?? '');
     _notesController = TextEditingController(text: item?.notes ?? '');
     _categoryController = TextEditingController(text: item?.category ?? '');
-    _everyNDaysController = TextEditingController(text: item?.everyNDays.toString() ?? '1');
-    
+    _everyNDaysController = TextEditingController(
+      text: item?.everyNDays.toString() ?? '1',
+    );
+
     if (item != null) {
       _time = TimeOfDay(hour: item.hour, minute: item.minute);
       _durationPreset = item.durationPreset;
@@ -69,10 +79,13 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
 
   @override
   Widget build(BuildContext context) {
-    final use24h = ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
+    final use24h =
+        ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
 
     return SqaModal<void>.custom(
-      title: widget.initialItem == null ? 'New Recurring Focus' : 'Edit Recurring Focus',
+      title: widget.initialItem == null
+          ? 'New Recurring Focus'
+          : 'Edit Recurring Focus',
       customActions: [
         SqaButton(
           label: 'Cancel',
@@ -131,7 +144,14 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
                     const SizedBox(height: 8),
                     SqaDropdown<TodoDurationPreset>(
                       value: _durationPreset,
-                      items: TodoDurationPreset.values.map((v) => DropdownMenuItem(value: v, child: Text('${_getDurationMinutes(v)} min'))).toList(),
+                      items: TodoDurationPreset.values
+                          .map(
+                            (v) => DropdownMenuItem(
+                              value: v,
+                              child: Text('${_getDurationMinutes(v)} min'),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) {
                         if (v != null) setState(() => _durationPreset = v);
                       },
@@ -152,7 +172,14 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
                     const SizedBox(height: 8),
                     SqaDropdown<RecurrenceType>(
                       value: _recurrenceType,
-                      items: RecurrenceType.values.map((v) => DropdownMenuItem(value: v, child: Text(_getRecurrenceName(v)))).toList(),
+                      items: RecurrenceType.values
+                          .map(
+                            (v) => DropdownMenuItem(
+                              value: v,
+                              child: Text(_getRecurrenceName(v)),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) {
                         if (v != null) setState(() => _recurrenceType = v);
                       },
@@ -169,7 +196,14 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
                     const SizedBox(height: 8),
                     SqaDropdown<TodoPriority>(
                       value: _priority,
-                      items: TodoPriority.values.map((v) => DropdownMenuItem(value: v, child: Text(v.displayName))).toList(),
+                      items: TodoPriority.values
+                          .map(
+                            (v) => DropdownMenuItem(
+                              value: v,
+                              child: Text(v.displayName),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) {
                         if (v != null) setState(() => _priority = v);
                       },
@@ -236,14 +270,18 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
               child: Text(
                 days[i],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                  color: isSelected
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -259,15 +297,17 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
     return Text(
       text,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.1,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.1,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
   String _formatTime(TimeOfDay time, bool use24h) {
-    final hour = use24h ? time.hour.toString().padLeft(2, '0') : ((time.hour % 12 == 0 ? 12 : time.hour % 12).toString());
+    final hour = use24h
+        ? time.hour.toString().padLeft(2, '0')
+        : ((time.hour % 12 == 0 ? 12 : time.hour % 12).toString());
     final minute = time.minute.toString().padLeft(2, '0');
     final period = use24h ? '' : (time.hour >= 12 ? ' PM' : ' AM');
     return '$hour:$minute$period';
@@ -275,10 +315,14 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
 
   String _getRecurrenceName(RecurrenceType type) {
     switch (type) {
-      case RecurrenceType.daily: return 'Daily';
-      case RecurrenceType.weekdays: return 'Weekdays (M-F)';
-      case RecurrenceType.weekly: return 'Weekly';
-      case RecurrenceType.everyNDays: return 'Every N Days';
+      case RecurrenceType.daily:
+        return 'Daily';
+      case RecurrenceType.weekdays:
+        return 'Weekdays (M-F)';
+      case RecurrenceType.weekly:
+        return 'Weekly';
+      case RecurrenceType.everyNDays:
+        return 'Every N Days';
     }
   }
 
@@ -308,7 +352,11 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
       );
       notifier.addRecurringTodo(newItem);
       if (context.mounted) {
-        SqaToast.show(context, 'Recurring focus created!', type: SqaToastType.success);
+        SqaToast.show(
+          context,
+          'Recurring focus created!',
+          type: SqaToastType.success,
+        );
       }
     } else {
       notifier.updateRecurringTodo(
@@ -326,7 +374,11 @@ class _RecurringTodoEditorDialogState extends ConsumerState<RecurringTodoEditorD
         ),
       );
       if (context.mounted) {
-        SqaToast.show(context, 'Recurring focus updated!', type: SqaToastType.success);
+        SqaToast.show(
+          context,
+          'Recurring focus updated!',
+          type: SqaToastType.success,
+        );
       }
     }
     Navigator.of(context).pop();

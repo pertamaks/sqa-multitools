@@ -45,6 +45,7 @@ class TextEditorPlugin implements SqaPlugin {
 
         switch (state.viewMode) {
           case TextEditorViewMode.editor:
+          case TextEditorViewMode.viewer:
             return const TextEditorView();
           case TextEditorViewMode.list:
             return const TextListView();

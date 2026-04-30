@@ -235,8 +235,9 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                   notifier.renameCapture(info, newName),
                               onValidate: (name) =>
                                   notifier.validateNewName(name, info),
-                              onOpen: () =>
-                                  Process.start('explorer.exe', [info.file.path]),
+                              onOpen: () => Process.start('explorer.exe', [
+                                info.file.path,
+                              ]),
                               onOpenFolder: () => notifier.openSaveDirectory(),
                             ),
                             if (!isLast) const Divider(height: 1, indent: 56),

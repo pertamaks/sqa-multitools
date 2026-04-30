@@ -13,8 +13,8 @@ import '../ui/widgets/image_node_encoder_parser.dart';
 class SqaMarkdownService {
   static Document parse(String text) {
     if (text.isEmpty) return Document.blank(withInitialText: true);
-    
-    // We cannot access standard parsers directly, so we merge them by 
+
+    // We cannot access standard parsers directly, so we merge them by
     // simply using the default markdownParsers provided by appflowy_editor if possible,
     // or we must include them if we override. Let's see if providing just ours
     // overrides everything or merges. Usually it merges in newer versions.

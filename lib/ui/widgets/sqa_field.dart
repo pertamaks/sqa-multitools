@@ -103,7 +103,8 @@ class SqaField extends StatefulWidget {
       if (firstLetterIdx == -1) {
         result += sentence;
       } else {
-        result += sentence.substring(0, firstLetterIdx) +
+        result +=
+            sentence.substring(0, firstLetterIdx) +
             sentence[firstLetterIdx].toUpperCase() +
             sentence.substring(firstLetterIdx + 1).toLowerCase();
       }
@@ -336,223 +337,240 @@ class _SqaFieldState extends State<SqaField> {
               curve: Curves.easeInOut,
               key: _containerKey,
               decoration: BoxDecoration(
-              color: widget.isTransparent
-                  ? Colors.transparent
-                  : (_isFocused
-                      ? colorScheme.primaryContainer.withValues(alpha: 0.15)
-                      : (_isHovered
-                          ? colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.5)
-                          : colorScheme.surfaceContainerLow
-                              .withValues(alpha: 0.2))),
-              borderRadius: SqaStyles.radiusLarge,
-              border: Border.all(
                 color: widget.isTransparent
                     ? Colors.transparent
                     : (_isFocused
-                        ? colorScheme.primary.withValues(alpha: 0.3)
-                        : (_isHovered
-                            ? colorScheme.outlineVariant.withValues(alpha: 0.3)
-                            : colorScheme.outlineVariant
-                                .withValues(alpha: 0.1))),
+                          ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                          : (_isHovered
+                                ? colorScheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.5)
+                                : colorScheme.surfaceContainerLow.withValues(
+                                    alpha: 0.2,
+                                  ))),
+                borderRadius: SqaStyles.radiusLarge,
+                border: Border.all(
+                  color: widget.isTransparent
+                      ? Colors.transparent
+                      : (_isFocused
+                            ? colorScheme.primary.withValues(alpha: 0.3)
+                            : (_isHovered
+                                  ? colorScheme.outlineVariant.withValues(
+                                      alpha: 0.3,
+                                    )
+                                  : colorScheme.outlineVariant.withValues(
+                                      alpha: 0.1,
+                                    ))),
+                ),
+                boxShadow: _isFocused
+                    ? [
+                        BoxShadow(
+                          color: colorScheme.primary.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : [],
               ),
-              boxShadow: _isFocused
-                  ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      )
-                    ]
-                  : [],
-            ),
-          child: ClipRRect(
-            borderRadius: SqaStyles.radiusLarge,
-            child: Stack(
-              children: [
-                // 1. Gutter Divider Line (Edge-to-Edge)
-                if (widget.showLineNumbers)
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: 40,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          right: BorderSide(
-                            color: _isFocused
-                                ? colorScheme.primary.withValues(alpha: 0.4)
-                                : colorScheme.outlineVariant.withValues(
-                                    alpha: 0.15,
-                                  ),
-                            width: 1,
+              child: ClipRRect(
+                borderRadius: SqaStyles.radiusLarge,
+                child: Stack(
+                  children: [
+                    // 1. Gutter Divider Line (Edge-to-Edge)
+                    if (widget.showLineNumbers)
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(
+                                color: _isFocused
+                                    ? colorScheme.primary.withValues(alpha: 0.4)
+                                    : colorScheme.outlineVariant.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                width: 1,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
 
-                // 2. Main Content (Numbers + Text)
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: (showFooter && _isExpanded) ? 40 : 0,
-                    right: widget.showCopyButton ? 44 : 0,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: widget.isMultiline
-                        ? CrossAxisAlignment.start
-                        : CrossAxisAlignment.center,
-                    children: [
-                      if (widget.prefix != null) widget.prefix!,
-                      if (widget.showLineNumbers) _buildNativeGutter(theme),
-                      Expanded(
-                        child: Builder(
-                          builder: (context) {
-                            final textField = TextField(
-                              controller: _internalController,
-                              focusNode: _focusNode,
-                              autofocus: widget.autofocus,
-                              readOnly: widget.readOnly,
-                              onChanged: widget.onChanged,
-                              scrollPhysics:
-                                  (widget.collapsedMaxLines != null &&
-                                      !_isExpanded)
-                                  ? const NeverScrollableScrollPhysics()
-                                  : null,
-                              maxLines:
-                                  (widget.collapsedMaxLines != null &&
-                                      !_isExpanded)
-                                  ? widget.collapsedMaxLines
-                                  : (widget.isMultiline ? widget.maxLines : 1),
-                              minLines: widget.minLines ?? 1,
-                              style: (widget.isMonospace
-                                      ? GoogleFonts.jetBrainsMono()
-                                      : theme.textTheme.bodyMedium)
-                                  ?.copyWith(
-                                fontSize: fontSize,
-                                height: fontHeight,
-                                color: colorScheme.onSurface,
-                              ),
-                              strutStyle: StrutStyle(
-                                fontSize: fontSize,
-                                height: fontHeight,
-                                leadingDistribution: TextLeadingDistribution.even,
-                              ),
-                              decoration: InputDecoration(
-                                isDense: true,
-                                hintText: widget.hintText,
-                                hintStyle: TextStyle(
-                                  color: colorScheme.onSurface.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                              ),
-                              scrollController: _verticalScrollController,
-                              undoController: widget.undoController,
-                              onTapOutside: widget.onTapOutside,
-                              textAlignVertical: TextAlignVertical.top,
-                            );
-
-                            final scrollConfiguration = ScrollConfiguration(
-                              // Use custom behavior to hide scrollbars when collapsed
-                              behavior:
-                                  (widget.collapsedMaxLines != null &&
-                                      !_isExpanded)
-                                  ? const _NoScrollbarBehavior()
-                                  : ScrollConfiguration.of(context),
-                              child: textField,
-                            );
-
-                            if (!widget.wrap) {
-                              final hController =
-                                  widget.horizontalScrollController ??
-                                  _internalHorizontalScrollController;
-
-                              return Scrollbar(
-                                controller: hController,
-                                thumbVisibility: true,
-                                thickness: 4.0,
-                                radius: const Radius.circular(2),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  controller: hController,
-                                  child: IntrinsicWidth(
-                                    child: scrollConfiguration,
-                                  ),
-                                ),
-                              );
-                            }
-                            return scrollConfiguration;
-                          },
-                        ),
+                    // 2. Main Content (Numbers + Text)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: (showFooter && _isExpanded) ? 40 : 0,
+                        right: widget.showCopyButton ? 44 : 0,
                       ),
-                    ],
-                  ),
-                ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: widget.isMultiline
+                            ? CrossAxisAlignment.start
+                            : CrossAxisAlignment.center,
+                        children: [
+                          if (widget.prefix != null) widget.prefix!,
+                          if (widget.showLineNumbers) _buildNativeGutter(theme),
+                          Expanded(
+                            child: Builder(
+                              builder: (context) {
+                                final textField = TextField(
+                                  controller: _internalController,
+                                  focusNode: _focusNode,
+                                  autofocus: widget.autofocus,
+                                  readOnly: widget.readOnly,
+                                  onChanged: widget.onChanged,
+                                  scrollPhysics:
+                                      (widget.collapsedMaxLines != null &&
+                                          !_isExpanded)
+                                      ? const NeverScrollableScrollPhysics()
+                                      : null,
+                                  maxLines:
+                                      (widget.collapsedMaxLines != null &&
+                                          !_isExpanded)
+                                      ? widget.collapsedMaxLines
+                                      : (widget.isMultiline
+                                            ? widget.maxLines
+                                            : 1),
+                                  minLines: widget.minLines ?? 1,
+                                  style:
+                                      (widget.isMonospace
+                                              ? GoogleFonts.jetBrainsMono()
+                                              : theme.textTheme.bodyMedium)
+                                          ?.copyWith(
+                                            fontSize: fontSize,
+                                            height: fontHeight,
+                                            color: colorScheme.onSurface,
+                                          ),
+                                  strutStyle: StrutStyle(
+                                    fontSize: fontSize,
+                                    height: fontHeight,
+                                    leadingDistribution:
+                                        TextLeadingDistribution.even,
+                                  ),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    hintText: widget.hintText,
+                                    hintStyle: TextStyle(
+                                      color: colorScheme.onSurface.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                  scrollController: _verticalScrollController,
+                                  undoController: widget.undoController,
+                                  onTapOutside: widget.onTapOutside,
+                                  textAlignVertical: TextAlignVertical.top,
+                                );
 
-                // 3. Expansion Footer (Sticky to bottom)
-                if (showFooter)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: _buildExpansionFooter(theme),
-                  ),
+                                final scrollConfiguration = ScrollConfiguration(
+                                  // Use custom behavior to hide scrollbars when collapsed
+                                  behavior:
+                                      (widget.collapsedMaxLines != null &&
+                                          !_isExpanded)
+                                      ? const _NoScrollbarBehavior()
+                                      : ScrollConfiguration.of(context),
+                                  child: textField,
+                                );
 
-                // 4. Sticky Action Buttons
-                if (widget.showCopyButton || widget.showSentenceCaseButton)
-                  ValueListenableBuilder<double>(
-                    valueListenable: _stickyTopNotifier,
-                    builder: (context, stickyTop, child) {
-                      return Positioned(
-                        top: stickyTop,
-                        right: 4,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (widget.showSentenceCaseButton)
-                              SqaHoverIconButton(
-                                icon: Symbols.text_fields,
-                                onPressed: () {
-                                  final text = _internalController.text;
-                                  if (text.isEmpty) return;
-                                  final converted = SqaField.toSentenceCase(text);
-                                  _internalController.text = converted;
-                                  if (widget.onChanged != null) widget.onChanged!(converted);
-                                },
-                                tooltip: 'Convert to Sentence case',
-                              ),
-                            if (widget.showCopyButton)
-                              SqaHoverIconButton(
-                                icon: Symbols.content_copy,
-                                onPressed: () {
-                                  Clipboard.setData(
-                                    ClipboardData(text: _internalController.text),
+                                if (!widget.wrap) {
+                                  final hController =
+                                      widget.horizontalScrollController ??
+                                      _internalHorizontalScrollController;
+
+                                  return Scrollbar(
+                                    controller: hController,
+                                    thumbVisibility: true,
+                                    thickness: 4.0,
+                                    radius: const Radius.circular(2),
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      controller: hController,
+                                      child: IntrinsicWidth(
+                                        child: scrollConfiguration,
+                                      ),
+                                    ),
                                   );
-                                  SqaToast.show(context, 'Copied to clipboard');
-                                },
-                                tooltip: 'Copy to clipboard',
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-              ],
+                                }
+                                return scrollConfiguration;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 3. Expansion Footer (Sticky to bottom)
+                    if (showFooter)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _buildExpansionFooter(theme),
+                      ),
+
+                    // 4. Sticky Action Buttons
+                    if (widget.showCopyButton || widget.showSentenceCaseButton)
+                      ValueListenableBuilder<double>(
+                        valueListenable: _stickyTopNotifier,
+                        builder: (context, stickyTop, child) {
+                          return Positioned(
+                            top: stickyTop,
+                            right: 4,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (widget.showSentenceCaseButton)
+                                  SqaHoverIconButton(
+                                    icon: Symbols.text_fields,
+                                    onPressed: () {
+                                      final text = _internalController.text;
+                                      if (text.isEmpty) return;
+                                      final converted = SqaField.toSentenceCase(
+                                        text,
+                                      );
+                                      _internalController.text = converted;
+                                      if (widget.onChanged != null) {
+                                        widget.onChanged!(converted);
+                                      }
+                                    },
+                                    tooltip: 'Convert to Sentence case',
+                                  ),
+                                if (widget.showCopyButton)
+                                  SqaHoverIconButton(
+                                    icon: Symbols.content_copy,
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: _internalController.text,
+                                        ),
+                                      );
+                                      SqaToast.show(
+                                        context,
+                                        'Copied to clipboard',
+                                      );
+                                    },
+                                    tooltip: 'Copy to clipboard',
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      ),
-    ),
-  ],
-);
+      ],
+    );
   }
 
   Widget _buildNativeGutter(ThemeData theme) {
@@ -580,9 +598,7 @@ class _SqaFieldState extends State<SqaField> {
                   style: GoogleFonts.jetBrainsMono().copyWith(
                     fontSize: gFontSize,
                     height: (fontSize * fontHeight) / gFontSize,
-                    color: theme.colorScheme.onSurface.withValues(
-                      alpha: 0.3,
-                    ),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                   ),
                   strutStyle: StrutStyle(
                     fontSize: fontSize,

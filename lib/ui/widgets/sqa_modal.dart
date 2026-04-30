@@ -280,8 +280,8 @@ class _PromptDialogState extends State<_PromptDialog> {
           Text(
             widget.message,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -358,7 +358,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
         constraints: BoxConstraints(
           minWidth: widget.isTileMode ? 320 : 500,
           maxWidth: widget.isTileMode ? 320 : 500,
-          maxHeight: 500, // Reduced to ensure it triggers scrolling on more screens
+          maxHeight:
+              500, // Reduced to ensure it triggers scrolling on more screens
         ),
         child: widget.isLoading
             ? const SizedBox(
@@ -366,79 +367,102 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                 child: Center(child: CircularProgressIndicator()),
               )
             : (widget.isConfirmMode
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: widget.message != null
-                        ? Text(
-                            widget.message!,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              height: 1.5,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  )
-                : ScrollConfiguration(
-                    behavior: const _NoScrollbarBehavior(),
-                    child: Scrollbar(
-                      controller: _scrollController,
-                      thumbVisibility: true,
-                      thickness: 6.0,
-                      radius: const Radius.circular(3),
-                      child: SqaFadeWrapper(
-                        depth: 0.08, // Increased for better visibility in modal
-                        threshold: 20.0, // Trigger sooner
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 16), // Align scrollbar with buttons
-                          child: (widget.child != null)
-                              ? SingleChildScrollView(
-                                  controller: _scrollController,
-                                  padding: const EdgeInsets.only(left: 24, right: 12),
-                                  child: widget.child!,
-                                )
-                              : (widget.items.isEmpty
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(left: 24),
-                                      child: _buildEmpty(theme),
-                                    )
-                                  : (widget.isTileMode
-                                      ? _buildTileContent(context, theme)
-                                      : _buildListContent(context, theme))),
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: widget.message != null
+                          ? Text(
+                              widget.message!,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                height: 1.5,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    )
+                  : ScrollConfiguration(
+                      behavior: const _NoScrollbarBehavior(),
+                      child: Scrollbar(
+                        controller: _scrollController,
+                        thumbVisibility: true,
+                        thickness: 6.0,
+                        radius: const Radius.circular(3),
+                        child: SqaFadeWrapper(
+                          depth:
+                              0.08, // Increased for better visibility in modal
+                          threshold: 20.0, // Trigger sooner
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: 16,
+                            ), // Align scrollbar with buttons
+                            child: (widget.child != null)
+                                ? SingleChildScrollView(
+                                    controller: _scrollController,
+                                    padding: const EdgeInsets.only(
+                                      left: 24,
+                                      right: 12,
+                                    ),
+                                    child: widget.child!,
+                                  )
+                                : (widget.items.isEmpty
+                                      ? Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 24,
+                                          ),
+                                          child: _buildEmpty(theme),
+                                        )
+                                      : (widget.isTileMode
+                                            ? _buildTileContent(context, theme)
+                                            : _buildListContent(
+                                                context,
+                                                theme,
+                                              ))),
+                          ),
                         ),
                       ),
-                    ),
-                  )),
+                    )),
       ),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       actionsAlignment: MainAxisAlignment.end,
-      actions: widget.customActions ?? [
-        if (widget.isConfirmMode || widget.child != null) ...[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            child: Text(widget.cancelLabel ?? 'Cancel'),
-          ),
-          const SizedBox(width: 4), // Tighter internal spacing
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: (widget.confirmColor != null
-                ? FilledButton.styleFrom(
-                    backgroundColor: widget.confirmColor,
-                    foregroundColor: Colors.white,
-                  )
-                : FilledButton.styleFrom()).copyWith(
-              padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-            ),
-            child: Text(widget.confirmLabel ?? 'Confirm'),
-          ),
-        ] else
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-      ],
+      actions:
+          widget.customActions ??
+          [
+            if (widget.isConfirmMode || widget.child != null) ...[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(widget.cancelLabel ?? 'Cancel'),
+              ),
+              const SizedBox(width: 4), // Tighter internal spacing
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style:
+                    (widget.confirmColor != null
+                            ? FilledButton.styleFrom(
+                                backgroundColor: widget.confirmColor,
+                                foregroundColor: Colors.white,
+                              )
+                            : FilledButton.styleFrom())
+                        .copyWith(
+                          padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                child: Text(widget.confirmLabel ?? 'Confirm'),
+              ),
+            ] else
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+          ],
     );
   }
 
@@ -539,7 +563,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: theme.colorScheme.onPrimaryContainer,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 11, // Standard Label size per GEMINI.md
+                                fontSize:
+                                    11, // Standard Label size per GEMINI.md
                               ),
                             ),
                           ),

@@ -153,8 +153,9 @@ class TextEditorToolbar extends ConsumerWidget {
                     icon: Symbols.format_italic,
                     tooltip: 'Italic',
                     isSelected: isAttributeToggled(AppFlowyRichTextKeys.italic),
-                    onPressed: () =>
-                        editorState.toggleAttribute(AppFlowyRichTextKeys.italic),
+                    onPressed: () => editorState.toggleAttribute(
+                      AppFlowyRichTextKeys.italic,
+                    ),
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.format_underlined,
@@ -162,8 +163,9 @@ class TextEditorToolbar extends ConsumerWidget {
                     isSelected: isAttributeToggled(
                       AppFlowyRichTextKeys.underline,
                     ),
-                    onPressed: () =>
-                        editorState.toggleAttribute(AppFlowyRichTextKeys.underline),
+                    onPressed: () => editorState.toggleAttribute(
+                      AppFlowyRichTextKeys.underline,
+                    ),
                   ),
                   SqaFloatingBarButton(
                     icon: Symbols.format_strikethrough,
@@ -171,8 +173,9 @@ class TextEditorToolbar extends ConsumerWidget {
                     isSelected: isAttributeToggled(
                       AppFlowyRichTextKeys.strikethrough,
                     ),
-                    onPressed: () =>
-                        editorState.toggleAttribute(AppFlowyRichTextKeys.strikethrough),
+                    onPressed: () => editorState.toggleAttribute(
+                      AppFlowyRichTextKeys.strikethrough,
+                    ),
                   ),
                   const SqaFloatingBarDivider(),
 
@@ -422,6 +425,4 @@ class TextEditorToolbar extends ConsumerWidget {
       ),
     );
   }
-
-    
 }

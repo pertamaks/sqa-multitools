@@ -12,12 +12,12 @@ class WakeTimePrompt extends ConsumerStatefulWidget {
 
   static Future<void> showIfNeeded(BuildContext context, WidgetRef ref) async {
     final settingsAsync = await ref.read(todoSettingsProvider.future);
-    
+
     if (!settingsAsync.askWakeTimeDaily) return;
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     if (settingsAsync.lastWakeTimePromptDate != null) {
       final lastPrompt = DateTime(
         settingsAsync.lastWakeTimePromptDate!.year,
@@ -123,15 +123,17 @@ class _WakeTimePromptState extends ConsumerState<WakeTimePrompt> {
 
   void _submit() async {
     final settings = await ref.read(todoSettingsProvider.future);
-    ref.read(todoSettingsProvider.notifier).updateSettings(
-      settings.copyWith(
-        wakeHour: _hour,
-        wakeMinute: _minute,
-        askWakeTimeDaily: _askDaily,
-        use24HourFormat: _use24Hour,
-        lastWakeTimePromptDate: DateTime.now(),
-      ),
-    );
+    ref
+        .read(todoSettingsProvider.notifier)
+        .updateSettings(
+          settings.copyWith(
+            wakeHour: _hour,
+            wakeMinute: _minute,
+            askWakeTimeDaily: _askDaily,
+            use24HourFormat: _use24Hour,
+            lastWakeTimePromptDate: DateTime.now(),
+          ),
+        );
     if (mounted) {
       Navigator.of(context).pop();
     }

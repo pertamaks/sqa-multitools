@@ -36,6 +36,7 @@ void main() async {
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setIcon('assets/desktop_new.png');
     await windowManager.setAlwaysOnTop(alwaysOnTop);
     await windowManager.setMinimumSize(
       const Size(
@@ -170,38 +171,70 @@ class SqaMultitoolsApp extends ConsumerWidget {
               interactive: true,
             ),
             datePickerTheme: DatePickerThemeData(
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              shape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusLarge,
+              ),
               dayOverlayColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.hovered)) return lightScheme?.primary.withValues(alpha: 0.08);
-                if (states.contains(WidgetState.pressed)) return lightScheme?.primary.withValues(alpha: 0.12);
+                if (states.contains(WidgetState.hovered)) {
+                  return lightScheme?.primary.withValues(alpha: 0.08);
+                }
+                if (states.contains(WidgetState.pressed)) {
+                  return lightScheme?.primary.withValues(alpha: 0.12);
+                }
                 return null;
               }),
-              headerHeadlineStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              headerHelpStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              headerHeadlineStyle: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              headerHelpStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
               dayStyle: const TextStyle(fontSize: 14),
             ),
             timePickerTheme: TimePickerThemeData(
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-              hourMinuteShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-              dayPeriodShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusLarge,
+              ),
+              hourMinuteShape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusMedium,
+              ),
+              dayPeriodShape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusMedium,
+              ),
               hourMinuteColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return lightScheme!.primaryContainer;
+                if (states.contains(WidgetState.selected)) {
+                  return lightScheme!.primaryContainer;
+                }
                 return lightScheme!.surfaceContainerHigh;
               }),
               hourMinuteTextColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return lightScheme!.onPrimaryContainer;
+                if (states.contains(WidgetState.selected)) {
+                  return lightScheme!.onPrimaryContainer;
+                }
                 return lightScheme!.onSurface;
               }),
               dayPeriodColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return lightScheme!.primary;
+                if (states.contains(WidgetState.selected)) {
+                  return lightScheme!.primary;
+                }
                 return Colors.transparent;
               }),
               dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return lightScheme!.onPrimary;
+                if (states.contains(WidgetState.selected)) {
+                  return lightScheme!.onPrimary;
+                }
                 return lightScheme!.onSurfaceVariant;
               }),
-              hourMinuteTextStyle: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              dayPeriodTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              hourMinuteTextStyle: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+              dayPeriodTextStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           localizationsDelegates: const [
@@ -232,38 +265,70 @@ class SqaMultitoolsApp extends ConsumerWidget {
               interactive: true,
             ),
             datePickerTheme: DatePickerThemeData(
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+              shape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusLarge,
+              ),
               dayOverlayColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.hovered)) return darkScheme?.primary.withValues(alpha: 0.08);
-                if (states.contains(WidgetState.pressed)) return darkScheme?.primary.withValues(alpha: 0.12);
+                if (states.contains(WidgetState.hovered)) {
+                  return darkScheme?.primary.withValues(alpha: 0.08);
+                }
+                if (states.contains(WidgetState.pressed)) {
+                  return darkScheme?.primary.withValues(alpha: 0.12);
+                }
                 return null;
               }),
-              headerHeadlineStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              headerHelpStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              headerHeadlineStyle: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              headerHelpStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
               dayStyle: const TextStyle(fontSize: 14),
             ),
             timePickerTheme: TimePickerThemeData(
-              shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-              hourMinuteShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-              dayPeriodShape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusLarge,
+              ),
+              hourMinuteShape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusMedium,
+              ),
+              dayPeriodShape: RoundedRectangleBorder(
+                borderRadius: SqaStyles.radiusMedium,
+              ),
               hourMinuteColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return darkScheme!.primaryContainer;
+                if (states.contains(WidgetState.selected)) {
+                  return darkScheme!.primaryContainer;
+                }
                 return darkScheme!.surfaceContainerHigh;
               }),
               hourMinuteTextColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return darkScheme!.onPrimaryContainer;
+                if (states.contains(WidgetState.selected)) {
+                  return darkScheme!.onPrimaryContainer;
+                }
                 return darkScheme!.onSurface;
               }),
               dayPeriodColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return darkScheme!.primary;
+                if (states.contains(WidgetState.selected)) {
+                  return darkScheme!.primary;
+                }
                 return Colors.transparent;
               }),
               dayPeriodTextColor: WidgetStateColor.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) return darkScheme!.onPrimary;
+                if (states.contains(WidgetState.selected)) {
+                  return darkScheme!.onPrimary;
+                }
                 return darkScheme!.onSurfaceVariant;
               }),
-              hourMinuteTextStyle: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              dayPeriodTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              hourMinuteTextStyle: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+              dayPeriodTextStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           builder: (context, child) {

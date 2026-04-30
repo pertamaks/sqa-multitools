@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/todo_item.dart';
 
-
 class TodoItemBadges extends StatelessWidget {
   final TodoItem item;
   final bool isReadOnly;
@@ -22,13 +21,18 @@ class TodoItemBadges extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final createdAtDate = DateTime(item.createdAt.year, item.createdAt.month, item.createdAt.day);
-    
+    final createdAtDate = DateTime(
+      item.createdAt.year,
+      item.createdAt.month,
+      item.createdAt.day,
+    );
+
     final isDone = item.status == TodoStatus.done;
     final isDeferred = item.status == TodoStatus.deferred;
     final isDelegated = item.status == TodoStatus.delegated;
     final isTerminal = isDone || isDelegated;
-    final isOverdueByDay = !isTerminal && !isDeferred && createdAtDate.isBefore(today);
+    final isOverdueByDay =
+        !isTerminal && !isDeferred && createdAtDate.isBefore(today);
 
     return Wrap(
       spacing: 8.0,
@@ -62,7 +66,11 @@ class TodoItemBadges extends StatelessWidget {
             colorScheme.primaryContainer,
             colorScheme.onPrimaryContainer,
           ),
-        if (!isReadOnly && item.timeBlock != TodoTimeBlock.current && !isOverdueByDay && !isDeferred && !isDelegated)
+        if (!isReadOnly &&
+            item.timeBlock != TodoTimeBlock.current &&
+            !isOverdueByDay &&
+            !isDeferred &&
+            !isDelegated)
           _buildBadge(
             context,
             item.timeBlock.getDisplayName(use24HourFormat),
@@ -80,7 +88,12 @@ class TodoItemBadges extends StatelessWidget {
     );
   }
 
-  Widget _buildBadge(BuildContext context, String text, Color bgColor, Color textColor) {
+  Widget _buildBadge(
+    BuildContext context,
+    String text,
+    Color bgColor,
+    Color textColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(

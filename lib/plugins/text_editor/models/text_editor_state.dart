@@ -3,7 +3,7 @@ import 'text_document.dart';
 
 part 'text_editor_state.freezed.dart';
 
-enum TextEditorViewMode { list, editor }
+enum TextEditorViewMode { list, editor, viewer }
 
 @freezed
 abstract class TextEditorState with _$TextEditorState {

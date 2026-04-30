@@ -17,9 +17,7 @@ import 'widgets/sqa_scroll_behavior.dart';
 import 'widgets/sqa_inline_tooltip.dart';
 import '../plugins/todo/providers/todo_notification_provider.dart';
 import '../plugins/todo/providers/todo_provider.dart';
-import '../plugins/todo/models/todo_settings.dart';
 import '../plugins/timer/providers/timer_provider.dart';
-
 
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
@@ -38,7 +36,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   void initState() {
     windowManager.addListener(this);
     _scrollController = ScrollController();
-    
+
     // Auto-open Todo view logic
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.listenManual(todoNotificationProvider, (previous, next) async {
@@ -53,7 +51,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         }
       });
     });
-    
+
     super.initState();
   }
 
@@ -140,7 +138,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     bool hasTodoReminder,
     bool isTimerRunning,
   ) {
-
     return GestureDetector(
       onPanStart: (_) => windowManager.startDragging(),
       behavior: HitTestBehavior.opaque,
@@ -206,7 +203,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                                 plugin.name,
                                               ),
                                               isActive: isActive,
-                                              badge: _buildBadgeIcon(plugin, hasTodoReminder, isTimerRunning),
+                                              badge: _buildBadgeIcon(
+                                                plugin,
+                                                hasTodoReminder,
+                                                isTimerRunning,
+                                              ),
                                               badgeColor: _getBadgeColor(
                                                 plugin,
                                                 hasTodoReminder,
@@ -276,7 +277,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
 
   // --- Helper Methods ---
 
-  Widget? _buildBadgeIcon(SqaPlugin plugin, bool hasTodoReminder, bool isTimerRunning) {
+  Widget? _buildBadgeIcon(
+    SqaPlugin plugin,
+    bool hasTodoReminder,
+    bool isTimerRunning,
+  ) {
     if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) {
       return const SizedBox.shrink();
     }
@@ -314,9 +319,18 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     return null;
   }
 
-  Color? _getBadgeColor(SqaPlugin plugin, bool hasTodoReminder, bool isTimerRunning, ColorScheme colorScheme) {
-    if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) return colorScheme.primary;
-    if (plugin.id == 'com.sqa.timer' && isTimerRunning) return colorScheme.primary;
+  Color? _getBadgeColor(
+    SqaPlugin plugin,
+    bool hasTodoReminder,
+    bool isTimerRunning,
+    ColorScheme colorScheme,
+  ) {
+    if (plugin.id == 'com.sqa.plugin.todo' && hasTodoReminder) {
+      return colorScheme.primary;
+    }
+    if (plugin.id == 'com.sqa.timer' && isTimerRunning) {
+      return colorScheme.primary;
+    }
 
     if (plugin.badge == 'BETA') return Colors.blue;
     if (plugin.badge == 'ALPHA') return Colors.amber;
@@ -377,7 +391,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 hasTodoReminder,
                 isTimerRunning,
               ),
-
             ),
           if (!isOverlayActive &&
               supporterTier >= 3 &&
@@ -429,7 +442,9 @@ class ToolIcon extends ConsumerWidget {
         label: isDot ? null : badge!,
         smallSize: 8,
         largeSize: isDot ? 8 : 16,
-        padding: isDot ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+        padding: isDot
+            ? EdgeInsets.zero
+            : const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
         offset: const Offset(4, -4),
         backgroundColor: badgeColor ?? colorScheme.primary,
         child: iconWidget,

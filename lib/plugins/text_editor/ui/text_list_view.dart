@@ -32,12 +32,13 @@ class _TextListViewState extends ConsumerState<TextListView> {
   Widget build(BuildContext context) {
     final state = ref.watch(textEditorProvider);
     var filteredDocs = ref.watch(filteredDocumentsProvider);
-    
+
     // Apply UI Filter
     if (_selectedFilter == TextListFilter.pinned) {
       filteredDocs = filteredDocs.where((d) => d.isPinned).toList();
     } else if (_selectedFilter == TextListFilter.recent) {
-      filteredDocs = List.from(filteredDocs)..sort((a, b) => b.lastModified.compareTo(a.lastModified));
+      filteredDocs = List.from(filteredDocs)
+        ..sort((a, b) => b.lastModified.compareTo(a.lastModified));
     }
 
     final notifier = ref.read(textEditorProvider.notifier);
@@ -91,7 +92,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: SqaCard(
-                          onTap: () => notifier.openEditor(doc),
+                          onTap: () => notifier.viewDocument(doc),
                           child: Row(
                             children: [
                               _buildFileIcon(context),
@@ -166,8 +167,14 @@ class _TextListViewState extends ConsumerState<TextListView> {
                 storageKey: 'text_list_filter',
                 segments: const [
                   ButtonSegment(value: TextListFilter.all, label: Text('All')),
-                  ButtonSegment(value: TextListFilter.pinned, label: Text('Pinned')),
-                  ButtonSegment(value: TextListFilter.recent, label: Text('Recent')),
+                  ButtonSegment(
+                    value: TextListFilter.pinned,
+                    label: Text('Pinned'),
+                  ),
+                  ButtonSegment(
+                    value: TextListFilter.recent,
+                    label: Text('Recent'),
+                  ),
                 ],
                 selected: {_selectedFilter},
                 onSelectionChanged: (set) {
@@ -280,7 +287,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
       children: [
         SqaPopupMenuItem(
           icon: const Icon(Symbols.edit),
-          label: 'Edit',
+          label: 'Edit Mode',
           onPressed: () => notifier.openEditor(doc),
         ),
         SqaPopupMenuItem(
@@ -327,7 +334,6 @@ class _TextListViewState extends ConsumerState<TextListView> {
       ],
     );
   }
-
 
   Widget _buildNewDocumentButton(
     BuildContext context,

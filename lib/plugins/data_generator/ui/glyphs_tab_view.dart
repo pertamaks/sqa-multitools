@@ -98,11 +98,10 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
           Text(
             _getUsageDescription(state.selectedCategory),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),

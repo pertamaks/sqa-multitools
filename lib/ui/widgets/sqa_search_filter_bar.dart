@@ -53,15 +53,15 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           color: _isFocused
               ? colorScheme.primaryContainer.withValues(alpha: 0.15)
               : (_isHovered
-                  ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                  : colorScheme.surfaceContainerLow.withValues(alpha: 0.2)),
+                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                    : colorScheme.surfaceContainerLow.withValues(alpha: 0.2)),
           borderRadius: SqaStyles.radiusLarge,
           border: Border.all(
             color: _isFocused
                 ? colorScheme.primary.withValues(alpha: 0.3)
                 : (_isHovered
-                    ? colorScheme.outlineVariant.withValues(alpha: 0.3)
-                    : colorScheme.outlineVariant.withValues(alpha: 0.1)),
+                      ? colorScheme.outlineVariant.withValues(alpha: 0.3)
+                      : colorScheme.outlineVariant.withValues(alpha: 0.1)),
           ),
           boxShadow: _isFocused
               ? [
@@ -69,7 +69,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                     color: colorScheme.primary.withValues(alpha: 0.05),
                     blurRadius: 10,
                     spreadRadius: 1,
-                  )
+                  ),
                 ]
               : [],
         ),
@@ -82,6 +82,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
               alignment: Alignment.centerLeft,
               children: <Widget>[
                 ...previousChildren,
+                // ignore: use_null_aware_elements
                 if (currentChild != null) currentChild,
               ],
             );
@@ -103,7 +104,9 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           child: Icon(
             Symbols.search,
             size: 18,
-            color: _isFocused ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            color: _isFocused
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
           ),
         ),
         Expanded(
@@ -153,9 +156,11 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
             padding: const EdgeInsets.only(right: 12.0),
             child: IconButton(
               icon: Icon(
-                Symbols.tune, 
-                size: 18, 
-                color: widget.isFilterActive ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                Symbols.tune,
+                size: 18,
+                color: widget.isFilterActive
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
               ),
               onPressed: () => setState(() => _isFilterMode = true),
               tooltip: 'Show Filters',
@@ -174,7 +179,11 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
         Padding(
           padding: const EdgeInsets.only(left: 12.0, right: 8.0),
           child: IconButton(
-            icon: Icon(Symbols.search, size: 18, color: colorScheme.onSurfaceVariant),
+            icon: Icon(
+              Symbols.search,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
             onPressed: () => setState(() => _isFilterMode = false),
             tooltip: 'Back to Search',
             padding: EdgeInsets.zero,

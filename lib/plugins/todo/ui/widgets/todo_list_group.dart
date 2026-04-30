@@ -20,7 +20,9 @@ class TodoListSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isPrimary ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
+    final color = isPrimary
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -31,7 +33,9 @@ class TodoListSectionHeader extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              color: isPrimary ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
+              color: isPrimary
+                  ? theme.colorScheme.onSurface
+                  : theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -84,7 +88,7 @@ class TodoExpansionGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final subtleColor = color ?? theme.colorScheme.onSurfaceVariant;
-    
+
     return ListTileTheme(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
@@ -128,18 +132,22 @@ class TodoExpansionGroup extends StatelessWidget {
           initiallyExpanded: initiallyExpanded,
           shape: const RoundedRectangleBorder(side: BorderSide.none),
           collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
-          children: items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Opacity(
-              opacity: opacity,
-              child: TodoListItem(
-                item: item,
-                onToggle: () => onToggle(item),
-                onDelete: () => onDelete(item),
-                onTap: () => onTap(item),
-              ),
-            ),
-          )).toList(),
+          children: items
+              .map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Opacity(
+                    opacity: opacity,
+                    child: TodoListItem(
+                      item: item,
+                      onToggle: () => onToggle(item),
+                      onDelete: () => onDelete(item),
+                      onTap: () => onTap(item),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ),
     );

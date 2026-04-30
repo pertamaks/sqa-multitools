@@ -13,7 +13,11 @@ import '../../../../ui/widgets/sqa_date_picker.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
 
 class TodoItemDialogs {
-  static void showHistorySummary(BuildContext context, WidgetRef ref, TodoItem item) {
+  static void showHistorySummary(
+    BuildContext context,
+    WidgetRef ref,
+    TodoItem item,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -40,37 +44,49 @@ class TodoItemDialogs {
               ),
             ),
             const SizedBox(height: 16),
-            _buildSummaryRow(context, Symbols.info, 'Status', item.status.name.toUpperCase()),
             _buildSummaryRow(
-              context, 
-              Symbols.calendar_today, 
-              'Created', 
-              DateFormat('MMM d, y • h:mm a').format(item.createdAt)
+              context,
+              Symbols.info,
+              'Status',
+              item.status.name.toUpperCase(),
+            ),
+            _buildSummaryRow(
+              context,
+              Symbols.calendar_today,
+              'Created',
+              DateFormat('MMM d, y • h:mm a').format(item.createdAt),
             ),
             if (item.timeBlock != TodoTimeBlock.current)
               _buildSummaryRow(
-                context, 
-                Symbols.hourglass_empty, 
-                'Time Block', 
-                item.timeBlock.getDisplayName(ref.read(todoSettingsProvider).value?.use24HourFormat ?? true)
+                context,
+                Symbols.hourglass_empty,
+                'Time Block',
+                item.timeBlock.getDisplayName(
+                  ref.read(todoSettingsProvider).value?.use24HourFormat ?? true,
+                ),
               ),
             if (item.completedAt case final completedAt?)
               _buildSummaryRow(
-                context, 
-                Symbols.check_circle, 
-                'Completed', 
-                DateFormat('MMM d, y • h:mm a').format(completedAt)
+                context,
+                Symbols.check_circle,
+                'Completed',
+                DateFormat('MMM d, y • h:mm a').format(completedAt),
               ),
             if (item.deferredUntil case final deferredUntil?)
               _buildSummaryRow(
-                context, 
-                Symbols.schedule, 
-                'Deferred Until', 
-                DateFormat('MMM d, y').format(deferredUntil)
+                context,
+                Symbols.schedule,
+                'Deferred Until',
+                DateFormat('MMM d, y').format(deferredUntil),
               ),
             if (item.delegatedTo.isNotEmpty)
-              _buildSummaryRow(context, Symbols.person, 'Delegated To', item.delegatedTo),
-            
+              _buildSummaryRow(
+                context,
+                Symbols.person,
+                'Delegated To',
+                item.delegatedTo,
+              ),
+
             if (item.notes.isNotEmpty) ...[
               const SizedBox(height: 16),
               const Divider(height: 1, thickness: 0.5),
@@ -87,16 +103,15 @@ class TodoItemDialogs {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.3,
+                  ),
                   borderRadius: SqaStyles.radiusMedium,
                   border: Border.all(
                     color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
                 ),
-                child: Text(
-                  item.notes,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                child: Text(item.notes, style: theme.textTheme.bodyMedium),
               ),
             ],
           ],
@@ -105,8 +120,14 @@ class TodoItemDialogs {
     );
   }
 
-  static void showNotes(BuildContext context, WidgetRef ref, TodoItem item) async {
-    final TextEditingController controller = TextEditingController(text: item.notes);
+  static void showNotes(
+    BuildContext context,
+    WidgetRef ref,
+    TodoItem item,
+  ) async {
+    final TextEditingController controller = TextEditingController(
+      text: item.notes,
+    );
 
     final bool? result = await showDialog<bool>(
       context: context,
@@ -146,21 +167,33 @@ class TodoItemDialogs {
     if (result == true) {
       final newStatus = TodoStatus.done;
       final notes = SqaField.toSentenceCase(controller.text.trim());
-      ref.read(todoProvider.notifier).updateTodo(
-        item.copyWith(
-          status: newStatus,
-          notes: notes,
-          completedAt: DateTime.now(),
-        ),
-      );
+      ref
+          .read(todoProvider.notifier)
+          .updateTodo(
+            item.copyWith(
+              status: newStatus,
+              notes: notes,
+              completedAt: DateTime.now(),
+            ),
+          );
       if (context.mounted) {
-        SqaToast.show(context, 'Focus completed with notes!', type: SqaToastType.success);
+        SqaToast.show(
+          context,
+          'Focus completed with notes!',
+          type: SqaToastType.success,
+        );
       }
     }
   }
 
-  static void showDelegate(BuildContext context, WidgetRef ref, TodoItem item) async {
-    final TextEditingController controller = TextEditingController(text: item.delegatedTo);
+  static void showDelegate(
+    BuildContext context,
+    WidgetRef ref,
+    TodoItem item,
+  ) async {
+    final TextEditingController controller = TextEditingController(
+      text: item.delegatedTo,
+    );
 
     final bool? result = await showDialog<bool>(
       context: context,
@@ -198,13 +231,15 @@ class TodoItemDialogs {
     if (result == true) {
       final delegatedTo = controller.text.trim();
       if (delegatedTo.isNotEmpty) {
-        ref.read(todoProvider.notifier).updateTodo(
-          item.copyWith(
-            status: TodoStatus.delegated,
-            delegatedTo: delegatedTo,
-            completedAt: DateTime.now(),
-          ),
-        );
+        ref
+            .read(todoProvider.notifier)
+            .updateTodo(
+              item.copyWith(
+                status: TodoStatus.delegated,
+                delegatedTo: delegatedTo,
+                completedAt: DateTime.now(),
+              ),
+            );
         if (context.mounted) {
           SqaToast.show(context, 'Focus delegated to $delegatedTo');
         }
@@ -214,11 +249,20 @@ class TodoItemDialogs {
 
   static void showDefer(BuildContext context, WidgetRef ref, TodoItem item) {
     final now = DateTime.now();
-    final is24h = ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
-    
+    final is24h =
+        ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
+
     final blockHour = _getHourForTimeBlock(item.timeBlock, item.createdAt.hour);
-    final blockMinute = item.timeBlock == TodoTimeBlock.current ? item.createdAt.minute : 0;
-    final blockDate = DateTime(now.year, now.month, now.day, blockHour, blockMinute);
+    final blockMinute = item.timeBlock == TodoTimeBlock.current
+        ? item.createdAt.minute
+        : 0;
+    final blockDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      blockHour,
+      blockMinute,
+    );
 
     showDialog<void>(
       context: context,
@@ -231,12 +275,20 @@ class TodoItemDialogs {
             _buildDeferOption(
               context,
               icon: Symbols.update,
-              title: item.timeBlock == TodoTimeBlock.current ? 'Same Time Tomorrow' : 'Same Time Block Tomorrow',
-              subtitle: item.timeBlock == TodoTimeBlock.current 
+              title: item.timeBlock == TodoTimeBlock.current
+                  ? 'Same Time Tomorrow'
+                  : 'Same Time Block Tomorrow',
+              subtitle: item.timeBlock == TodoTimeBlock.current
                   ? 'Tomorrow at ${DateFormat(is24h ? 'HH:mm' : 'h:mm a').format(blockDate)}'
                   : 'Tomorrow, ${item.timeBlock.getDisplayName(is24h)}',
               onTap: () {
-                final date = DateTime(now.year, now.month, now.day + 1, blockHour, blockMinute);
+                final date = DateTime(
+                  now.year,
+                  now.month,
+                  now.day + 1,
+                  blockHour,
+                  blockMinute,
+                );
                 ref.read(todoProvider.notifier).deferTodo(item.id, date);
                 Navigator.pop(context);
                 SqaToast.show(context, 'Focus deferred to tomorrow');
@@ -247,7 +299,8 @@ class TodoItemDialogs {
               context,
               icon: Symbols.wb_sunny,
               title: 'Tomorrow Morning',
-              subtitle: 'Tomorrow at ${ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true ? '09:00' : '9:00 AM'}',
+              subtitle:
+                  'Tomorrow at ${ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true ? '09:00' : '9:00 AM'}',
               onTap: () {
                 final date = DateTime(now.year, now.month, now.day + 1, 9, 0);
                 ref.read(todoProvider.notifier).deferTodo(item.id, date);
@@ -260,7 +313,9 @@ class TodoItemDialogs {
               context,
               icon: Symbols.next_week,
               title: 'Next Week',
-              subtitle: DateFormat('EEEE, MMM d').format(now.add(const Duration(days: 7))),
+              subtitle: DateFormat(
+                'EEEE, MMM d',
+              ).format(now.add(const Duration(days: 7))),
               onTap: () {
                 final date = now.add(const Duration(days: 7));
                 ref.read(todoProvider.notifier).deferTodo(item.id, date);
@@ -285,7 +340,10 @@ class TodoItemDialogs {
                   ref.read(todoProvider.notifier).deferTodo(item.id, picked);
                   if (context.mounted) {
                     Navigator.pop(context);
-                    SqaToast.show(context, 'Focus deferred to ${DateFormat('MMM d').format(picked)}');
+                    SqaToast.show(
+                      context,
+                      'Focus deferred to ${DateFormat('MMM d').format(picked)}',
+                    );
                   }
                 }
               },
@@ -296,10 +354,15 @@ class TodoItemDialogs {
     );
   }
 
-  static Widget _buildSummaryRow(BuildContext context, IconData icon, String label, String value) {
+  static Widget _buildSummaryRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
@@ -350,7 +413,9 @@ class TodoItemDialogs {
                 children: [
                   Text(
                     title,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     subtitle,
@@ -361,7 +426,11 @@ class TodoItemDialogs {
                 ],
               ),
             ),
-            Icon(Symbols.chevron_right, size: 20, color: theme.colorScheme.onSurfaceVariant),
+            Icon(
+              Symbols.chevron_right,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
@@ -370,22 +439,35 @@ class TodoItemDialogs {
 
   static int _getHourForTimeBlock(TodoTimeBlock block, int defaultHour) {
     switch (block) {
-      case TodoTimeBlock.morning: return 6;
-      case TodoTimeBlock.midMorning: return 9;
-      case TodoTimeBlock.noon: return 11;
-      case TodoTimeBlock.afternoon: return 13;
-      case TodoTimeBlock.lateAfternoon: return 15;
-      case TodoTimeBlock.evening: return 17;
-      case TodoTimeBlock.night: return 20;
-      case TodoTimeBlock.current: return defaultHour;
+      case TodoTimeBlock.morning:
+        return 6;
+      case TodoTimeBlock.midMorning:
+        return 9;
+      case TodoTimeBlock.noon:
+        return 11;
+      case TodoTimeBlock.afternoon:
+        return 13;
+      case TodoTimeBlock.lateAfternoon:
+        return 15;
+      case TodoTimeBlock.evening:
+        return 17;
+      case TodoTimeBlock.night:
+        return 20;
+      case TodoTimeBlock.current:
+        return defaultHour;
     }
   }
+
   static void incrementHelpCount(WidgetRef ref) {
     final settings = ref.read(todoSettingsProvider).value;
     if (settings != null && settings.longPressHelpCount < 5) {
-      ref.read(todoSettingsProvider.notifier).updateSettings(
-        settings.copyWith(longPressHelpCount: settings.longPressHelpCount + 1),
-      );
+      ref
+          .read(todoSettingsProvider.notifier)
+          .updateSettings(
+            settings.copyWith(
+              longPressHelpCount: settings.longPressHelpCount + 1,
+            ),
+          );
     }
   }
 }

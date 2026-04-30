@@ -104,9 +104,12 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/app_icon.ico
+    - assets/desktop_new.png
+    - assets/toolbar_new.png
     - assets/caterpillar.gif
     - assets/bug_splat.png
     - assets/8ball.png
+    - assets/qa_cheatsheet_comp.md
     - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -82,7 +82,8 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
                   ),
                 ],
                 selected: {state.selectedJsonCategory},
-                onSelectionChanged: (set) => notifier.setJsonCategory(set.first),
+                onSelectionChanged: (set) =>
+                    notifier.setJsonCategory(set.first),
               )
             else
               SqaSegmentedButton<DateCategory>(
@@ -100,18 +101,18 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
                   ),
                 ],
                 selected: {state.selectedDateCategory},
-                onSelectionChanged: (set) => notifier.setDateCategory(set.first),
+                onSelectionChanged: (set) =>
+                    notifier.setDateCategory(set.first),
               ),
           ],
           const SizedBox(height: 12),
           Text(
             _getUsageDescription(state.selectedType),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),

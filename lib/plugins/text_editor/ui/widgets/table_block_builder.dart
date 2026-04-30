@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'sqa_block_component_wrapper.dart';
 import '../../../../ui/widgets/sqa_fade_wrapper.dart';
+
 class SqaTableBlockComponentBuilder extends TableBlockComponentBuilder {
   SqaTableBlockComponentBuilder({
     super.configuration,

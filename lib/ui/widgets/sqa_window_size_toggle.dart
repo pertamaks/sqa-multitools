@@ -18,7 +18,9 @@ class SqaWindowSizeToggle extends ConsumerWidget {
     final isSquare = mode == WindowSizeMode.squareMode;
 
     // Requested icons: arrows_more_down and arrows_more_up
-    final iconData = isSquare ? Symbols.arrows_more_up : Symbols.arrows_more_down;
+    final iconData = isSquare
+        ? Symbols.arrows_more_up
+        : Symbols.arrows_more_down;
 
     return Transform.rotate(
       // -90 degrees (counter-clockwise) makes Down -> Right and Up -> Left

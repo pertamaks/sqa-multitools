@@ -5,18 +5,9 @@ import 'recurring_todo.dart';
 part 'todo_state.freezed.dart';
 part 'todo_state.g.dart';
 
-enum TodoTab {
-  today,
-  recurring,
-  history,
-}
+enum TodoTab { today, recurring, history }
 
-enum HistoryFilter {
-  last7Days,
-  thisMonth,
-  lastMonth,
-  custom,
-}
+enum HistoryFilter { last7Days, thisMonth, lastMonth, custom }
 
 @freezed
 abstract class TodoState with _$TodoState {
@@ -28,5 +19,6 @@ abstract class TodoState with _$TodoState {
     @Default(null) String? previousPluginId,
   }) = _TodoState;
 
-  factory TodoState.fromJson(Map<String, dynamic> json) => _$TodoStateFromJson(json);
+  factory TodoState.fromJson(Map<String, dynamic> json) =>
+      _$TodoStateFromJson(json);
 }

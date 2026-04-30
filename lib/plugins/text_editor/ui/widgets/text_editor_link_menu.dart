@@ -10,7 +10,8 @@ class SqaLinkMenuWidget extends StatefulWidget {
   final void Function(String) onSubmitted;
   final VoidCallback onRemove;
 
-  const SqaLinkMenuWidget({super.key,
+  const SqaLinkMenuWidget({
+    super.key,
     this.initialUrl,
     required this.onSubmitted,
     required this.onRemove,

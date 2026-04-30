@@ -17,7 +17,8 @@ class RecurringTodoItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final use24h = ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
+    final use24h =
+        ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
 
     return Opacity(
       opacity: item.isActive ? 1.0 : 0.6,
@@ -30,18 +31,25 @@ class RecurringTodoItem extends ConsumerWidget {
             IconButton(
               icon: Icon(
                 item.isActive ? Symbols.check_circle : Symbols.circle,
-                color: item.isActive ? theme.colorScheme.primary : theme.colorScheme.outline,
+                color: item.isActive
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
                 size: 20,
               ),
               onPressed: () {
-                ref.read(todoProvider.notifier).updateRecurringTodo(
-                  item.copyWith(isActive: !item.isActive),
+                ref
+                    .read(todoProvider.notifier)
+                    .updateRecurringTodo(
+                      item.copyWith(isActive: !item.isActive),
+                    );
+                SqaToast.show(
+                  context,
+                  item.isActive ? 'Focus paused' : 'Focus resumed',
                 );
-                SqaToast.show(context, item.isActive ? 'Focus paused' : 'Focus resumed');
               },
             ),
             const SizedBox(width: 8),
-            
+
             // Info
             Expanded(
               child: Column(
@@ -51,13 +59,19 @@ class RecurringTodoItem extends ConsumerWidget {
                     item.title,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      decoration: item.isActive ? null : TextDecoration.lineThrough,
+                      decoration: item.isActive
+                          ? null
+                          : TextDecoration.lineThrough,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Symbols.schedule, size: 14, color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Symbols.schedule,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${_formatTime(item.hour, item.minute, use24h)} • ${_getRecurrenceText(item)}',
@@ -73,12 +87,17 @@ class RecurringTodoItem extends ConsumerWidget {
 
             // Actions
             SqaPopupMenu(
-              icon: Icon(Symbols.more_vert, size: 20, color: theme.colorScheme.outline),
+              icon: Icon(
+                Symbols.more_vert,
+                size: 20,
+                color: theme.colorScheme.outline,
+              ),
               children: [
                 SqaPopupMenuItem(
                   label: 'Edit',
                   icon: const Icon(Symbols.edit),
-                  onPressed: () => RecurringTodoEditorDialog.show(context, item: item),
+                  onPressed: () =>
+                      RecurringTodoEditorDialog.show(context, item: item),
                 ),
                 SqaPopupMenuItem(
                   label: 'Delete',
@@ -88,11 +107,16 @@ class RecurringTodoItem extends ConsumerWidget {
                     final confirmed = await SqaModal.showDanger(
                       context,
                       title: 'Delete Recurring Focus',
-                      message: 'Are you sure you want to delete "${item.title}"? This will stop future focus blocks from being created.',
+                      message:
+                          'Are you sure you want to delete "${item.title}"? This will stop future focus blocks from being created.',
                     );
                     if (confirmed == true) {
-                      ref.read(todoProvider.notifier).deleteRecurringTodo(item.id);
-                      if (context.mounted) SqaToast.show(context, 'Recurring focus deleted.');
+                      ref
+                          .read(todoProvider.notifier)
+                          .deleteRecurringTodo(item.id);
+                      if (context.mounted) {
+                        SqaToast.show(context, 'Recurring focus deleted.');
+                      }
                     }
                   },
                 ),
@@ -105,7 +129,9 @@ class RecurringTodoItem extends ConsumerWidget {
   }
 
   String _formatTime(int hour, int minute, bool use24h) {
-    final h = use24h ? hour.toString().padLeft(2, '0') : ((hour % 12 == 0 ? 12 : hour % 12).toString());
+    final h = use24h
+        ? hour.toString().padLeft(2, '0')
+        : ((hour % 12 == 0 ? 12 : hour % 12).toString());
     final m = minute.toString().padLeft(2, '0');
     final period = use24h ? '' : (hour >= 12 ? ' PM' : ' AM');
     return '$h:$m$period';
@@ -113,13 +139,16 @@ class RecurringTodoItem extends ConsumerWidget {
 
   String _getRecurrenceText(RecurringTodo item) {
     switch (item.recurrenceType) {
-      case RecurrenceType.daily: return 'Daily';
-      case RecurrenceType.weekdays: return 'Weekdays';
+      case RecurrenceType.daily:
+        return 'Daily';
+      case RecurrenceType.weekdays:
+        return 'Weekdays';
       case RecurrenceType.weekly:
         final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
         final selected = item.weeklyDays.map((d) => days[d - 1]).join(', ');
         return 'Weekly ($selected)';
-      case RecurrenceType.everyNDays: return 'Every ${item.everyNDays} days';
+      case RecurrenceType.everyNDays:
+        return 'Every ${item.everyNDays} days';
     }
   }
 }

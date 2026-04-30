@@ -47,7 +47,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
     super.initState();
     _ownsController = widget.scrollController == null;
     _scrollController = widget.scrollController ?? ScrollController();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToSelected();
     });
@@ -56,7 +56,8 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
   @override
   void didUpdateWidget(SqaSegmentedButton<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selected != oldWidget.selected || widget.segments.length != oldWidget.segments.length) {
+    if (widget.selected != oldWidget.selected ||
+        widget.segments.length != oldWidget.segments.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToSelected();
       });
@@ -65,7 +66,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
 
   void _scrollToSelected() {
     if (!_scrollController.hasClients) return;
-    
+
     final position = _scrollController.position;
     if (position.maxScrollExtent <= 0) return;
 
@@ -77,10 +78,10 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
     final N = widget.segments.length;
     final viewportDimension = position.viewportDimension;
     final totalWidth = position.maxScrollExtent + viewportDimension;
-    
+
     final buttonCenter = totalWidth * (index + 0.5) / N;
     final targetOffset = buttonCenter - (viewportDimension / 2);
-    
+
     final clampedOffset = targetOffset.clamp(0.0, position.maxScrollExtent);
 
     _scrollController.animateTo(
@@ -159,7 +160,9 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
               }
             },
             child: SingleChildScrollView(
-              key: widget.storageKey != null ? PageStorageKey<String>(widget.storageKey!) : null,
+              key: widget.storageKey != null
+                  ? PageStorageKey<String>(widget.storageKey!)
+                  : null,
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
               child: segmentedButton,

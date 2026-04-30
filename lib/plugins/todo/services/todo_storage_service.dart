@@ -12,7 +12,9 @@ class TodoStorageService {
 
   Future<Directory> get _storageDir async {
     final docsDir = await getApplicationDocumentsDirectory();
-    final dir = Directory('${docsDir.path}${Platform.pathSeparator}$_folderName');
+    final dir = Directory(
+      '${docsDir.path}${Platform.pathSeparator}$_folderName',
+    );
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
@@ -29,7 +31,7 @@ class TodoStorageService {
   /// It groups the provided todos by month and updates the corresponding files.
   Future<void> saveTodos(List<TodoItem> todos) async {
     final dir = await _storageDir;
-    
+
     // Group todos by month
     final Map<String, List<TodoItem>> grouped = {};
     for (final todo in todos) {
@@ -40,18 +42,21 @@ class TodoStorageService {
     // Update each file
     for (final entry in grouped.entries) {
       final file = File('${dir.path}${Platform.pathSeparator}${entry.key}');
-      
+
       // We need to load existing todos from that file that ARE NOT in the current set
       // to avoid wiping out other days in the same month if we are only saving a partial list.
       // But usually, we'll pass the full active list.
       // For simplicity in this plugin, we'll assume the provider gives us the context needed.
       // A better way: Load the file, merge, and save.
-      
+
       List<TodoItem> existing = [];
       if (await file.exists()) {
         try {
-          final jsonList = jsonDecode(await file.readAsString()) as List<dynamic>;
-          existing = jsonList.map((e) => TodoItem.fromJson(e as Map<String, dynamic>)).toList();
+          final jsonList =
+              jsonDecode(await file.readAsString()) as List<dynamic>;
+          existing = jsonList
+              .map((e) => TodoItem.fromJson(e as Map<String, dynamic>))
+              .toList();
         } catch (_) {}
       }
 
@@ -61,7 +66,9 @@ class TodoStorageService {
         mergedMap[t.id] = t;
       }
 
-      final jsonContent = jsonEncode(mergedMap.values.map((e) => e.toJson()).toList());
+      final jsonContent = jsonEncode(
+        mergedMap.values.map((e) => e.toJson()).toList(),
+      );
       await file.writeAsString(jsonContent);
     }
   }
@@ -69,12 +76,17 @@ class TodoStorageService {
   Future<List<TodoItem>> loadAllTodos() async {
     final dir = await _storageDir;
     final List<TodoItem> allTodos = [];
-    
+
     await for (final entity in dir.list()) {
-      if (entity is File && entity.path.contains('todo_data_') && entity.path.endsWith('.json')) {
+      if (entity is File &&
+          entity.path.contains('todo_data_') &&
+          entity.path.endsWith('.json')) {
         try {
-          final jsonList = jsonDecode(await entity.readAsString()) as List<dynamic>;
-          allTodos.addAll(jsonList.map((e) => TodoItem.fromJson(e as Map<String, dynamic>)));
+          final jsonList =
+              jsonDecode(await entity.readAsString()) as List<dynamic>;
+          allTodos.addAll(
+            jsonList.map((e) => TodoItem.fromJson(e as Map<String, dynamic>)),
+          );
         } catch (_) {}
       }
     }
@@ -94,7 +106,9 @@ class TodoStorageService {
     if (await file.exists()) {
       try {
         final jsonList = jsonDecode(await file.readAsString()) as List<dynamic>;
-        return jsonList.map((e) => RecurringTodo.fromJson(e as Map<String, dynamic>)).toList();
+        return jsonList
+            .map((e) => RecurringTodo.fromJson(e as Map<String, dynamic>))
+            .toList();
       } catch (_) {}
     }
     return [];
@@ -111,7 +125,9 @@ class TodoStorageService {
     final file = File('${dir.path}${Platform.pathSeparator}$_settingsFile');
     if (await file.exists()) {
       try {
-        return TodoSettings.fromJson(jsonDecode(await file.readAsString()) as Map<String, dynamic>);
+        return TodoSettings.fromJson(
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>,
+        );
       } catch (_) {}
     }
     return const TodoSettings();
@@ -126,7 +142,9 @@ class TodoStorageService {
     final threshold = now.subtract(Duration(days: retentionDays));
 
     await for (final entity in dir.list()) {
-      if (entity is File && entity.path.contains('todo_data_') && entity.path.endsWith('.json')) {
+      if (entity is File &&
+          entity.path.contains('todo_data_') &&
+          entity.path.endsWith('.json')) {
         // Extract year and month from filename: todo_data_YYYY_MM.json
         final baseName = entity.uri.pathSegments.last;
         final parts = baseName.replaceFirst('.json', '').split('_');

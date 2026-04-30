@@ -31,7 +31,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   late TextEditingController _titleController;
   late TextEditingController _notesController;
   late TextEditingController _categoryController;
-  
+
   TodoTimeBlock _timeBlock = TodoTimeBlock.current;
   TodoDurationPreset _durationPreset = TodoDurationPreset.min25;
   TodoPriority _priority = TodoPriority.normal;
@@ -45,7 +45,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     _titleController = TextEditingController(text: item?.title ?? '');
     _notesController = TextEditingController(text: item?.notes ?? '');
     _categoryController = TextEditingController(text: item?.category ?? '');
-    
+
     if (item != null) {
       _timeBlock = item.timeBlock;
       _durationPreset = item.durationPreset;
@@ -61,11 +61,13 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     final settingsAsync = ref.read(todoSettingsProvider);
     final settings = settingsAsync.value;
     if (settings?.wakeHour != null) {
-      final suggestion = ref.read(todoNotificationProvider.notifier).suggestTimeBlock(
-        settings!.wakeHour!,
-        settings.wakeMinute!,
-        DateTime.now(),
-      );
+      final suggestion = ref
+          .read(todoNotificationProvider.notifier)
+          .suggestTimeBlock(
+            settings!.wakeHour!,
+            settings.wakeMinute!,
+            DateTime.now(),
+          );
       setState(() {
         _timeBlock = suggestion;
         _durationPreset = _getValidDurationForBlock(suggestion);
@@ -139,8 +141,16 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                       value: _timeBlock,
                       enabled: _status == TodoStatus.todo,
                       items: _getAvailableTimeBlocks().map((v) {
-                        final use24h = ref.watch(todoSettingsProvider).value?.use24HourFormat ?? true;
-                        return DropdownMenuItem(value: v, child: Text(v.getDisplayName(use24h)));
+                        final use24h =
+                            ref
+                                .watch(todoSettingsProvider)
+                                .value
+                                ?.use24HourFormat ??
+                            true;
+                        return DropdownMenuItem(
+                          value: v,
+                          child: Text(v.getDisplayName(use24h)),
+                        );
                       }).toList(),
                       onChanged: (v) {
                         if (v != null) {
@@ -159,19 +169,32 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel(context, _status == TodoStatus.deferred ? 'Reschedule' : 'Duration'),
+                    _buildLabel(
+                      context,
+                      _status == TodoStatus.deferred
+                          ? 'Reschedule'
+                          : 'Duration',
+                    ),
                     const SizedBox(height: 8),
                     if (_status == TodoStatus.deferred)
                       SqaButton(
-                        label: _deferredUntil != null ? DateFormat('MMM d, yyyy').format(_deferredUntil!) : 'Pick Date',
+                        label: _deferredUntil != null
+                            ? DateFormat('MMM d, yyyy').format(_deferredUntil!)
+                            : 'Pick Date',
                         onPressed: () async {
                           final picked = await showDatePicker(
                             context: context,
-                            initialDate: _deferredUntil ?? DateTime.now().add(const Duration(days: 1)),
+                            initialDate:
+                                _deferredUntil ??
+                                DateTime.now().add(const Duration(days: 1)),
                             firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
                           );
-                          if (picked != null) setState(() => _deferredUntil = picked);
+                          if (picked != null) {
+                            setState(() => _deferredUntil = picked);
+                          }
                         },
                         type: SqaButtonType.tonal,
                         icon: Symbols.calendar_today,
@@ -179,7 +202,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     else
                       SqaDropdown<TodoDurationPreset>(
                         value: _durationPreset,
-                        items: _getAvailableDurations(_timeBlock).map((v) => DropdownMenuItem(value: v, child: Text('${_getDurationMinutes(v)} min'))).toList(),
+                        items: _getAvailableDurations(_timeBlock)
+                            .map(
+                              (v) => DropdownMenuItem(
+                                value: v,
+                                child: Text('${_getDurationMinutes(v)} min'),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (v) {
                           if (v != null) setState(() => _durationPreset = v);
                         },
@@ -214,7 +244,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     const SizedBox(height: 8),
                     SqaDropdown<TodoPriority>(
                       value: _priority,
-                      items: TodoPriority.values.map((v) => DropdownMenuItem(value: v, child: Text(v.displayName))).toList(),
+                      items: TodoPriority.values
+                          .map(
+                            (v) => DropdownMenuItem(
+                              value: v,
+                              child: Text(v.displayName),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) {
                         if (v != null) setState(() => _priority = v);
                       },
@@ -251,10 +288,10 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     return Text(
       text,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.1,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.1,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
@@ -262,16 +299,28 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     List<TodoDurationPreset> presets;
     switch (block) {
       case TodoTimeBlock.current:
-        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        presets = [
+          TodoDurationPreset.min5,
+          TodoDurationPreset.min15,
+          TodoDurationPreset.min25,
+        ];
         break;
       case TodoTimeBlock.morning:
       case TodoTimeBlock.midMorning:
         // Peak cognitive performance
-        presets = [TodoDurationPreset.min25, TodoDurationPreset.min45, TodoDurationPreset.min90];
+        presets = [
+          TodoDurationPreset.min25,
+          TodoDurationPreset.min45,
+          TodoDurationPreset.min90,
+        ];
         break;
       case TodoTimeBlock.noon:
         // Anchor point
-        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        presets = [
+          TodoDurationPreset.min5,
+          TodoDurationPreset.min15,
+          TodoDurationPreset.min25,
+        ];
         break;
       case TodoTimeBlock.afternoon:
       case TodoTimeBlock.lateAfternoon:
@@ -280,29 +329,40 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
         break;
       case TodoTimeBlock.evening:
         // Wind-down
-        presets = [TodoDurationPreset.min5, TodoDurationPreset.min15, TodoDurationPreset.min25];
+        presets = [
+          TodoDurationPreset.min5,
+          TodoDurationPreset.min15,
+          TodoDurationPreset.min25,
+        ];
         break;
       case TodoTimeBlock.night:
         // Simple tasks only
         presets = [TodoDurationPreset.min5, TodoDurationPreset.min15];
         break;
     }
-    
+
     // Always include the current selection to avoid dropdown element errors
     if (!presets.contains(_durationPreset)) {
       presets = [...presets, _durationPreset];
-      presets.sort((a, b) => _getDurationMinutes(a).compareTo(_getDurationMinutes(b)));
+      presets.sort(
+        (a, b) => _getDurationMinutes(a).compareTo(_getDurationMinutes(b)),
+      );
     }
     return presets;
   }
 
   int _getDurationMinutes(TodoDurationPreset p) {
     switch (p) {
-      case TodoDurationPreset.min5: return 5;
-      case TodoDurationPreset.min15: return 15;
-      case TodoDurationPreset.min25: return 25;
-      case TodoDurationPreset.min45: return 45;
-      case TodoDurationPreset.min90: return 90;
+      case TodoDurationPreset.min5:
+        return 5;
+      case TodoDurationPreset.min15:
+        return 15;
+      case TodoDurationPreset.min25:
+        return 25;
+      case TodoDurationPreset.min45:
+        return 45;
+      case TodoDurationPreset.min90:
+        return 90;
     }
   }
 
@@ -323,7 +383,11 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
         notes: notes,
       );
       if (context.mounted) {
-        SqaToast.show(context, 'Focus block added!', type: SqaToastType.success);
+        SqaToast.show(
+          context,
+          'Focus block added!',
+          type: SqaToastType.success,
+        );
       }
     } else {
       final wasDeferred = widget.initialItem?.status == TodoStatus.deferred;
@@ -339,7 +403,9 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
           notes: notes,
           status: _status,
           deferredUntil: _deferredUntil,
-          createdAt: (wasDeferred && isNowTodo) ? DateTime.now() : widget.initialItem!.createdAt,
+          createdAt: (wasDeferred && isNowTodo)
+              ? DateTime.now()
+              : widget.initialItem!.createdAt,
         ),
       );
       if (context.mounted) {

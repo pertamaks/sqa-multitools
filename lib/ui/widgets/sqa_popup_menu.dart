@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'sqa_styles.dart';
 
 /// A centralized, premium popup menu for SQA-Multitools.
-/// 
+///
 /// Reuses the MenuStyle and animation logic from SqaDropdown to ensure
 /// visual consistency across the application.
 class SqaPopupMenu extends StatelessWidget {
@@ -22,7 +22,7 @@ class SqaPopupMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return MenuAnchor(
       alignmentOffset: alignmentOffset,
       style: MenuStyle(
@@ -53,9 +53,7 @@ class SqaPopupMenu extends StatelessWidget {
           },
           style: IconButton.styleFrom(
             shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ).copyWith(
-            overlayColor: SqaStyles.buttonOverlay(context),
-          ),
+          ).copyWith(overlayColor: SqaStyles.buttonOverlay(context)),
         );
       },
     );
@@ -80,7 +78,9 @@ class SqaPopupMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isDestructive ? theme.colorScheme.error : theme.colorScheme.onSurface;
+    final color = isDestructive
+        ? theme.colorScheme.error
+        : theme.colorScheme.onSurface;
 
     return MenuItemButton(
       onPressed: onPressed,

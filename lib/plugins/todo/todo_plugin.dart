@@ -80,12 +80,16 @@ class _TodoSettings extends ConsumerWidget {
                 SqaSettingsTile(
                   icon: Symbols.alarm,
                   title: 'Wake Anchor',
-                  subtitle: settings.wakeHour != null 
-                    ? '${settings.wakeHour.toString().padLeft(2, '0')}:${settings.wakeMinute.toString().padLeft(2, '0')}'
-                    : 'Not set',
+                  subtitle: settings.wakeHour != null
+                      ? '${settings.wakeHour.toString().padLeft(2, '0')}:${settings.wakeMinute.toString().padLeft(2, '0')}'
+                      : 'Not set',
                   trailing: Padding(
                     padding: const EdgeInsets.only(right: 8.0),
-                    child: Icon(Symbols.info, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    child: Icon(
+                      Symbols.info,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -95,9 +99,9 @@ class _TodoSettings extends ConsumerWidget {
                   subtitle: 'Prompt every morning to align cycles',
                   trailing: SqaSwitch(
                     value: settings.askWakeTimeDaily,
-                    onChanged: (v) => ref.read(todoSettingsProvider.notifier).updateSettings(
-                      settings.copyWith(askWakeTimeDaily: v),
-                    ),
+                    onChanged: (v) => ref
+                        .read(todoSettingsProvider.notifier)
+                        .updateSettings(settings.copyWith(askWakeTimeDaily: v)),
                   ),
                 ),
                 const Divider(height: 1),
@@ -107,16 +111,19 @@ class _TodoSettings extends ConsumerWidget {
                   subtitle: 'Jump to focus block list when a block starts',
                   trailing: SqaSwitch(
                     value: settings.autoOpenOnReminder,
-                    onChanged: (v) => ref.read(todoSettingsProvider.notifier).updateSettings(
-                      settings.copyWith(autoOpenOnReminder: v),
-                    ),
+                    onChanged: (v) => ref
+                        .read(todoSettingsProvider.notifier)
+                        .updateSettings(
+                          settings.copyWith(autoOpenOnReminder: v),
+                        ),
                   ),
                 ),
                 const Divider(height: 1),
                 SqaSettingsTile(
                   icon: Symbols.history,
                   title: 'History Retention',
-                  subtitle: 'Keep tasks for ${settings.historyRetentionDays} days',
+                  subtitle:
+                      'Keep tasks for ${settings.historyRetentionDays} days',
                   trailing: Padding(
                     padding: const EdgeInsets.only(right: 12.0),
                     child: Text(

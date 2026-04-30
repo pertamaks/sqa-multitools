@@ -79,6 +79,14 @@ class TextEditor extends _$TextEditor {
     );
   }
 
+  void viewDocument(TextDocument document) {
+    state = state.copyWith(
+      activeDocument: document,
+      viewMode: TextEditorViewMode.viewer,
+      hasUnsavedChanges: false,
+    );
+  }
+
   void createFromTemplate(TextTemplateType type) {
     if (state.documents.length >= state.maxDocuments) {
       state = state.copyWith(

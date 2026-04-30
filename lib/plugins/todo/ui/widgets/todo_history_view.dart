@@ -22,7 +22,7 @@ class TodoHistoryView extends ConsumerStatefulWidget {
 
 class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
   final ScrollController _filterScrollController = ScrollController();
-  
+
   String _searchQuery = '';
   HistoryFilter _selectedFilter = HistoryFilter.last7Days;
   DateTimeRange? _customDateRange;
@@ -43,7 +43,14 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
 
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      filtered = filtered.where((t) => t.title.toLowerCase().contains(q) || t.category.toLowerCase().contains(q) || t.notes.toLowerCase().contains(q)).toList();
+      filtered = filtered
+          .where(
+            (t) =>
+                t.title.toLowerCase().contains(q) ||
+                t.category.toLowerCase().contains(q) ||
+                t.notes.toLowerCase().contains(q),
+          )
+          .toList();
     }
 
     final now = DateTime.now();
@@ -51,29 +58,42 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
 
     filtered = filtered.where((t) {
       if (t.completedAt == null) return false;
-      final completedDate = DateTime(t.completedAt!.year, t.completedAt!.month, t.completedAt!.day);
+      final completedDate = DateTime(
+        t.completedAt!.year,
+        t.completedAt!.month,
+        t.completedAt!.day,
+      );
 
       switch (_selectedFilter) {
         case HistoryFilter.last7Days:
           final cutoff = today.subtract(const Duration(days: 7));
-          return completedDate.isAfter(cutoff) || completedDate.isAtSameMomentAs(cutoff);
+          return completedDate.isAfter(cutoff) ||
+              completedDate.isAtSameMomentAs(cutoff);
         case HistoryFilter.thisMonth:
-          return completedDate.year == today.year && completedDate.month == today.month;
+          return completedDate.year == today.year &&
+              completedDate.month == today.month;
         case HistoryFilter.lastMonth:
           final lastMonth = today.month == 1 ? 12 : today.month - 1;
           final lastMonthYear = today.month == 1 ? today.year - 1 : today.year;
-          return completedDate.year == lastMonthYear && completedDate.month == lastMonth;
+          return completedDate.year == lastMonthYear &&
+              completedDate.month == lastMonth;
         case HistoryFilter.custom:
           if (_customDateRange == null) return true;
-          return (completedDate.isAfter(_customDateRange!.start) || completedDate.isAtSameMomentAs(_customDateRange!.start)) &&
-                 (completedDate.isBefore(_customDateRange!.end) || completedDate.isAtSameMomentAs(_customDateRange!.end));
+          return (completedDate.isAfter(_customDateRange!.start) ||
+                  completedDate.isAtSameMomentAs(_customDateRange!.start)) &&
+              (completedDate.isBefore(_customDateRange!.end) ||
+                  completedDate.isAtSameMomentAs(_customDateRange!.end));
       }
     }).toList();
 
     // Group by Date
     final Map<DateTime, List<TodoItem>> grouped = {};
     for (final t in filtered) {
-      final date = DateTime(t.completedAt!.year, t.completedAt!.month, t.completedAt!.day);
+      final date = DateTime(
+        t.completedAt!.year,
+        t.completedAt!.month,
+        t.completedAt!.day,
+      );
       if (!grouped.containsKey(date)) {
         grouped[date] = [];
       }
@@ -99,42 +119,56 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                     storageKey: 'todo_history_filter',
                     scrollController: _filterScrollController,
                     segments: const [
-                      ButtonSegment(value: HistoryFilter.last7Days, label: Text('Last 7 Days')),
-                      ButtonSegment(value: HistoryFilter.thisMonth, label: Text('This Month')),
-                      ButtonSegment(value: HistoryFilter.lastMonth, label: Text('Last Month')),
-                      ButtonSegment(value: HistoryFilter.custom, label: Text('Custom')),
+                      ButtonSegment(
+                        value: HistoryFilter.last7Days,
+                        label: Text('Last 7 Days'),
+                      ),
+                      ButtonSegment(
+                        value: HistoryFilter.thisMonth,
+                        label: Text('This Month'),
+                      ),
+                      ButtonSegment(
+                        value: HistoryFilter.lastMonth,
+                        label: Text('Last Month'),
+                      ),
+                      ButtonSegment(
+                        value: HistoryFilter.custom,
+                        label: Text('Custom'),
+                      ),
                     ],
                     selected: {_selectedFilter},
-                  onSelectionChanged: (set) async {
-                    final filter = set.first;
-                    if (filter == HistoryFilter.custom) {
-                      final range = await SqaDatePicker.showRange(
-                        context,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                        initialDateRange: _customDateRange,
-                      );
-                      if (range != null) {
+                    onSelectionChanged: (set) async {
+                      final filter = set.first;
+                      if (filter == HistoryFilter.custom) {
+                        final range = await SqaDatePicker.showRange(
+                          context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          initialDateRange: _customDateRange,
+                        );
+                        if (range != null) {
+                          setState(() {
+                            _selectedFilter = filter;
+                            _customDateRange = range;
+                          });
+                        }
+                      } else {
                         setState(() {
                           _selectedFilter = filter;
-                          _customDateRange = range;
                         });
                       }
-                    } else {
-                      setState(() {
-                        _selectedFilter = filter;
-                      });
-                    }
-                  },
+                    },
+                  ),
                 ),
-              ),
-              if (_selectedFilter == HistoryFilter.custom && _customDateRange != null)
+                if (_selectedFilter == HistoryFilter.custom &&
+                    _customDateRange != null)
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: IconButton(
                       icon: const Icon(Symbols.calendar_today, size: 20),
                       color: colorScheme.primary,
-                      tooltip: '${DateFormat('MMM d, y').format(_customDateRange!.start)} - ${DateFormat('MMM d, y').format(_customDateRange!.end)}',
+                      tooltip:
+                          '${DateFormat('MMM d, y').format(_customDateRange!.start)} - ${DateFormat('MMM d, y').format(_customDateRange!.end)}',
                       onPressed: () async {
                         final range = await SqaDatePicker.showRange(
                           context,
@@ -154,7 +188,7 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
             ),
           ),
         ),
-        
+
         // Timeline
         Expanded(
           child: SqaPluginScrollableContent(
@@ -165,11 +199,19 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Symbols.history, size: 48, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                          Icon(
+                            Symbols.history,
+                            size: 48,
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'No history found for this period.',
-                            style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -182,18 +224,22 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                     itemBuilder: (context, index) {
                       final date = sortedDates[index];
                       final items = grouped[date]!;
-                      
+
                       int lateCount = 0;
                       for (final item in items) {
                         if (item.completedAt != null) {
                           final duration = item.durationPreset.minutes;
-                          final endTime = item.createdAt.add(Duration(minutes: duration));
-                          if (!item.completedAt!.difference(endTime).isNegative) {
+                          final endTime = item.createdAt.add(
+                            Duration(minutes: duration),
+                          );
+                          if (!item.completedAt!
+                              .difference(endTime)
+                              .isNegative) {
                             lateCount++;
                           }
                         }
                       }
-                      
+
                       // Collapse all by default
                       final initiallyExpanded = false;
 
@@ -201,22 +247,42 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                         margin: const EdgeInsets.only(bottom: 12.0),
                         padding: EdgeInsets.zero,
                         child: Theme(
-                          data: theme.copyWith(dividerColor: Colors.transparent),
+                          data: theme.copyWith(
+                            dividerColor: Colors.transparent,
+                          ),
                           child: ExpansionTile(
                             initiallyExpanded: initiallyExpanded,
-                            tilePadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            tilePadding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 4.0,
+                            ),
+                            childrenPadding: const EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              16,
+                            ),
                             title: Row(
                               children: [
-                                Icon(Symbols.calendar_today, size: 18, color: colorScheme.primary),
+                                Icon(
+                                  Symbols.calendar_today,
+                                  size: 18,
+                                  color: colorScheme.primary,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    date.isAtSameMomentAs(today) 
-                                        ? 'Today' 
-                                        : date.isAtSameMomentAs(today.subtract(const Duration(days: 1)))
-                                            ? 'Yesterday'
-                                            : DateFormat('EEEE, MMM d, y').format(date),
+                                    date.isAtSameMomentAs(today)
+                                        ? 'Today'
+                                        : date.isAtSameMomentAs(
+                                            today.subtract(
+                                              const Duration(days: 1),
+                                            ),
+                                          )
+                                        ? 'Yesterday'
+                                        : DateFormat(
+                                            'EEEE, MMM d, y',
+                                          ).format(date),
                                     style: theme.textTheme.titleSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -226,19 +292,24 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                                 const SizedBox(width: 8),
                                 Flexible(
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: colorScheme.primaryContainer,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
-                                      lateCount > 0 
-                                        ? '${items.length} ${items.length == 1 ? 'task' : 'tasks'} · $lateCount late'
-                                        : '${items.length} ${items.length == 1 ? 'task' : 'tasks'}',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      lateCount > 0
+                                          ? '${items.length} ${items.length == 1 ? 'task' : 'tasks'} · $lateCount late'
+                                          : '${items.length} ${items.length == 1 ? 'task' : 'tasks'}',
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color:
+                                                colorScheme.onPrimaryContainer,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),

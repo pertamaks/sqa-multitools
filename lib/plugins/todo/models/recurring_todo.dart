@@ -4,12 +4,7 @@ import 'todo_item.dart';
 part 'recurring_todo.freezed.dart';
 part 'recurring_todo.g.dart';
 
-enum RecurrenceType {
-  daily,
-  weekdays,
-  weekly,
-  everyNDays,
-}
+enum RecurrenceType { daily, weekdays, weekly, everyNDays }
 
 @freezed
 abstract class RecurringTodo with _$RecurringTodo {
@@ -29,5 +24,6 @@ abstract class RecurringTodo with _$RecurringTodo {
     DateTime? lastGeneratedDate,
   }) = _RecurringTodo;
 
-  factory RecurringTodo.fromJson(Map<String, dynamic> json) => _$RecurringTodoFromJson(json);
+  factory RecurringTodo.fromJson(Map<String, dynamic> json) =>
+      _$RecurringTodoFromJson(json);
 }

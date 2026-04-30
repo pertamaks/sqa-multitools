@@ -5,7 +5,7 @@ import 'sqa_modal.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 /// A centralized, premium time picker widget for SQA-Multitools.
-/// 
+///
 /// Reuses the aesthetic and interaction model from the Wake Time Prompt,
 /// supporting both 12h and 24h formats with scrollable time segments.
 class SqaTimePicker extends StatelessWidget {
@@ -118,7 +118,10 @@ class SqaTimePicker extends StatelessWidget {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 24.0),
-              child: Text(':', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+              child: Text(
+                ':',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              ),
             ),
             SqaTimeSegment(
               value: minute,
@@ -130,7 +133,10 @@ class SqaTimePicker extends StatelessWidget {
               SqaSegmentedButton<bool>(
                 stretches: false,
                 fontSize: 10,
-                visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                visualDensity: const VisualDensity(
+                  horizontal: -4,
+                  vertical: -4,
+                ),
                 segments: const [
                   ButtonSegment(value: false, label: Text('AM')),
                   ButtonSegment(value: true, label: Text('PM')),

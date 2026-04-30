@@ -50,13 +50,15 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textStyle = widget.style ?? theme.textTheme.displaySmall?.copyWith(
-      fontFamily: 'monospace',
-      color: widget.isEnabled
-          ? theme.colorScheme.onSurface
-          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-      fontWeight: FontWeight.w600,
-    );
+    final textStyle =
+        widget.style ??
+        theme.textTheme.displaySmall?.copyWith(
+          fontFamily: 'monospace',
+          color: widget.isEnabled
+              ? theme.colorScheme.onSurface
+              : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          fontWeight: FontWeight.w600,
+        );
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -87,7 +89,10 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
 
             // Value Display
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4.0,
+                vertical: 2.0,
+              ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: _isHovered && widget.isEnabled

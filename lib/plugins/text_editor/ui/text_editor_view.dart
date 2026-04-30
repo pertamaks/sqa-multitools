@@ -37,6 +37,8 @@ import 'widgets/image_block_builder.dart';
 import 'widgets/image_node_encoder_parser.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import '../../clipboard/utils/clipboard_extensions.dart';
+import '../../../ui/widgets/sqa_markdown_viewer.dart';
+import '../../../ui/widgets/sqa_button.dart';
 
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
@@ -814,6 +816,29 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       color: theme.colorScheme.primary,
       letterSpacing: -0.5,
     );
+
+    final isViewer = state.viewMode == TextEditorViewMode.viewer;
+
+    if (isViewer) {
+      return SqaPluginLayout(
+        title: _nameController.text.isEmpty ? 'Document' : _nameController.text,
+        onBack: _handleBack,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SqaButton(
+              label: 'Edit Mode',
+              icon: Symbols.edit,
+              onPressed: () => notifier.openEditor(state.activeDocument),
+              type: SqaButtonType.tonal,
+            ),
+          ],
+        ),
+        child: SqaMarkdownViewer(
+          markdown: state.activeDocument?.content ?? '',
+        ),
+      );
+    }
 
     return SqaPluginLayout(
       titleWidget: Padding(

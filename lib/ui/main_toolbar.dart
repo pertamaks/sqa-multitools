@@ -19,6 +19,7 @@ import '../plugins/todo/providers/todo_notification_provider.dart';
 import '../plugins/todo/providers/todo_provider.dart';
 import '../plugins/timer/providers/timer_provider.dart';
 
+import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
 
@@ -66,7 +67,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   void onWindowClose() async {
     bool isPreventClose = await windowManager.isPreventClose();
     if (isPreventClose) {
-      windowManager.hide();
+      WindowUtils.safeHide();
     }
   }
 
@@ -257,7 +258,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                         tooltip: 'Close to Tray',
                         child: IconButton(
                           icon: const Icon(Symbols.close, size: 24),
-                          onPressed: () => windowManager.hide(),
+                          onPressed: () => WindowUtils.safeHide(),
                           style: IconButton.styleFrom(
                             minimumSize: const Size(36, 36),
                             padding: const EdgeInsets.all(6.0),
@@ -364,6 +365,40 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         .isOverlayVisible;
     final isOverlayActive = isScreenshotVisible || isRecorderVisible;
     final hasPlugin = activePlugin != null;
+
+    // Auto-scroll to active plugin when it changes (Smart Nudge)
+    ref.listen(activePluginProvider, (previous, next) {
+      if (next != null && _scrollController.hasClients) {
+        final index = enabledPlugins.indexWhere((p) => p.id == next.id);
+        if (index != -1) {
+          final viewportWidth = _scrollController.position.viewportDimension;
+          final currentOffset = _scrollController.offset;
+          final targetX = index * 46.0; // item width (36) + padding (10)
+          final iconWidth = 36.0;
+          final maxScroll = _scrollController.position.maxScrollExtent;
+          const edgeMargin = 46.0; // Maintain one item width of padding
+
+          double? newOffset;
+
+          if (targetX < currentOffset + edgeMargin) {
+            // Nudge from left edge
+            newOffset = targetX - edgeMargin;
+          } else if (targetX + iconWidth >
+              currentOffset + viewportWidth - edgeMargin) {
+            // Nudge from right edge
+            newOffset = targetX + iconWidth + edgeMargin - viewportWidth;
+          }
+
+          if (newOffset != null) {
+            _scrollController.animateTo(
+              newOffset.clamp(0.0, maxScroll),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        }
+      }
+    });
 
     return Scaffold(
       backgroundColor: isOverlayActive

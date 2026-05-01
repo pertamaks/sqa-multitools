@@ -235,23 +235,46 @@ class ScreenRecorderSettings extends ConsumerWidget {
         ),
         SqaCard(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SqaHotkeyField(
-            label: 'Start / Stop Recording',
-            value: ref.watch(hotkeySettingsProvider).recordToggle,
-            onSave: (info) {
-              final error = ref
-                  .read(hotkeySettingsProvider.notifier)
-                  .updateHotkey(PreferencesService.keyHotkeyRecordToggle, info);
-              if (error != null) {
-                SqaToast.show(context, error, type: SqaToastType.error);
-              } else {
-                SqaToast.show(
-                  context,
-                  'Recorder hotkey updated!',
-                  type: SqaToastType.success,
-                );
-              }
-            },
+          child: Column(
+            children: [
+              SqaHotkeyField(
+                label: 'Start / Stop Recording',
+                value: ref.watch(hotkeySettingsProvider).recordToggle,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeyRecordToggle, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(
+                      context,
+                      'Recorder hotkey updated!',
+                      type: SqaToastType.success,
+                    );
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 0),
+              SqaHotkeyField(
+                label: 'Quick Area Record',
+                value: ref.watch(hotkeySettingsProvider).areaRecordToggle,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeyAreaRecord, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(
+                      context,
+                      'Quick Area hotkey updated!',
+                      type: SqaToastType.success,
+                    );
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ],

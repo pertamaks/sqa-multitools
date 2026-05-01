@@ -35,6 +35,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SqaSegmentedButton<DevType>(
+            stretches: false,
             hasChild:
                 state.selectedType == DevType.json ||
                 state.selectedType == DevType.date,
@@ -63,6 +64,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
             const SizedBox(height: 12),
             if (state.selectedType == DevType.json)
               SqaSegmentedButton<JsonCategory>(
+                stretches: false,
                 isChild: true,
                 segments: [
                   const ButtonSegment(
@@ -87,6 +89,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
               )
             else
               SqaSegmentedButton<DateCategory>(
+                stretches: false,
                 isChild: true,
                 segments: [
                   const ButtonSegment(

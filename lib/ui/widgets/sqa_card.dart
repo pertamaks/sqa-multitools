@@ -25,19 +25,19 @@ class SqaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+
 
     final effectiveRadius = borderRadius ?? SqaStyles.radiusLarge;
     final card = Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: backgroundColor ?? theme.colorScheme.surfaceContainerHigh,
+        color: backgroundColor ?? Colors.transparent,
         borderRadius: effectiveRadius,
         boxShadow: boxShadow,
         border: Border.fromBorderSide(
           borderSide ??
               BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
+                color: Colors.transparent,
               ),
         ),
       ),
@@ -45,6 +45,7 @@ class SqaCard extends StatelessWidget {
         borderRadius: effectiveRadius,
         child: InkWell(
           onTap: onTap,
+          borderRadius: effectiveRadius,
           child: Padding(
             padding: padding ?? const EdgeInsets.all(16.0),
             child: child,

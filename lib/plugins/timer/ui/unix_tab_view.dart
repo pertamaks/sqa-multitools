@@ -44,107 +44,112 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
     final dt = state.manualDateTime;
 
     return SqaPluginScrollableContent(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Human Readable Section
-          Row(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Symbols.calendar_today,
-                size: 16,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'HUMAN READABLE',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${dt.timeZoneOffset.inHours >= 0 ? '+' : ''}${dt.timeZoneOffset.inHours}h ',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (state.isLive)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
+              // Human Readable Section
+              Row(
+                children: [
+                  Icon(
+                    Symbols.calendar_today,
+                    size: 16,
+                    color: theme.colorScheme.primary,
                   ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
+                  const SizedBox(width: 8),
+                  Text(
+                    'HUMAN READABLE',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.fiber_manual_record,
-                        size: 10,
-                        color: theme.colorScheme.primary,
+                  const Spacer(),
+                  Text(
+                    '${dt.timeZoneOffset.inHours >= 0 ? '+' : ''}${dt.timeZoneOffset.inHours}h ',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (state.isLive)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'LIVE',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Symbols.fiber_manual_record,
+                            size: 10,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'LIVE',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildDateTimeInput(dt, state.isLive, notifier),
+
+              const SizedBox(height: 20),
+
+              // Conversion & Reset Actions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SqaButton.primary(
+                    onPressed: notifier.convert,
+                    icon: state.lastInteractionWasDateTime
+                        ? Symbols.arrow_downward
+                        : Symbols.arrow_upward,
+                    label: state.lastInteractionWasDateTime
+                        ? 'Generate Unix'
+                        : 'Sync Date Time',
                   ),
-                ),
+                  if (!state.isLive) ...[
+                    const SizedBox(width: 12),
+                    SqaButton.tonal(
+                      onPressed: notifier.resetToNow,
+                      icon: Symbols.restore,
+                      label: 'Now',
+                    ),
+                  ],
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Unix Section
+              SqaField(
+                label: 'Unix Timestamp (Seconds)',
+                controller: _unixController,
+                icon: Symbols.data_object,
+                isMonospace: true,
+                onChanged: (val) => notifier.setTimestampString(val),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildDateTimeInput(dt, state.isLive, notifier),
-
-          const SizedBox(height: 20),
-
-          // Conversion & Reset Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SqaButton.primary(
-                onPressed: notifier.convert,
-                icon: state.lastInteractionWasDateTime
-                    ? Symbols.arrow_downward
-                    : Symbols.arrow_upward,
-                label: state.lastInteractionWasDateTime
-                    ? 'Generate Unix'
-                    : 'Sync Date Time',
-              ),
-              if (!state.isLive) ...[
-                const SizedBox(width: 12),
-                SqaButton.tonal(
-                  onPressed: notifier.resetToNow,
-                  icon: Symbols.restore,
-                  label: 'Now',
-                ),
-              ],
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Unix Section
-          SqaField(
-            label: 'Unix Timestamp (Seconds)',
-            controller: _unixController,
-            icon: Symbols.data_object,
-            isMonospace: true,
-            onChanged: (val) => notifier.setTimestampString(val),
-          ),
-        ],
+        ),
       ),
     );
   }

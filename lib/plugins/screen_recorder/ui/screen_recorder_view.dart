@@ -28,11 +28,6 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(screenRecorderProvider.notifier).registerGlobalHotkeys();
-      }
-    });
   }
 
   void _handleStart(BuildContext context) async {

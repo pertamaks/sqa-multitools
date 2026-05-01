@@ -37,6 +37,7 @@ class PreferencesService {
   static const String keyHotkeyShowToolbar = 'hotkey_show_toolbar';
   static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
   static const String keyHotkeyScreenshotToggle = 'hotkey_screenshot_toggle';
+  static const String keyHotkeyAreaRecord = 'hotkey_area_record';
 
   static const String keyScreenshotSaveDir = 'screenshot_save_dir';
   static const String keyScreenshotFormat = 'screenshot_format';

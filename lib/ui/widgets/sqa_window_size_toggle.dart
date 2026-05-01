@@ -31,6 +31,7 @@ class SqaWindowSizeToggle extends ConsumerWidget {
         tooltip: isSquare ? 'Exit Square Mode' : 'Enter Square Mode',
         iconSize: 18,
         weight: 700,
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
       ),
     );
   }

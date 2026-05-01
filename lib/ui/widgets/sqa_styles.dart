@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Centralized UI styles and tokens for SQA-Multitools.
@@ -59,3 +60,18 @@ class SqaStyles {
         RoundedRectangleBorder(borderRadius: radiusLarge),
       );
 }
+
+/// A custom scroll behavior that enables mouse dragging (click and drag) on desktop.
+///
+/// This provides a more "premium" and mobile-like interaction for scrollable
+/// areas like the TabBar and Markdown documents.
+class SqaScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
+

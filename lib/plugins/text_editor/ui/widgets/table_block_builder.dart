@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'sqa_block_component_wrapper.dart';
 import '../../../../ui/widgets/sqa_fade_wrapper.dart';
+import '../../../../ui/widgets/sqa_styles.dart';
 
 class SqaTableBlockComponentBuilder extends TableBlockComponentBuilder {
   SqaTableBlockComponentBuilder({
@@ -37,7 +38,7 @@ class SqaTableBlockComponentBuilder extends TableBlockComponentBuilder {
               elevation: 0,
               margin: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: SqaStyles.radiusSmall,
                 side: BorderSide(
                   color: theme.colorScheme.outlineVariant.withValues(
                     alpha: 0.4,

@@ -102,6 +102,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
   final void Function(String) onAnchorTap;
   final List<Widget> widgets = [];
   final List<String> _tagStack = [];
+  final Set<String> _usedIds = {};
 
   SqaMarkdownVisitor({
     required this.context,
@@ -109,12 +110,24 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     required this.onAnchorTap,
   });
 
+  String _ensureUniqueId(String baseId) {
+    String id = baseId;
+    int counter = 1;
+    while (_usedIds.contains(id)) {
+      id = '$baseId-$counter';
+      counter++;
+    }
+    _usedIds.add(id);
+    return id;
+  }
+
   @override
   bool visitElementBefore(md.Element element) {
     // Register ID if present for any element (crucial for footnotes and custom anchors)
     final id = element.attributes['id'];
     if (id != null) {
-      anchorKeys.putIfAbsent(id, () => GlobalKey());
+      final uniqueId = _ensureUniqueId(id);
+      anchorKeys.putIfAbsent(uniqueId, () => GlobalKey());
     }
 
     _tagStack.add(element.tag);
@@ -196,6 +209,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
       baseStyle: baseStyle,
       onAnchorTap: onAnchorTap,
       anchorKeys: anchorKeys,
+      idGenerator: _ensureUniqueId,
     );
     for (final node in nodes) {
       node.accept(visitor);
@@ -252,7 +266,8 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     
     // Generate anchor ID for deep linking (strip HTML tags first)
     final cleanText = text.replaceAll(RegExp(r'<[^>]*>'), '');
-    final anchorId = cleanText.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+    final baseAnchorId = cleanText.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+    final anchorId = _ensureUniqueId(baseAnchorId);
     final key = anchorKeys.putIfAbsent(anchorId, () => GlobalKey());
 
     TextStyle? style;
@@ -652,6 +667,7 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
   final TextStyle? baseStyle;
   final Map<String, GlobalKey> anchorKeys;
   final void Function(String) onAnchorTap;
+  final String Function(String) idGenerator;
   final List<InlineSpan> spans = [];
 
   SqaInlineSpanVisitor({
@@ -659,6 +675,7 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
     this.baseStyle,
     required this.anchorKeys,
     required this.onAnchorTap,
+    required this.idGenerator,
   });
 
   @override
@@ -693,7 +710,8 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
         final href = element.attributes['href'];
         
         if (id != null) {
-          final key = anchorKeys.putIfAbsent(id, () => GlobalKey());
+          final uniqueId = idGenerator(id);
+          final key = anchorKeys.putIfAbsent(uniqueId, () => GlobalKey());
           spans.add(WidgetSpan(child: SizedBox(key: key, width: 2, height: 2)));
         }
 
@@ -773,6 +791,7 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
       baseStyle: style,
       anchorKeys: anchorKeys,
       onAnchorTap: onAnchorTap,
+      idGenerator: idGenerator,
     );
     for (final child in element.children ?? []) {
       child.accept(visitor);
@@ -790,7 +809,8 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
             final id = child.attributes['id'] ?? child.attributes['name'];
             final href = child.attributes['href'];
             if (id != null) {
-              final key = anchorKeys.putIfAbsent(id, () => GlobalKey());
+              final uniqueId = idGenerator(id);
+              final key = anchorKeys.putIfAbsent(uniqueId, () => GlobalKey());
               spans.add(WidgetSpan(child: SizedBox(key: key, width: 2, height: 2)));
             }
             if (href != null && href.startsWith('#')) {

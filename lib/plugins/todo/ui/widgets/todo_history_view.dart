@@ -9,6 +9,7 @@ import '../../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../../ui/widgets/sqa_date_picker.dart';
+import '../../../../ui/widgets/sqa_styles.dart';
 import 'todo_list_item.dart';
 
 class TodoHistoryView extends ConsumerStatefulWidget {
@@ -261,6 +262,14 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                               0,
                               16,
                               16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: SqaStyles.radiusLarge,
+                              side: BorderSide.none,
+                            ),
+                            collapsedShape: RoundedRectangleBorder(
+                              borderRadius: SqaStyles.radiusLarge,
+                              side: BorderSide.none,
                             ),
                             title: Row(
                               children: [

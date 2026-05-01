@@ -4,6 +4,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart' as window_manager;
 
 class WindowInfo {
   final int hwnd;
@@ -265,5 +266,24 @@ class WindowUtils {
       calloc.free(rectPointer);
       calloc.free(lpdwProcessId);
     }
+  }
+ 
+  /// Hides the window from the user while keeping it "alive" for global hotkeys.
+  /// Uses opacity and skipTaskbar instead of windowManager.hide() which can pause the Flutter engine.
+  static Future<void> safeHide() async {
+    final wm = window_manager.windowManager;
+    await wm.setOpacity(0.0);
+    await wm.setSkipTaskbar(true);
+    await wm.setIgnoreMouseEvents(true);
+  }
+ 
+  /// Restores the window from its "safe hide" state.
+  static Future<void> safeShow() async {
+    final wm = window_manager.windowManager;
+    await wm.show(); // Ensure OS window is visible
+    await wm.setOpacity(1.0);
+    await wm.setSkipTaskbar(false);
+    await wm.setIgnoreMouseEvents(false);
+    await wm.focus();
   }
 }

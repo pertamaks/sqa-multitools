@@ -51,8 +51,10 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
   late final ScrollController _scrollController;
   bool _isScrolling = false;
   bool _isHovered = false;
+  bool _isExpanded = false;
   Timer? _scrollEndTimer;
   Timer? _hoverTimer;
+  Timer? _expandTimer;
 
   bool get isScrolling => _isScrolling;
 
@@ -84,10 +86,23 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
     if (hovered) {
       setState(() => _isHovered = true);
     } else {
-      // Small delay before collapsing to prevent jitter
-      _hoverTimer = Timer(const Duration(milliseconds: 300), () {
+      _hoverTimer = Timer(const Duration(milliseconds: 150), () {
         if (mounted) {
           setState(() => _isHovered = false);
+        }
+      });
+    }
+  }
+
+  void _setExpanded(bool expanded) {
+    _expandTimer?.cancel();
+    if (expanded) {
+      setState(() => _isExpanded = true);
+    } else {
+      // Small delay before collapsing to prevent accidental closure
+      _expandTimer = Timer(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() => _isExpanded = false);
         }
       });
     }
@@ -99,22 +114,28 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
     _scrollController.dispose();
     _scrollEndTimer?.cancel();
     _hoverTimer?.cancel();
+    _expandTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+ 
     return MouseRegion(
       onEnter: (_) => _setHover(true),
-      onExit: (_) => _setHover(false),
+      onExit: (_) {
+        _setHover(false);
+        _setExpanded(false);
+      },
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 250),
         opacity: _isHovered ? 1.0 : 0.8,
         curve: Curves.easeInOut,
         child: SqaCard(
           padding: EdgeInsets.zero,
+          backgroundColor: theme.colorScheme.surfaceContainerLow,
+          borderSide: BorderSide.none,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.15),
@@ -134,28 +155,27 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             constraints: BoxConstraints(
               maxWidth: 800,
-              minWidth: _isHovered ? 100 : 40,
+              minWidth: _isExpanded ? 100 : 40,
             ),
             child: SqaFloatingBarScope(
-              child: SqaInlineTooltip(
-                scrollController: _scrollController,
-                backgroundColor: theme.colorScheme.surfaceContainerHigh,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Fixed Leading Anchor (Always visible)
-                    if (widget.leading != null) ...[...widget.leading!],
-
-                    // Flexible Scrollable Center (Collapses)
-                    Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Fixed Leading Anchor (Always visible)
+                  if (widget.leading != null) ...[...widget.leading!],
+ 
+                  // Flexible Scrollable Center (Collapses)
+                  Flexible(
+                    child: MouseRegion(
+                      onEnter: (_) => _setExpanded(true),
                       child: AnimatedSize(
                         duration: const Duration(milliseconds: 400),
                         curve: Curves.easeOutCubic,
                         alignment: Alignment.centerLeft,
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
-                          child: _isHovered
+                          child: _isExpanded
                               ? Padding(
                                   key: const ValueKey('tools'),
                                   padding: const EdgeInsets.symmetric(
@@ -192,11 +212,11 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                         ),
                       ),
                     ),
-
-                    // Fixed Trailing Anchor (Always visible)
-                    if (widget.trailing != null) ...[...widget.trailing!],
-                  ],
-                ),
+                  ),
+ 
+                  // Fixed Trailing Anchor (Always visible)
+                  if (widget.trailing != null) ...[...widget.trailing!],
+                ],
               ),
             ),
           ),

@@ -28,11 +28,6 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(screenshotProvider.notifier).registerGlobalHotkeys();
-      }
-    });
   }
 
   void _handleStart() {

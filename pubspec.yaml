@@ -110,6 +110,7 @@ flutter:
     - assets/bug_splat.png
     - assets/8ball.png
     - assets/qa_cheatsheet_comp.md
+    - assets/security_payload.md  
     - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -72,6 +72,7 @@ class _TimerPluginView extends ConsumerWidget {
           const Tab(icon: Icon(Symbols.exposure_plus_1), text: 'Counter'),
         ],
         child: const TabBarView(
+          physics: NeverScrollableScrollPhysics(),
           children: [
             ClockTabView(),
             TimerTabView(),

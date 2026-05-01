@@ -15,7 +15,7 @@ import '../../../core/engine/ffmpeg_engine.dart';
 import '../../../core/providers/ffmpeg_provider.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
+
 import '../../../core/window/window_utils.dart';
 import '../../../core/window/window_transition_coordinator.dart';
 
@@ -50,6 +50,16 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // Trigger side-effects after the provider is initialized
     Future.microtask(() {
       refreshRecentRecordings();
+      // Register global hotkey callbacks
+      final hotkeyNotifier = ref.read(hotkeySettingsProvider.notifier);
+      
+      hotkeyNotifier.setAreaRecordCallback(() {
+        startQuickAreaRecord();
+      });
+
+      hotkeyNotifier.setRecordToggleCallback(() {
+        toggleRecording();
+      });
     });
 
     return const ScreenRecorderState();
@@ -175,6 +185,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     final coordinator = ref.read(windowTransitionProvider);
 
+    // 0. Ensure window is active and visible (even if from tray)
+    await WindowUtils.safeShow();
+ 
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
@@ -185,9 +198,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     await windowManager.setBackgroundColor(Colors.transparent);
 
     // 3. Update state early so Flutter starts building the transparent overlay UI
-    final hotkeyInfo = ref.read(hotkeySettingsProvider).recordToggle;
-    final registeredHotKey = hotkeyInfo.toHotKey();
-
     state = state.copyWith(
       previousWindowSize: currentSize,
       previousWindowPos: currentPos,
@@ -196,7 +206,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       captureRect: captureRect,
       availableDisplays: displays,
       lockedDisplay: null,
-      registeredHotKey: registeredHotKey,
     );
 
     // Wait for Flutter to commit the first frame of the overlay
@@ -216,33 +225,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       targetOffset: overlayRect.topLeft,
     );
 
-    // Register hotkey with the stored instance
-    await hotKeyManager.register(
-      registeredHotKey,
-      keyDownHandler: (hk) => toggleRecording(),
-    );
+
 
     // 6. Finally reveal and focus
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
-  }
-
-  /// Registers global hotkeys for the recorder.
-  /// Moved to a separate method to ensure stability during window transitions.
-  Future<void> registerGlobalHotkeys() async {
-    try {
-      final hotkeyInfo = ref.read(hotkeySettingsProvider).recordToggle;
-      final hotKey = hotkeyInfo.toHotKey(identifier: 'recorder_toggle');
-
-      // We should not use unregisterAll() here as it would clear the toolbar hotkey.
-      // Instead, we just register this one. hotkey_manager handles duplicates if identifier is same.
-      await hotKeyManager.register(
-        hotKey,
-        keyDownHandler: (hotKey) => toggleRecording(),
-      );
-    } catch (e) {
-      debugPrint('[ScreenRecorder] Hotkey registration failed: $e');
-    }
   }
 
   /// Toggles whether the window intercepts mouse events.
@@ -252,6 +239,12 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   Future<void> toggleRecording() async {
+    if (!state.isOverlayVisible && !state.isRecording) {
+      // If we are in the main toolbar, enter the overlay first
+      await startOverlay();
+      return;
+    }
+
     if (state.isRecording) {
       await _stopRecording();
     } else if (state.countdownSeconds > 0) {
@@ -529,14 +522,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 2. Perform background cleanup while invisible
     // (WE DEFER setIgnoreMouseEvents(false) to the very end)
 
-    // 3. Unregister recorder hotkey immediately (using MATCHED instance)
-    if (state.registeredHotKey != null) {
-      try {
-        await hotKeyManager.unregister(state.registeredHotKey!);
-      } catch (e) {
-        // Silent catch for hotkey cleanup
-      }
-    }
+
 
     // 4. Physically restore window bounds BEFORE switching UI state
     await _restoreWindowInternal();
@@ -556,7 +542,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       selectionRect: null,
       targetedWindowRect: null,
       lockedDisplay: null,
-      registeredHotKey: null,
       isRecording: false,
       isPaused: false,
       durationSeconds: 0,
@@ -757,6 +742,17 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     startOverlay().catchError((e) {
       // Intentionally ignore for now, UI handles error.
     });
+  }
+ 
+  /// Triggers a quick area recording session from a global hotkey.
+  Future<void> startQuickAreaRecord() async {
+    if (state.isRecording) {
+      await _stopRecording();
+      return;
+    }
+ 
+    setCaptureMode(CaptureMode.area);
+    await startOverlay();
   }
 
   /// Physically shrinks the overlay window to cover only the target monitor.

@@ -97,6 +97,7 @@ class _TodoViewState extends ConsumerState<TodoView>
             ),
       child: TabBarView(
         controller: _tabController,
+        physics: const NeverScrollableScrollPhysics(),
         children: [
           _buildTodayList(context, state),
           _buildRecurringList(context, state),

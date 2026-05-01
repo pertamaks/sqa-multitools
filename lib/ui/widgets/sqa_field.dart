@@ -343,10 +343,8 @@ class _SqaFieldState extends State<SqaField> {
                           ? colorScheme.primaryContainer.withValues(alpha: 0.15)
                           : (_isHovered
                                 ? colorScheme.surfaceContainerHighest
-                                      .withValues(alpha: 0.5)
-                                : colorScheme.surfaceContainerLow.withValues(
-                                    alpha: 0.2,
-                                  ))),
+                                      .withValues(alpha: 0.1)
+                                : Colors.transparent)),
                 borderRadius: SqaStyles.radiusLarge,
                 border: Border.all(
                   color: widget.isTransparent
@@ -358,7 +356,7 @@ class _SqaFieldState extends State<SqaField> {
                                       alpha: 0.3,
                                     )
                                   : colorScheme.outlineVariant.withValues(
-                                      alpha: 0.1,
+                                      alpha: 0.0,
                                     ))),
                 ),
                 boxShadow: _isFocused

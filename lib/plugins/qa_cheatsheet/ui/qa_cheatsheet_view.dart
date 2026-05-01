@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_markdown_viewer.dart';
+import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../models/cheatsheet_models.dart';
 import '../providers/cheatsheet_provider.dart';
 
@@ -95,11 +96,13 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
             ),
           ),
         Expanded(
-          child: SqaMarkdownViewer(
-            key: ValueKey(selectedSection.id), // Force rebuild when switching sections
-            markdown: selectedSection.markdown,
-            padding: const EdgeInsets.all(24.0),
-            useScrollable: true,
+          child: SqaFadeWrapper(
+            child: SqaMarkdownViewer(
+              key: ValueKey(selectedSection.id), // Force rebuild when switching sections
+              markdown: selectedSection.markdown,
+              padding: const EdgeInsets.all(24.0),
+              useScrollable: true,
+            ),
           ),
         ),
       ],

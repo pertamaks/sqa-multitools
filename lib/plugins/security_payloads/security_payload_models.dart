@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
-class VulnerabilityCategory {
-  final String name;
-  final String description;
-  final IconData icon;
-  final List<SecurityPayload> payloads;
+enum PayloadRisk {
+  low,
+  medium,
+  high,
+  critical,
+  info;
 
-  const VulnerabilityCategory({
-    required this.name,
-    required this.description,
-    required this.icon,
-    required this.payloads,
-  });
+  static PayloadRisk fromString(String risk) {
+    final lower = risk.toLowerCase();
+    if (lower.contains('critical') || lower.contains('💀') || lower.contains('🟣')) return PayloadRisk.critical;
+    if (lower.contains('high') || lower.contains('🔴')) return PayloadRisk.high;
+    if (lower.contains('medium') || lower.contains('🟠') || lower.contains('🟡')) return PayloadRisk.medium;
+    if (lower.contains('low') || lower.contains('🟢')) return PayloadRisk.low;
+    return PayloadRisk.info;
+  }
 }
 
 class SecurityPayload {
@@ -28,8 +31,36 @@ class SecurityPayload {
     required this.description,
     required this.howToTest,
     required this.successIndicator,
-    this.risk = PayloadRisk.medium,
+    required this.risk,
   });
 }
 
-enum PayloadRisk { low, medium, high, critical }
+class PayloadCategory {
+  final String name;
+  final String description;
+  final IconData icon;
+  final List<PayloadSection> sections;
+
+  const PayloadCategory({
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.sections,
+  });
+}
+
+class PayloadSection {
+  final String id;
+  final String title;
+  final IconData icon;
+  final String markdown;
+  final List<SecurityPayload>? structuredPayloads;
+
+  const PayloadSection({
+    required this.id,
+    required this.title,
+    required this.icon,
+    required this.markdown,
+    this.structuredPayloads,
+  });
+}

@@ -91,15 +91,10 @@ class TodoExpansionGroup extends StatelessWidget {
 
     return ListTileTheme(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
       child: Theme(
-        data: theme.copyWith(
-          dividerColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
+        data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           title: Row(
             children: [
               Icon(icon, size: 20, color: subtleColor),
@@ -130,8 +125,14 @@ class TodoExpansionGroup extends StatelessWidget {
           ),
           childrenPadding: const EdgeInsets.only(top: 12),
           initiallyExpanded: initiallyExpanded,
-          shape: const RoundedRectangleBorder(side: BorderSide.none),
-          collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
+          shape: RoundedRectangleBorder(
+            borderRadius: SqaStyles.radiusLarge,
+            side: BorderSide.none,
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: SqaStyles.radiusLarge,
+            side: BorderSide.none,
+          ),
           children: items
               .map(
                 (item) => Padding(

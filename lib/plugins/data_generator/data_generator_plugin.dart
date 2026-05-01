@@ -56,6 +56,7 @@ class _DataGeneratorView extends StatelessWidget {
           Tab(icon: Icon(Symbols.terminal), text: 'Dev'),
         ],
         child: const TabBarView(
+          physics: NeverScrollableScrollPhysics(),
           children: [
             IdentityTabView(),
             LoremTabView(),

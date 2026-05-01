@@ -81,6 +81,7 @@ class SettingsView extends ConsumerWidget {
           const Tab(icon: Icon(Symbols.coffee), text: 'Coffee Shop'),
         ],
         child: TabBarView(
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             SqaFadeWrapper(child: const GeneralSettingsView()),
             const PluginsSettingsView(),
@@ -345,7 +346,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
       padding: const EdgeInsets.all(16.0),
       borderRadius: BorderRadius.circular(16),
       borderSide: isUnlocked
-          ? BorderSide(color: Colors.amber.shade400, width: 2)
+          ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
           : null,
       child: Row(
         children: [

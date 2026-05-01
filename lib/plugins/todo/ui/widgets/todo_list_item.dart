@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/todo_item.dart';
 import '../../providers/todo_provider.dart';
 import '../../../../ui/widgets/sqa_card.dart';
-import '../../../../ui/widgets/sqa_styles.dart';
+
 import '../../../../ui/widgets/sqa_smart_text.dart';
 import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
@@ -159,6 +159,15 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
           builder: (context, child) {
             return SqaCard(
               padding: EdgeInsets.zero,
+              onTap: widget.isReadOnly
+                  ? () => TodoItemDialogs.showHistorySummary(
+                        context,
+                        ref,
+                        widget.item,
+                      )
+                  : (isOverdueByDay || widget.item.recurringTodoId != null
+                      ? null
+                      : widget.onTap),
               borderSide: isCurrent
                   ? BorderSide(
                       color: colorScheme.primary.withValues(
@@ -175,86 +184,72 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: InkWell(
-                      onTap: widget.isReadOnly
-                          ? () => TodoItemDialogs.showHistorySummary(
-                              context,
-                              ref,
-                              widget.item,
-                            )
-                          : (isOverdueByDay ||
-                                    widget.item.recurringTodoId != null
-                                ? null
-                                : widget.onTap),
-                      borderRadius: BorderRadius.zero,
-                      overlayColor: SqaStyles.buttonOverlay(context),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (widget.item.recurringTodoId != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      right: 6.0,
-                                      top: 2.0,
-                                    ),
-                                    child: Icon(
-                                      Symbols.sync,
-                                      size: 16,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (widget.item.recurringTodoId != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 6.0,
+                                    top: 2.0,
                                   ),
-                                Expanded(
-                                  child: SqaSmartText(
-                                    text: widget.displayIndex != null
-                                        ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}'
-                                        : widget.item.title,
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      decoration:
-                                          isTerminal && !widget.isReadOnly
-                                          ? TextDecoration.lineThrough
-                                          : null,
-                                      color: isTerminal
-                                          ? colorScheme.onSurfaceVariant
-                                          : colorScheme.onSurface,
-                                      fontWeight: widget.displayIndex != null
-                                          ? FontWeight.bold
-                                          : null,
-                                    ),
+                                  child: Icon(
+                                    Symbols.sync,
+                                    size: 16,
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
-                              ],
-                            ),
-                            if (widget.item.category.isNotEmpty ||
-                                (widget.item.timeBlock !=
-                                        TodoTimeBlock.current &&
-                                    !isOverdueByDay &&
-                                    !isDeferred &&
-                                    !isDelegated) ||
-                                isOverdueByDay ||
-                                isDeferred ||
-                                isDelegated ||
-                                completionBadgeText != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: TodoItemBadges(
-                                  item: widget.item,
-                                  isReadOnly: widget.isReadOnly,
-                                  completionBadgeText: completionBadgeText,
-                                  use24HourFormat:
-                                      ref
-                                          .watch(todoSettingsProvider)
-                                          .value
-                                          ?.use24HourFormat ??
-                                      true,
+                              Expanded(
+                                child: SqaSmartText(
+                                  text: widget.displayIndex != null
+                                      ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}'
+                                      : widget.item.title,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    decoration:
+                                        isTerminal && !widget.isReadOnly
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                    color: isTerminal
+                                        ? colorScheme.onSurfaceVariant
+                                        : colorScheme.onSurface,
+                                    fontWeight: widget.displayIndex != null
+                                        ? FontWeight.bold
+                                        : null,
+                                  ),
                                 ),
                               ),
-                          ],
-                        ),
+                            ],
+                          ),
+                          if (widget.item.category.isNotEmpty ||
+                              (widget.item.timeBlock !=
+                                      TodoTimeBlock.current &&
+                                  !isOverdueByDay &&
+                                  !isDeferred &&
+                                  !isDelegated) ||
+                              isOverdueByDay ||
+                              isDeferred ||
+                              isDelegated ||
+                              completionBadgeText != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: TodoItemBadges(
+                                item: widget.item,
+                                isReadOnly: widget.isReadOnly,
+                                completionBadgeText: completionBadgeText,
+                                use24HourFormat:
+                                    ref
+                                        .watch(todoSettingsProvider)
+                                        .value
+                                        ?.use24HourFormat ??
+                                    true,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),

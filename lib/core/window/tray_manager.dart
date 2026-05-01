@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:system_tray/system_tray.dart';
 import 'package:window_manager/window_manager.dart';
+import 'window_utils.dart';
 
 class TrayManager {
   static final SystemTray _systemTray = SystemTray();
@@ -22,17 +23,15 @@ class TrayManager {
       MenuItemLabel(
         label: 'Show Main Toolbar',
         onClicked: (menuItem) async {
-          await windowManager.show();
-          await windowManager.focus();
+          await WindowUtils.safeShow();
         },
       ),
       MenuSeparator(),
       MenuItemLabel(
         label: 'Settings',
-        onClicked: (menuItem) {
+        onClicked: (menuItem) async {
           // Future: Open settings window directly
-          windowManager.show();
-          windowManager.focus();
+          await WindowUtils.safeShow();
         },
       ),
       MenuSeparator(),
@@ -47,10 +46,9 @@ class TrayManager {
 
     await _systemTray.setContextMenu(menu);
 
-    _systemTray.registerSystemTrayEventHandler((eventName) {
+    _systemTray.registerSystemTrayEventHandler((eventName) async {
       if (eventName == kSystemTrayEventClick) {
-        windowManager.show();
-        windowManager.focus();
+        await WindowUtils.safeShow();
       } else if (eventName == kSystemTrayEventRightClick) {
         _systemTray.popUpContextMenu();
       }

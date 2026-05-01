@@ -7,7 +7,7 @@ import '../widgets/sqa_toast.dart';
 import '../../core/models/hotkey_info.dart';
 
 class SqaHotkeyField extends StatefulWidget {
-  final HotkeyInfo value;
+  final HotkeyInfo? value;
   final void Function(HotkeyInfo) onSave;
   final String? label;
 
@@ -166,13 +166,13 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                           ? (_modifiers.isEmpty && _lastKey == null
                                 ? 'Press keys...'
                                 : _formatRecording())
-                          : widget.value.toString(),
+                          : (widget.value?.toString() ?? 'NOT SET'),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: _isRecording
                             ? colorScheme.primary
-                            : colorScheme.onSurface,
+                            : (widget.value == null ? colorScheme.error.withValues(alpha: 0.7) : colorScheme.onSurface),
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,

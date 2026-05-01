@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import 'core/window/window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,6 +15,7 @@ import 'plugins/screenshot/providers/screenshot_provider.dart';
 import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
 import 'ui/widgets/sqa_styles.dart';
+import 'ui/widgets/sqa_scroll_behavior.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +47,7 @@ void main() async {
       ),
     );
     await windowManager.setPreventClose(true);
-    await windowManager.show();
+    await WindowUtils.safeShow();
     await windowManager.focus();
   });
 
@@ -152,6 +154,7 @@ class SqaMultitoolsApp extends ConsumerWidget {
           title: 'SQA-Multitools',
           debugShowCheckedModeBanner: false,
           themeMode: themeMode,
+          scrollBehavior: const SqaMouseDragScrollBehavior(),
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: lightScheme,
@@ -159,8 +162,8 @@ class SqaMultitoolsApp extends ConsumerWidget {
             scrollbarTheme: ScrollbarThemeData(
               thumbVisibility: WidgetStateProperty.all(true),
               trackVisibility: WidgetStateProperty.all(false),
-              thickness: WidgetStateProperty.all(8.0),
-              radius: const Radius.circular(4.0),
+              thickness: WidgetStateProperty.all(6.0),
+              radius: const Radius.circular(3.0),
               thumbColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.hovered) ||
                     states.contains(WidgetState.dragged)) {
@@ -253,8 +256,8 @@ class SqaMultitoolsApp extends ConsumerWidget {
             scrollbarTheme: ScrollbarThemeData(
               thumbVisibility: WidgetStateProperty.all(true),
               trackVisibility: WidgetStateProperty.all(false),
-              thickness: WidgetStateProperty.all(8.0),
-              radius: const Radius.circular(4.0),
+              thickness: WidgetStateProperty.all(6.0),
+              radius: const Radius.circular(3.0),
               thumbColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.hovered) ||
                     states.contains(WidgetState.dragged)) {
@@ -361,9 +364,12 @@ class HotkeyInitializer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // We use a post-frame callback to ensure the notifier is ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Warm up providers to ensure they are instantiated and register their hotkeys
+      ref.read(screenRecorderProvider);
+      ref.read(screenshotProvider);
+
       ref.read(hotkeySettingsProvider.notifier).setToolbarCallback(() async {
-        await windowManager.show();
-        await windowManager.focus();
+        await WindowUtils.safeShow();
       });
     });
 

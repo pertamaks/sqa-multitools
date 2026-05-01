@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
+
 import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/screenshot_tool.dart';
@@ -31,6 +31,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     Future.microtask(() {
       _loadPreferences();
       refreshRecentCaptures();
+      // Register global hotkey callback
+      ref.read(hotkeySettingsProvider.notifier).setScreenshotToggleCallback(() {
+        capture();
+      });
     });
 
     return const ScreenshotState();
@@ -151,6 +155,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final overlayRect = Rect.fromLTRB(minX, minY, maxX, maxY);
 
     final coordinator = ref.read(windowTransitionProvider);
+    // 0. Ensure window is active and visible (even if from tray)
+    await WindowUtils.safeShow();
+ 
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
@@ -544,20 +551,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     return null;
   }
 
-  // Hotkey registration
-  Future<void> registerGlobalHotkeys() async {
-    try {
-      final hotkeyInfo = ref.read(hotkeySettingsProvider).screenshotToggle;
-      // Note: screenshotToggle needs to be added to HotkeySettings
-      final hotKey = hotkeyInfo.toHotKey(identifier: 'screenshot_toggle');
-      await hotKeyManager.register(
-        hotKey,
-        keyDownHandler: (hotKey) => capture(),
-      );
-    } catch (e) {
-      debugPrint('[Screenshot] Hotkey registration failed: $e');
-    }
-  }
+
 
   // Window Targeting
   void setTargetingWindow(bool value) {

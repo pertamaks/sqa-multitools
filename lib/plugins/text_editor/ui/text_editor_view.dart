@@ -36,7 +36,7 @@ import 'widgets/list_node_encoder_parsers.dart';
 import 'widgets/image_block_builder.dart';
 import 'widgets/image_node_encoder_parser.dart';
 import 'package:super_clipboard/super_clipboard.dart';
-import '../../clipboard/utils/clipboard_extensions.dart';
+import '../../../core/utils/clipboard_extensions.dart';
 import '../../../ui/widgets/sqa_markdown_viewer.dart';
 
 

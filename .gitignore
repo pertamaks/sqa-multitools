@@ -79,3 +79,10 @@ GEMINI.md
 # =============================================================================
 lib/plugins/text_editor_v2/
 assets/appflowy-editor-main/
+
+# Local Assets (Unused in Repo)
+assets/toolbar_new.png
+assets/app_icon_.ico
+assets/md_extreme_test.md
+assets/result.md
+assets/source.md

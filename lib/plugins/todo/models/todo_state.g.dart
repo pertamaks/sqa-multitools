@@ -22,6 +22,10 @@ _TodoState _$TodoStateFromJson(Map<String, dynamic> json) => _TodoState(
       TodoTab.today,
   hasActiveReminder: json['hasActiveReminder'] as bool? ?? false,
   previousPluginId: json['previousPluginId'] as String? ?? null,
+  searchQuery: json['searchQuery'] as String? ?? '',
+  historyFilter:
+      $enumDecodeNullable(_$HistoryFilterEnumMap, json['historyFilter']) ??
+      HistoryFilter.last7Days,
 );
 
 Map<String, dynamic> _$TodoStateToJson(_TodoState instance) =>
@@ -31,10 +35,19 @@ Map<String, dynamic> _$TodoStateToJson(_TodoState instance) =>
       'currentTab': _$TodoTabEnumMap[instance.currentTab]!,
       'hasActiveReminder': instance.hasActiveReminder,
       'previousPluginId': instance.previousPluginId,
+      'searchQuery': instance.searchQuery,
+      'historyFilter': _$HistoryFilterEnumMap[instance.historyFilter]!,
     };
 
 const _$TodoTabEnumMap = {
   TodoTab.today: 'today',
   TodoTab.recurring: 'recurring',
   TodoTab.history: 'history',
+};
+
+const _$HistoryFilterEnumMap = {
+  HistoryFilter.last7Days: 'last7Days',
+  HistoryFilter.thisMonth: 'thisMonth',
+  HistoryFilter.lastMonth: 'lastMonth',
+  HistoryFilter.custom: 'custom',
 };

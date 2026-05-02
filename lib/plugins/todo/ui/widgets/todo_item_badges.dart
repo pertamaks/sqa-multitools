@@ -30,7 +30,9 @@ class TodoItemBadges extends StatelessWidget {
     final isDone = item.status == TodoStatus.done;
     final isDeferred = item.status == TodoStatus.deferred;
     final isDelegated = item.status == TodoStatus.delegated;
-    final isTerminal = isDone || isDelegated;
+    final isException = item.status == TodoStatus.exception;
+    final isCancelled = item.status == TodoStatus.cancelled;
+    final isTerminal = isDone || isDelegated || isException || isCancelled;
     final isOverdueByDay =
         !isTerminal && !isDeferred && createdAtDate.isBefore(today);
 
@@ -58,6 +60,20 @@ class TodoItemBadges extends StatelessWidget {
             'Delegated to: ${item.delegatedTo}',
             colorScheme.primaryContainer.withValues(alpha: 0.2),
             colorScheme.primary,
+          ),
+        if (isException)
+          _buildBadge(
+            context,
+            'Exception',
+            colorScheme.errorContainer.withValues(alpha: 0.2),
+            colorScheme.error,
+          ),
+        if (isCancelled)
+          _buildBadge(
+            context,
+            'Cancelled',
+            colorScheme.surfaceContainerHighest,
+            colorScheme.onSurfaceVariant,
           ),
         if (item.category.isNotEmpty)
           _buildBadge(

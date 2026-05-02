@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqa_multitools/plugins/beautifier/providers/beautifier_provider.dart';
-import 'package:sqa_multitools/plugins/beautifier/beautifier_plugin.dart';
+import 'package:sqa_multitools/plugins/beautifier/widgets/beautifier_highlighter.dart';
 import 'package:sqa_multitools/core/services/preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -9,7 +9,14 @@ import 'sqa_hover_icon_button.dart';
 ///
 /// Uses the [windowSizeModeProvider] to manage global window state.
 class SqaWindowSizeToggle extends ConsumerWidget {
-  const SqaWindowSizeToggle({super.key});
+  final VoidCallback? onClearSearch;
+  final bool isSearchActive;
+
+  const SqaWindowSizeToggle({
+    super.key,
+    this.onClearSearch,
+    this.isSearchActive = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,17 +25,25 @@ class SqaWindowSizeToggle extends ConsumerWidget {
     final isSquare = mode == WindowSizeMode.squareMode;
 
     // Requested icons: arrows_more_down and arrows_more_up
-    final iconData = isSquare
-        ? Symbols.arrows_more_up
-        : Symbols.arrows_more_down;
+    final iconData = isSquare ? Symbols.arrows_more_up : Symbols.arrows_more_down;
+
+    String tooltip = isSquare ? 'Exit Square Mode' : 'Enter Square Mode';
+    if (isSquare && isSearchActive) {
+      tooltip = 'Clear Search & Exit Square Mode';
+    }
 
     return Transform.rotate(
       // -90 degrees (counter-clockwise) makes Down -> Right and Up -> Left
       angle: -math.pi / 2,
       child: SqaHoverIconButton(
         icon: iconData,
-        onPressed: () => ref.read(windowSizeModeProvider.notifier).toggle(),
-        tooltip: isSquare ? 'Exit Square Mode' : 'Enter Square Mode',
+        onPressed: () {
+          if (isSquare && isSearchActive) {
+            onClearSearch?.call();
+          }
+          ref.read(windowSizeModeProvider.notifier).toggle();
+        },
+        tooltip: tooltip,
         iconSize: 18,
         weight: 700,
         color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),

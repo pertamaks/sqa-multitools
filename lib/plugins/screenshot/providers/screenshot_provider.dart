@@ -137,6 +137,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     state = state.copyWith(textHasBackground: value);
   }
 
+  void setSearchQuery(String query) {
+    state = state.copyWith(searchQuery: query);
+  }
+
   Future<void> startOverlay() async {
     final currentSize = await windowManager.getSize();
     final currentPos = await windowManager.getPosition();

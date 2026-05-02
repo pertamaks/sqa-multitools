@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/todo_item.dart';
@@ -73,7 +74,9 @@ class Todo extends _$Todo {
     for (final todo in currentState.todos) {
       if (todo.recurringTodoId != null &&
           todo.status != TodoStatus.done &&
-          todo.status != TodoStatus.delegated) {
+          todo.status != TodoStatus.delegated &&
+          todo.status != TodoStatus.exception &&
+          todo.status != TodoStatus.cancelled) {
         final createdAtDate = DateTime(
           todo.createdAt.year,
           todo.createdAt.month,
@@ -379,5 +382,23 @@ class Todo extends _$Todo {
     final currentState = state.value;
     if (currentState == null) return;
     state = AsyncData(currentState.copyWith(currentTab: tab));
+  }
+
+  void setSearchQuery(String query) {
+    final currentState = state.value;
+    if (currentState == null) return;
+    state = AsyncData(currentState.copyWith(searchQuery: query));
+  }
+
+  void setHistoryFilter(HistoryFilter filter) {
+    final currentState = state.value;
+    if (currentState == null) return;
+    state = AsyncData(currentState.copyWith(historyFilter: filter));
+  }
+
+  void setCustomDateRange(DateTimeRange? range) {
+    final currentState = state.value;
+    if (currentState == null) return;
+    state = AsyncData(currentState.copyWith(customDateRange: range));
   }
 }

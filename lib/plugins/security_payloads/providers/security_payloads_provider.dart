@@ -6,22 +6,26 @@ class SecurityPayloadsState {
   final String targetUrl;
   final List<String> generatedPayloads;
   final bool showDisclaimer;
+  final String searchQuery;
 
   const SecurityPayloadsState({
     this.targetUrl = '',
     this.generatedPayloads = const [],
     this.showDisclaimer = true,
+    this.searchQuery = '',
   });
 
   SecurityPayloadsState copyWith({
     String? targetUrl,
     List<String>? generatedPayloads,
     bool? showDisclaimer,
+    String? searchQuery,
   }) {
     return SecurityPayloadsState(
       targetUrl: targetUrl ?? this.targetUrl,
       generatedPayloads: generatedPayloads ?? this.generatedPayloads,
       showDisclaimer: showDisclaimer ?? this.showDisclaimer,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 }
@@ -75,5 +79,9 @@ class SecurityPayloadsNotifier extends _$SecurityPayloadsNotifier {
 
   void dismissDisclaimer() {
     state = state.copyWith(showDisclaimer: false);
+  }
+
+  void setSearchQuery(String query) {
+    state = state.copyWith(searchQuery: query);
   }
 }

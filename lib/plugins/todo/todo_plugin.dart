@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../core/models/sqa_plugin.dart';
 import 'providers/todo_provider.dart';
+import 'services/todo_storage_service.dart';
 import 'ui/todo_view.dart';
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
@@ -36,7 +37,13 @@ class TodoPlugin implements SqaPlugin {
 
   @override
   Future<void> initialize() async {
-    // Any initialization logic can go here
+    // Eagerly load storage data to prevent UI stutter on first open
+    final storage = TodoStorageService();
+    await Future.wait([
+      storage.loadSettings(),
+      storage.loadAllTodos(),
+      storage.loadRecurringTodos(),
+    ]);
   }
 
   @override

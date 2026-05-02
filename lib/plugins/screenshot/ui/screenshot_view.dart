@@ -25,9 +25,20 @@ class ScreenshotView extends ConsumerStatefulWidget {
 }
 
 class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
+  late TextEditingController _searchController;
+
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController(
+      text: ref.read(screenshotProvider).searchQuery,
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _handleStart() {
@@ -46,6 +57,10 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
       title: 'Screenshot',
       description: 'Capture a region and draw directly on it.',
       color: theme.colorScheme.primary,
+      searchController: _searchController,
+      onSearchChanged: (val) =>
+          ref.read(screenshotProvider.notifier).setSearchQuery(val),
+      searchHint: 'Filter captures...',
       child: SqaFadeWrapper(
         child: SqaPluginScrollableContent(
           child: Column(
@@ -218,8 +233,19 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      ...state.recentCaptures.map((CaptureInfo info) {
-                        final isLast = state.recentCaptures.last == info;
+                      ...state.recentCaptures.where((info) {
+                        if (state.searchQuery.isEmpty) return true;
+                        final query = state.searchQuery.toLowerCase();
+                        final filename = info.file.path.split('\\').last.toLowerCase();
+                        return filename.contains(query);
+                      }).map((CaptureInfo info) {
+                        final filteredList = state.recentCaptures.where((info) {
+                          if (state.searchQuery.isEmpty) return true;
+                          final query = state.searchQuery.toLowerCase();
+                          final filename = info.file.path.split('\\').last.toLowerCase();
+                          return filename.contains(query);
+                        }).toList();
+                        final isLast = filteredList.last == info;
                         return Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [

@@ -609,6 +609,10 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   void setSelectedAudioDevice(String? device) =>
       state = state.copyWith(selectedAudioDevice: device);
 
+  void setSearchQuery(String query) {
+    state = state.copyWith(searchQuery: query);
+  }
+
   void setClickFeedbackColor(Color color) =>
       state = state.copyWith(clickFeedbackColor: color);
   void setRightClickFeedbackColor(Color color) =>

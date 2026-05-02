@@ -71,19 +71,27 @@ class TextEditor extends _$TextEditor {
     }
   }
 
-  void openEditor(TextDocument? document) {
+  Future<void> openEditor(TextDocument? document) async {
+    state = state.copyWith(isLoading: true);
+    // Brief delay to allow the circle loading to be visible and ensure a smooth transition
+    await Future<void>.delayed(const Duration(milliseconds: 150));
     state = state.copyWith(
       activeDocument: document,
       viewMode: TextEditorViewMode.editor,
       hasUnsavedChanges: false,
+      isLoading: false,
     );
   }
 
-  void viewDocument(TextDocument document) {
+  Future<void> viewDocument(TextDocument document) async {
+    state = state.copyWith(isLoading: true);
+    // Brief delay for the loading circle to appear during high-fidelity rendering preparation
+    await Future<void>.delayed(const Duration(milliseconds: 150));
     state = state.copyWith(
       activeDocument: document,
       viewMode: TextEditorViewMode.viewer,
       hasUnsavedChanges: false,
+      isLoading: false,
     );
   }
 

@@ -11,7 +11,6 @@ import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_popup_menu.dart';
-import '../../../ui/widgets/sqa_search_filter_bar.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
@@ -27,6 +26,21 @@ class TextListView extends ConsumerStatefulWidget {
 
 class _TextListViewState extends ConsumerState<TextListView> {
   TextListFilter _selectedFilter = TextListFilter.all;
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(
+      text: ref.read(textEditorProvider).searchQuery,
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,21 +83,15 @@ class _TextListViewState extends ConsumerState<TextListView> {
           _buildNewDocumentButton(context, notifier),
         ],
       ),
+      searchController: _searchController,
+      onSearchChanged: (value) => notifier.setSearchQuery(value),
+      searchHint: 'Search documents...',
       child: SqaPluginScrollableContent(
-        child: state.isLoading
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(40.0),
-                  child: CircularProgressIndicator(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              )
-            : state.documents.isEmpty
+        child: state.documents.isEmpty
             ? _buildEmptyState(context, notifier)
             : Column(
                 children: [
-                  _buildSearchBar(context),
+                  _buildFilterBar(context),
                   const SizedBox(height: 16),
                   if (filteredDocs.isEmpty)
                     _buildNoResultsState(context)
@@ -150,42 +158,29 @@ class _TextListViewState extends ConsumerState<TextListView> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    final notifier = ref.read(textEditorProvider.notifier);
-
+  Widget _buildFilterBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: SqaSearchFilterBar(
-        hintText: 'Search documents...',
-        onChanged: (value) => notifier.setSearchQuery(value),
-        isFilterActive: _selectedFilter != TextListFilter.all,
-        filterOptions: Row(
-          children: [
-            Expanded(
-              child: SqaSegmentedButton<TextListFilter>(
-                stretches: true,
-                storageKey: 'text_list_filter',
-                segments: const [
-                  ButtonSegment(value: TextListFilter.all, label: Text('All')),
-                  ButtonSegment(
-                    value: TextListFilter.pinned,
-                    label: Text('Pinned'),
-                  ),
-                  ButtonSegment(
-                    value: TextListFilter.recent,
-                    label: Text('Recent'),
-                  ),
-                ],
-                selected: {_selectedFilter},
-                onSelectionChanged: (set) {
-                  setState(() {
-                    _selectedFilter = set.first;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
+      child: SqaSegmentedButton<TextListFilter>(
+        stretches: true,
+        storageKey: 'text_list_filter',
+        segments: const [
+          ButtonSegment(value: TextListFilter.all, label: Text('All')),
+          ButtonSegment(
+            value: TextListFilter.pinned,
+            label: Text('Pinned'),
+          ),
+          ButtonSegment(
+            value: TextListFilter.recent,
+            label: Text('Recent'),
+          ),
+        ],
+        selected: {_selectedFilter},
+        onSelectionChanged: (set) {
+          setState(() {
+            _selectedFilter = set.first;
+          });
+        },
       ),
     );
   }

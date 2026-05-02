@@ -82,3 +82,55 @@ final class CheatsheetDataProvider
 }
 
 String _$cheatsheetDataHash() => r'2e23dfb283100b5dfbe356ae3154f21d6a8e7e8a';
+
+@ProviderFor(CheatsheetSearch)
+final cheatsheetSearchProvider = CheatsheetSearchProvider._();
+
+final class CheatsheetSearchProvider
+    extends $NotifierProvider<CheatsheetSearch, String> {
+  CheatsheetSearchProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cheatsheetSearchProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cheatsheetSearchHash();
+
+  @$internal
+  @override
+  CheatsheetSearch create() => CheatsheetSearch();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$cheatsheetSearchHash() => r'bfc6a7844d1a58e4f76c1b706cdd47e476cc5420';
+
+abstract class _$CheatsheetSearch extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<String, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

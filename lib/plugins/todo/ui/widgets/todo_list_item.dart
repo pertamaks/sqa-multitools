@@ -66,7 +66,11 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
 
     final isDone = widget.item.status == TodoStatus.done;
     final isDelegated = widget.item.status == TodoStatus.delegated;
-    final isTerminal = isDone || isDelegated;
+    final isTerminal =
+        isDone ||
+        isDelegated ||
+        widget.item.status == TodoStatus.exception ||
+        widget.item.status == TodoStatus.cancelled;
     final isDeferred = widget.item.status == TodoStatus.deferred;
 
     final isCurrent =
@@ -107,7 +111,9 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
     final isDone = widget.item.status == TodoStatus.done;
     final isDeferred = widget.item.status == TodoStatus.deferred;
     final isDelegated = widget.item.status == TodoStatus.delegated;
-    final isTerminal = isDone || isDelegated;
+    final isException = widget.item.status == TodoStatus.exception;
+    final isCancelled = widget.item.status == TodoStatus.cancelled;
+    final isTerminal = isDone || isDelegated || isException || isCancelled;
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -161,13 +167,13 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
               padding: EdgeInsets.zero,
               onTap: widget.isReadOnly
                   ? () => TodoItemDialogs.showHistorySummary(
-                        context,
-                        ref,
-                        widget.item,
-                      )
+                      context,
+                      ref,
+                      widget.item,
+                    )
                   : (isOverdueByDay || widget.item.recurringTodoId != null
-                      ? null
-                      : widget.onTap),
+                        ? null
+                        : widget.onTap),
               borderSide: isCurrent
                   ? BorderSide(
                       color: colorScheme.primary.withValues(
@@ -210,8 +216,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                                       ? 'Focus ${widget.displayIndex! + 1}: ${widget.item.title}'
                                       : widget.item.title,
                                   style: theme.textTheme.titleSmall?.copyWith(
-                                    decoration:
-                                        isTerminal && !widget.isReadOnly
+                                    decoration: isTerminal && !widget.isReadOnly
                                         ? TextDecoration.lineThrough
                                         : null,
                                     color: isTerminal
@@ -226,8 +231,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                             ],
                           ),
                           if (widget.item.category.isNotEmpty ||
-                              (widget.item.timeBlock !=
-                                      TodoTimeBlock.current &&
+                              (widget.item.timeBlock != TodoTimeBlock.current &&
                                   !isOverdueByDay &&
                                   !isDeferred &&
                                   !isDelegated) ||
@@ -309,12 +313,20 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                           SqaPopupMenuItem(
                             icon: const Icon(Symbols.report_problem),
                             label: 'Mark as Exception',
-                            onPressed: () {},
+                            onPressed: () => TodoItemDialogs.showException(
+                              context,
+                              ref,
+                              widget.item,
+                            ),
                           ),
                           SqaPopupMenuItem(
                             icon: const Icon(Symbols.cancel),
                             label: 'Cancel Focus',
-                            onPressed: () {},
+                            onPressed: () => TodoItemDialogs.showCancel(
+                              context,
+                              ref,
+                              widget.item,
+                            ),
                           ),
                           Divider(
                             height: 1,
@@ -345,7 +357,9 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
     final colorScheme = theme.colorScheme;
     final isDone = widget.item.status == TodoStatus.done;
     final isDelegated = widget.item.status == TodoStatus.delegated;
-    final isTerminal = isDone || isDelegated;
+    final isException = widget.item.status == TodoStatus.exception;
+    final isCancelled = widget.item.status == TodoStatus.cancelled;
+    final isTerminal = isDone || isDelegated || isException || isCancelled;
     final isDeferred = widget.item.status == TodoStatus.deferred;
 
     final settings = ref.watch(todoSettingsProvider).value;

@@ -4,8 +4,6 @@ import '../models/sqa_plugin.dart';
 import '../../plugins/magic_8ball/magic_8ball_plugin.dart';
 import '../../plugins/timer/timer_plugin.dart';
 import '../../plugins/data_generator/data_generator_plugin.dart';
-import '../../plugins/color_picker/color_picker_plugin.dart';
-import '../../plugins/clipboard/clipboard_plugin.dart';
 import '../../plugins/screen_recorder/screen_recorder_plugin.dart';
 import '../../plugins/screenshot/screenshot_plugin.dart';
 import '../../plugins/settings/settings_plugin.dart';
@@ -21,8 +19,6 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
   final plugins = [
     TimerPlugin(),
     DataGeneratorPlugin(),
-    ColorPickerPlugin(),
-    ClipboardPlugin(),
     ScreenRecorderPlugin(),
     ScreenshotPlugin(),
     SecurityPayloadsPlugin(),

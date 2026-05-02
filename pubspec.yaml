@@ -58,7 +58,6 @@ dependencies:
   json_annotation: ^4.11.0
   intl: ^0.20.2
   super_clipboard: ^0.9.1
-  super_drag_and_drop: ^0.9.0
   collection: ^1.19.1
   flutter_highlight: any
   highlight: any
@@ -105,7 +104,6 @@ flutter:
   assets:
     - assets/app_icon.ico
     - assets/desktop_new.png
-    - assets/toolbar_new.png
     - assets/caterpillar.gif
     - assets/bug_splat.png
     - assets/8ball.png

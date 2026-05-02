@@ -7,6 +7,7 @@ import '../models/screen_recorder_state.dart';
 import '../screen_recorder_plugin.dart';
 import './widgets/config_snippet.dart';
 import './widgets/recording_tile.dart';
+import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_icon_container.dart';
 import '../../../../ui/widgets/sqa_segmented_button.dart';
@@ -50,22 +51,12 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     if (!engineStatus.isReady) {
       final shouldDownload = await showDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Download Engine Required'),
-          content: const Text(
-            'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function.\n\n'
-            'Do you want to download and install it now?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Download'),
-            ),
-          ],
+        builder: (ctx) => SqaModal<bool>.confirm(
+          title: 'Engine Required',
+          message: 'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.\n\nDo you want to download and install it now?',
+          confirmLabel: 'Download',
+          cancelLabel: 'Cancel',
+          icon: Symbols.download,
         ),
       );
 
@@ -73,16 +64,20 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
         try {
           await ref.read(ffmpegProvider.notifier).download();
         } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Download failed: $e')));
-          }
+          // Errors are now handled globally in MainToolbar
           return;
         }
       } else {
         return;
       }
+    }
+
+    if (!mounted) return;
+
+    // Only auto-start if the user hasn't switched away to another plugin
+    final currentPlugin = ref.read(activePluginProvider);
+    if (currentPlugin?.id != 'com.sqa.plugin.screen_recorder') {
+      return;
     }
 
     if (state.captureMode == CaptureMode.window) {

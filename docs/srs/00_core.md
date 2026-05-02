@@ -45,6 +45,12 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 - **Processing:** Validates and registers plugins, updating the global `availablePluginsProvider`.
 - **Outputs:** An interactive icon in the main toolbar.
 
+### Update Checker Service
+- **Description:** Monitors and notifies the user of new application versions.
+- **Source:** Static `version.json` hosted on Cloudflare Pages.
+- **Distribution:** Redirects to GitHub Releases for build downloads.
+- **Processing:** Performs semantic version comparison (Local vs Remote).
+
 ## 4. External Interface Requirements
 ### User Interfaces (UI)
 - **Style:** Material 3 compliant with custom frameless window decoration.
@@ -82,6 +88,8 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 ### Software Interfaces
 - **Direct Link:** `window_manager` for OS-level window control.
 - **Persistence:** `shared_preferences` for local storage.
+- **Updates:** `http` for fetching version metadata from Cloudflare Pages.
+- **Metadata:** `package_info_plus` for local version retrieval.
 
 ### Communication Interfaces
 - **Not implemented** (Standalone local app).

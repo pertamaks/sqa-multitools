@@ -57,6 +57,7 @@ class Ffmpeg extends _$Ffmpeg {
       await FfmpegEngine.downloadEngine((progress) {
         state = state.copyWith(downloadProgress: progress);
       });
+      
       state = state.copyWith(
         isReady: true,
         isDownloading: false,

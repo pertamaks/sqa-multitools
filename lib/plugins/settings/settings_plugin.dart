@@ -24,6 +24,8 @@ import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../ui/widgets/sqa_styles.dart';
 import '../../ui/widgets/sqa_fade_wrapper.dart';
 import 'providers/settings_debug_provider.dart';
+import '../../core/providers/version_provider.dart';
+import '../../ui/widgets/sqa_update_modal.dart';
 
 class SettingsPlugin implements SqaPlugin {
   @override
@@ -1085,6 +1087,111 @@ class GeneralSettingsView extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+
+          const SizedBox(height: 24),
+          // System & About Section
+          const _SystemAboutSection(),
+        ],
+      ),
+    );
+  }
+}
+
+class _SystemAboutSection extends ConsumerWidget {
+  const _SystemAboutSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final versionAsync = ref.watch(appVersionProvider);
+    final updateState = ref.watch(updateStateProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Listen for update results
+    ref.listen(updateStateProvider, (previous, next) {
+      next.when(
+        data: (update) {
+          if (update != null) {
+            SqaUpdateModal.show(context, update);
+          } else if (previous is AsyncLoading) {
+            SqaToast.show(context, 'You are up to date!', type: SqaToastType.success);
+          }
+        },
+        error: (err, _) => SqaToast.show(context, 'Update check failed.', type: SqaToastType.error),
+        loading: () {},
+      );
+    });
+
+    return SqaCard(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Symbols.info, size: 20),
+              const SizedBox(width: 12),
+              Text(
+                'System Information',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              const SqaIconContainer(
+                icon: Symbols.deployed_code,
+                size: 48,
+                iconSize: 24,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'SQA-Multitools',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    versionAsync.when(
+                      data: (v) => Text(
+                        'Version $v',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      loading: () => const SizedBox(
+                        height: 12,
+                        width: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      error: (_, __) => const Text('Version unknown'),
+                    ),
+                  ],
+                ),
+              ),
+              SqaButton.tonal(
+                label: 'Check for Updates',
+                icon: Symbols.sync,
+                isLoading: updateState is AsyncLoading,
+                onPressed: () {
+                  ref.read(updateStateProvider.notifier).checkForUpdates();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          SqaButton.outlined(
+            onPressed: () => launchUrl(Uri.parse('https://sqa-multitools.pages.dev')),
+            label: 'Visit Official Website',
+            icon: Symbols.open_in_new,
           ),
         ],
       ),

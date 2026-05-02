@@ -7,6 +7,7 @@ import 'sqa_markdown_table.dart';
 import 'sqa_grid_table.dart';
 import 'sqa_field.dart';
 import 'sqa_styles.dart';
+import 'sqa_scroll_behavior.dart';
 
 /// A high-fidelity Markdown viewer that uses a custom AST visitor to render
 /// premium SQA-style widgets with support for deep linking.
@@ -88,10 +89,20 @@ class _SqaMarkdownViewerState extends State<SqaMarkdownViewer> {
       );
     }
 
-    return SingleChildScrollView(
-      controller: _scrollController,
-      padding: widget.padding,
-      child: content,
+    return ScrollConfiguration(
+      behavior: SqaMouseDragScrollBehavior(),
+      child: Scrollbar(
+        controller: _scrollController,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          padding: widget.padding,
+          child: content,
+        ),
+      ),
     );
   }
 }

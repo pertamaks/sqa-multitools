@@ -15,6 +15,7 @@ import 'widgets/sqa_fade_wrapper.dart';
 import 'widgets/sqa_bug_squasher.dart';
 import 'widgets/sqa_scroll_behavior.dart';
 import 'widgets/sqa_inline_tooltip.dart';
+import 'widgets/sqa_toast.dart';
 import '../plugins/todo/providers/todo_notification_provider.dart';
 import '../plugins/todo/providers/todo_provider.dart';
 import '../plugins/timer/providers/timer_provider.dart';
@@ -22,6 +23,7 @@ import '../plugins/timer/providers/timer_provider.dart';
 import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
+import '../core/providers/ffmpeg_provider.dart';
 
 class MainToolbar extends ConsumerStatefulWidget {
   const MainToolbar({super.key});
@@ -52,7 +54,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         }
       });
     });
-
+ 
     super.initState();
   }
 
@@ -229,11 +231,27 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                         ),
                       ),
 
-                      // Drag Handle
-                      Icon(
-                        Symbols.drag_indicator,
-                        size: 20,
-                        color: colorScheme.outlineVariant,
+                      // Drag Handle & Global Download Indicator
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(
+                            Symbols.drag_indicator,
+                            size: 20,
+                            color: colorScheme.outlineVariant,
+                          ),
+                          if (ref.watch(ffmpegProvider).isDownloading)
+                            SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  colorScheme.primary.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(width: 4),
 
@@ -358,6 +376,24 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final timerState = ref.watch(timerProvider);
     final isTimerRunning = timerState.isRunning;
     final colorScheme = Theme.of(context).colorScheme;
+ 
+    ref.listen(ffmpegProvider, (previous, next) {
+      if (previous != null && previous.isDownloading && !next.isDownloading) {
+        if (next.isReady) {
+          SqaToast.show(
+            context,
+            'Engine installed successfully',
+            type: SqaToastType.success,
+          );
+        } else if (next.error != null) {
+          SqaToast.show(
+            context,
+            'Engine download failed: ${next.error}',
+            type: SqaToastType.error,
+          );
+        }
+      }
+    });
 
     final isScreenshotVisible = ref.watch(screenshotProvider).isOverlayVisible;
     final isRecorderVisible = ref

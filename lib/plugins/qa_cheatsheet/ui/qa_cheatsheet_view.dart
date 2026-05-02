@@ -17,6 +17,21 @@ class QaCheatsheetView extends ConsumerStatefulWidget {
 
 class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
   final Map<String, String> _selectedSectionIds = {};
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(
+      text: ref.read(cheatsheetSearchProvider),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,21 +48,42 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
           );
         }
 
-        return DefaultTabController(
-          length: categories.length,
-          child: SqaPluginLayout(
+        final searchQuery = ref.watch(cheatsheetSearchProvider);
+        final filteredCategories = categories.where((cat) {
+          if (searchQuery.isEmpty) return true;
+          final query = searchQuery.toLowerCase();
+          return cat.name.toLowerCase().contains(query) ||
+                 cat.sections.any((s) => s.title.toLowerCase().contains(query) || s.markdown.toLowerCase().contains(query));
+        }).toList();
+
+        if (filteredCategories.isEmpty) {
+          return SqaPluginLayout(
             icon: Symbols.menu_book,
             title: 'QA Cheatsheet',
-            description: 'High-Fidelity quality assurance reference compilation',
-            tabs: categories.map((c) => Tab(
-              text: c.name,
-              icon: Icon(c.icon, size: 18),
-              iconMargin: const EdgeInsets.only(bottom: 4),
-            )).toList(),
-            child: TabBarView(
-              physics: const NeverScrollableScrollPhysics(),
-              children: categories.map((cat) => _buildCategoryView(cat)).toList(),
+            searchController: _searchController,
+            onSearchChanged: (val) => ref.read<CheatsheetSearch>(cheatsheetSearchProvider.notifier).setQuery(val),
+            searchHint: 'Search cheatsheet...',
+            child: const Center(
+              child: Text('No matching content found.'),
             ),
+          );
+        }
+
+        return SqaPluginLayout(
+          icon: Symbols.menu_book,
+          title: 'QA Cheatsheet',
+          description: 'High-Fidelity quality assurance reference compilation',
+          searchController: _searchController,
+          onSearchChanged: (val) => ref.read<CheatsheetSearch>(cheatsheetSearchProvider.notifier).setQuery(val),
+          searchHint: 'Search cheatsheet...',
+          tabs: filteredCategories.map((c) => Tab(
+            text: c.name,
+            icon: Icon(c.icon, size: 18),
+            iconMargin: const EdgeInsets.only(bottom: 4),
+          )).toList(),
+          child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            children: filteredCategories.map((cat) => _buildCategoryView(cat, searchQuery)).toList(),
           ),
         );
       },
@@ -62,25 +98,36 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
     );
   }
 
-  Widget _buildCategoryView(CheatsheetCategory category) {
+  Widget _buildCategoryView(CheatsheetCategory category, String searchQuery) {
+    final filteredSections = category.sections.where((s) {
+      if (searchQuery.isEmpty) return true;
+      final query = searchQuery.toLowerCase();
+      return s.title.toLowerCase().contains(query) || s.markdown.toLowerCase().contains(query);
+    }).toList();
+
+    if (filteredSections.isEmpty) {
+      return const Center(child: Text('No matching sections.'));
+    }
+
     // Initialize or get selected section ID
-    if (!_selectedSectionIds.containsKey(category.name) && category.sections.isNotEmpty) {
-      _selectedSectionIds[category.name] = category.sections.first.id;
+    if (!_selectedSectionIds.containsKey(category.name) || 
+        !filteredSections.any((s) => s.id == _selectedSectionIds[category.name])) {
+      _selectedSectionIds[category.name] = filteredSections.first.id;
     }
 
     final selectedId = _selectedSectionIds[category.name];
-    final selectedSection = category.sections.firstWhere(
+    final selectedSection = filteredSections.firstWhere(
       (s) => s.id == selectedId,
-      orElse: () => category.sections.first,
+      orElse: () => filteredSections.first,
     );
 
     return Column(
       children: [
-        if (category.sections.length > 1)
+        if (filteredSections.length > 1)
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
             child: SqaSegmentedButton<String>(
-              segments: category.sections.map((s) {
+              segments: filteredSections.map((s) {
                 return ButtonSegment<String>(
                   value: s.id,
                   label: Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis),

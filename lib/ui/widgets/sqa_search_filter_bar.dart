@@ -7,6 +7,7 @@ class SqaSearchFilterBar extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final Widget? filterOptions;
   final bool isFilterActive;
+  final TextEditingController? controller;
 
   const SqaSearchFilterBar({
     super.key,
@@ -14,6 +15,7 @@ class SqaSearchFilterBar extends StatefulWidget {
     this.onChanged,
     this.filterOptions,
     this.isFilterActive = false,
+    this.controller,
   });
 
   @override
@@ -21,7 +23,11 @@ class SqaSearchFilterBar extends StatefulWidget {
 }
 
 class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
-  late TextEditingController _controller;
+  TextEditingController? _internalController;
+  TextEditingController get _effectiveController {
+    if (widget.controller != null) return widget.controller!;
+    return _internalController ??= TextEditingController();
+  }
   bool _isFocused = false;
   bool _isHovered = false;
   bool _isFilterMode = false;
@@ -29,12 +35,14 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    if (widget.controller == null) {
+      _internalController = TextEditingController();
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _internalController?.dispose();
     super.dispose();
   }
 
@@ -113,7 +121,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           child: Focus(
             onFocusChange: (hasFocus) => setState(() => _isFocused = hasFocus),
             child: TextField(
-              controller: _controller,
+              controller: _effectiveController,
               onChanged: (val) {
                 widget.onChanged?.call(val);
                 setState(() {});
@@ -136,13 +144,15 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
             ),
           ),
         ),
-        if (_controller.text.isNotEmpty)
+        if (_effectiveController.text.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(right: 4.0),
+            padding: EdgeInsets.only(
+              right: widget.filterOptions != null ? 8.0 : 16.0,
+            ),
             child: IconButton(
               icon: const Icon(Symbols.close, size: 16),
               onPressed: () {
-                _controller.clear();
+                _effectiveController.clear();
                 widget.onChanged?.call('');
                 setState(() {});
               },
@@ -153,7 +163,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           ),
         if (widget.filterOptions != null)
           Padding(
-            padding: const EdgeInsets.only(right: 12.0),
+            padding: const EdgeInsets.only(right: 16.0),
             child: IconButton(
               icon: Icon(
                 Symbols.tune,

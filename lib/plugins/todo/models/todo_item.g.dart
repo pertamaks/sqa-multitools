@@ -85,4 +85,6 @@ const _$TodoStatusEnumMap = {
   TodoStatus.done: 'done',
   TodoStatus.deferred: 'deferred',
   TodoStatus.delegated: 'delegated',
+  TodoStatus.exception: 'exception',
+  TodoStatus.cancelled: 'cancelled',
 };

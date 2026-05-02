@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/sqa_plugin.dart';
 import '../../plugins/magic_8ball/magic_8ball_plugin.dart';
@@ -17,7 +18,7 @@ import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
 
 final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
-  return [
+  final plugins = [
     TimerPlugin(),
     DataGeneratorPlugin(),
     ColorPickerPlugin(),
@@ -31,6 +32,15 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     QaCheatsheetPlugin(),
     if (ref.watch(supporterTierProvider) >= 2) QaOraclePlugin(),
   ];
+
+  // Proactively initialize plugins for warm-up (Rule 6)
+  for (final plugin in plugins) {
+    plugin.initialize().catchError((Object e) {
+      debugPrint('Error initializing plugin ${plugin.id}: $e');
+    });
+  }
+
+  return plugins;
 });
 
 /// Provides all available plugins in their user-defined order

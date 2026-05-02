@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'dart:async';
 import 'dart:math';
 import '../../core/models/sqa_plugin.dart';
 import '../../ui/widgets/sqa_toast.dart';
@@ -36,7 +37,25 @@ class QaOraclePlugin implements SqaPlugin {
   }
 
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async {
+    // Warm up the 8-ball image asset to ensure the first "shake" animation is smooth
+    final ImageStream stream =
+        const AssetImage('assets/8ball.png').resolve(ImageConfiguration.empty);
+    final completer = Completer<void>();
+    ImageStreamListener? listener;
+    listener = ImageStreamListener(
+      (ImageInfo info, bool sync) {
+        completer.complete();
+        stream.removeListener(listener!);
+      },
+      onError: (Object e, StackTrace? s) {
+        completer.completeError(e);
+        stream.removeListener(listener!);
+      },
+    );
+    stream.addListener(listener);
+    return completer.future;
+  }
   @override
   Future<void> dispose() async {}
 }

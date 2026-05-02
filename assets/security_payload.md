@@ -464,6 +464,3 @@ Apply any payload in these encodings to bypass WAFs and filters:
 > - Never use these payloads against systems you do not own or have permission to assess.
 > - Follow **responsible disclosure** policies when reporting findings.
 > - Document all testing activity with timestamps and scope.
-
-*Security Payloads Cheat Sheet — For authorized security research and penetration testing only.*  
-*Last Updated: 2025*

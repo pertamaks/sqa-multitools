@@ -29,6 +29,7 @@ abstract class ScreenshotState with _$ScreenshotState {
     @Default([]) List<Display> availableDisplays,
     @Default([]) List<CaptureInfo> recentCaptures,
     @Default(false) bool textHasBackground,
+    @Default('') String searchQuery,
     Display? lockedDisplay,
   }) = _ScreenshotState;
 }

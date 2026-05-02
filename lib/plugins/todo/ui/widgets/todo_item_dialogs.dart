@@ -48,7 +48,7 @@ class TodoItemDialogs {
               context,
               Symbols.info,
               'Status',
-              item.status.name.toUpperCase(),
+              item.status.displayName.toUpperCase(),
             ),
             _buildSummaryRow(
               context,
@@ -243,6 +243,96 @@ class TodoItemDialogs {
         if (context.mounted) {
           SqaToast.show(context, 'Focus delegated to $delegatedTo');
         }
+      }
+    }
+  }
+
+  static void showException(
+    BuildContext context,
+    WidgetRef ref,
+    TodoItem item,
+  ) async {
+    final TextEditingController controller = TextEditingController(
+      text: item.notes,
+    );
+
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) => SqaModal<bool>.custom(
+        title: 'Mark as Exception',
+        icon: Symbols.report_problem,
+        customActions: [
+          SqaButton(
+            label: 'Back',
+            onPressed: () => Navigator.pop(context, false),
+            type: SqaButtonType.tonal,
+          ),
+          const SizedBox(width: 8),
+          SqaButton(
+            label: 'Confirm Exception',
+            onPressed: () => Navigator.pop(context, true),
+            type: SqaButtonType.primary,
+          ),
+        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SqaField(
+              label: 'Exception Reason',
+              controller: controller,
+              hintText: 'What happened? Why was this focus an exception?',
+              isMultiline: true,
+              minLines: 3,
+              maxLines: null,
+              autofocus: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true) {
+      final notes = SqaField.toSentenceCase(controller.text.trim());
+      ref
+          .read(todoProvider.notifier)
+          .updateTodo(
+            item.copyWith(
+              status: TodoStatus.exception,
+              notes: notes,
+              completedAt: DateTime.now(),
+            ),
+          );
+      if (context.mounted) {
+        SqaToast.show(context, 'Focus marked as exception.');
+      }
+    }
+  }
+
+  static void showCancel(
+    BuildContext context,
+    WidgetRef ref,
+    TodoItem item,
+  ) async {
+    final confirmed = await SqaModal.showDanger(
+      context,
+      title: 'Cancel Focus',
+      message:
+          'Are you sure you want to cancel "${item.title}"? It will be moved to the completed list as cancelled.',
+      confirmLabel: 'Cancel Focus',
+    );
+
+    if (confirmed == true) {
+      ref
+          .read(todoProvider.notifier)
+          .updateTodo(
+            item.copyWith(
+              status: TodoStatus.cancelled,
+              completedAt: DateTime.now(),
+            ),
+          );
+      if (context.mounted) {
+        SqaToast.show(context, 'Focus cancelled.');
       }
     }
   }

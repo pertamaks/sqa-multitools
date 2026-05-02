@@ -15,3 +15,11 @@ Future<List<CheatsheetCategory>> cheatsheetData(Ref ref) async {
   final raw = await ref.watch(cheatsheetRawProvider.future);
   return CheatsheetParser.parse(raw);
 }
+
+@Riverpod(keepAlive: true)
+class CheatsheetSearch extends _$CheatsheetSearch {
+  @override
+  String build() => '';
+
+  void setQuery(String query) => state = query;
+}

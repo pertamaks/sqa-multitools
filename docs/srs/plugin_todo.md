@@ -17,7 +17,7 @@ The tool is called **Todo List**. It provides task management anchored to 90-min
 Modular plugin for SQA-Multitools utilizing the `SqaPlugin` interface.
 
 ### Product Functions
-- **Task Management:** Create, Read, Update, Delete tasks with specialized fields.
+- **Task Management:** Create, Read, Update, Delete tasks with specialized fields, including terminal states like "Exception" and "Cancelled".
 - **Cognitive Time Blocking:** Assign tasks to energy-appropriate periods (Morning, Noon, etc.).
 - **Ultradian Notifications:** Subtle toolbar reminders triggered at focus cycle peaks.
 - **Auto-Carryover:** Incomplete tasks persist to the next day automatically.
@@ -26,7 +26,7 @@ Modular plugin for SQA-Multitools utilizing the `SqaPlugin` interface.
 
 ## 3. System Features
 ### Task Definition
-- **Fields:** Title, Time Block, Duration Preset, Priority, Status, Category, Notes, CreatedAt.
+- **Fields:** Title, Time Block, Duration Preset, Priority, Status (Todo, Done, Delegated, Exception, Cancelled), Category, Notes, CreatedAt.
 - **Duration Presets:** 5, 15, 25, 45, 90 mins (constrained by Time Block).
 
 ### Cognitive Scheduling

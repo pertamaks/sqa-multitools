@@ -43,6 +43,14 @@ class TextEditorPlugin implements SqaPlugin {
       builder: (context, ref, child) {
         final state = ref.watch(textEditorProvider);
 
+        if (state.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+
         switch (state.viewMode) {
           case TextEditorViewMode.editor:
           case TextEditorViewMode.viewer:

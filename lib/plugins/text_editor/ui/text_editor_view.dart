@@ -49,7 +49,7 @@ class TextEditorView extends ConsumerStatefulWidget {
 
 class _TextEditorViewState extends ConsumerState<TextEditorView> {
   late TextEditingController _nameController;
-  late EditorState _editorState;
+  EditorState? _editorState;
   late EditorScrollController _editorScrollController;
   StreamSubscription<EditorTransactionValue>? _editorSubscription;
   Timer? _syncTimer;
@@ -60,17 +60,35 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   bool _isEditingTitle = false;
   final MenuController _linkMenuController = MenuController();
   final FocusNode _linkMenuFocusNode = FocusNode();
+  bool _isInitializing = true;
   Selection? _selectionBeforeLinkMenu;
 
   @override
   void initState() {
     super.initState();
     forceShowBlockAction = false;
-    final doc = ref.read(textEditorProvider).activeDocument;
-    _nameController = TextEditingController(text: doc?.name ?? '');
+    _nameController = TextEditingController(
+      text: ref.read(textEditorProvider).activeDocument?.name ?? '',
+    );
+    _titleFocusNode = FocusNode();
+    _titleFocusNode.addListener(_onTitleFocusChange);
+    _editorFocusNode = FocusNode();
 
-    // Initialize EditorState from Markdown
+    // Start heavy initialization in a microtask to allow UI to render first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeEditor();
+    });
+  }
+
+  Future<void> _initializeEditor() async {
+    if (!mounted) return;
+
+    final doc = ref.read(textEditorProvider).activeDocument;
     final initialContent = doc?.content ?? '';
+
+    // We do the heavy parsing here. Even if it's on the main thread, 
+    // being inside an async method and after the first frame 
+    // helps avoid blocking the initial transition animation.
     final Document document;
 
     if (initialContent.isEmpty) {
@@ -86,38 +104,36 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         ],
         inlineSyntaxes: [SqaSpanInlineSyntax()],
       );
-      // Ensure the document has at least one paragraph node for editing
       if (document.root.children.isEmpty) {
         document.root.children.add(paragraphNode());
       }
     }
 
-    _editorState = EditorState(document: document);
-    _editorScrollController = EditorScrollController(
-      editorState: _editorState,
-      shrinkWrap:
-          true, // Required for standard ScrollController & Scrollbar support
-    );
+    if (!mounted) return;
 
-    _titleFocusNode = FocusNode();
-    _titleFocusNode.addListener(_onTitleFocusChange);
-    _editorFocusNode = FocusNode();
+    setState(() {
+      _editorState = EditorState(document: document);
+      _editorScrollController = EditorScrollController(
+        editorState: _editorState!,
+        shrinkWrap: true,
+      );
 
-    // Listen for changes in the editor to sync with provider
-    _editorSubscription = _editorState.transactionStream.listen((event) {
-      if (event.$1 == TransactionTime.after) {
-        _onEditorChanged();
-        // Bump formatting notifier to trigger toolbar rebuild
-        if (!_isDisposed && mounted) {
-          _formattingNotifier.value++;
+      _editorSubscription = _editorState!.transactionStream.listen((event) {
+        if (event.$1 == TransactionTime.after) {
+          _onEditorChanged();
+          if (!_isDisposed && mounted) {
+            _formattingNotifier.value++;
+          }
         }
-      }
+      });
+
+      _isInitializing = false;
     });
   }
 
   String _exportToMarkdown() {
     return documentToMarkdown(
-      _editorState.document,
+      _editorState!.document,
       customParsers: [
         const SqaHeadingNodeParser(),
         const SqaParagraphNodeParser(),
@@ -682,8 +698,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     _formattingNotifier.dispose();
     _nameController.dispose();
     _editorSubscription?.cancel();
-    _editorState.dispose();
-    _editorScrollController.dispose();
+    _editorState?.dispose();
+    if (!_isInitializing) {
+      _editorScrollController.dispose();
+    }
     _titleFocusNode.removeListener(_onTitleFocusChange);
     _titleFocusNode.dispose();
     _editorFocusNode.dispose();
@@ -754,10 +772,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   }
 
   bool _isSelectionInTable() {
-    final selection = _editorState.selection;
+    if (_editorState == null) return false;
+    final selection = _editorState!.selection;
     if (selection == null) return false;
 
-    Node? node = _editorState.getNodeAtPath(selection.start.path);
+    Node? node = _editorState!.getNodeAtPath(selection.start.path);
     while (node != null) {
       if (node.type == TableBlockKeys.type ||
           node.type == TableCellBlockKeys.type) {
@@ -778,17 +797,18 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   }
 
   bool _isAttributeToggled(String key) {
-    final selection = _editorState.selection;
+    if (_editorState == null) return false;
+    final selection = _editorState!.selection;
     if (selection == null) return false;
 
     if (selection.isCollapsed) {
-      final toggledValue = _editorState.toggledStyle[key];
+      final toggledValue = _editorState!.toggledStyle[key];
       if (toggledValue != null) return toggledValue == true;
 
-      return _editorState.getDeltaAttributesInSelectionStart()?[key] == true;
+      return _editorState!.getDeltaAttributesInSelectionStart()?[key] == true;
     }
 
-    final nodes = _editorState.getNodesInSelection(selection);
+    final nodes = _editorState!.getNodesInSelection(selection);
     return nodes.allSatisfyInSelection(selection, (delta) {
       return delta.everyAttributes((attributes) => attributes[key] == true);
     });
@@ -798,6 +818,14 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(textEditorProvider);
+
+    if (_isInitializing || _editorState == null) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: theme.colorScheme.primary,
+        ),
+      );
+    }
     final notifier = ref.read(textEditorProvider.notifier);
 
     // Sync title controller with state if not actively editing
@@ -987,7 +1015,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   children: [
                     AppFlowyEditor(
                       key: ValueKey(_editorState.hashCode),
-                      editorState: _editorState,
+                      editorState: _editorState!,
                       autoFocus: true,
                       focusNode: _editorFocusNode,
                       blockComponentBuilders: _buildBlockComponentBuilders(
@@ -1025,7 +1053,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
             ),
           ),
           TextEditorToolbar(
-            editorState: _editorState,
+            editorState: _editorState!,
             formattingNotifier: _formattingNotifier,
             onShowLinkMenu: _showLinkMenuAtSelection,
             exportToMarkdown: _exportToMarkdown,
@@ -1038,8 +1066,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   }
 
   void _showLinkMenuAtSelection() {
-    if (_editorState.selection != null) {
-      _selectionBeforeLinkMenu = _editorState.selection;
+    if (_editorState != null && _editorState!.selection != null) {
+      _selectionBeforeLinkMenu = _editorState!.selection;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1059,14 +1087,14 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   Widget _buildSelectionLinkMenuAnchor() {
     return ListenableBuilder(
       listenable: Listenable.merge([
-        _editorState.selectionNotifier,
+        _editorState!.selectionNotifier,
         _editorScrollController.offsetNotifier,
       ]),
       builder: (context, _) {
         // Use cached selection if menu is open to prevent "blinking" during focus transitions
         final selection = _linkMenuController.isOpen
-            ? (_selectionBeforeLinkMenu ?? _editorState.selection)
-            : _editorState.selection;
+            ? (_selectionBeforeLinkMenu ?? _editorState!.selection)
+            : _editorState!.selection;
 
         if (selection == null) return const SizedBox.shrink();
 
@@ -1122,7 +1150,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           timer?.cancel();
 
           if (tapCount == 2 ||
-              !_editorState.editable ||
+              !_editorState!.editable ||
               HardwareKeyboard.instance.isControlPressed ||
               HardwareKeyboard.instance.isMetaPressed) {
             tapCount = 0;
@@ -1137,7 +1165,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
               startOffset: index,
               endOffset: index + text.text.length,
             );
-            await _editorState.updateSelectionWithReason(
+            await _editorState!.updateSelectionWithReason(
               selection,
               reason: SelectionUpdateReason.uiEvent,
             );
@@ -1160,7 +1188,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
   }
 
   List<Rect> _getSelectionRects(Selection selection) {
-    final nodes = _editorState.getNodesInSelection(selection);
+    if (_editorState == null) return [];
+    final nodes = _editorState!.getNodesInSelection(selection);
     final rects = <Rect>[];
 
     if (selection.isCollapsed && nodes.length == 1) {
@@ -1212,6 +1241,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
   Widget _buildLinkMenu(BuildContext context) {
     final editorState = _editorState;
+    if (editorState == null) return const SizedBox.shrink();
     final selection = _selectionBeforeLinkMenu ?? editorState.selection;
 
     String? initialUrl;

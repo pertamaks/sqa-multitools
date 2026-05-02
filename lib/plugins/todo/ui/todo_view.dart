@@ -20,6 +20,8 @@ import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
+import '../../../ui/widgets/sqa_segmented_button.dart';
+import '../../../ui/widgets/sqa_date_picker.dart';
 
 class TodoView extends ConsumerStatefulWidget {
   const TodoView({super.key});
@@ -31,10 +33,14 @@ class TodoView extends ConsumerStatefulWidget {
 class _TodoViewState extends ConsumerState<TodoView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController(
+      text: ref.read(todoProvider).value?.searchQuery ?? '',
+    );
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -54,6 +60,7 @@ class _TodoViewState extends ConsumerState<TodoView>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -64,9 +71,9 @@ class _TodoViewState extends ConsumerState<TodoView>
     final showBack = history != null;
 
     return todoStateAsync.when(
-      data: (state) => _buildContent(context, state, showBack),
+      data: (TodoState state) => _buildContent(context, state, showBack),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => Center(child: Text('Error: $e')),
+      error: (Object e, StackTrace st) => Center(child: Text('Error: $e')),
     );
   }
 
@@ -95,6 +102,12 @@ class _TodoViewState extends ConsumerState<TodoView>
               onPressed: () => _showAddTodoDialog(context),
               type: SqaButtonType.primary,
             ),
+      searchController: _searchController,
+      onSearchChanged: (val) =>
+          ref.read(todoProvider.notifier).setSearchQuery(val),
+      searchHint: 'Filter tasks...',
+      filterOptions: _tabController.index == 2 ? _buildHistoryFilters(state) : null,
+      isFilterActive: state.historyFilter != HistoryFilter.last7Days,
       child: TabBarView(
         controller: _tabController,
         physics: const NeverScrollableScrollPhysics(),
@@ -111,26 +124,42 @@ class _TodoViewState extends ConsumerState<TodoView>
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final theme = Theme.of(context);
+    final query = (state.searchQuery).toLowerCase();
 
     // Today view: Tasks created today OR incomplete tasks from the past
     // BUT excluding deferred tasks
-    final todayTodos = state.todos.where((t) {
+    var todayTodos = state.todos.where((t) {
       final createdDate = DateTime(
         t.createdAt.year,
         t.createdAt.month,
         t.createdAt.day,
       );
       final isTerminal =
-          t.status == TodoStatus.done || t.status == TodoStatus.delegated;
+          t.status == TodoStatus.done ||
+          t.status == TodoStatus.delegated ||
+          t.status == TodoStatus.exception ||
+          t.status == TodoStatus.cancelled;
       final isActuallyToday =
           createdDate.isAtSameMomentAs(today) || !isTerminal;
       return isActuallyToday && t.status != TodoStatus.deferred;
     }).toList();
 
+    if (query.isNotEmpty) {
+      todayTodos = todayTodos
+          .where((t) =>
+              (t.title).toLowerCase().contains(query) ||
+              (t.notes).toLowerCase().contains(query) ||
+              (t.category).toLowerCase().contains(query))
+          .toList();
+    }
+
     final pending = todayTodos
         .where(
           (t) =>
-              t.status != TodoStatus.done && t.status != TodoStatus.delegated,
+              t.status != TodoStatus.done &&
+              t.status != TodoStatus.delegated &&
+              t.status != TodoStatus.exception &&
+              t.status != TodoStatus.cancelled,
         )
         .toList();
 
@@ -153,7 +182,10 @@ class _TodoViewState extends ConsumerState<TodoView>
     final completed = todayTodos
         .where(
           (t) =>
-              t.status == TodoStatus.done || t.status == TodoStatus.delegated,
+              t.status == TodoStatus.done ||
+              t.status == TodoStatus.delegated ||
+              t.status == TodoStatus.exception ||
+              t.status == TodoStatus.cancelled,
         )
         .toList();
 
@@ -398,24 +430,133 @@ class _TodoViewState extends ConsumerState<TodoView>
       }
     }
   }
-
   Widget _buildHistoryList(BuildContext context, TodoState state) {
+    final query = state.searchQuery.toLowerCase();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     // History view: Completed tasks before today
-    final historyTodos = state.todos.where((t) {
-      final createdDate = DateTime(
-        t.createdAt.year,
-        t.createdAt.month,
-        t.createdAt.day,
+    var historyTodos = state.todos.where((t) {
+      if (t.status != TodoStatus.done || t.completedAt == null) return false;
+      
+      final completedDate = DateTime(
+        t.completedAt!.year,
+        t.completedAt!.month,
+        t.completedAt!.day,
       );
-      return createdDate.isBefore(today) && t.status == TodoStatus.done;
+
+      // Apply History Filter
+      switch (state.historyFilter) {
+        case HistoryFilter.last7Days:
+          final cutoff = today.subtract(const Duration(days: 7));
+          if (!completedDate.isAfter(cutoff) && !completedDate.isAtSameMomentAs(cutoff)) return false;
+          break;
+        case HistoryFilter.thisMonth:
+          if (completedDate.year != today.year || completedDate.month != today.month) return false;
+          break;
+        case HistoryFilter.lastMonth:
+          final lastMonth = today.month == 1 ? 12 : today.month - 1;
+          final lastMonthYear = today.month == 1 ? today.year - 1 : today.year;
+          if (completedDate.year != lastMonthYear || completedDate.month != lastMonth) return false;
+          break;
+        case HistoryFilter.custom:
+          if (state.customDateRange == null) {
+            break;
+          }
+          if (!((completedDate.isAfter(state.customDateRange!.start) ||
+                  completedDate.isAtSameMomentAs(state.customDateRange!.start)) &&
+              (completedDate.isBefore(state.customDateRange!.end) ||
+                  completedDate.isAtSameMomentAs(state.customDateRange!.end)))) {
+            return false;
+          }
+          break;
+      }
+
+      return true;
     }).toList();
+
+    if (query.isNotEmpty) {
+      historyTodos = historyTodos
+          .where((t) =>
+              t.title.toLowerCase().contains(query) ||
+              t.notes.toLowerCase().contains(query) ||
+              t.category.toLowerCase().contains(query))
+          .toList();
+    }
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: TodoHistoryView(historyTodos: historyTodos),
+    );
+  }
+
+  Widget _buildHistoryFilters(TodoState state) {
+    return Row(
+      children: [
+        Expanded(
+          child: SqaSegmentedButton<HistoryFilter>(
+            stretches: true,
+            storageKey: 'todo_history_filter',
+            segments: const [
+              ButtonSegment(
+                value: HistoryFilter.last7Days,
+                label: Text('Last 7 Days'),
+              ),
+              ButtonSegment(
+                value: HistoryFilter.thisMonth,
+                label: Text('This Month'),
+              ),
+              ButtonSegment(
+                value: HistoryFilter.lastMonth,
+                label: Text('Last Month'),
+              ),
+              ButtonSegment(
+                value: HistoryFilter.custom,
+                label: Text('Custom'),
+              ),
+            ],
+            selected: {state.historyFilter},
+            onSelectionChanged: (set) async {
+              final filter = set.first;
+              if (filter == HistoryFilter.custom) {
+                final range = await SqaDatePicker.showRange(
+                  context,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                  initialDateRange: state.customDateRange,
+                );
+                if (range != null) {
+                  ref.read(todoProvider.notifier).setHistoryFilter(filter);
+                  ref.read(todoProvider.notifier).setCustomDateRange(range);
+                }
+              } else {
+                ref.read(todoProvider.notifier).setHistoryFilter(filter);
+              }
+            },
+          ),
+        ),
+        if (state.historyFilter == HistoryFilter.custom && state.customDateRange != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: IconButton(
+              icon: const Icon(Symbols.calendar_today, size: 20),
+              color: Theme.of(context).colorScheme.primary,
+              tooltip:
+                  '${DateFormat('MMM d, y').format(state.customDateRange!.start)} - ${DateFormat('MMM d, y').format(state.customDateRange!.end)}',
+              onPressed: () async {
+                final range = await SqaDatePicker.showRange(
+                  context,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                  initialDateRange: state.customDateRange,
+                );
+                if (range != null) {
+                  ref.read(todoProvider.notifier).setCustomDateRange(range);
+                }
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -428,7 +569,17 @@ class _TodoViewState extends ConsumerState<TodoView>
   }
 
   Widget _buildRecurringList(BuildContext context, TodoState state) {
-    final recurring = state.recurringTodos;
+    var recurring = state.recurringTodos;
+    final query = state.searchQuery.toLowerCase();
+
+    if (query.isNotEmpty) {
+      recurring = recurring
+          .where((t) =>
+              t.title.toLowerCase().contains(query) ||
+              t.notes.toLowerCase().contains(query) ||
+              t.category.toLowerCase().contains(query))
+          .toList();
+    }
 
     if (recurring.isEmpty) {
       return Center(

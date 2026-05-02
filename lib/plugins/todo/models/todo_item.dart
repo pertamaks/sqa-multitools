@@ -149,7 +149,15 @@ extension TodoPriorityX on TodoPriority {
   }
 }
 
-enum TodoStatus { todo, inProgress, done, deferred, delegated }
+enum TodoStatus {
+  todo,
+  inProgress,
+  done,
+  deferred,
+  delegated,
+  exception,
+  cancelled,
+}
 
 extension TodoStatusX on TodoStatus {
   String get displayName {
@@ -164,6 +172,10 @@ extension TodoStatusX on TodoStatus {
         return 'Deferred';
       case TodoStatus.delegated:
         return 'Delegated';
+      case TodoStatus.exception:
+        return 'Exception';
+      case TodoStatus.cancelled:
+        return 'Cancelled';
     }
   }
 }

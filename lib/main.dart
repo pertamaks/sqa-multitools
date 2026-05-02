@@ -162,8 +162,8 @@ class SqaMultitoolsApp extends ConsumerWidget {
             scrollbarTheme: ScrollbarThemeData(
               thumbVisibility: WidgetStateProperty.all(true),
               trackVisibility: WidgetStateProperty.all(false),
-              thickness: WidgetStateProperty.all(6.0),
-              radius: const Radius.circular(3.0),
+              thickness: WidgetStateProperty.all(4.0),
+              radius: const Radius.circular(2.0),
               thumbColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.hovered) ||
                     states.contains(WidgetState.dragged)) {
@@ -256,8 +256,8 @@ class SqaMultitoolsApp extends ConsumerWidget {
             scrollbarTheme: ScrollbarThemeData(
               thumbVisibility: WidgetStateProperty.all(true),
               trackVisibility: WidgetStateProperty.all(false),
-              thickness: WidgetStateProperty.all(6.0),
-              radius: const Radius.circular(3.0),
+              thickness: WidgetStateProperty.all(4.0),
+              radius: const Radius.circular(2.0),
               thumbColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.hovered) ||
                     states.contains(WidgetState.dragged)) {

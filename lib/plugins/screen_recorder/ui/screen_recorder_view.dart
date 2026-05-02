@@ -25,11 +25,21 @@ class ScreenRecorderView extends ConsumerStatefulWidget {
 }
 
 class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
+  late TextEditingController _searchController;
+
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController(
+      text: ref.read(screenRecorderProvider).searchQuery,
+    );
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
   void _handleStart(BuildContext context) async {
     final state = ref.read(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
@@ -92,6 +102,10 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
       icon: Symbols.videocam,
       title: 'Screen Recorder',
       description: 'Record your screen, camera, and audio inputs.',
+      searchController: _searchController,
+      onSearchChanged: (val) =>
+          ref.read(screenRecorderProvider.notifier).setSearchQuery(val),
+      searchHint: 'Filter recordings...',
       trailing: ffmpegStatus.isDownloading
           ? SizedBox(
               width: 16,
@@ -287,13 +301,24 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                 ),
               ),
               const SizedBox(height: 12),
-              SqaCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    ...state.recentRecordings.map((RecordingInfo info) {
-                      final isLast = state.recentRecordings.last == info;
-                      return Column(
+                SqaCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      ...state.recentRecordings.where((info) {
+                        if (state.searchQuery.isEmpty) return true;
+                        final query = state.searchQuery.toLowerCase();
+                        final filename = info.file.path.split('\\').last.toLowerCase();
+                        return filename.contains(query);
+                      }).map((RecordingInfo info) {
+                        final filteredList = state.recentRecordings.where((info) {
+                          if (state.searchQuery.isEmpty) return true;
+                          final query = state.searchQuery.toLowerCase();
+                          final filename = info.file.path.split('\\').last.toLowerCase();
+                          return filename.contains(query);
+                        }).toList();
+                        final isLast = filteredList.last == info;
+                        return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           RecordingTile(

@@ -1,99 +1,68 @@
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'preferences_service.dart';
+import 'license_service.dart';
 
-class CoffeeCodeValidator {
-  static const String salt = 'sqa-coffee';
-
-  static int? getTier(String code) {
-    final cleanCode = code.trim().toUpperCase();
-    final parts = cleanCode.split('-');
-
-    // Format: PREFIX-XXXX-XXXX-YY (4 parts)
-    if (parts.length != 4) return null;
-
-    final prefix = parts[0];
-    final hexPart1 = parts[1];
-    final hexPart2 = parts[2];
-    final checksum = parts[3];
-
-    if (hexPart1.length != 4 || hexPart2.length != 4 || checksum.length != 2) {
-      return null;
-    }
-
-    final int tier;
-    switch (prefix) {
-      case 'ESP':
-        tier = 1;
-        break;
-      case 'LAT':
-        tier = 2;
-        break;
-      case 'MOC':
-        tier = 3;
-        break;
-      default:
-        return null;
-    }
-
-    // Validation: sha256(prefix + hex1 + hex2 + salt).substring(0, 2) == checksum
-    final dataToHash = '$prefix$hexPart1$hexPart2$salt';
-    final hash = sha256
-        .convert(utf8.encode(dataToHash))
-        .toString()
-        .toUpperCase();
-    final expectedChecksum = hash.substring(0, 2);
-
-    if (checksum == expectedChecksum) {
-      return tier;
-    }
-
-    return null;
-  }
-}
+final licenseServiceProvider = Provider<LicenseService>((ref) {
+  return LicenseService(ref.watch(preferencesServiceProvider));
+});
 
 class CoffeeShopService {
   final PreferencesService _prefs;
+  final LicenseService _license;
 
-  CoffeeShopService(this._prefs);
+  CoffeeShopService(this._prefs, this._license);
 
   int get supporterTier => _prefs.getSupporterTier();
+  String? get supporterEmail => _prefs.rawPrefs.getString('supporter_email');
 
-  Future<int?> redeemCode(String code) async {
-    final tier = CoffeeCodeValidator.getTier(code);
-    if (tier != null) {
-      final currentTier = _prefs.getSupporterTier();
-      // Only upgrade, don't downgrade if they put an older code
-      if (tier > currentTier) {
-        await _prefs.setSupporterTier(tier);
-        await _prefs.setSupporterCode(code.trim().toUpperCase());
-      }
-      return tier;
-    }
-    return null;
+  Future<int?> redeemCode(String email, String code) async {
+    final tier = await _license.verifyWithServer(email, code);
+    return tier;
   }
 
   Future<void> resetSupporter() async {
     await _prefs.setSupporterTier(0);
     await _prefs.setSupporterCode('');
+    await _prefs.rawPrefs.remove('supporter_email');
+    await _prefs.rawPrefs.remove('supporter_signature');
+  }
+
+  /// Performs a cold-start validation of the stored license.
+  Future<int> validateLicense() async {
+    return await _license.verifyLocally();
   }
 }
 
 final coffeeShopServiceProvider = Provider<CoffeeShopService>((ref) {
-  return CoffeeShopService(ref.watch(preferencesServiceProvider));
+  return CoffeeShopService(
+    ref.watch(preferencesServiceProvider),
+    ref.watch(licenseServiceProvider),
+  );
 });
 
 class SupporterTierNotifier extends Notifier<int> {
   @override
   int build() {
-    return ref.watch(coffeeShopServiceProvider).supporterTier;
+    // Initial state is what's in prefs, but we'll validate it asynchronously
+    final service = ref.watch(coffeeShopServiceProvider);
+    
+    // Trigger background validation
+    _validateLicense();
+    
+    return service.supporterTier;
   }
 
-  Future<int?> redeem(String code) async {
-    final tier = await ref.read(coffeeShopServiceProvider).redeemCode(code);
+  Future<void> _validateLicense() async {
+    final validTier = await ref.read(coffeeShopServiceProvider).validateLicense();
+    if (state != validTier) {
+      state = validTier;
+    }
+  }
+
+  Future<int?> redeem(String email, String code) async {
+    final tier = await ref.read(coffeeShopServiceProvider).redeemCode(email, code);
     if (tier != null) {
-      state = ref.read(coffeeShopServiceProvider).supporterTier;
+      state = tier;
     }
     return tier;
   }

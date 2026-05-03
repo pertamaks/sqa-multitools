@@ -70,10 +70,13 @@ This is a core component within SQA-Multitools, with its primary interface hoste
 - Animation efficiency: Low overhead on the main toolbar.
 
 ### Safety & Security
-- Receipt anti-tamper: TBD (currently local validation only).
+- **Asymmetric Encryption:** Uses Ed25519 digital signatures to prevent local code generation.
+- **Cloudflare Worker:** Verification logic and master keys are stored server-side.
+- **Binding Logic:** Prevents code sharing by binding one code to a specific email.
 
 ### Reliability
-- Persistence: Supporter status 100% recovered on startup.
+- Persistence: Supporter status 100% recovered on startup via local signature validation.
+- Offline Mode: Once redeemed, no internet is required to maintain supporter status.
 
 ### Maintainability
 - Maintained within `coffee_shop_service.dart`.

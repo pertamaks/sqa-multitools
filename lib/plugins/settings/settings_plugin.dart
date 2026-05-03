@@ -23,6 +23,7 @@ import '../../ui/widgets/sqa_hotkey_field.dart';
 import '../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../ui/widgets/sqa_styles.dart';
 import '../../ui/widgets/sqa_fade_wrapper.dart';
+import '../../ui/widgets/sqa_modal.dart';
 import 'providers/settings_debug_provider.dart';
 import '../../core/providers/version_provider.dart';
 import '../../ui/widgets/sqa_update_modal.dart';
@@ -103,8 +104,6 @@ class CoffeeShopView extends ConsumerStatefulWidget {
 }
 
 class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
-  final _codeController = TextEditingController();
-  bool _isRedeeming = false;
 
   Future<void> _launchDonation() async {
     final url = Uri.parse('https://ko-fi.com/pertamaks');
@@ -137,7 +136,9 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
             _buildBugSquashToggle(colorScheme),
           ],
           const SizedBox(height: 32),
-          _buildRedemptionSection(colorScheme, supporterTier),
+          _buildRedemptionStatus(colorScheme, supporterTier),
+          const SizedBox(height: 32),
+          _buildResetDonationButton(colorScheme),
         ],
       ),
     );
@@ -406,85 +407,66 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
     );
   }
 
-  Widget _buildRedemptionSection(ColorScheme colorScheme, int tier) {
+  Widget _buildRedemptionStatus(ColorScheme colorScheme, int tier) {
+    final email = ref.watch(coffeeShopServiceProvider).supporterEmail;
+
     return SqaCard(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
         children: [
-          Text(
-            'Redeem Receipt Code',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Enter the code from your donation receipt to unlock surprises:',
-            style: TextStyle(fontSize: 12),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _codeController,
-                  decoration: InputDecoration(
-                    hintText: 'ESP-XXXX-XXXX-YY',
-                    border: OutlineInputBorder(
-                      borderRadius: SqaStyles.radiusLarge,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tier > 0 ? 'Active License' : 'Code Redemption',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                if (tier > 0 && email != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Bound to: ${_maskEmail(email)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              SqaButton(
-                label: 'Redeem',
-                onPressed: _isRedeeming ? null : _redeem,
-                isLoading: _isRedeeming,
-                width: 100,
-              ),
-            ],
+                ] else ...[
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Redeem your coffee receipt to unlock features.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          SqaButton(
+            label: tier > 0 ? 'Change' : 'Redeem',
+            onPressed: () => _showRedemptionModal(context),
+            width: 100,
           ),
         ],
       ),
     );
   }
 
-  Future<void> _redeem() async {
-    if (_codeController.text.isEmpty) return;
+  String _maskEmail(String email) {
+    final parts = email.split('@');
+    if (parts.length != 2) return email;
+    final name = parts[0];
+    if (name.length <= 2) return email;
+    return '${name.substring(0, 1)}***@${parts[1]}';
+  }
 
-    setState(() => _isRedeeming = true);
-
-    // Slight delay for feedback feel
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    final tier = await ref
-        .read(supporterTierProvider.notifier)
-        .redeem(_codeController.text);
-
-    if (mounted) {
-      setState(() => _isRedeeming = false);
-
-      if (tier != null) {
-        _codeController.clear();
-        SqaToast.show(
-          context,
-          'Thank you for your support! Secret surprises unlocked!',
-          type: SqaToastType.success,
-        );
-      } else {
-        SqaToast.show(
-          context,
-          'Invalid code. Please check your receipt.',
-          type: SqaToastType.error,
-        );
-      }
-    }
+  void _showRedemptionModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const SqaRedemptionModal(),
+    );
   }
 
   Widget _buildResetDonationButton(ColorScheme colorScheme) {
@@ -502,6 +484,145 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
       icon: Symbols.refresh,
       label: 'Reset Donation (Debug)',
       color: colorScheme.error,
+    );
+  }
+}
+
+class SqaRedemptionModal extends ConsumerStatefulWidget {
+  const SqaRedemptionModal({super.key});
+
+  @override
+  ConsumerState<SqaRedemptionModal> createState() => _SqaRedemptionModalState();
+}
+
+class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
+  final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRedeem() async {
+    final email = _emailController.text.trim();
+    final code = _codeController.text.trim();
+
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() => _error = 'Please enter a valid email.');
+      return;
+    }
+    if (code.isEmpty) {
+      setState(() => _error = 'Please enter your receipt code.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    final tier = await ref
+        .read(supporterTierProvider.notifier)
+        .redeem(email, code);
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (tier != null) {
+        Navigator.of(context).pop();
+        SqaToast.show(
+          context,
+          'License verified! Thank you for the coffee!',
+          type: SqaToastType.success,
+        );
+      } else {
+        setState(() => _error = 'Invalid code or email mismatch.');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SqaModal<void>.custom(
+      title: 'Redeem Coffee',
+      icon: Symbols.coffee,
+      confirmLabel: 'Verify',
+      cancelLabel: 'Cancel',
+      customActions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        const SizedBox(width: 8),
+        SqaButton(
+          label: 'Verify',
+          onPressed: _isLoading ? null : _handleRedeem,
+          isLoading: _isLoading,
+          width: 100,
+        ),
+      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Enter your details to activate your supporter tier. Your email is used to bind the license to you.',
+            style: TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 20),
+          label('Email Address'),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _emailController,
+            decoration: const InputDecoration(
+              hintText: 'your@email.com',
+              prefixIcon: Icon(Symbols.mail, size: 20),
+            ),
+            keyboardType: TextInputType.emailAddress,
+            enabled: !_isLoading,
+          ),
+          const SizedBox(height: 16),
+          label('Receipt Code'),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _codeController,
+            decoration: const InputDecoration(
+              hintText: 'ESP-XXXX-XXXX-YY',
+              prefixIcon: Icon(Symbols.confirmation_number, size: 20),
+            ),
+            textCapitalization: TextCapitalization.characters,
+            enabled: !_isLoading,
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget label(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.1,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }

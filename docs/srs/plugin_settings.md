@@ -22,7 +22,7 @@ This is a core standalone plugin for SQA-Multitools, utilizing the standard `Sqa
 - **Theme Selection:** User switches between Light/Dark/System.
 - **Accent Customization:** Standardized Material 3 seed colors.
 - **Plugin Management:** Toggling individual plugin visibility.
-- **General Menu**: Use `SqaPluginScrollableContent` to center the primary settings cards (Appearance, Locale).
+- **General Menu**: Use `SqaPluginScrollableContent` to center the primary settings cards (Appearance, Locale, System Information).
 - **Plugins List**: Uses `ListView` for efficient scrolling and top-alignment of the toggle list.
 - **Coffee Shop**: Use `SqaPluginScrollableContent` to center the donation and meta-game stats.
 - **Standard User:** QA Engineers and Developers using the tool.
@@ -52,6 +52,14 @@ This is a core standalone plugin for SQA-Multitools, utilizing the standard `Sqa
 - **Inputs:** User toggles the Bug Squash switch in the Coffee Shop tab.
 - **Processing:** Updates `bugSquashEnabledProvider` and persists setting.
 - **Outputs:** Easter egg animation is enabled/disabled immediately.
+
+### System & About Information
+- **Description:** Provide app metadata and update management.
+- **Features:** 
+    - Display current app version.
+    - Manual "Check for Updates" trigger.
+    - Direct link to the official landing page (Cloudflare Pages).
+- **Processing:** Orchestrates with `VersionProvider` and `UpdateService`.
 
 ## 4. External Interface Requirements
 ### User Interface (UI)

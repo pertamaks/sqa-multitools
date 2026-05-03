@@ -25,6 +25,8 @@ class PreferencesService {
   static const String keyUseDynamicColor = 'use_dynamic_color';
   static const String keySupporterTier = 'supporter_tier';
   static const String keySupporterCode = 'supporter_code';
+  static const String keySupporterEmail = 'supporter_email';
+  static const String keySupporterSignature = 'supporter_signature';
   static const String keyBugsSquashed = 'bugs_squashed';
   static const String keyBugSquashEnabled = 'bug_squash_enabled';
   static const String keyBeautifierAutoFormat = 'beautifier_auto_format';
@@ -98,6 +100,22 @@ class PreferencesService {
 
   Future<void> setSupporterCode(String code) async {
     await _prefs.setString(keySupporterCode, code);
+  }
+
+  String? getSupporterEmail() {
+    return _prefs.getString(keySupporterEmail);
+  }
+
+  Future<void> setSupporterEmail(String email) async {
+    await _prefs.setString(keySupporterEmail, email);
+  }
+
+  String? getSupporterSignature() {
+    return _prefs.getString(keySupporterSignature);
+  }
+
+  Future<void> setSupporterSignature(String signature) async {
+    await _prefs.setString(keySupporterSignature, signature);
   }
 
   int getBugsSquashed() {

@@ -6,19 +6,21 @@ class PayloadParser {
   static List<PayloadCategory> parse(String rawMarkdown) {
     final List<PayloadCategory> categories = [];
     final lines = rawMarkdown.split(RegExp(r'\r?\n'));
-    
+
     String? currentCategoryName;
     List<String> currentCategoryLines = [];
 
     void flushCategory() {
       if (currentCategoryName != null) {
         final content = currentCategoryLines.join('\n');
-        categories.add(PayloadCategory(
-          name: currentCategoryName,
-          description: _extractDescription(content),
-          icon: _getCategoryIcon(currentCategoryName),
-          sections: _parseSections(content),
-        ));
+        categories.add(
+          PayloadCategory(
+            name: currentCategoryName,
+            description: _extractDescription(content),
+            icon: _getCategoryIcon(currentCategoryName),
+            sections: _parseSections(content),
+          ),
+        );
       }
     }
 
@@ -56,7 +58,7 @@ class PayloadParser {
   static List<PayloadSection> _parseSections(String content) {
     final List<PayloadSection> sections = [];
     final lines = content.split('\n');
-    
+
     String? currentSectionTitle;
     List<String> currentSectionLines = [];
 
@@ -64,14 +66,19 @@ class PayloadParser {
       if (currentSectionTitle != null) {
         final sectionMarkdown = currentSectionLines.join('\n');
         final structured = _tryParseTable(sectionMarkdown);
-        
-        sections.add(PayloadSection(
-          id: currentSectionTitle.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_'),
-          title: currentSectionTitle,
-          icon: _getSectionIcon(currentSectionTitle),
-          markdown: '\n\n${sectionMarkdown.trimRight()}\n\n',
-          structuredPayloads: structured,
-        ));
+
+        sections.add(
+          PayloadSection(
+            id: currentSectionTitle.toLowerCase().replaceAll(
+              RegExp(r'[^a-z0-9]'),
+              '_',
+            ),
+            title: currentSectionTitle,
+            icon: _getSectionIcon(currentSectionTitle),
+            markdown: '\n\n${sectionMarkdown.trimRight()}\n\n',
+            structuredPayloads: structured,
+          ),
+        );
       }
     }
 
@@ -98,7 +105,7 @@ class PayloadParser {
   static List<SecurityPayload>? _tryParseTable(String markdown) {
     final lines = markdown.split('\n');
     final List<SecurityPayload> payloads = [];
-    
+
     bool tableHeaderFound = false;
     bool separatorFound = false;
 
@@ -111,31 +118,33 @@ class PayloadParser {
         continue;
       }
 
-      if (tableHeaderFound && !separatorFound && line.startsWith('|') && line.contains('---')) {
+      if (tableHeaderFound &&
+          !separatorFound &&
+          line.startsWith('|') &&
+          line.contains('---')) {
         separatorFound = true;
         continue;
       }
 
       if (tableHeaderFound && separatorFound && line.startsWith('|')) {
-
         // Remove the empty parts from split results if they are just the outer pipes
-        final filtered = line.split('|')
-            .map((e) => e.trim())
-            .toList();
-        
+        final filtered = line.split('|').map((e) => e.trim()).toList();
+
         // Remove first and last if they are empty (from the outer |)
         if (filtered.first.isEmpty) filtered.removeAt(0);
         if (filtered.last.isEmpty) filtered.removeLast();
 
         if (filtered.length >= 6) {
-          payloads.add(SecurityPayload(
-            name: filtered[0].replaceAll('**', ''),
-            payload: filtered[1].replaceAll('`', ''),
-            description: filtered[2],
-            howToTest: filtered[3],
-            successIndicator: filtered[4],
-            risk: PayloadRisk.fromString(filtered[5]),
-          ));
+          payloads.add(
+            SecurityPayload(
+              name: filtered[0].replaceAll('**', ''),
+              payload: filtered[1].replaceAll('`', ''),
+              description: filtered[2],
+              howToTest: filtered[3],
+              successIndicator: filtered[4],
+              risk: PayloadRisk.fromString(filtered[5]),
+            ),
+          );
         }
       }
     }
@@ -160,7 +169,9 @@ class PayloadParser {
     if (lower.contains('csrf')) return Symbols.security_update_warning;
     if (lower.contains('xxe')) return Symbols.article;
     if (lower.contains('command')) return Symbols.terminal;
-    if (lower.contains('path') || lower.contains('traversal')) return Symbols.folder_open;
+    if (lower.contains('path') || lower.contains('traversal')) {
+      return Symbols.folder_open;
+    }
     if (lower.contains('ssrf')) return Symbols.public;
     if (lower.contains('upload')) return Symbols.upload_file;
     if (lower.contains('jwt')) return Symbols.key;

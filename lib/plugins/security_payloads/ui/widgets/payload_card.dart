@@ -4,7 +4,6 @@ import '../../security_payload_models.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_field.dart';
 
-
 class PayloadCard extends StatefulWidget {
   final SecurityPayload payload;
 
@@ -106,8 +105,12 @@ class _PayloadCardState extends State<PayloadCard> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, IconData icon,
-      {bool isHighlight = false}) {
+  Widget _buildDetailRow(
+    String label,
+    String value,
+    IconData icon, {
+    bool isHighlight = false,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -117,8 +120,9 @@ class _PayloadCardState extends State<PayloadCard> {
         Icon(
           icon,
           size: 16,
-          color:
-              isHighlight ? colorScheme.primary : colorScheme.onSurfaceVariant,
+          color: isHighlight
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: 12),
         Expanded(

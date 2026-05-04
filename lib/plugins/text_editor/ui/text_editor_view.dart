@@ -39,7 +39,6 @@ import 'package:super_clipboard/super_clipboard.dart';
 import '../../../core/utils/clipboard_extensions.dart';
 import '../../../ui/widgets/sqa_markdown_viewer.dart';
 
-
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
 
@@ -86,8 +85,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     final doc = ref.read(textEditorProvider).activeDocument;
     final initialContent = doc?.content ?? '';
 
-    // We do the heavy parsing here. Even if it's on the main thread, 
-    // being inside an async method and after the first frame 
+    // We do the heavy parsing here. Even if it's on the main thread,
+    // being inside an async method and after the first frame
     // helps avoid blocking the initial transition animation.
     final Document document;
 
@@ -821,9 +820,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
     if (_isInitializing || _editorState == null) {
       return Center(
-        child: CircularProgressIndicator(
-          color: theme.colorScheme.primary,
-        ),
+        child: CircularProgressIndicator(color: theme.colorScheme.primary),
       );
     }
     final notifier = ref.read(textEditorProvider.notifier);

@@ -41,6 +41,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     _searchController.dispose();
     super.dispose();
   }
+
   void _handleStart(BuildContext context) async {
     final state = ref.read(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
@@ -53,7 +54,8 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
         context: context,
         builder: (ctx) => SqaModal<bool>.confirm(
           title: 'Engine Required',
-          message: 'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.\n\nDo you want to download and install it now?',
+          message:
+              'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.\n\nDo you want to download and install it now?',
           confirmLabel: 'Download',
           cancelLabel: 'Cancel',
           icon: Symbols.download,
@@ -296,41 +298,53 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                 ),
               ),
               const SizedBox(height: 12),
-                SqaCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      ...state.recentRecordings.where((info) {
-                        if (state.searchQuery.isEmpty) return true;
-                        final query = state.searchQuery.toLowerCase();
-                        final filename = info.file.path.split('\\').last.toLowerCase();
-                        return filename.contains(query);
-                      }).map((RecordingInfo info) {
-                        final filteredList = state.recentRecordings.where((info) {
+              SqaCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    ...state.recentRecordings
+                        .where((info) {
                           if (state.searchQuery.isEmpty) return true;
                           final query = state.searchQuery.toLowerCase();
-                          final filename = info.file.path.split('\\').last.toLowerCase();
+                          final filename = info.file.path
+                              .split('\\')
+                              .last
+                              .toLowerCase();
                           return filename.contains(query);
-                        }).toList();
-                        final isLast = filteredList.last == info;
-                        return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          RecordingTile(
-                            info: info,
-                            onDelete: () => notifier.deleteRecording(info),
-                            onRename: (newName) =>
-                                notifier.renameRecording(info, newName),
-                            onValidate: (name) =>
-                                notifier.validateNewName(name, info),
-                            onOpen: () =>
-                                Process.start('explorer.exe', [info.file.path]),
-                            onOpenFolder: () => notifier.openSaveDirectory(),
-                          ),
-                          if (!isLast) const Divider(height: 1, indent: 56),
-                        ],
-                      );
-                    }),
+                        })
+                        .map((RecordingInfo info) {
+                          final filteredList = state.recentRecordings.where((
+                            info,
+                          ) {
+                            if (state.searchQuery.isEmpty) return true;
+                            final query = state.searchQuery.toLowerCase();
+                            final filename = info.file.path
+                                .split('\\')
+                                .last
+                                .toLowerCase();
+                            return filename.contains(query);
+                          }).toList();
+                          final isLast = filteredList.last == info;
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RecordingTile(
+                                info: info,
+                                onDelete: () => notifier.deleteRecording(info),
+                                onRename: (newName) =>
+                                    notifier.renameRecording(info, newName),
+                                onValidate: (name) =>
+                                    notifier.validateNewName(name, info),
+                                onOpen: () => Process.start('explorer.exe', [
+                                  info.file.path,
+                                ]),
+                                onOpenFolder: () =>
+                                    notifier.openSaveDirectory(),
+                              ),
+                              if (!isLast) const Divider(height: 1, indent: 56),
+                            ],
+                          );
+                        }),
                   ],
                 ),
               ),

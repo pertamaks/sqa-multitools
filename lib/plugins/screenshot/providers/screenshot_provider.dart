@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
 import 'package:flutter/rendering.dart';
@@ -29,6 +30,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   ScreenshotState build() {
     // Initial data refresh
     Future.microtask(() {
+      if (!ref.mounted) return;
       _loadPreferences();
       refreshRecentCaptures();
       // Register global hotkey callback
@@ -52,29 +54,34 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> refreshRecentCaptures() async {
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Screenshots');
+    if (!ref.mounted) return;
+    final documentsDir = await getApplicationDocumentsDirectory();
+    if (!ref.mounted) return;
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
 
     if (!await saveDir.exists()) {
+      if (!ref.mounted) return;
       state = state.copyWith(recentCaptures: []);
       return;
     }
 
     try {
-      final fileList = await saveDir
-          .list()
+      final entities = await saveDir.list().toList();
+      if (!ref.mounted) return;
+
+      final fileList = entities
+          .whereType<File>()
           .where(
-            (entity) =>
-                entity is File &&
-                [
-                  '.png',
-                  '.jpg',
-                  '.webp',
-                ].any((ext) => entity.path.toLowerCase().endsWith(ext)),
+            (file) => [
+              '.png',
+              '.jpg',
+              '.webp',
+            ].any((ext) => file.path.toLowerCase().endsWith(ext)),
           )
-          .cast<File>()
           .toList();
+
+      if (!ref.mounted) return;
 
       final infoList = await Future.wait(
         fileList.map((file) async {
@@ -91,6 +98,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         }),
       );
 
+      if (!ref.mounted) return;
+
       final validInfo = infoList.whereType<CaptureInfo>().toList();
       validInfo.sort((a, b) => b.modified.compareTo(a.modified));
 
@@ -100,7 +109,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
             : validInfo,
       );
     } catch (e) {
-      debugPrint('[Screenshot] Failed to refresh captures: $e');
+      if (ref.mounted) {
+        debugPrint('[Screenshot] Failed to refresh captures: $e');
+      }
     }
   }
 
@@ -161,7 +172,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final coordinator = ref.read(windowTransitionProvider);
     // 0. Ensure window is active and visible (even if from tray)
     await WindowUtils.safeShow();
- 
+
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
@@ -554,8 +565,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     return null;
   }
-
-
 
   // Window Targeting
   void setTargetingWindow(bool value) {

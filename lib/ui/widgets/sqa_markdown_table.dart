@@ -46,10 +46,16 @@ class SqaMarkdownTable extends StatelessWidget {
                     color: colorScheme.onSurface.withValues(alpha: 0.05),
                   ),
                   children: [
-                    ...headers!.map((h) => _buildCell(context, h, isHeader: true)),
+                    ...headers!.map(
+                      (h) => _buildCell(context, h, isHeader: true),
+                    ),
                     ...List.generate(
                       (maxColumns - headers!.length).clamp(0, 100),
-                      (_) => _buildCell(context, const SizedBox.shrink(), isHeader: true),
+                      (_) => _buildCell(
+                        context,
+                        const SizedBox.shrink(),
+                        isHeader: true,
+                      ),
                     ),
                   ],
                 ),
@@ -58,7 +64,9 @@ class SqaMarkdownTable extends StatelessWidget {
                 final rowData = entry.value;
                 final bool isEven = index.isEven;
 
-                final rowCells = rowData.map((cell) => _buildCell(context, cell)).toList();
+                final rowCells = rowData
+                    .map((cell) => _buildCell(context, cell))
+                    .toList();
 
                 while (rowCells.length < maxColumns) {
                   rowCells.add(_buildCell(context, const SizedBox.shrink()));
@@ -80,7 +88,11 @@ class SqaMarkdownTable extends StatelessWidget {
     );
   }
 
-  Widget _buildCell(BuildContext context, Widget child, {bool isHeader = false}) {
+  Widget _buildCell(
+    BuildContext context,
+    Widget child, {
+    bool isHeader = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: child,

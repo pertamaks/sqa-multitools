@@ -45,22 +45,26 @@ class SupporterTierNotifier extends Notifier<int> {
   int build() {
     // Initial state is what's in prefs, but we'll validate it asynchronously
     final service = ref.watch(coffeeShopServiceProvider);
-    
+
     // Trigger background validation
     _validateLicense();
-    
+
     return service.supporterTier;
   }
 
   Future<void> _validateLicense() async {
-    final validTier = await ref.read(coffeeShopServiceProvider).validateLicense();
+    final validTier = await ref
+        .read(coffeeShopServiceProvider)
+        .validateLicense();
     if (state != validTier) {
       state = validTier;
     }
   }
 
   Future<int?> redeem(String email, String code) async {
-    final tier = await ref.read(coffeeShopServiceProvider).redeemCode(email, code);
+    final tier = await ref
+        .read(coffeeShopServiceProvider)
+        .redeemCode(email, code);
     if (tier != null) {
       state = tier;
     }

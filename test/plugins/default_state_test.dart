@@ -14,6 +14,8 @@ void main() {
 
   setUp(() {
     mockPrefs = MockSharedPreferences();
+    // Generic mock for any other getStringList (like plugin_order)
+    when(mockPrefs.getStringList(any)).thenReturn(null);
     // Return null for enabled_plugins to trigger default state logic
     when(
       mockPrefs.getStringList(PreferencesService.keyEnabledPlugins),

@@ -38,7 +38,8 @@ void main() {
       );
 
       await tester.tap(find.text('Open'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Select Display'), findsOneWidget);
       expect(find.text('Display 1'), findsOneWidget);
@@ -64,7 +65,8 @@ void main() {
       );
 
       await tester.tap(find.text('Open'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Select Window'), findsOneWidget);
       expect(find.text('Notepad'), findsOneWidget);

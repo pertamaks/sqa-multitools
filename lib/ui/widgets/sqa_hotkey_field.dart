@@ -172,7 +172,9 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                         fontWeight: FontWeight.w600,
                         color: _isRecording
                             ? colorScheme.primary
-                            : (widget.value == null ? colorScheme.error.withValues(alpha: 0.7) : colorScheme.onSurface),
+                            : (widget.value == null
+                                  ? colorScheme.error.withValues(alpha: 0.7)
+                                  : colorScheme.onSurface),
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,

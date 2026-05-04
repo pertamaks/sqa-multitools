@@ -9,9 +9,17 @@ enum PayloadRisk {
 
   static PayloadRisk fromString(String risk) {
     final lower = risk.toLowerCase();
-    if (lower.contains('critical') || lower.contains('💀') || lower.contains('🟣')) return PayloadRisk.critical;
+    if (lower.contains('critical') ||
+        lower.contains('💀') ||
+        lower.contains('🟣')) {
+      return PayloadRisk.critical;
+    }
     if (lower.contains('high') || lower.contains('🔴')) return PayloadRisk.high;
-    if (lower.contains('medium') || lower.contains('🟠') || lower.contains('🟡')) return PayloadRisk.medium;
+    if (lower.contains('medium') ||
+        lower.contains('🟠') ||
+        lower.contains('🟡')) {
+      return PayloadRisk.medium;
+    }
     if (lower.contains('low') || lower.contains('🟢')) return PayloadRisk.low;
     return PayloadRisk.info;
   }

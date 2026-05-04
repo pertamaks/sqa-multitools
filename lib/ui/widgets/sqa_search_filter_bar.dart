@@ -28,6 +28,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
     if (widget.controller != null) return widget.controller!;
     return _internalController ??= TextEditingController();
   }
+
   bool _isFocused = false;
   bool _isHovered = false;
   bool _isFilterMode = false;

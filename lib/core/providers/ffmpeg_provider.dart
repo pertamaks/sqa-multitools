@@ -41,6 +41,7 @@ class Ffmpeg extends _$Ffmpeg {
 
   Future<void> _checkStatus() async {
     final available = await FfmpegEngine.isEngineAvailable();
+    if (!ref.mounted) return;
     state = state.copyWith(isReady: available);
   }
 
@@ -55,15 +56,18 @@ class Ffmpeg extends _$Ffmpeg {
 
     try {
       await FfmpegEngine.downloadEngine((progress) {
+        if (!ref.mounted) return;
         state = state.copyWith(downloadProgress: progress);
       });
-      
+
+      if (!ref.mounted) return;
       state = state.copyWith(
         isReady: true,
         isDownloading: false,
         downloadProgress: null,
       );
     } catch (e) {
+      if (!ref.mounted) return;
       state = state.copyWith(
         isDownloading: false,
         downloadProgress: null,

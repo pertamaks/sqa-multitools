@@ -25,8 +25,6 @@ class SqaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     final effectiveRadius = borderRadius ?? SqaStyles.radiusLarge;
     final card = Container(
       margin: margin,
@@ -35,10 +33,7 @@ class SqaCard extends StatelessWidget {
         borderRadius: effectiveRadius,
         boxShadow: boxShadow,
         border: Border.fromBorderSide(
-          borderSide ??
-              BorderSide(
-                color: Colors.transparent,
-              ),
+          borderSide ?? BorderSide(color: Colors.transparent),
         ),
       ),
       child: ClipRRect(

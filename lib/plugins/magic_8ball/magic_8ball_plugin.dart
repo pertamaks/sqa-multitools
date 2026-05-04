@@ -39,8 +39,9 @@ class QaOraclePlugin implements SqaPlugin {
   @override
   Future<void> initialize() async {
     // Warm up the 8-ball image asset to ensure the first "shake" animation is smooth
-    final ImageStream stream =
-        const AssetImage('assets/8ball.png').resolve(ImageConfiguration.empty);
+    final ImageStream stream = const AssetImage(
+      'assets/8ball.png',
+    ).resolve(ImageConfiguration.empty);
     final completer = Completer<void>();
     ImageStreamListener? listener;
     listener = ImageStreamListener(
@@ -56,6 +57,7 @@ class QaOraclePlugin implements SqaPlugin {
     stream.addListener(listener);
     return completer.future;
   }
+
   @override
   Future<void> dispose() async {}
 }

@@ -267,7 +267,7 @@ class WindowUtils {
       calloc.free(lpdwProcessId);
     }
   }
- 
+
   /// Hides the window from the user while keeping it "alive" for global hotkeys.
   /// Uses opacity and skipTaskbar instead of windowManager.hide() which can pause the Flutter engine.
   static Future<void> safeHide() async {
@@ -276,7 +276,7 @@ class WindowUtils {
     await wm.setSkipTaskbar(true);
     await wm.setIgnoreMouseEvents(true);
   }
- 
+
   /// Restores the window from its "safe hide" state.
   static Future<void> safeShow() async {
     final wm = window_manager.windowManager;

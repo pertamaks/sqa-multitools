@@ -13,5 +13,6 @@ abstract class UpdateInfo with _$UpdateInfo {
     DateTime? releaseDate,
   }) = _UpdateInfo;
 
-  factory UpdateInfo.fromJson(Map<String, dynamic> json) => _$UpdateInfoFromJson(json);
+  factory UpdateInfo.fromJson(Map<String, dynamic> json) =>
+      _$UpdateInfoFromJson(json);
 }

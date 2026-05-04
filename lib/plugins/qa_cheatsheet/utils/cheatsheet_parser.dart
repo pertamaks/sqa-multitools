@@ -6,19 +6,21 @@ class CheatsheetParser {
   static List<CheatsheetCategory> parse(String rawMarkdown) {
     final List<CheatsheetCategory> categories = [];
     final lines = rawMarkdown.split(RegExp(r'\r?\n'));
-    
+
     String? currentCategoryName;
     List<String> currentCategoryLines = [];
 
     void flushCategory() {
       if (currentCategoryName != null) {
         final content = currentCategoryLines.join('\n');
-        categories.add(CheatsheetCategory(
-          name: currentCategoryName,
-          description: _extractDescription(content),
-          icon: _getCategoryIcon(currentCategoryName),
-          sections: _parseSections(content),
-        ));
+        categories.add(
+          CheatsheetCategory(
+            name: currentCategoryName,
+            description: _extractDescription(content),
+            icon: _getCategoryIcon(currentCategoryName),
+            sections: _parseSections(content),
+          ),
+        );
       }
     }
 
@@ -56,18 +58,23 @@ class CheatsheetParser {
   static List<CheatsheetSection> _parseSections(String content) {
     final List<CheatsheetSection> sections = [];
     final lines = content.split('\n');
-    
+
     String? currentSectionTitle;
     List<String> currentSectionLines = [];
 
     void flushSection() {
       if (currentSectionTitle != null) {
-        sections.add(CheatsheetSection(
-          id: currentSectionTitle.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_'),
-          title: currentSectionTitle,
-          icon: _getSectionIcon(currentSectionTitle),
-          markdown: '\n\n${currentSectionLines.join('\n').trimRight()}\n\n',
-        ));
+        sections.add(
+          CheatsheetSection(
+            id: currentSectionTitle.toLowerCase().replaceAll(
+              RegExp(r'[^a-z0-9]'),
+              '_',
+            ),
+            title: currentSectionTitle,
+            icon: _getSectionIcon(currentSectionTitle),
+            markdown: '\n\n${currentSectionLines.join('\n').trimRight()}\n\n',
+          ),
+        );
       }
     }
 

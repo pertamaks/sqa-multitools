@@ -18,7 +18,6 @@ class TodoHistoryView extends ConsumerStatefulWidget {
 }
 
 class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -74,122 +73,104 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: sortedDates.length,
               itemBuilder: (context, index) {
-                      final date = sortedDates[index];
-                      final items = grouped[date]!;
+                final date = sortedDates[index];
+                final items = grouped[date]!;
 
-                      int lateCount = 0;
-                      for (final item in items) {
-                        if (item.completedAt != null) {
-                          final duration = item.durationPreset.minutes;
-                          final endTime = item.createdAt.add(
-                            Duration(minutes: duration),
-                          );
-                          if (!item.completedAt!
-                              .difference(endTime)
-                              .isNegative) {
-                            lateCount++;
-                          }
-                        }
-                      }
+                int lateCount = 0;
+                for (final item in items) {
+                  if (item.completedAt != null) {
+                    final duration = item.durationPreset.minutes;
+                    final endTime = item.createdAt.add(
+                      Duration(minutes: duration),
+                    );
+                    if (!item.completedAt!.difference(endTime).isNegative) {
+                      lateCount++;
+                    }
+                  }
+                }
 
-                      // Collapse all by default
-                      final initiallyExpanded = false;
+                // Collapse all by default
+                final initiallyExpanded = false;
 
-                      return SqaCard(
-                        margin: const EdgeInsets.only(bottom: 12.0),
-                        padding: EdgeInsets.zero,
-                        child: Theme(
-                          data: theme.copyWith(
-                            dividerColor: Colors.transparent,
+                return SqaCard(
+                  margin: const EdgeInsets.only(bottom: 12.0),
+                  padding: EdgeInsets.zero,
+                  child: Theme(
+                    data: theme.copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      initiallyExpanded: initiallyExpanded,
+                      tilePadding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 4.0,
+                      ),
+                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: SqaStyles.radiusLarge,
+                        side: BorderSide.none,
+                      ),
+                      collapsedShape: RoundedRectangleBorder(
+                        borderRadius: SqaStyles.radiusLarge,
+                        side: BorderSide.none,
+                      ),
+                      title: Row(
+                        children: [
+                          Icon(
+                            Symbols.calendar_today,
+                            size: 18,
+                            color: colorScheme.primary,
                           ),
-                          child: ExpansionTile(
-                            initiallyExpanded: initiallyExpanded,
-                            tilePadding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 4.0,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              date.isAtSameMomentAs(today)
+                                  ? 'Today'
+                                  : date.isAtSameMomentAs(
+                                      today.subtract(const Duration(days: 1)),
+                                    )
+                                  ? 'Yesterday'
+                                  : DateFormat('EEEE, MMM d, y').format(date),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            childrenPadding: const EdgeInsets.fromLTRB(
-                              16,
-                              0,
-                              16,
-                              16,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: SqaStyles.radiusLarge,
-                              side: BorderSide.none,
-                            ),
-                            collapsedShape: RoundedRectangleBorder(
-                              borderRadius: SqaStyles.radiusLarge,
-                              side: BorderSide.none,
-                            ),
-                            title: Row(
-                              children: [
-                                Icon(
-                                  Symbols.calendar_today,
-                                  size: 18,
-                                  color: colorScheme.primary,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    date.isAtSameMomentAs(today)
-                                        ? 'Today'
-                                        : date.isAtSameMomentAs(
-                                            today.subtract(
-                                              const Duration(days: 1),
-                                            ),
-                                          )
-                                        ? 'Yesterday'
-                                        : DateFormat(
-                                            'EEEE, MMM d, y',
-                                          ).format(date),
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primaryContainer,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      lateCount > 0
-                                          ? '${items.length} ${items.length == 1 ? 'task' : 'tasks'} · $lateCount late'
-                                          : '${items.length} ${items.length == 1 ? 'task' : 'tasks'}',
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color:
-                                                colorScheme.onPrimaryContainer,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            children: items.map((item) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: TodoListItem(
-                                  item: item,
-                                  isReadOnly: true,
-                                ),
-                              );
-                            }).toList(),
                           ),
-                        ),
-                      );
-                    },
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                lateCount > 0
+                                    ? '${items.length} ${items.length == 1 ? 'task' : 'tasks'} · $lateCount late'
+                                    : '${items.length} ${items.length == 1 ? 'task' : 'tasks'}',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      children: items.map((item) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: TodoListItem(item: item, isReadOnly: true),
+                        );
+                      }).toList(),
+                    ),
                   ),
+                );
+              },
+            ),
     );
   }
 }

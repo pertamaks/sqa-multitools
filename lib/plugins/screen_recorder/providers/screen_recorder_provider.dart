@@ -49,10 +49,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // Trigger side-effects after the provider is initialized
     Future.microtask(() {
+      if (!ref.mounted) return;
       refreshRecentRecordings();
       // Register global hotkey callbacks
       final hotkeyNotifier = ref.read(hotkeySettingsProvider.notifier);
-      
+
       hotkeyNotifier.setAreaRecordCallback(() {
         startQuickAreaRecord();
       });
@@ -187,7 +188,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 0. Ensure window is active and visible (even if from tray)
     await WindowUtils.safeShow();
- 
+
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
@@ -224,8 +225,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       targetSize: overlayRect.size,
       targetOffset: overlayRect.topLeft,
     );
-
-
 
     // 6. Finally reveal and focus
     await windowManager.setOpacity(1.0);
@@ -396,8 +395,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   Future<void> refreshRecentRecordings() async {
     if (!ref.mounted) return;
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
+    final documentsDir = await getApplicationDocumentsDirectory();
+    if (!ref.mounted) return;
+    final dir = state.saveDirectory ?? documentsDir.path;
     if (!ref.mounted) return;
     final saveDir = Directory('$dir\\SQA_Recordings');
     if (!await saveDir.exists()) {
@@ -521,8 +521,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 2. Perform background cleanup while invisible
     // (WE DEFER setIgnoreMouseEvents(false) to the very end)
-
-
 
     // 4. Physically restore window bounds BEFORE switching UI state
     await _restoreWindowInternal();
@@ -747,14 +745,14 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       // Intentionally ignore for now, UI handles error.
     });
   }
- 
+
   /// Triggers a quick area recording session from a global hotkey.
   Future<void> startQuickAreaRecord() async {
     if (state.isRecording) {
       await _stopRecording();
       return;
     }
- 
+
     setCaptureMode(CaptureMode.area);
     await startOverlay();
   }

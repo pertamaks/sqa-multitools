@@ -48,19 +48,27 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
         dataAsync.when(
           data: (List<PayloadCategory> allCategories) {
             final searchQuery = state.searchQuery.toLowerCase();
-            
+
             // 1. Filter categories that have matching sections
             final categories = allCategories.where((cat) {
               if (searchQuery.isEmpty) return true;
               return cat.name.toLowerCase().contains(searchQuery) ||
-                     cat.sections.any((s) => 
-                        s.title.toLowerCase().contains(searchQuery) || 
+                  cat.sections.any(
+                    (s) =>
+                        s.title.toLowerCase().contains(searchQuery) ||
                         s.markdown.toLowerCase().contains(searchQuery) ||
-                        (s.structuredPayloads?.any((p) => 
-                           p.name.toLowerCase().contains(searchQuery) || 
-                           p.payload.toLowerCase().contains(searchQuery) || 
-                           p.description.toLowerCase().contains(searchQuery)) ?? false)
-                     );
+                        (s.structuredPayloads?.any(
+                              (p) =>
+                                  p.name.toLowerCase().contains(searchQuery) ||
+                                  p.payload.toLowerCase().contains(
+                                    searchQuery,
+                                  ) ||
+                                  p.description.toLowerCase().contains(
+                                    searchQuery,
+                                  ),
+                            ) ??
+                            false),
+                  );
             }).toList();
 
             if (categories.isEmpty) {
@@ -68,12 +76,11 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                 icon: Symbols.security,
                 title: 'Security Payloads',
                 searchController: _searchController,
-                onSearchChanged: (val) =>
-                    ref.read(securityPayloadsProvider.notifier).setSearchQuery(val),
+                onSearchChanged: (val) => ref
+                    .read(securityPayloadsProvider.notifier)
+                    .setSearchQuery(val),
                 searchHint: 'Filter payloads...',
-                child: const Center(
-                  child: Text('No matching payloads found.'),
-                ),
+                child: const Center(child: Text('No matching payloads found.')),
               );
             }
 
@@ -83,16 +90,19 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
               description:
                   'Educational lab for fuzzing and vulnerability testing.',
               searchController: _searchController,
-              onSearchChanged: (val) =>
-                  ref.read(securityPayloadsProvider.notifier).setSearchQuery(val),
+              onSearchChanged: (val) => ref
+                  .read(securityPayloadsProvider.notifier)
+                  .setSearchQuery(val),
               searchHint: 'Filter payloads...',
               isTabScrollable: true,
               tabs: categories
-                  .map((c) => Tab(
-                        text: c.name,
-                        icon: Icon(c.icon, size: 18),
-                        iconMargin: const EdgeInsets.only(bottom: 4),
-                      ))
+                  .map(
+                    (c) => Tab(
+                      text: c.name,
+                      icon: Icon(c.icon, size: 18),
+                      iconMargin: const EdgeInsets.only(bottom: 4),
+                    ),
+                  )
                   .toList(),
               child: TabBarView(
                 physics: const NeverScrollableScrollPhysics(),
@@ -116,26 +126,36 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
     );
   }
 
-  Widget _buildCategoryView(PayloadCategory category, SecurityPayloadsState state) {
+  Widget _buildCategoryView(
+    PayloadCategory category,
+    SecurityPayloadsState state,
+  ) {
     final searchQuery = state.searchQuery.toLowerCase();
-    
+
     // 2. Filter sections within this category
     final filteredSections = category.sections.where((s) {
       if (searchQuery.isEmpty) return true;
-      return s.title.toLowerCase().contains(searchQuery) || 
-             s.markdown.toLowerCase().contains(searchQuery) ||
-             (s.structuredPayloads?.any((p) => 
-                p.name.toLowerCase().contains(searchQuery) || 
-                p.payload.toLowerCase().contains(searchQuery) || 
-                p.description.toLowerCase().contains(searchQuery)) ?? false);
+      return s.title.toLowerCase().contains(searchQuery) ||
+          s.markdown.toLowerCase().contains(searchQuery) ||
+          (s.structuredPayloads?.any(
+                (p) =>
+                    p.name.toLowerCase().contains(searchQuery) ||
+                    p.payload.toLowerCase().contains(searchQuery) ||
+                    p.description.toLowerCase().contains(searchQuery),
+              ) ??
+              false);
     }).toList();
 
     if (filteredSections.isEmpty) {
-      return const Center(child: Text('No matching sections in this category.'));
+      return const Center(
+        child: Text('No matching sections in this category.'),
+      );
     }
 
-    if (!_selectedSectionIds.containsKey(category.name) || 
-        !filteredSections.any((s) => s.id == _selectedSectionIds[category.name])) {
+    if (!_selectedSectionIds.containsKey(category.name) ||
+        !filteredSections.any(
+          (s) => s.id == _selectedSectionIds[category.name],
+        )) {
       _selectedSectionIds[category.name] = filteredSections.first.id;
     }
 
@@ -145,7 +165,8 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
       orElse: () => filteredSections.first,
     );
 
-    final hasStructuredData = selectedSection.structuredPayloads != null &&
+    final hasStructuredData =
+        selectedSection.structuredPayloads != null &&
         selectedSection.structuredPayloads!.isNotEmpty;
 
     return Column(
@@ -157,8 +178,11 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
               segments: filteredSections.map((s) {
                 return ButtonSegment<String>(
                   value: s.id,
-                  label: Text(s.title,
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  label: Text(
+                    s.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   icon: Icon(s.icon, size: 16),
                 );
               }).toList(),
@@ -176,24 +200,26 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                 ? ListView.builder(
                     key: ValueKey(selectedSection.id),
                     padding: const EdgeInsets.all(24.0),
-                    itemCount: (selectedSection.structuredPayloads ?? []).where((p) {
-                      if (state.searchQuery.isEmpty) return true;
-                      final query = state.searchQuery.toLowerCase();
-                      return p.name.toLowerCase().contains(query) ||
-                          p.payload.toLowerCase().contains(query) ||
-                          p.description.toLowerCase().contains(query);
-                    }).length,
-                    itemBuilder: (context, index) {
-                      final filtered = selectedSection.structuredPayloads!.where((p) {
+                    itemCount: (selectedSection.structuredPayloads ?? []).where(
+                      (p) {
                         if (state.searchQuery.isEmpty) return true;
                         final query = state.searchQuery.toLowerCase();
                         return p.name.toLowerCase().contains(query) ||
                             p.payload.toLowerCase().contains(query) ||
                             p.description.toLowerCase().contains(query);
-                      }).toList();
-                      return PayloadCard(
-                        payload: filtered[index],
-                      );
+                      },
+                    ).length,
+                    itemBuilder: (context, index) {
+                      final filtered = selectedSection.structuredPayloads!
+                          .where((p) {
+                            if (state.searchQuery.isEmpty) return true;
+                            final query = state.searchQuery.toLowerCase();
+                            return p.name.toLowerCase().contains(query) ||
+                                p.payload.toLowerCase().contains(query) ||
+                                p.description.toLowerCase().contains(query);
+                          })
+                          .toList();
+                      return PayloadCard(payload: filtered[index]);
                     },
                   )
                 : SqaMarkdownViewer(

@@ -25,9 +25,12 @@ Markdown content for SQL.
       final categories = CheatsheetParser.parse(rawMarkdown);
 
       expect(categories.length, 2);
-      
+
       expect(categories[0].name, 'Fundamentals');
-      expect(categories[0].description, 'This is the description for fundamentals.');
+      expect(
+        categories[0].description,
+        'This is the description for fundamentals.',
+      );
       expect(categories[0].icon, Symbols.school);
       expect(categories[0].sections.length, 2);
       expect(categories[0].sections[0].title, 'Test Types');
@@ -55,13 +58,24 @@ Description.
 
       expect(categories.length, 1);
       expect(categories[0].sections.length, 1);
-      expect(categories[0].sections[0].markdown, contains('# This is NOT a category header'));
+      expect(
+        categories[0].sections[0].markdown,
+        contains('# This is NOT a category header'),
+      );
     });
 
     test('extracts correct icons for various keywords', () {
-      expect(CheatsheetParser.parse('# Strategy\n## API Testing')[0].icon, Symbols.strategy);
-      expect(CheatsheetParser.parse('# Strategy\n## API Testing')[0].sections[0].icon, Symbols.api);
-      
+      expect(
+        CheatsheetParser.parse('# Strategy\n## API Testing')[0].icon,
+        Symbols.strategy,
+      );
+      expect(
+        CheatsheetParser.parse(
+          '# Strategy\n## API Testing',
+        )[0].sections[0].icon,
+        Symbols.api,
+      );
+
       final sqlCat = CheatsheetParser.parse('# Tech\n## SQL Queries');
       expect(sqlCat[0].sections[0].icon, Symbols.database);
 

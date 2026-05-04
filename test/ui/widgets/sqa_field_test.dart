@@ -20,13 +20,13 @@ void main() {
         ),
       );
 
-      // Label is converted to uppercase in the widget
-      expect(find.text('TEST LABEL'), findsOneWidget);
+      // Label is rendered exactly as passed
+      expect(find.text('Test Label'), findsOneWidget);
       expect(find.text('Initial Value'), findsOneWidget);
 
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.readOnly, isTrue);
-      expect(textField.style?.height, 1.3);
+      expect(textField.style?.height, 1.5);
     });
 
     testWidgets('allows typing in input mode with controller', (
@@ -134,18 +134,19 @@ void main() {
       );
 
       // Initially should show expansion footer
-      expect(find.textContaining('MORE LINES'), findsOneWidget);
+      expect(find.textContaining('More Lines'), findsOneWidget);
 
       // TextField should have limited maxLines initially
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.maxLines, 2);
 
       // Tap to expand
-      await tester.tap(find.textContaining('MORE LINES'));
-      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('More Lines'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       // Footer should change text
-      expect(find.text('SHOW LESS'), findsOneWidget);
+      expect(find.text('Show Less'), findsOneWidget);
 
       // TextField should now have null maxLines (or the default multiline maxLines)
       final expandedField = tester.widget<TextField>(find.byType(TextField));

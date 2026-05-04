@@ -130,7 +130,9 @@ class SqaPluginLayout extends StatelessWidget {
               child: ListenableBuilder(
                 listenable: searchController ?? TextEditingController(),
                 builder: (context, _) {
-                  final bool hasSearchText = searchController != null && searchController!.text.isNotEmpty;
+                  final bool hasSearchText =
+                      searchController != null &&
+                      searchController!.text.isNotEmpty;
                   return SqaWindowSizeToggle(
                     isSearchActive: hasSearchText,
                     onClearSearch: () {

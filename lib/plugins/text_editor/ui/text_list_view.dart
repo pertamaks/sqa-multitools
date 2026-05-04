@@ -166,14 +166,8 @@ class _TextListViewState extends ConsumerState<TextListView> {
         storageKey: 'text_list_filter',
         segments: const [
           ButtonSegment(value: TextListFilter.all, label: Text('All')),
-          ButtonSegment(
-            value: TextListFilter.pinned,
-            label: Text('Pinned'),
-          ),
-          ButtonSegment(
-            value: TextListFilter.recent,
-            label: Text('Recent'),
-          ),
+          ButtonSegment(value: TextListFilter.pinned, label: Text('Pinned')),
+          ButtonSegment(value: TextListFilter.recent, label: Text('Recent')),
         ],
         selected: {_selectedFilter},
         onSelectionChanged: (set) {

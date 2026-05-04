@@ -243,7 +243,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 onSave: (info) {
                   final error = ref
                       .read(hotkeySettingsProvider.notifier)
-                      .updateHotkey(PreferencesService.keyHotkeyRecordToggle, info);
+                      .updateHotkey(
+                        PreferencesService.keyHotkeyRecordToggle,
+                        info,
+                      );
                   if (error != null) {
                     SqaToast.show(context, error, type: SqaToastType.error);
                   } else {
@@ -262,7 +265,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 onSave: (info) {
                   final error = ref
                       .read(hotkeySettingsProvider.notifier)
-                      .updateHotkey(PreferencesService.keyHotkeyAreaRecord, info);
+                      .updateHotkey(
+                        PreferencesService.keyHotkeyAreaRecord,
+                        info,
+                      );
                   if (error != null) {
                     SqaToast.show(context, error, type: SqaToastType.error);
                   } else {

@@ -17,9 +17,11 @@ void main() {
 
   setUp(() {
     mockStorage = MockTodoStorageService();
-    
+
     // Default mock behavior
-    when(mockStorage.loadSettings()).thenAnswer((_) async => const TodoSettings());
+    when(
+      mockStorage.loadSettings(),
+    ).thenAnswer((_) async => const TodoSettings());
     when(mockStorage.loadAllTodos()).thenAnswer((_) async => []);
     when(mockStorage.loadRecurringTodos()).thenAnswer((_) async => []);
     when(mockStorage.pruneOldFiles(any)).thenAnswer((_) async {});
@@ -28,9 +30,7 @@ void main() {
     when(mockStorage.saveSettings(any)).thenAnswer((_) async {});
 
     container = ProviderContainer(
-      overrides: [
-        todoStorageProvider.overrideWithValue(mockStorage),
-      ],
+      overrides: [todoStorageProvider.overrideWithValue(mockStorage)],
     );
   });
 
@@ -41,7 +41,7 @@ void main() {
   group('Todo Provider - Initialization', () {
     test('initializes with empty data', () async {
       final state = await container.read(todoProvider.future);
-      
+
       expect(state.todos, isEmpty);
       expect(state.recurringTodos, isEmpty);
       verify(mockStorage.loadSettings()).called(1);
@@ -49,10 +49,12 @@ void main() {
     });
 
     test('prunes old files on build', () async {
-      when(mockStorage.loadSettings()).thenAnswer((_) async => const TodoSettings(historyRetentionDays: 30));
-      
+      when(
+        mockStorage.loadSettings(),
+      ).thenAnswer((_) async => const TodoSettings(historyRetentionDays: 30));
+
       await container.read(todoProvider.future);
-      
+
       verify(mockStorage.pruneOldFiles(30)).called(1);
     });
   });
@@ -86,9 +88,13 @@ void main() {
 
       final state = container.read(todoProvider).value!;
       expect(state.todos.first.title, 'Updated');
-      verify(mockStorage.saveTodos(argThat(
-        predicate<List<TodoItem>>((list) => list.first.title == 'Updated'),
-      ))).called(1);
+      verify(
+        mockStorage.saveTodos(
+          argThat(
+            predicate<List<TodoItem>>((list) => list.first.title == 'Updated'),
+          ),
+        ),
+      ).called(1);
     });
 
     test('deleteTodo removes an item and saves it', () async {
@@ -108,84 +114,92 @@ void main() {
       expect(state.todos, isEmpty);
       verify(mockStorage.saveTodos([])).called(1);
     });
-   group('Todo Provider - Deferred Sync', () {
-    test('promotes deferred todos if date is today', () async {
-      final now = DateTime.now();
-      final deferredTodo = TodoItem(
-        id: '1',
-        title: 'Deferred',
-        status: TodoStatus.deferred,
-        deferredUntil: now.subtract(const Duration(hours: 1)), // Past
-        createdAt: now.subtract(const Duration(days: 1)),
-      );
-      when(mockStorage.loadAllTodos()).thenAnswer((_) async => [deferredTodo]);
+    group('Todo Provider - Deferred Sync', () {
+      test('promotes deferred todos if date is today', () async {
+        final now = DateTime.now();
+        final deferredTodo = TodoItem(
+          id: '1',
+          title: 'Deferred',
+          status: TodoStatus.deferred,
+          deferredUntil: now.subtract(const Duration(hours: 1)), // Past
+          createdAt: now.subtract(const Duration(days: 1)),
+        );
+        when(
+          mockStorage.loadAllTodos(),
+        ).thenAnswer((_) async => [deferredTodo]);
 
-      final state = await container.read(todoProvider.future);
+        final state = await container.read(todoProvider.future);
 
-      expect(state.todos.first.status, TodoStatus.todo);
-      expect(state.todos.first.deferredUntil, isNull);
-      verify(mockStorage.saveTodos(any)).called(1);
-    });
-  });
-
-  group('Todo Provider - Recurring Sync', () {
-    test('generates daily recurring todo', () async {
-      final recurring = RecurringTodo(
-        id: 'rec1',
-        title: 'Daily Task',
-        recurrenceType: RecurrenceType.daily,
-        isActive: true,
-        hour: 9,
-        minute: 0,
-      );
-      when(mockStorage.loadRecurringTodos()).thenAnswer((_) async => [recurring]);
-
-      final state = await container.read(todoProvider.future);
-
-      expect(state.todos.length, 1);
-      expect(state.todos.first.title, 'Daily Task');
-      expect(state.todos.first.recurringTodoId, 'rec1');
-      verify(mockStorage.saveTodos(any)).called(1);
-      verify(mockStorage.saveRecurringTodos(any)).called(1);
+        expect(state.todos.first.status, TodoStatus.todo);
+        expect(state.todos.first.deferredUntil, isNull);
+        verify(mockStorage.saveTodos(any)).called(1);
+      });
     });
 
-    test('does not generate recurring if already generated today', () async {
-      final now = DateTime.now();
-      final recurring = RecurringTodo(
-        id: 'rec1',
-        title: 'Daily Task',
-        recurrenceType: RecurrenceType.daily,
-        isActive: true,
-        hour: 9,
-        minute: 0,
-        lastGeneratedDate: now,
-      );
-      when(mockStorage.loadRecurringTodos()).thenAnswer((_) async => [recurring]);
+    group('Todo Provider - Recurring Sync', () {
+      test('generates daily recurring todo', () async {
+        final recurring = RecurringTodo(
+          id: 'rec1',
+          title: 'Daily Task',
+          recurrenceType: RecurrenceType.daily,
+          isActive: true,
+          hour: 9,
+          minute: 0,
+        );
+        when(
+          mockStorage.loadRecurringTodos(),
+        ).thenAnswer((_) async => [recurring]);
 
-      final state = await container.read(todoProvider.future);
+        final state = await container.read(todoProvider.future);
 
-      expect(state.todos, isEmpty);
+        expect(state.todos.length, 1);
+        expect(state.todos.first.title, 'Daily Task');
+        expect(state.todos.first.recurringTodoId, 'rec1');
+        verify(mockStorage.saveTodos(any)).called(1);
+        verify(mockStorage.saveRecurringTodos(any)).called(1);
+      });
+
+      test('does not generate recurring if already generated today', () async {
+        final now = DateTime.now();
+        final recurring = RecurringTodo(
+          id: 'rec1',
+          title: 'Daily Task',
+          recurrenceType: RecurrenceType.daily,
+          isActive: true,
+          hour: 9,
+          minute: 0,
+          lastGeneratedDate: now,
+        );
+        when(
+          mockStorage.loadRecurringTodos(),
+        ).thenAnswer((_) async => [recurring]);
+
+        final state = await container.read(todoProvider.future);
+
+        expect(state.todos, isEmpty);
+      });
     });
-  });
 
-  group('Todo Provider - Auto-completion', () {
-    test('auto-completes past pending recurring tasks', () async {
-      final yesterday = DateTime.now().subtract(const Duration(days: 1));
-      final oldRecurringItem = TodoItem(
-        id: 'old1',
-        title: 'Yesterday Task',
-        createdAt: yesterday,
-        recurringTodoId: 'rec1',
-        status: TodoStatus.todo,
-      );
-      when(mockStorage.loadAllTodos()).thenAnswer((_) async => [oldRecurringItem]);
+    group('Todo Provider - Auto-completion', () {
+      test('auto-completes past pending recurring tasks', () async {
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        final oldRecurringItem = TodoItem(
+          id: 'old1',
+          title: 'Yesterday Task',
+          createdAt: yesterday,
+          recurringTodoId: 'rec1',
+          status: TodoStatus.todo,
+        );
+        when(
+          mockStorage.loadAllTodos(),
+        ).thenAnswer((_) async => [oldRecurringItem]);
 
-      final state = await container.read(todoProvider.future);
+        final state = await container.read(todoProvider.future);
 
-      expect(state.todos.first.status, TodoStatus.done);
-      expect(state.todos.first.completedAt, isNotNull);
-      verify(mockStorage.saveTodos(any)).called(1);
+        expect(state.todos.first.status, TodoStatus.done);
+        expect(state.todos.first.completedAt, isNotNull);
+        verify(mockStorage.saveTodos(any)).called(1);
+      });
     });
-  });
   });
 }

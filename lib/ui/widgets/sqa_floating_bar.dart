@@ -121,7 +121,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
- 
+
     return MouseRegion(
       onEnter: (_) => _setHover(true),
       onExit: (_) {
@@ -164,7 +164,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                 children: [
                   // Fixed Leading Anchor (Always visible)
                   if (widget.leading != null) ...[...widget.leading!],
- 
+
                   // Flexible Scrollable Center (Collapses)
                   Flexible(
                     child: MouseRegion(
@@ -213,7 +213,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                       ),
                     ),
                   ),
- 
+
                   // Fixed Trailing Anchor (Always visible)
                   if (widget.trailing != null) ...[...widget.trailing!],
                 ],

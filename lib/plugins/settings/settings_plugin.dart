@@ -104,7 +104,6 @@ class CoffeeShopView extends ConsumerStatefulWidget {
 }
 
 class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
-
   Future<void> _launchDonation() async {
     final url = Uri.parse('https://ko-fi.com/pertamaks');
     if (!await launchUrl(url)) {
@@ -463,7 +462,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
   }
 
   void _showRedemptionModal(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => const SqaRedemptionModal(),
     );
@@ -1235,10 +1234,18 @@ class _SystemAboutSection extends ConsumerWidget {
           if (update != null) {
             SqaUpdateModal.show(context, update);
           } else if (previous is AsyncLoading) {
-            SqaToast.show(context, 'You are up to date!', type: SqaToastType.success);
+            SqaToast.show(
+              context,
+              'You are up to date!',
+              type: SqaToastType.success,
+            );
           }
         },
-        error: (err, _) => SqaToast.show(context, 'Update check failed.', type: SqaToastType.error),
+        error: (err, _) => SqaToast.show(
+          context,
+          'Update check failed.',
+          type: SqaToastType.error,
+        ),
         loading: () {},
       );
     });
@@ -1255,9 +1262,9 @@ class _SystemAboutSection extends ConsumerWidget {
               const SizedBox(width: 12),
               Text(
                 'System Information',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1276,7 +1283,10 @@ class _SystemAboutSection extends ConsumerWidget {
                   children: [
                     const Text(
                       'SQA-Multitools',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     versionAsync.when(
                       data: (v) => Text(
@@ -1291,7 +1301,8 @@ class _SystemAboutSection extends ConsumerWidget {
                         width: 12,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      error: (_, __) => const Text('Version unknown'),
+                      error: (error, stackTrace) =>
+                          const Text('Version unknown'),
                     ),
                   ],
                 ),
@@ -1310,7 +1321,8 @@ class _SystemAboutSection extends ConsumerWidget {
           const Divider(height: 1),
           const SizedBox(height: 16),
           SqaButton.outlined(
-            onPressed: () => launchUrl(Uri.parse('https://sqa-multitools.pages.dev')),
+            onPressed: () =>
+                launchUrl(Uri.parse('https://sqa-multitools.pages.dev')),
             label: 'Visit Official Website',
             icon: Symbols.open_in_new,
           ),

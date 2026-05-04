@@ -20,11 +20,11 @@ class UpdateState extends _$UpdateState {
 
   Future<void> checkForUpdates() async {
     state = const AsyncValue.loading();
-    
+
     try {
       final currentVersion = await ref.read(appVersionProvider.future);
       final updateService = ref.read<UpdateService>(updateServiceProvider);
-      
+
       final update = await updateService.checkForUpdates(currentVersion);
       state = AsyncValue.data(update);
     } catch (e, st) {

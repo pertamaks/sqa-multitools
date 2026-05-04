@@ -360,9 +360,22 @@ class TextEditorToolbar extends ConsumerWidget {
                       final selection = editorState.selection;
                       if (selection == null) return;
 
-                      // TODO: implement isSelectionInTable check to prevent image insertion in tables
-                      /*
+                      bool inTable = false;
+                      final path = selection.end.path;
+                      for (int i = 1; i <= path.length; i++) {
+                        final node = editorState.getNodeAtPath(
+                          path.sublist(0, i),
+                        );
+                        if (node != null &&
+                            (node.type == TableBlockKeys.type ||
+                                node.type == TableCellBlockKeys.type)) {
+                          inTable = true;
+                          break;
+                        }
+                      }
+
                       if (inTable) {
+                        if (!context.mounted) return;
                         SqaToast.show(
                           context,
                           "Cannot insert image inside a table cell",
@@ -370,7 +383,6 @@ class TextEditorToolbar extends ConsumerWidget {
                         );
                         return;
                       }
-                      */
 
                       const XTypeGroup typeGroup = XTypeGroup(
                         label: 'images',

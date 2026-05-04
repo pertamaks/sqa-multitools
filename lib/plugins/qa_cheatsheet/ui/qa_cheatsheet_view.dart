@@ -42,9 +42,7 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
         if (categories.isEmpty) {
           return const SqaPluginLayout(
             title: 'QA Cheatsheet',
-            child: Center(
-              child: Text('No categories found.'),
-            ),
+            child: Center(child: Text('No categories found.')),
           );
         }
 
@@ -53,7 +51,11 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
           if (searchQuery.isEmpty) return true;
           final query = searchQuery.toLowerCase();
           return cat.name.toLowerCase().contains(query) ||
-                 cat.sections.any((s) => s.title.toLowerCase().contains(query) || s.markdown.toLowerCase().contains(query));
+              cat.sections.any(
+                (s) =>
+                    s.title.toLowerCase().contains(query) ||
+                    s.markdown.toLowerCase().contains(query),
+              );
         }).toList();
 
         if (filteredCategories.isEmpty) {
@@ -61,11 +63,11 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
             icon: Symbols.menu_book,
             title: 'QA Cheatsheet',
             searchController: _searchController,
-            onSearchChanged: (val) => ref.read<CheatsheetSearch>(cheatsheetSearchProvider.notifier).setQuery(val),
+            onSearchChanged: (val) => ref
+                .read<CheatsheetSearch>(cheatsheetSearchProvider.notifier)
+                .setQuery(val),
             searchHint: 'Search cheatsheet...',
-            child: const Center(
-              child: Text('No matching content found.'),
-            ),
+            child: const Center(child: Text('No matching content found.')),
           );
         }
 
@@ -74,16 +76,24 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
           title: 'QA Cheatsheet',
           description: 'High-Fidelity quality assurance reference compilation',
           searchController: _searchController,
-          onSearchChanged: (val) => ref.read<CheatsheetSearch>(cheatsheetSearchProvider.notifier).setQuery(val),
+          onSearchChanged: (val) => ref
+              .read<CheatsheetSearch>(cheatsheetSearchProvider.notifier)
+              .setQuery(val),
           searchHint: 'Search cheatsheet...',
-          tabs: filteredCategories.map((c) => Tab(
-            text: c.name,
-            icon: Icon(c.icon, size: 18),
-            iconMargin: const EdgeInsets.only(bottom: 4),
-          )).toList(),
+          tabs: filteredCategories
+              .map(
+                (c) => Tab(
+                  text: c.name,
+                  icon: Icon(c.icon, size: 18),
+                  iconMargin: const EdgeInsets.only(bottom: 4),
+                ),
+              )
+              .toList(),
           child: TabBarView(
             physics: const NeverScrollableScrollPhysics(),
-            children: filteredCategories.map((cat) => _buildCategoryView(cat, searchQuery)).toList(),
+            children: filteredCategories
+                .map((cat) => _buildCategoryView(cat, searchQuery))
+                .toList(),
           ),
         );
       },
@@ -102,7 +112,8 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
     final filteredSections = category.sections.where((s) {
       if (searchQuery.isEmpty) return true;
       final query = searchQuery.toLowerCase();
-      return s.title.toLowerCase().contains(query) || s.markdown.toLowerCase().contains(query);
+      return s.title.toLowerCase().contains(query) ||
+          s.markdown.toLowerCase().contains(query);
     }).toList();
 
     if (filteredSections.isEmpty) {
@@ -110,8 +121,10 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
     }
 
     // Initialize or get selected section ID
-    if (!_selectedSectionIds.containsKey(category.name) || 
-        !filteredSections.any((s) => s.id == _selectedSectionIds[category.name])) {
+    if (!_selectedSectionIds.containsKey(category.name) ||
+        !filteredSections.any(
+          (s) => s.id == _selectedSectionIds[category.name],
+        )) {
       _selectedSectionIds[category.name] = filteredSections.first.id;
     }
 
@@ -130,7 +143,11 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
               segments: filteredSections.map((s) {
                 return ButtonSegment<String>(
                   value: s.id,
-                  label: Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  label: Text(
+                    s.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   icon: Icon(s.icon, size: 16),
                 );
               }).toList(),
@@ -145,7 +162,9 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
         Expanded(
           child: SqaFadeWrapper(
             child: SqaMarkdownViewer(
-              key: ValueKey(selectedSection.id), // Force rebuild when switching sections
+              key: ValueKey(
+                selectedSection.id,
+              ), // Force rebuild when switching sections
               markdown: selectedSection.markdown,
               padding: const EdgeInsets.all(24.0),
               useScrollable: true,

@@ -54,7 +54,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         }
       });
     });
- 
+
     super.initState();
   }
 
@@ -376,7 +376,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final timerState = ref.watch(timerProvider);
     final isTimerRunning = timerState.isRunning;
     final colorScheme = Theme.of(context).colorScheme;
- 
+
     ref.listen(ffmpegProvider, (previous, next) {
       if (previous != null && previous.isDownloading && !next.isDownloading) {
         if (next.isReady) {

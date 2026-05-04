@@ -233,38 +233,50 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      ...state.recentCaptures.where((info) {
-                        if (state.searchQuery.isEmpty) return true;
-                        final query = state.searchQuery.toLowerCase();
-                        final filename = info.file.path.split('\\').last.toLowerCase();
-                        return filename.contains(query);
-                      }).map((CaptureInfo info) {
-                        final filteredList = state.recentCaptures.where((info) {
-                          if (state.searchQuery.isEmpty) return true;
-                          final query = state.searchQuery.toLowerCase();
-                          final filename = info.file.path.split('\\').last.toLowerCase();
-                          return filename.contains(query);
-                        }).toList();
-                        final isLast = filteredList.last == info;
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CaptureTile(
-                              info: info,
-                              onDelete: () => notifier.deleteCapture(info),
-                              onRename: (newName) =>
-                                  notifier.renameCapture(info, newName),
-                              onValidate: (name) =>
-                                  notifier.validateNewName(name, info),
-                              onOpen: () => Process.start('explorer.exe', [
-                                info.file.path,
-                              ]),
-                              onOpenFolder: () => notifier.openSaveDirectory(),
-                            ),
-                            if (!isLast) const Divider(height: 1, indent: 56),
-                          ],
-                        );
-                      }),
+                      ...state.recentCaptures
+                          .where((info) {
+                            if (state.searchQuery.isEmpty) return true;
+                            final query = state.searchQuery.toLowerCase();
+                            final filename = info.file.path
+                                .split('\\')
+                                .last
+                                .toLowerCase();
+                            return filename.contains(query);
+                          })
+                          .map((CaptureInfo info) {
+                            final filteredList = state.recentCaptures.where((
+                              info,
+                            ) {
+                              if (state.searchQuery.isEmpty) return true;
+                              final query = state.searchQuery.toLowerCase();
+                              final filename = info.file.path
+                                  .split('\\')
+                                  .last
+                                  .toLowerCase();
+                              return filename.contains(query);
+                            }).toList();
+                            final isLast = filteredList.last == info;
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CaptureTile(
+                                  info: info,
+                                  onDelete: () => notifier.deleteCapture(info),
+                                  onRename: (newName) =>
+                                      notifier.renameCapture(info, newName),
+                                  onValidate: (name) =>
+                                      notifier.validateNewName(name, info),
+                                  onOpen: () => Process.start('explorer.exe', [
+                                    info.file.path,
+                                  ]),
+                                  onOpenFolder: () =>
+                                      notifier.openSaveDirectory(),
+                                ),
+                                if (!isLast)
+                                  const Divider(height: 1, indent: 56),
+                              ],
+                            );
+                          }),
                     ],
                   ),
                 ),

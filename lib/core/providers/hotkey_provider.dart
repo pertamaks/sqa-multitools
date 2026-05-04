@@ -44,7 +44,9 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
 
     final toolbar = prefs.getHotkey(PreferencesService.keyHotkeyShowToolbar);
     final recorder = prefs.getHotkey(PreferencesService.keyHotkeyRecordToggle);
-    final screenshot = prefs.getHotkey(PreferencesService.keyHotkeyScreenshotToggle);
+    final screenshot = prefs.getHotkey(
+      PreferencesService.keyHotkeyScreenshotToggle,
+    );
     final areaRecord = prefs.getHotkey(PreferencesService.keyHotkeyAreaRecord);
 
     final settings = HotkeySettings(
@@ -65,19 +67,19 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
     _onToolbarToggle = callback;
     _registerAll(state); // Re-register to apply the new callback
   }
- 
+
   /// Sets the callback to be executed when the Quick Area Record hotkey is pressed.
   void setAreaRecordCallback(VoidCallback callback) {
     _onAreaRecordToggle = callback;
     _registerAll(state);
   }
- 
+
   /// Sets the callback to be executed when the Record Toggle hotkey is pressed.
   void setRecordToggleCallback(VoidCallback callback) {
     _onRecordToggle = callback;
     _registerAll(state);
   }
- 
+
   /// Sets the callback to be executed when the Screenshot Toggle hotkey is pressed.
   void setScreenshotToggleCallback(VoidCallback callback) {
     _onScreenshotToggle = callback;
@@ -98,7 +100,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
         },
       );
     }
- 
+
     // Register Quick Area Record
     if (settings.areaRecordToggle != null) {
       await hotKeyManager.register(
@@ -110,7 +112,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
         },
       );
     }
- 
+
     // Register Record Toggle
     if (settings.recordToggle != null) {
       await hotKeyManager.register(
@@ -122,7 +124,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
         },
       );
     }
- 
+
     // Register Screenshot Toggle
     if (settings.screenshotToggle != null) {
       await hotKeyManager.register(
@@ -134,7 +136,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
         },
       );
     }
- 
+
     // Recorder registration is typically managed by ScreenRecorderNotifier
     // to avoid conflicts with its internal state machine, but we store the preference here.
   }

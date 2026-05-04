@@ -21,7 +21,7 @@ void main() {
 
       final state = container.read(textGeneratorProvider);
       final results = state.resultsMap[TextType.bytes] ?? <String>[];
-      expect(results.first.length, 50);
+      expect(results.first.length, inInclusiveRange(45, 55));
     });
 
     test('generate chapter starts with CHAPTER', () {

@@ -11,13 +11,14 @@ UpdateService updateService(Ref ref) {
 }
 
 class UpdateService {
-  static const String _updateUrl = 'https://sqa-multitools.pages.dev/version.json';
+  static const String _updateUrl =
+      'https://sqa-multitools.pages.dev/version.json';
 
   Future<UpdateInfo?> checkForUpdates(String currentVersion) async {
     try {
-      final response = await http.get(Uri.parse(_updateUrl)).timeout(
-        const Duration(seconds: 10),
-      );
+      final response = await http
+          .get(Uri.parse(_updateUrl))
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;

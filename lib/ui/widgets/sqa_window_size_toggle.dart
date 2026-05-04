@@ -25,7 +25,9 @@ class SqaWindowSizeToggle extends ConsumerWidget {
     final isSquare = mode == WindowSizeMode.squareMode;
 
     // Requested icons: arrows_more_down and arrows_more_up
-    final iconData = isSquare ? Symbols.arrows_more_up : Symbols.arrows_more_down;
+    final iconData = isSquare
+        ? Symbols.arrows_more_up
+        : Symbols.arrows_more_down;
 
     String tooltip = isSquare ? 'Exit Square Mode' : 'Enter Square Mode';
     if (isSquare && isSearchActive) {
@@ -46,7 +48,9 @@ class SqaWindowSizeToggle extends ConsumerWidget {
         tooltip: tooltip,
         iconSize: 18,
         weight: 700,
-        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
       ),
     );
   }

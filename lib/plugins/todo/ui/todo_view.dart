@@ -106,7 +106,9 @@ class _TodoViewState extends ConsumerState<TodoView>
       onSearchChanged: (val) =>
           ref.read(todoProvider.notifier).setSearchQuery(val),
       searchHint: 'Filter tasks...',
-      filterOptions: _tabController.index == 2 ? _buildHistoryFilters(state) : null,
+      filterOptions: _tabController.index == 2
+          ? _buildHistoryFilters(state)
+          : null,
       isFilterActive: state.historyFilter != HistoryFilter.last7Days,
       child: TabBarView(
         controller: _tabController,
@@ -146,10 +148,12 @@ class _TodoViewState extends ConsumerState<TodoView>
 
     if (query.isNotEmpty) {
       todayTodos = todayTodos
-          .where((t) =>
-              (t.title).toLowerCase().contains(query) ||
-              (t.notes).toLowerCase().contains(query) ||
-              (t.category).toLowerCase().contains(query))
+          .where(
+            (t) =>
+                (t.title).toLowerCase().contains(query) ||
+                (t.notes).toLowerCase().contains(query) ||
+                (t.category).toLowerCase().contains(query),
+          )
           .toList();
     }
 
@@ -430,6 +434,7 @@ class _TodoViewState extends ConsumerState<TodoView>
       }
     }
   }
+
   Widget _buildHistoryList(BuildContext context, TodoState state) {
     final query = state.searchQuery.toLowerCase();
     final now = DateTime.now();
@@ -438,7 +443,7 @@ class _TodoViewState extends ConsumerState<TodoView>
     // History view: Completed tasks before today
     var historyTodos = state.todos.where((t) {
       if (t.status != TodoStatus.done || t.completedAt == null) return false;
-      
+
       final completedDate = DateTime(
         t.completedAt!.year,
         t.completedAt!.month,
@@ -449,24 +454,37 @@ class _TodoViewState extends ConsumerState<TodoView>
       switch (state.historyFilter) {
         case HistoryFilter.last7Days:
           final cutoff = today.subtract(const Duration(days: 7));
-          if (!completedDate.isAfter(cutoff) && !completedDate.isAtSameMomentAs(cutoff)) return false;
+          if (!completedDate.isAfter(cutoff) &&
+              !completedDate.isAtSameMomentAs(cutoff)) {
+            return false;
+          }
           break;
         case HistoryFilter.thisMonth:
-          if (completedDate.year != today.year || completedDate.month != today.month) return false;
+          if (completedDate.year != today.year ||
+              completedDate.month != today.month) {
+            return false;
+          }
           break;
         case HistoryFilter.lastMonth:
           final lastMonth = today.month == 1 ? 12 : today.month - 1;
           final lastMonthYear = today.month == 1 ? today.year - 1 : today.year;
-          if (completedDate.year != lastMonthYear || completedDate.month != lastMonth) return false;
+          if (completedDate.year != lastMonthYear ||
+              completedDate.month != lastMonth) {
+            return false;
+          }
           break;
         case HistoryFilter.custom:
           if (state.customDateRange == null) {
             break;
           }
           if (!((completedDate.isAfter(state.customDateRange!.start) ||
-                  completedDate.isAtSameMomentAs(state.customDateRange!.start)) &&
+                  completedDate.isAtSameMomentAs(
+                    state.customDateRange!.start,
+                  )) &&
               (completedDate.isBefore(state.customDateRange!.end) ||
-                  completedDate.isAtSameMomentAs(state.customDateRange!.end)))) {
+                  completedDate.isAtSameMomentAs(
+                    state.customDateRange!.end,
+                  )))) {
             return false;
           }
           break;
@@ -477,10 +495,12 @@ class _TodoViewState extends ConsumerState<TodoView>
 
     if (query.isNotEmpty) {
       historyTodos = historyTodos
-          .where((t) =>
-              t.title.toLowerCase().contains(query) ||
-              t.notes.toLowerCase().contains(query) ||
-              t.category.toLowerCase().contains(query))
+          .where(
+            (t) =>
+                t.title.toLowerCase().contains(query) ||
+                t.notes.toLowerCase().contains(query) ||
+                t.category.toLowerCase().contains(query),
+          )
           .toList();
     }
 
@@ -510,10 +530,7 @@ class _TodoViewState extends ConsumerState<TodoView>
                 value: HistoryFilter.lastMonth,
                 label: Text('Last Month'),
               ),
-              ButtonSegment(
-                value: HistoryFilter.custom,
-                label: Text('Custom'),
-              ),
+              ButtonSegment(value: HistoryFilter.custom, label: Text('Custom')),
             ],
             selected: {state.historyFilter},
             onSelectionChanged: (set) async {
@@ -535,7 +552,8 @@ class _TodoViewState extends ConsumerState<TodoView>
             },
           ),
         ),
-        if (state.historyFilter == HistoryFilter.custom && state.customDateRange != null)
+        if (state.historyFilter == HistoryFilter.custom &&
+            state.customDateRange != null)
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: IconButton(
@@ -574,10 +592,12 @@ class _TodoViewState extends ConsumerState<TodoView>
 
     if (query.isNotEmpty) {
       recurring = recurring
-          .where((t) =>
-              t.title.toLowerCase().contains(query) ||
-              t.notes.toLowerCase().contains(query) ||
-              t.category.toLowerCase().contains(query))
+          .where(
+            (t) =>
+                t.title.toLowerCase().contains(query) ||
+                t.notes.toLowerCase().contains(query) ||
+                t.category.toLowerCase().contains(query),
+          )
           .toList();
     }
 

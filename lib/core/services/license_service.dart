@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:http/http.dart' as http;
 import 'preferences_service.dart';
@@ -33,12 +34,14 @@ class LicenseInfo {
 
 class LicenseService {
   final PreferencesService _prefs;
-  
+
   // TO THE USER: Replace this with your actual Public Key generated from the script
-  static const String _publicKeyBase64 = 'CRbf+8qOzhkhgJE9QbxxmaqpQRwEPh5hA1SGItHJo2c=';
-  
+  static const String _publicKeyBase64 =
+      'CRbf+8qOzhkhgJE9QbxxmaqpQRwEPh5hA1SGItHJo2c=';
+
   // TO THE USER: Set your Cloudflare Worker URL here
-  static const String _workerUrl = 'https://sqa-license-worker.hohok.workers.dev';
+  static const String _workerUrl =
+      'https://sqa-license-worker.hohok.workers.dev';
 
   LicenseService(this._prefs);
 
@@ -46,17 +49,20 @@ class LicenseService {
   /// If successful, saves the signature and returns the tier.
   Future<int?> verifyWithServer(String email, String code) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_workerUrl/verify'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email.trim().toLowerCase(),
-          'code': code.trim().toUpperCase(),
-        }),
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .post(
+            Uri.parse('$_workerUrl/verify'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email.trim().toLowerCase(),
+              'code': code.trim().toUpperCase(),
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
+        final Map<String, dynamic> data =
+            jsonDecode(response.body) as Map<String, dynamic>;
         final int tier = data['tier'] as int;
         final String signature = data['signature'].toString();
 
@@ -70,13 +76,15 @@ class LicenseService {
       } else {
         try {
           final errorData = jsonDecode(response.body);
-          print('Verification Error (${response.statusCode}): ${errorData['error']}');
+          debugPrint(
+            'Verification Error (${response.statusCode}): ${errorData['error']}',
+          );
         } catch (_) {
-          print('Verification Error: ${response.statusCode}');
+          debugPrint('Verification Error: ${response.statusCode}');
         }
       }
     } catch (e) {
-      print('License verification failed: $e');
+      debugPrint('License verification failed: $e');
     }
     return null;
   }
@@ -97,7 +105,12 @@ class LicenseService {
     return isValid ? tier : 0;
   }
 
-  Future<bool> _checkSignature(String email, String code, int tier, String signatureBase64) async {
+  Future<bool> _checkSignature(
+    String email,
+    String code,
+    int tier,
+    String signatureBase64,
+  ) async {
     try {
       final algorithm = Ed25519();
       final publicKey = SimplePublicKey(
@@ -113,10 +126,7 @@ class LicenseService {
       // The message that was signed: "EMAIL|CODE|TIER"
       final message = utf8.encode('$email|$code|$tier');
 
-      return await algorithm.verify(
-        message,
-        signature: signature,
-      );
+      return await algorithm.verify(message, signature: signature);
     } catch (e) {
       return false;
     }

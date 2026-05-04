@@ -17,7 +17,9 @@ class SqaGridTable extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     // Separate header row from content rows for better layout stability
-    final headerRow = columns.map((col) => col.isNotEmpty && col.first!.isHeader ? col.first : null).toList();
+    final headerRow = columns
+        .map((col) => col.isNotEmpty && col.first!.isHeader ? col.first : null)
+        .toList();
     final hasHeader = headerRow.any((h) => h != null);
 
     return Container(
@@ -50,12 +52,16 @@ class SqaGridTable extends StatelessWidget {
                     return Expanded(
                       flex: (columnWidths[i] * 100).toInt(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           border: i < headerRow.length - 1
                               ? Border(
                                   right: BorderSide(
-                                    color: colorScheme.outlineVariant.withValues(alpha: 0.1),
+                                    color: colorScheme.outlineVariant
+                                        .withValues(alpha: 0.1),
                                     width: 0.5,
                                   ),
                                 )
@@ -72,8 +78,10 @@ class SqaGridTable extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: List.generate(columns.length, (colIndex) {
-                final colCells = columns[colIndex].where((c) => c != null && !c.isHeader).toList();
-                
+                final colCells = columns[colIndex]
+                    .where((c) => c != null && !c.isHeader)
+                    .toList();
+
                 return Expanded(
                   flex: (columnWidths[colIndex] * 100).toInt(),
                   child: Container(
@@ -81,7 +89,9 @@ class SqaGridTable extends StatelessWidget {
                       border: colIndex < columns.length - 1
                           ? Border(
                               right: BorderSide(
-                                color: colorScheme.outlineVariant.withValues(alpha: 0.1),
+                                color: colorScheme.outlineVariant.withValues(
+                                  alpha: 0.1,
+                                ),
                                 width: 0.5,
                               ),
                             )
@@ -93,16 +103,20 @@ class SqaGridTable extends StatelessWidget {
                       children: colCells.asMap().entries.map((entry) {
                         final cellIndex = entry.key;
                         final cell = entry.value!;
-                        
+
                         return Expanded(
                           flex: cell.rowspan,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               border: cellIndex < colCells.length - 1
                                   ? Border(
                                       bottom: BorderSide(
-                                        color: colorScheme.outlineVariant.withValues(alpha: 0.1),
+                                        color: colorScheme.outlineVariant
+                                            .withValues(alpha: 0.1),
                                         width: 0.5,
                                       ),
                                     )
@@ -132,9 +146,5 @@ class SqaGridCell {
   final int rowspan;
   final bool isHeader;
 
-  SqaGridCell({
-    required this.child,
-    this.rowspan = 1,
-    this.isHeader = false,
-  });
+  SqaGridCell({required this.child, this.rowspan = 1, this.isHeader = false});
 }

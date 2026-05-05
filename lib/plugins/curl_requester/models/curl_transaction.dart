@@ -5,7 +5,7 @@ part 'curl_transaction.freezed.dart';
 part 'curl_transaction.g.dart';
 
 @freezed
-class CurlTransaction with _$CurlTransaction {
+abstract class CurlTransaction with _$CurlTransaction {
   const factory CurlTransaction({
     required String id,
     required CurlCommand request,

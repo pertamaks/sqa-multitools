@@ -4,7 +4,7 @@ part 'curl_command.freezed.dart';
 part 'curl_command.g.dart';
 
 @freezed
-class CurlCommand with _$CurlCommand {
+abstract class CurlCommand with _$CurlCommand {
   const factory CurlCommand({
     @Default('') String url,
     @Default('GET') String method,

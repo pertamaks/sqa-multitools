@@ -5,7 +5,7 @@ import 'curl_transaction.dart';
 part 'curl_requester_state.freezed.dart';
 
 @freezed
-class CurlRequesterState with _$CurlRequesterState {
+abstract class CurlRequesterState with _$CurlRequesterState {
   const factory CurlRequesterState({
     @Default(CurlCommand()) CurlCommand currentCommand,
     @Default([]) List<CurlTransaction> history,

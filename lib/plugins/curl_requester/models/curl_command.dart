@@ -10,6 +10,8 @@ abstract class CurlCommand with _$CurlCommand {
     @Default('GET') String method,
     @Default({}) Map<String, String> headers,
     @Default({}) Map<String, String> queryParameters,
+    @Default({}) Set<String> inactiveHeaders,
+    @Default({}) Set<String> inactiveQueryParameters,
     @Default('') String body,
   }) = _CurlCommand;
 

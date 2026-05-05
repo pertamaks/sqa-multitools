@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
@@ -38,7 +40,6 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
   late ScrollController _requestScrollController;
   late ScrollController _historyScrollController;
 
-  bool _isGridMode = false;
   bool _showReflector = false;
 
   ModalTab _modalTab = ModalTab.response;
@@ -49,19 +50,38 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     _tabController = TabController(length: 2, vsync: this);
     _requestScrollController = ScrollController();
     _historyScrollController = ScrollController();
-    
-    // TODO(Logic): Initialize controllers from the CurlRequesterState
+
+    // Initialize controllers from the CurlRequesterState
+    final initialState = ref.read(curlRequesterProvider);
     _urlController = TextEditingController(
-      text: 'https://api.example.com/v1/users',
+      text: initialState.currentCommand.url,
     );
     _curlController = TextEditingController(
-      text:
-          'curl -X GET "https://api.example.com/v1/users" \\\n'
-          '  -H "Accept: application/json" \\\n'
-          '  -H "Authorization: Bearer {{token}}"',
+      text: CurlParserService.stringify(initialState.currentCommand),
     );
+    
+    // Add listener to _curlController to parse changes into the provider state
+    _curlController.addListener(() {
+      if (!_showReflector) {
+        final notifier = ref.read(curlRequesterProvider.notifier);
+        // Only update if the text is actually different from the stringified state
+        // to avoid recursive updates.
+        final currentState = ref.read(curlRequesterProvider);
+        if (_curlController.text != CurlParserService.stringify(currentState.currentCommand)) {
+           notifier.updateFromCurl(_curlController.text);
+        }
+      }
+    });
 
-    // TODO(Logic): Add listener to _curlController to parse changes into the provider state
+    _urlController.addListener(() {
+      if (_showReflector) {
+        final notifier = ref.read(curlRequesterProvider.notifier);
+        final currentCommand = ref.read(curlRequesterProvider).currentCommand;
+        if (currentCommand.url != _urlController.text) {
+          notifier.updateCommand(currentCommand.copyWith(url: _urlController.text));
+        }
+      }
+    });
   }
 
   @override
@@ -76,6 +96,8 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(curlRequesterProvider);
+    
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, _) {
@@ -100,6 +122,15 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
             Tab(text: 'Request', icon: Icon(Symbols.send)),
             Tab(text: 'History', icon: Icon(Symbols.history)),
           ],
+          secondaryHeader: _tabController.index == 0
+              ? Container(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  ),
+                  child: _buildRequestHeader(),
+                )
+              : null,
           child: TabBarView(
             controller: _tabController,
             physics: const NeverScrollableScrollPhysics(),
@@ -119,16 +150,10 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       controller: _requestScrollController,
       child: SingleChildScrollView(
         controller: _requestScrollController,
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildRequestHeader(),
-            const SizedBox(height: 24),
-            _showReflector
-                ? _buildUnifiedGridContent()
-                : _buildCommandDeckContent(),
-            const SizedBox(height: 48),
+            _showReflector ? _buildUnifiedGridContent() : _buildCommandDeckContent(),
           ],
         ),
       ),
@@ -142,7 +167,7 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         Row(
           children: [
             Icon(
-              _showReflector ? Symbols.magic_button : Symbols.terminal,
+              _showReflector ? Symbols.grid_3x3 : Symbols.terminal,
               size: 18,
             ),
             const SizedBox(width: 8),
@@ -158,10 +183,9 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         Row(
           children: [
             SqaHoverIconButton(
-              icon: _showReflector ? Symbols.terminal : Symbols.magic_button,
+              icon: _showReflector ? Symbols.terminal : Symbols.grid_3x3,
               onPressed: () => setState(() {
                 _showReflector = !_showReflector;
-                if (_showReflector) _isGridMode = true;
               }),
               tooltip: _showReflector ? 'Switch to Command' : 'Show Grid',
               iconSize: 18,
@@ -169,16 +193,27 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
             const SizedBox(width: 8),
             SqaHoverIconButton(
               icon: Symbols.content_paste,
-              onPressed: () {
-                // TODO(Logic): Read clipboard and attempt to parse as a cURL command
-              },
+              onPressed: _pasteFromClipboard,
               tooltip: 'Paste from Clipboard',
               iconSize: 18,
+            ),
+            const SizedBox(width: 8),
+            SqaHoverIconButton(
+              icon: Symbols.delete_sweep,
+              onPressed: _clearRequest,
+              tooltip: 'Clear Request',
+              iconSize: 18,
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7),
             ),
           ],
         ),
       ],
     );
+  }
+
+  void _clearRequest() {
+    ref.read(curlRequesterProvider.notifier).clearCommand();
+    _syncRawFromState();
   }
 
   Widget _buildCommandDeckContent() {
@@ -217,50 +252,28 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       children: [
         _buildJsonBodyHeader(),
         const SizedBox(height: 16),
-        // In Structured View, we default to the Grid Editor for a consistent experience
-        _isGridMode ? _buildGridEditor() : _buildRawEditor(),
+        _buildGridEditor(),
       ],
     );
   }
 
 
   Widget _buildJsonBodyHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'JSON Body',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.1,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        Row(
-          children: [
-            Text(
-              _isGridMode ? 'Grid Mode' : 'Raw JSON',
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: 8),
-            SqaHoverIconButton(
-              icon: _isGridMode ? Symbols.edit_note : Symbols.magic_button,
-              onPressed: () => setState(() => _isGridMode = !_isGridMode),
-              tooltip: _isGridMode ? 'Switch to Raw' : 'Switch to Grid',
-              color: _isGridMode ? Theme.of(context).colorScheme.primary : null,
-            ),
-          ],
-        ),
-      ],
+    return Text(
+      'JSON Body',
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.1,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
 
   Widget _buildParamsEditor() {
-    // TODO(Logic): Fetch real query parameters from state.currentCommand.queryParameters
+    final state = ref.read(curlRequesterProvider); // Use read here as parent already watches
+    final notifier = ref.read(curlRequesterProvider.notifier);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -276,19 +289,34 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         SqaCard(
           child: Column(
             children: [
-              // TODO(Logic): Map entries from queryParameters to CurlRequesterGridRow widgets
-              const CurlRequesterGridRow(label: 'page', value: '1'),
-              const Divider(height: 1, indent: 16, endIndent: 16),
-              const CurlRequesterGridRow(label: 'limit', value: '20'),
-              const Divider(height: 1, indent: 16, endIndent: 16),
-              const CurlRequesterGridRow(
-                label: 'search',
-                value: 'faker',
-                hasFaker: true,
-              ),
-              const Divider(height: 1, indent: 16, endIndent: 16),
+              ...state.currentCommand.queryParameters.entries.map((entry) {
+                return Column(
+                  key: ValueKey('param_${entry.key}'),
+                  children: [
+                    CurlRequesterGridRow(
+                      label: entry.key,
+                      value: entry.value,
+                      isActive: !state.currentCommand.inactiveQueryParameters.contains(entry.key),
+                      onChanged: (k, v) {
+                        notifier.updateQueryParam(entry.key, k, v);
+                        _syncRawFromState();
+                      },
+                      onToggle: (isActive) {
+                        notifier.toggleQueryParam(entry.key, isActive);
+                        _syncRawFromState();
+                      },
+                      onDelete: () {
+                        notifier.removeQueryParam(entry.key);
+                        _syncRawFromState();
+                      },
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                  ],
+                );
+              }),
               _buildAddRowButton(onPressed: () {
-                // TODO(Logic): Implement adding a new parameter row to the provider
+                notifier.addQueryParam();
+                _syncRawFromState();
               }),
             ],
           ),
@@ -300,17 +328,21 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
   Widget _buildAddRowButton({required VoidCallback onPressed}) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: SqaHoverIconButton(
-        icon: Symbols.add,
-        onPressed: onPressed,
-        tooltip: 'Add new row',
-        color: Theme.of(context).colorScheme.primary,
+      child: Center(
+        child: SqaHoverIconButton(
+          icon: Symbols.add,
+          onPressed: onPressed,
+          tooltip: 'Add new row',
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
 
   Widget _buildHeadersEditor() {
-    // TODO(Logic): Fetch real headers from state.currentCommand.headers
+    final state = ref.read(curlRequesterProvider); // Use read here as parent already watches
+    final notifier = ref.read(curlRequesterProvider.notifier);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -326,21 +358,34 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         SqaCard(
           child: Column(
             children: [
-              // TODO(Logic): Map entries from headers to CurlRequesterGridRow widgets
-              const CurlRequesterGridRow(
-                label: 'Content-Type',
-                value: 'application/json',
-              ),
-              const Divider(height: 1, indent: 16, endIndent: 16),
-              const CurlRequesterGridRow(
-                label: 'Authorization',
-                value: 'Bearer token_abc...',
-              ),
-              const Divider(height: 1, indent: 16, endIndent: 16),
-              const CurlRequesterGridRow(label: 'Accept', value: '*/*'),
-              const Divider(height: 1, indent: 16, endIndent: 16),
+              ...state.currentCommand.headers.entries.map((entry) {
+                return Column(
+                  key: ValueKey('header_${entry.key}'),
+                  children: [
+                    CurlRequesterGridRow(
+                      label: entry.key,
+                      value: entry.value,
+                      isActive: !state.currentCommand.inactiveHeaders.contains(entry.key),
+                      onChanged: (k, v) {
+                        notifier.updateHeader(entry.key, k, v);
+                        _syncRawFromState();
+                      },
+                      onToggle: (isActive) {
+                        notifier.toggleHeader(entry.key, isActive);
+                        _syncRawFromState();
+                      },
+                      onDelete: () {
+                        notifier.removeHeader(entry.key);
+                        _syncRawFromState();
+                      },
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                  ],
+                );
+              }),
               _buildAddRowButton(onPressed: () {
-                // TODO(Logic): Implement adding a new header row to the provider
+                notifier.addHeader();
+                _syncRawFromState();
               }),
             ],
           ),
@@ -349,86 +394,145 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     );
   }
 
-  Widget _buildRawEditor() {
-    // TODO(Logic): Bind to raw JSON body provider and remove hardcoded hint
-    return const SqaField(
-      label: 'Request Body',
-      hintText: '{\n  "name": "John Doe",\n  "email": "john@example.com"\n}',
-      showLabel: false,
-      isMultiline: true,
-      minLines: 4,
-      maxLines: 16,
-      isMonospace: true,
-      showCopyButton: false,
-    );
-  }
 
   Widget _buildGridEditor() {
-    // TODO(Logic): Map structured JSON body from provider to CurlRequesterGridRow widgets
-    return SqaCard(
-      child: Column(
-        children: [
-          const CurlRequesterGridRow(
-            label: 'name',
-            value: 'John Doe',
-            hasFaker: true,
-            showCheckbox: false,
+    final state = ref.read(curlRequesterProvider);
+    final body = state.currentCommand.body;
+    
+    if (body.isEmpty) {
+      return const SqaCard(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Center(child: Text('No JSON body provided')),
+        ),
+      );
+    }
+
+    try {
+      final json = jsonDecode(body);
+      return SqaCard(
+        child: Column(
+          children: _buildJsonRows(json),
+        ),
+      );
+    } catch (e) {
+      return SqaCard(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Center(
+            child: Column(
+              children: [
+                const Icon(Symbols.error_outline, color: Colors.orange, size: 24),
+                const SizedBox(height: 8),
+                Text('Invalid JSON: ${e.toString()}', 
+                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          const CurlRequesterGridRow(
-            label: 'user',
-            value: '{...}',
-            isParent: true,
-            showCheckbox: false,
-          ),
-          const CurlRequesterGridRow(
-            label: 'id',
-            value: 'usr_9921',
-            depth: 1,
-            showCheckbox: false,
-          ),
-          const CurlRequesterGridRow(
-            label: 'profile',
-            value: '{...}',
-            depth: 1,
-            isParent: true,
-            showCheckbox: false,
-          ),
-          const CurlRequesterGridRow(
-            label: 'avatar',
-            value: 'https://...',
-            depth: 2,
-            showCheckbox: false,
-          ),
-          const CurlRequesterGridRow(
-            label: 'details',
-            value: '{...}',
-            depth: 2,
-            isParent: true,
-            showCheckbox: false,
-          ),
-          const CurlRequesterGridRow(
-            label: 'bio',
-            value: 'Software Engineer',
-            depth: 3,
-            hasFaker: true,
-            showCheckbox: false,
-          ),
-          const CurlRequesterGridRow(
-            label: 'location',
-            value: 'NYC',
-            depth: 3,
-            showCheckbox: false,
-          ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          const CurlRequesterGridRow(
-            label: 'role',
-            value: 'admin',
-            showCheckbox: false,
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
+  }
+
+  List<Widget> _buildJsonRows(dynamic json, {int depth = 0, List<dynamic> path = const []}) {
+    final widgets = <Widget>[];
+    final notifier = ref.read(curlRequesterProvider.notifier);
+
+    void updateJsonValue(List<dynamic> targetPath, String newValue) {
+      final body = ref.read(curlRequesterProvider).currentCommand.body;
+      try {
+        final decoded = jsonDecode(body);
+        
+        // Traverse to the parent of the target node
+        dynamic current = decoded;
+        for (int i = 0; i < targetPath.length - 1; i++) {
+          current = current[targetPath[i]];
+        }
+        
+        final lastKey = targetPath.last;
+        final oldValue = current[lastKey];
+        
+        // Simple type inference for the new value
+        dynamic typedValue = newValue;
+        if (oldValue is num) typedValue = num.tryParse(newValue) ?? newValue;
+        if (oldValue is bool) typedValue = newValue.toLowerCase() == 'true';
+        
+        current[lastKey] = typedValue;
+        
+        notifier.updateBody(jsonEncode(decoded));
+        _syncRawFromState();
+      } catch (_) {}
+    }
+
+    if (json is Map) {
+      for (var entry in json.entries) {
+        final key = entry.key.toString();
+        final val = entry.value;
+        final currentPath = [...path, key];
+
+        if (val is Map || val is List) {
+          widgets.add(
+            CurlRequesterGridRow(
+              key: ValueKey('json_${currentPath.join('_')}'),
+              label: key,
+              value: val is Map ? '{...}' : '[...]',
+              depth: depth,
+              isParent: true,
+              showCheckbox: false,
+              readOnlyValue: true,
+            ),
+          );
+          widgets.add(const Divider(height: 1, indent: 16, endIndent: 16));
+          widgets.addAll(_buildJsonRows(val, depth: depth + 1, path: currentPath));
+        } else {
+          widgets.add(
+            CurlRequesterGridRow(
+              key: ValueKey('json_${currentPath.join('_')}'),
+              label: key,
+              value: val.toString(),
+              depth: depth,
+              showCheckbox: false,
+              onChanged: (_, v) => updateJsonValue(currentPath, v),
+            ),
+          );
+          widgets.add(const Divider(height: 1, indent: 16, endIndent: 16));
+        }
+      }
+    } else if (json is List) {
+      for (int i = 0; i < json.length; i++) {
+        final val = json[i];
+        final key = '[$i]';
+        final currentPath = [...path, i];
+
+        if (val is Map || val is List) {
+          widgets.add(
+            CurlRequesterGridRow(
+              label: key,
+              value: val is Map ? '{...}' : '[...]',
+              depth: depth,
+              isParent: true,
+              showCheckbox: false,
+              readOnlyValue: true,
+            ),
+          );
+          widgets.add(const Divider(height: 1, indent: 16, endIndent: 16));
+          widgets.addAll(_buildJsonRows(val, depth: depth + 1, path: currentPath));
+        } else {
+          widgets.add(
+            CurlRequesterGridRow(
+              label: key,
+              value: val.toString(),
+              depth: depth,
+              showCheckbox: false,
+              onChanged: (_, v) => updateJsonValue(currentPath, v),
+            ),
+          );
+          widgets.add(const Divider(height: 1, indent: 16, endIndent: 16));
+        }
+      }
+    }
+
+    return widgets;
   }
 
 
@@ -633,4 +737,26 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     );
   }
 
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      ref.read(curlRequesterProvider.notifier).updateFromCurl(data.text!);
+      
+      // Update controllers from the new state
+      final newState = ref.read(curlRequesterProvider);
+      _urlController.text = newState.currentCommand.url;
+      _curlController.text = CurlParserService.stringify(newState.currentCommand);
+    }
+  }
+
+  void _syncRawFromState() {
+    final state = ref.read(curlRequesterProvider);
+    final newCurl = CurlParserService.stringify(state.currentCommand);
+    if (_curlController.text != newCurl) {
+      _curlController.text = newCurl;
+    }
+    if (_urlController.text != state.currentCommand.url) {
+      _urlController.text = state.currentCommand.url;
+    }
+  }
 }

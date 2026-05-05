@@ -28,6 +28,7 @@ class SqaPluginLayout extends StatelessWidget {
   final String searchHint;
   final Widget? filterOptions;
   final bool isFilterActive;
+  final Widget? secondaryHeader;
 
   const SqaPluginLayout({
     super.key,
@@ -48,6 +49,7 @@ class SqaPluginLayout extends StatelessWidget {
     this.searchHint = 'Search...',
     this.filterOptions,
     this.isFilterActive = false,
+    this.secondaryHeader,
   });
   @override
   Widget build(BuildContext context) {
@@ -113,13 +115,21 @@ class SqaPluginLayout extends StatelessWidget {
                                 controller: tabController,
                                 isScrollable: isTabScrollable,
                               ),
+                              if (secondaryHeader != null) secondaryHeader!,
                               Expanded(child: this.child),
                             ],
                           ),
                         ),
                       )
                     else
-                      Expanded(child: this.child),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            if (secondaryHeader != null) secondaryHeader!,
+                            Expanded(child: this.child),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),

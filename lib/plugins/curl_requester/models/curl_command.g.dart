@@ -19,6 +19,16 @@ _CurlCommand _$CurlCommandFromJson(Map<String, dynamic> json) => _CurlCommand(
         (k, e) => MapEntry(k, e as String),
       ) ??
       const {},
+  inactiveHeaders:
+      (json['inactiveHeaders'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toSet() ??
+      const {},
+  inactiveQueryParameters:
+      (json['inactiveQueryParameters'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toSet() ??
+      const {},
   body: json['body'] as String? ?? '',
 );
 
@@ -28,5 +38,7 @@ Map<String, dynamic> _$CurlCommandToJson(_CurlCommand instance) =>
       'method': instance.method,
       'headers': instance.headers,
       'queryParameters': instance.queryParameters,
+      'inactiveHeaders': instance.inactiveHeaders.toList(),
+      'inactiveQueryParameters': instance.inactiveQueryParameters.toList(),
       'body': instance.body,
     };

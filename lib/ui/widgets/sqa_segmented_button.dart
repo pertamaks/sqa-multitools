@@ -17,6 +17,7 @@ class SqaSegmentedButton<T> extends StatefulWidget {
   final VisualDensity? visualDensity;
   final String? storageKey;
   final ScrollController? scrollController;
+  final double scale;
 
   const SqaSegmentedButton({
     super.key,
@@ -32,7 +33,11 @@ class SqaSegmentedButton<T> extends StatefulWidget {
     this.visualDensity,
     this.storageKey,
     this.scrollController,
+    this.scale = 1.0,
+    this.minScale = 1.0,
   });
+
+  final double minScale;
 
   @override
   State<SqaSegmentedButton<T>> createState() => _SqaSegmentedButtonState<T>();
@@ -115,23 +120,22 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       onSelectionChanged: widget.onSelectionChanged,
       showSelectedIcon: widget.showSelectedIcon,
       expandedInsets: shouldStretch ? EdgeInsets.zero : null,
-      style:
-          SegmentedButton.styleFrom(
-            visualDensity: widget.visualDensity ?? VisualDensity.compact,
-            textStyle: TextStyle(
-              fontSize: widget.fontSize,
-              fontWeight: FontWeight.w600,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.5,
-            ),
-            selectedBackgroundColor: colorScheme.primaryContainer,
-            side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
-          ).copyWith(
-            shape: SqaStyles.buttonShape,
-            overlayColor: SqaStyles.buttonOverlay(context),
-          ),
+      style: SegmentedButton.styleFrom(
+        visualDensity: widget.visualDensity ?? VisualDensity.compact,
+        textStyle: TextStyle(
+          fontSize: widget.fontSize,
+          fontWeight: FontWeight.w600,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.5,
+        ),
+        selectedBackgroundColor: colorScheme.primaryContainer,
+        side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+      ).copyWith(
+        shape: SqaStyles.buttonShape,
+        overlayColor: SqaStyles.buttonOverlay(context),
+      ),
     );
 
     final effectivePadding =
@@ -143,33 +147,53 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
           right: widget.isChild ? 16 : 0,
         );
 
+    Widget result;
     if (shouldStretch) {
-      return Padding(padding: effectivePadding, child: segmentedButton);
-    }
-
-    return Padding(
-      padding: effectivePadding,
-      child: SqaFadeWrapper(
-        axis: Axis.horizontal,
-        child: ScrollConfiguration(
-          behavior: const SqaMouseDragScrollBehavior(),
-          child: Listener(
-            onPointerSignal: (pointerSignal) {
-              if (pointerSignal is PointerScrollEvent) {
-                // Consume wheel signals
-              }
-            },
-            child: SingleChildScrollView(
-              key: widget.storageKey != null
-                  ? PageStorageKey<String>(widget.storageKey!)
-                  : null,
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              child: segmentedButton,
+      result = Padding(padding: effectivePadding, child: segmentedButton);
+    } else {
+      result = Padding(
+        padding: effectivePadding,
+        child: SqaFadeWrapper(
+          axis: Axis.horizontal,
+          child: ScrollConfiguration(
+            behavior: const SqaMouseDragScrollBehavior(),
+            child: Listener(
+              onPointerSignal: (pointerSignal) {
+                if (pointerSignal is PointerScrollEvent) {
+                  // Consume wheel signals
+                }
+              },
+              child: SingleChildScrollView(
+                key: widget.storageKey != null
+                    ? PageStorageKey<String>(widget.storageKey!)
+                    : null,
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                child: segmentedButton,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (widget.scale != 1.0 || widget.minScale != 1.0) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: 32.0 * widget.minScale),
+          child: SizedBox(
+            height: 32.0 * widget.scale,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: result,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return result;
   }
 }

@@ -12,6 +12,7 @@ import '../../plugins/beautifier/beautifier_plugin.dart';
 import '../../plugins/text_editor/text_editor_plugin.dart';
 import '../../plugins/todo/todo_plugin.dart';
 import '../../plugins/qa_cheatsheet/qa_cheatsheet_plugin.dart';
+import '../../plugins/curl_requester/curl_requester_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
 
@@ -26,6 +27,7 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     TextEditorPlugin(),
     TodoPlugin(),
     QaCheatsheetPlugin(),
+    CurlRequesterPlugin(),
     if (ref.watch(supporterTierProvider) >= 2) QaOraclePlugin(),
   ];
 

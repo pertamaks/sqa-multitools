@@ -37,6 +37,8 @@ class SqaField extends StatefulWidget {
     this.gutterFontSize,
     this.showSentenceCaseButton = false,
     this.autofocus = false,
+    this.fontWeight,
+    this.color,
   });
 
   final String label;
@@ -58,6 +60,8 @@ class SqaField extends StatefulWidget {
   final String? hintText;
   final bool showCopyButton;
   final Widget? trailing;
+  final FontWeight? fontWeight;
+  final Color? color;
   final int? collapsedMaxLines;
   final bool showLineNumbers;
   final bool isTransparent;
@@ -439,7 +443,8 @@ class _SqaFieldState extends State<SqaField> {
                                           ?.copyWith(
                                             fontSize: fontSize,
                                             height: fontHeight,
-                                            color: colorScheme.onSurface,
+                                            color: widget.color ?? colorScheme.onSurface,
+                                            fontWeight: widget.fontWeight,
                                           ),
                                   strutStyle: StrutStyle(
                                     fontSize: fontSize,
@@ -513,6 +518,7 @@ class _SqaFieldState extends State<SqaField> {
                         child: _buildExpansionFooter(theme),
                       ),
 
+                    // 4. Sticky Action Buttons
                     // 4. Sticky Action Buttons
                     if (widget.showCopyButton || widget.showSentenceCaseButton)
                       ValueListenableBuilder<double>(

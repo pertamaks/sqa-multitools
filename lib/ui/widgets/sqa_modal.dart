@@ -46,6 +46,8 @@ class SqaModal<T> extends StatefulWidget {
   final String? cancelLabel;
   final Color? confirmColor;
   final IconData? icon;
+  final Widget? topBar;
+  final Widget? leading;
 
   /// Creates a **tile-style** picker with thumbnail image cards.
   const SqaModal.tile({
@@ -54,6 +56,8 @@ class SqaModal<T> extends StatefulWidget {
     required this.items,
     required this.tileBuilder,
     this.onRefresh,
+    this.topBar,
+    this.leading,
   }) : isTileMode = true,
        isConfirmMode = false,
        itemBuilder = null,
@@ -78,6 +82,8 @@ class SqaModal<T> extends StatefulWidget {
     this.emptyIcon = Symbols.search_off,
     this.emptyLabel = 'No items found',
     this.onRefresh,
+    this.topBar,
+    this.leading,
   }) : isTileMode = false,
        isConfirmMode = false,
        tileBuilder = null,
@@ -98,6 +104,8 @@ class SqaModal<T> extends StatefulWidget {
     this.cancelLabel = 'Cancel',
     this.confirmColor,
     this.icon,
+    this.topBar,
+    this.leading,
   }) : isTileMode = false,
        isConfirmMode = true,
        items = const [],
@@ -120,6 +128,8 @@ class SqaModal<T> extends StatefulWidget {
     this.cancelLabel,
     this.confirmColor,
     this.icon,
+    this.topBar,
+    this.leading,
   }) : isTileMode = false,
        isConfirmMode = false,
        items = const [],
@@ -327,7 +337,10 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
       titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       title: Row(
         children: [
-          if (widget.icon != null) ...[
+          if (widget.leading != null) ...[
+            widget.leading!,
+            const SizedBox(width: 8),
+          ] else if (widget.icon != null) ...[
             Icon(
               widget.icon,
               size: 20,
@@ -356,10 +369,17 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
       contentPadding: EdgeInsets.zero,
       content: ConstrainedBox(
         constraints: BoxConstraints(
-          minWidth: widget.isTileMode ? 320 : 500,
-          maxWidth: widget.isTileMode ? 320 : 500,
-          maxHeight:
-              500, // Reduced to ensure it triggers scrolling on more screens
+          minWidth: widget.isTileMode 
+              ? 320 
+              : MediaQuery.of(context).size.width * 0.85 < 500 
+                  ? MediaQuery.of(context).size.width * 0.85 
+                  : 500,
+          maxWidth: widget.isTileMode 
+              ? 320 
+              : MediaQuery.of(context).size.width * 0.85 > 900 
+                  ? 900 
+                  : MediaQuery.of(context).size.width * 0.85,
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
         ),
         child: widget.isLoading
             ? const SizedBox(
@@ -379,47 +399,69 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                             )
                           : const SizedBox.shrink(),
                     )
-                  : ScrollConfiguration(
-                      behavior: const _NoScrollbarBehavior(),
-                      child: Scrollbar(
-                        controller: _scrollController,
-                        thumbVisibility: true,
-                        thickness: 6.0,
-                        radius: const Radius.circular(3),
-                        child: SqaFadeWrapper(
-                          depth:
-                              0.08, // Increased for better visibility in modal
-                          threshold: 20.0, // Trigger sooner
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              right: 16,
-                            ), // Align scrollbar with buttons
-                            child: (widget.child != null)
-                                ? SingleChildScrollView(
-                                    controller: _scrollController,
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (widget.topBar != null) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 24,
+                                right: 24,
+                                bottom: 16,
+                              ),
+                              child: widget.topBar!,
+                            ),
+                          ],
+                          Flexible(
+                            child: ScrollConfiguration(
+                              behavior: const _NoScrollbarBehavior(),
+                              child: Scrollbar(
+                                controller: _scrollController,
+                                thumbVisibility: true,
+                                thickness: 6.0,
+                                radius: const Radius.circular(3),
+                                child: SqaFadeWrapper(
+                                  depth:
+                                      0.08, // Increased for better visibility in modal
+                                  threshold: 20.0, // Trigger sooner
+                                  child: Padding(
                                     padding: const EdgeInsets.only(
-                                      left: 24,
-                                      right: 12,
-                                    ),
-                                    child: widget.child!,
-                                  )
-                                : (widget.items.isEmpty
-                                      ? Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 24,
-                                          ),
-                                          child: _buildEmpty(theme),
-                                        )
-                                      : (widget.isTileMode
-                                            ? _buildTileContent(context, theme)
-                                            : _buildListContent(
-                                                context,
-                                                theme,
-                                              ))),
+                                      right: 16,
+                                    ), // Align scrollbar with buttons
+                                    child: (widget.child != null)
+                                        ? SingleChildScrollView(
+                                            controller: _scrollController,
+                                            padding: const EdgeInsets.only(
+                                              left: 24,
+                                              right: 12,
+                                            ),
+                                            child: widget.child!,
+                                          )
+                                        : (widget.items.isEmpty
+                                              ? Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 24,
+                                                      ),
+                                                  child: _buildEmpty(theme),
+                                                )
+                                              : (widget.isTileMode
+                                                    ? _buildTileContent(
+                                                        context,
+                                                        theme,
+                                                      )
+                                                    : _buildListContent(
+                                                        context,
+                                                        theme,
+                                                      ))),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    )),
+                        ],
+                      )),
       ),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       actionsAlignment: MainAxisAlignment.end,

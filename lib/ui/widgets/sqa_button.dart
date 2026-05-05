@@ -16,6 +16,7 @@ class SqaButton extends StatelessWidget {
   final bool isFullWidth;
   final bool isLoading;
   final Color? color;
+  final String? tooltip;
 
   const SqaButton({
     super.key,
@@ -27,6 +28,7 @@ class SqaButton extends StatelessWidget {
     this.isFullWidth = false,
     this.isLoading = false,
     this.color,
+    this.tooltip,
   });
 
   /// Primary action button (Filled)
@@ -39,6 +41,7 @@ class SqaButton extends StatelessWidget {
     bool isFullWidth = false,
     bool isLoading = false,
     Color? color,
+    String? tooltip,
   }) {
     return SqaButton(
       key: key,
@@ -50,6 +53,7 @@ class SqaButton extends StatelessWidget {
       isFullWidth: isFullWidth,
       isLoading: isLoading,
       color: color,
+      tooltip: tooltip,
     );
   }
 
@@ -63,6 +67,7 @@ class SqaButton extends StatelessWidget {
     bool isFullWidth = false,
     bool isLoading = false,
     Color? color,
+    String? tooltip,
   }) {
     return SqaButton(
       key: key,
@@ -74,6 +79,7 @@ class SqaButton extends StatelessWidget {
       isFullWidth: isFullWidth,
       isLoading: isLoading,
       color: color,
+      tooltip: tooltip,
     );
   }
 
@@ -87,6 +93,7 @@ class SqaButton extends StatelessWidget {
     bool isFullWidth = false,
     bool isLoading = false,
     Color? color,
+    String? tooltip,
   }) {
     return SqaButton(
       key: key,
@@ -98,6 +105,7 @@ class SqaButton extends StatelessWidget {
       isFullWidth: isFullWidth,
       isLoading: isLoading,
       color: color,
+      tooltip: tooltip,
     );
   }
 
@@ -218,11 +226,20 @@ class SqaButton extends StatelessWidget {
         break;
     }
 
-    return SizedBox(
+    final result = SizedBox(
       height: 32,
       width: isFullWidth ? double.infinity : width,
       child: button,
     );
+
+    if (tooltip != null) {
+      return Tooltip(
+        message: tooltip!,
+        child: result,
+      );
+    }
+
+    return result;
   }
 
   Widget _buildContent() {

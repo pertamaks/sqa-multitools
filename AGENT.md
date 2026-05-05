@@ -64,6 +64,7 @@ To ensure long-term maintainability and a consistent "Single Product" feel:
 
 ## 9. Feature Development Workflow
 * **The Mock-up Phase & Systematic Tagging:** When building a new UI or decoupling an existing one, all missing dynamic logic, hardcoded mock data, and pending architectural splits MUST be explicitly tagged. Use standard markers (`// TODO(Logic): ...`, `// TODO(UI): ...`, `// TODO(Refactor): ...`) to create a clear, searchable integration roadmap before any backend or provider code is written.
+* **Strict Integration Phase (No Unprompted UI/Features):** Once the mock-up phase is complete and TODOs are placed, the backend implementation and integration phase begins. During this phase, the Agent MUST strictly focus on resolving the TODO tags and wiring the state to the existing UI. **NEVER** implement new UI components, alter existing layouts, or introduce unprompted new features unless explicitly requested by the user. The goal is logic integration, not scope creep.
 * **Atomic Use Case Identification:** Before writing code, the Implementation Plan MUST identify specific use cases and edge cases.
 * **Coverage Check:** The final implementation must be verified against EVERY identified use case.
 * **Checklist Verification:** Before closing a task, walk through sections 1-8 of these guidelines to ensure NO mandatory points were skipped (e.g., "Did I update the SRS?", "Did I check for UI hacks?", "Is the state immutable?").

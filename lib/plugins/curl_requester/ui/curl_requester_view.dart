@@ -109,11 +109,16 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
           trailing: _tabController.index == 0
               ? SqaButton.primary(
                   label: '',
-                  // TODO(Logic): Bind icon and loading state to CurlRequesterState.isLoading
+                  isLoading: state.isLoading,
                   icon: Symbols.rocket_launch,
-                  onPressed: () {
-                    // TODO(Logic): Call ref.read(curlRequesterProvider.notifier).execute()
-                    _showResponseModal(context, isHistory: false);
+                  onPressed: () async {
+                    await ref.read(curlRequesterProvider.notifier).execute();
+                    if (context.mounted) {
+                      final history = ref.read(curlRequesterProvider).history;
+                      if (history.isNotEmpty) {
+                        _showResponseModal(context, transaction: history.first);
+                      }
+                    }
                   },
                   tooltip: 'Execute Command',
                 )
@@ -536,20 +541,51 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
   }
 
 
+  String _formatRelativeTime(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inSeconds < 60) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
   // TODO(Refactor): Extract into ui/tabs/history_tab.dart
   Widget _buildHistoryTab() {
-    // TODO(Logic): Bind to real transaction history from CurlRequesterState.history
+    final history = ref.watch(curlRequesterProvider).history;
+    
+    if (history.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Symbols.history, size: 64, color: Colors.grey.withValues(alpha: 0.2)),
+            const SizedBox(height: 16),
+            const Text(
+              'No request history yet',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scrollbar(
       controller: _historyScrollController,
       child: ListView.separated(
         controller: _historyScrollController,
         padding: const EdgeInsets.all(24),
-        itemCount: 5, // TODO(Logic): Use real history length
+        itemCount: history.length,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          // TODO(Logic): Get real CurlTransaction from history list
+          final transaction = history[index];
+          final uri = Uri.tryParse(transaction.request.url);
+          final path = uri?.path ?? '/';
+          final statusColor = transaction.statusCode >= 200 && transaction.statusCode < 300
+              ? Colors.green
+              : (transaction.statusCode >= 400 ? Colors.red : Colors.orange);
+
           return InkWell(
-            onTap: () => _showResponseModal(context, isHistory: true),
+            onTap: () => _showResponseModal(context, isHistory: true, transaction: transaction),
             borderRadius: SqaStyles.radiusLarge,
             child: SqaCard(
               padding: const EdgeInsets.all(12),
@@ -558,19 +594,24 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                 children: [
                   Row(
                     children: [
-                      // TODO(Logic): Display real status code and latency metadata
-                      const SqaStatusBadge(text: '200 OK', color: Colors.green),
+                      SqaStatusBadge(
+                        text: transaction.statusCode == 0 ? 'FAIL' : '${transaction.statusCode}',
+                        color: statusColor,
+                      ),
                       const SizedBox(width: 12),
-                      Text(
-                        'POST /v1/users', // TODO(Logic): Display real method and path
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                      Expanded(
+                        child: Text(
+                          '${transaction.request.method} $path',
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       const Spacer(),
                       Text(
-                        '2 mins ago', // TODO(Logic): Calculate real relative timestamp
+                        _formatRelativeTime(transaction.timestamp),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Colors.grey,
                           fontSize: 10,
@@ -588,8 +629,7 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      // TODO(Logic): Provide real stringified cURL snippet for history item
-                      'curl -X POST "https://api.example.com/v1/users" -H "Content-Type: application/json" -d \'{"name": "John Doe"}\'',
+                      CurlParserService.stringify(transaction.request),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.jetBrainsMono(
@@ -611,9 +651,8 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
   Future<void> _showResponseModal(
     BuildContext context, {
     bool isHistory = false,
+    CurlTransaction? transaction,
   }) async {
-    // TODO(Logic): Accept a CurlTransaction parameter to display real data
-
     // Reset modal tab to response when opening
     setState(() => _modalTab = ModalTab.response);
 
@@ -622,11 +661,17 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final statusColor = transaction != null
+                ? (transaction.statusCode >= 200 && transaction.statusCode < 300
+                    ? Colors.green
+                    : (transaction.statusCode >= 400 ? Colors.red : Colors.orange))
+                : Colors.green;
+
             return SqaModal<bool>.custom(
               title: isHistory ? 'Transaction Inspector' : 'Response',
-              leading: const SqaStatusBadge(
-                text: '200 OK', // TODO(Logic): Dynamic status badge
-                color: Colors.green,
+              leading: SqaStatusBadge(
+                text: transaction != null ? '${transaction.statusCode}' : '...',
+                color: statusColor,
               ),
               confirmLabel: 'Done',
               cancelLabel: 'Send Again',
@@ -639,14 +684,18 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                       alignment: Alignment.centerLeft,
                       child: Row(
                         children: [
-                          const SqaMetadataItem(
+                          SqaMetadataItem(
                             icon: Symbols.timer,
-                            text: '1,245.82 ms', // TODO(Logic): Dynamic latency display
+                            text: transaction != null
+                                ? '${transaction.latency.inMilliseconds} ms'
+                                : '0 ms',
                           ),
                           const SizedBox(width: 12),
-                          const SqaMetadataItem(
+                          SqaMetadataItem(
                             icon: Symbols.database,
-                            text: '1,242.08 MB', // TODO(Logic): Dynamic response size display
+                            text: transaction != null
+                                ? '${(transaction.responseSize / 1024).toStringAsFixed(2)} KB'
+                                : '0 KB',
                           ),
                         ],
                       ),
@@ -687,8 +736,8 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                   maxWidth: 800,
                 ),
                 child: _modalTab == ModalTab.request
-                    ? _buildRequestModalContent()
-                    : _buildResponseContent(),
+                    ? _buildRequestModalContent(transaction)
+                    : _buildResponseContent(transaction),
               ),
             );
           },
@@ -699,14 +748,17 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     // If "Send Again" (Cancel button) was pressed, re-trigger the modal
     if (result == false) {
       if (context.mounted) {
-        // TODO(Logic): Re-execute the request before showing the modal again
-        _showResponseModal(context);
+        await ref.read(curlRequesterProvider.notifier).execute();
+        final history = ref.read(curlRequesterProvider).history;
+        if (history.isNotEmpty && context.mounted) {
+          _showResponseModal(context, transaction: history.first);
+        }
       }
     }
   }
 
-  Widget _buildRequestModalContent() {
-    return const SqaField(
+  Widget _buildRequestModalContent(CurlTransaction? transaction) {
+    return SqaField(
       label: 'cURL Command',
       showLabel: false,
       isMonospace: true,
@@ -715,25 +767,23 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       maxLines: 40,
       fontSize: 12,
       showCopyButton: true,
-      initialValue:
-          'curl -X POST "https://api.example.com/v1/users" \\\n  -H "Accept: application/json" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"name": "John Doe", "email": "john@example.com"}\'',
-      // TODO(Logic): Provide real request cURL string
+      initialValue: transaction != null
+          ? CurlParserService.stringify(transaction.request)
+          : 'No request data available',
     );
   }
 
-  Widget _buildResponseContent() {
-    return const SqaField(
+  Widget _buildResponseContent(CurlTransaction? transaction) {
+    return SqaField(
       label: 'Response Output',
       showLabel: false,
       isMonospace: true,
       readOnly: true,
       isMultiline: true,
-      maxLines: 40,
+      maxLines: 10,
       fontSize: 12,
-      showCopyButton: true,
-      initialValue:
-          '{\n  "status": "success",\n  "data": {\n    "id": 101,\n    "title": "foo",\n    "body": "bar",\n    "userId": 1\n  }\n}',
-      // TODO(Logic): Provide real response body string
+      showCopyButton: false,
+      initialValue: transaction?.responseBody ?? 'No response data available',
     );
   }
 

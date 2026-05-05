@@ -40,6 +40,8 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    // TODO(Logic): Initialize controllers from the CurlRequesterState
     _urlController = TextEditingController(
       text: 'https://api.example.com/v1/users',
     );
@@ -49,6 +51,8 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
           '  -H "Accept: application/json" \\\n'
           '  -H "Authorization: Bearer {{token}}"',
     );
+
+    // TODO(Logic): Add listener to _curlController to parse changes into the provider state
   }
 
   @override
@@ -72,9 +76,12 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
           trailing: _tabController.index == 0
               ? SqaButton.primary(
                   label: '',
+                  // TODO(Logic): Bind icon and loading state to CurlRequesterState.isLoading
                   icon: Symbols.rocket_launch,
-                  onPressed: () =>
-                      _showResponseModal(context, isHistory: false),
+                  onPressed: () {
+                    // TODO(Logic): Call ref.read(curlRequesterProvider.notifier).execute()
+                    _showResponseModal(context, isHistory: false);
+                  },
                   tooltip: 'Execute Command',
                 )
               : null,
@@ -146,7 +153,9 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
             const SizedBox(width: 8),
             SqaHoverIconButton(
               icon: Symbols.content_paste,
-              onPressed: () {},
+              onPressed: () {
+                // TODO(Logic): Read clipboard and attempt to parse as a cURL command
+              },
               tooltip: 'Paste from Clipboard',
               iconSize: 18,
             ),
@@ -235,6 +244,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
 
 
   Widget _buildParamsEditor() {
+    // TODO(Logic): Fetch real query parameters from state.currentCommand.queryParameters
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -250,6 +260,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
         SqaCard(
           child: Column(
             children: [
+              // TODO(Logic): Map entries from queryParameters to CurlRequesterGridRow widgets
               const CurlRequesterGridRow(label: 'page', value: '1'),
               const Divider(height: 1, indent: 16, endIndent: 16),
               const CurlRequesterGridRow(label: 'limit', value: '20'),
@@ -260,7 +271,9 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
                 hasFaker: true,
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
-              _buildAddRowButton(),
+              _buildAddRowButton(onPressed: () {
+                // TODO(Logic): Implement adding a new parameter row to the provider
+              }),
             ],
           ),
         ),
@@ -268,12 +281,12 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
     );
   }
 
-  Widget _buildAddRowButton() {
+  Widget _buildAddRowButton({required VoidCallback onPressed}) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SqaHoverIconButton(
         icon: Symbols.add,
-        onPressed: () {},
+        onPressed: onPressed,
         tooltip: 'Add new row',
         color: Theme.of(context).colorScheme.primary,
       ),
@@ -281,6 +294,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
   }
 
   Widget _buildHeadersEditor() {
+    // TODO(Logic): Fetch real headers from state.currentCommand.headers
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -296,6 +310,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
         SqaCard(
           child: Column(
             children: [
+              // TODO(Logic): Map entries from headers to CurlRequesterGridRow widgets
               const CurlRequesterGridRow(
                 label: 'Content-Type',
                 value: 'application/json',
@@ -308,7 +323,9 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
               const Divider(height: 1, indent: 16, endIndent: 16),
               const CurlRequesterGridRow(label: 'Accept', value: '*/*'),
               const Divider(height: 1, indent: 16, endIndent: 16),
-              _buildAddRowButton(),
+              _buildAddRowButton(onPressed: () {
+                // TODO(Logic): Implement adding a new header row to the provider
+              }),
             ],
           ),
         ),
@@ -398,11 +415,13 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
 
 
   Widget _buildHistoryTab() {
+    // TODO(Logic): Bind to real transaction history from CurlRequesterState.history
     return ListView.separated(
       padding: const EdgeInsets.all(24),
-      itemCount: 5,
+      itemCount: 5, // TODO(Logic): Use real history length
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
+        // TODO(Logic): Get real CurlTransaction from history list
         return InkWell(
           onTap: () => _showResponseModal(context, isHistory: true),
           borderRadius: SqaStyles.radiusLarge,
@@ -413,10 +432,11 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
               children: [
                 Row(
                   children: [
+                    // TODO(Logic): Display real status code and latency metadata
                     const SqaStatusBadge(text: '200 OK', color: Colors.green),
                     const SizedBox(width: 12),
                     Text(
-                      'POST /v1/users',
+                      'POST /v1/users', // TODO(Logic): Display real method and path
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
@@ -424,7 +444,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
                     ),
                     const Spacer(),
                     Text(
-                      '2 mins ago',
+                      '2 mins ago', // TODO(Logic): Calculate real relative timestamp
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.grey,
                         fontSize: 10,
@@ -463,6 +483,8 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
     BuildContext context, {
     bool isHistory = false,
   }) async {
+    // TODO(Logic): Accept a CurlTransaction parameter to display real data
+
     // Reset modal tab to response when opening
     setState(() => _modalTab = ModalTab.response);
 
@@ -474,7 +496,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
             return SqaModal<bool>.custom(
               title: isHistory ? 'Transaction Inspector' : 'Response',
               leading: const SqaStatusBadge(
-                text: '200 OK',
+                text: '200 OK', // TODO(Logic): Dynamic status badge
                 color: Colors.green,
               ),
               confirmLabel: 'Done',
@@ -490,12 +512,12 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
                         children: [
                           const SqaMetadataItem(
                             icon: Symbols.timer,
-                            text: '1,245.82 ms',
+                            text: '1,245.82 ms', // TODO(Logic): Dynamic latency display
                           ),
                           const SizedBox(width: 12),
                           const SqaMetadataItem(
                             icon: Symbols.database,
-                            text: '1,242.08 MB',
+                            text: '1,242.08 MB', // TODO(Logic): Dynamic response size display
                           ),
                         ],
                       ),
@@ -510,12 +532,12 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
                         ButtonSegment(
                           value: ModalTab.request,
                           label: Text('REQ'),
-                          icon: Icon(Symbols.send),
+                          icon: Icon(Symbols.send, size: 14),
                         ),
                         ButtonSegment(
                           value: ModalTab.response,
                           label: Text('RES'),
-                          icon: Icon(Symbols.data_object),
+                          icon: Icon(Symbols.data_object, size: 14),
                         ),
                       ],
                       selected: {_modalTab},
@@ -548,6 +570,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
     // If "Send Again" (Cancel button) was pressed, re-trigger the modal
     if (result == false) {
       if (context.mounted) {
+        // TODO(Logic): Re-execute the request before showing the modal again
         _showResponseModal(context);
       }
     }
@@ -565,6 +588,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
       showCopyButton: true,
       initialValue:
           'curl -X POST "https://api.example.com/v1/users" \\\n  -H "Accept: application/json" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"name": "John Doe", "email": "john@example.com"}\'',
+      // TODO(Logic): Provide real request cURL string
     );
   }
 
@@ -580,6 +604,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
       showCopyButton: true,
       initialValue:
           '{\n  "status": "success",\n  "data": {\n    "id": 101,\n    "title": "foo",\n    "body": "bar",\n    "userId": 1\n  }\n}',
+      // TODO(Logic): Provide real response body string
     );
   }
 

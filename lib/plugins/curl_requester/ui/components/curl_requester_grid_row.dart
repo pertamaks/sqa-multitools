@@ -11,6 +11,7 @@ class CurlRequesterGridRow extends StatelessWidget {
   final int depth;
   final bool isParent;
   final bool showCheckbox;
+  final void Function(String label, String value)? onChanged;
 
   const CurlRequesterGridRow({
     super.key,
@@ -20,6 +21,7 @@ class CurlRequesterGridRow extends StatelessWidget {
     this.depth = 0,
     this.isParent = false,
     this.showCheckbox = true,
+    this.onChanged,
   });
 
   @override
@@ -32,7 +34,9 @@ class CurlRequesterGridRow extends StatelessWidget {
           if (showCheckbox) ...[
             SqaHoverIconButton(
               icon: Symbols.check_box,
-              onPressed: () {},
+              onPressed: () {
+                // TODO(Logic): Implement toggle active state for the row in the provider
+              },
               tooltip: 'Toggle Active',
               iconSize: 20,
               color: !isParent
@@ -61,6 +65,10 @@ class CurlRequesterGridRow extends StatelessWidget {
               isMonospace: true,
               fontSize: 12,
               showCopyButton: false,
+              onChanged: (String v) {
+                // TODO(Logic): Wire up label changes to the onChanged callback
+                onChanged?.call(v, value);
+              },
               fontWeight: isParent ? FontWeight.bold : FontWeight.normal,
               color: isParent
                   ? Theme.of(context).colorScheme.primary
@@ -83,6 +91,10 @@ class CurlRequesterGridRow extends StatelessWidget {
                     isMonospace: true,
                     fontSize: 12,
                     showCopyButton: false,
+                    onChanged: (String v) {
+                      // TODO(Logic): Wire up value changes to the onChanged callback
+                      onChanged?.call(label, v);
+                    },
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
@@ -95,22 +107,30 @@ class CurlRequesterGridRow extends StatelessWidget {
                       SqaPopupMenuItem(
                         icon: const Icon(Symbols.person),
                         label: 'Full Name',
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO(Logic): Implement Faker Full Name injection
+                        },
                       ),
                       SqaPopupMenuItem(
                         icon: const Icon(Symbols.mail),
                         label: 'Email',
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO(Logic): Implement Faker Email injection
+                        },
                       ),
                       SqaPopupMenuItem(
                         icon: const Icon(Symbols.location_on),
                         label: 'City',
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO(Logic): Implement Faker City injection
+                        },
                       ),
                       SqaPopupMenuItem(
                         icon: const Icon(Symbols.fingerprint),
                         label: 'Guid',
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO(Logic): Implement Faker Guid injection
+                        },
                       ),
                     ],
                   ),

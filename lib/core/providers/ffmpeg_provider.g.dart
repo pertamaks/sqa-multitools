@@ -40,7 +40,7 @@ final class FfmpegProvider extends $NotifierProvider<Ffmpeg, FfmpegStatus> {
   }
 }
 
-String _$ffmpegHash() => r'7f571f1c945b6a4747a2edb61afee6242189a63e';
+String _$ffmpegHash() => r'c8f2c81e84c36436ead48852d9d42d405df5a96f';
 
 abstract class _$Ffmpeg extends $Notifier<FfmpegStatus> {
   FfmpegStatus build();

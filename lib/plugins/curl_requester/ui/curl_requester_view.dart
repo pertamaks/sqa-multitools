@@ -12,24 +12,31 @@ import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_status_badge.dart';
 import '../../../ui/widgets/sqa_metadata_item.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'components/curl_requester_grid_row.dart';
+import '../providers/curl_requester_provider.dart';
+import '../models/curl_transaction.dart';
+import '../models/curl_requester_state.dart';
+import '../services/curl_parser_service.dart';
 
 
 enum ModalTab { request, response }
 
-class CurlRequesterView extends StatefulWidget {
+class CurlRequesterView extends ConsumerStatefulWidget {
   const CurlRequesterView({super.key});
 
   @override
-  State<CurlRequesterView> createState() => _CurlRequesterViewState();
+  ConsumerState<CurlRequesterView> createState() => _CurlRequesterViewState();
 }
 
-class _CurlRequesterViewState extends State<CurlRequesterView>
+class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     with SingleTickerProviderStateMixin {
   // --- State ---
   late TabController _tabController;
   late TextEditingController _urlController;
   late TextEditingController _curlController;
+  late ScrollController _requestScrollController;
+  late ScrollController _historyScrollController;
 
   bool _isGridMode = false;
   bool _showReflector = false;
@@ -40,6 +47,8 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _requestScrollController = ScrollController();
+    _historyScrollController = ScrollController();
     
     // TODO(Logic): Initialize controllers from the CurlRequesterState
     _urlController = TextEditingController(
@@ -60,6 +69,8 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
     _tabController.dispose();
     _urlController.dispose();
     _curlController.dispose();
+    _requestScrollController.dispose();
+    _historyScrollController.dispose();
     super.dispose();
   }
 
@@ -102,19 +113,24 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
     );
   }
 
+  // TODO(Refactor): Extract into ui/tabs/request_tab.dart
   Widget _buildRequestTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildRequestHeader(),
-          const SizedBox(height: 24),
-          _showReflector
-              ? _buildUnifiedGridContent()
-              : _buildCommandDeckContent(),
-          const SizedBox(height: 48),
-        ],
+    return Scrollbar(
+      controller: _requestScrollController,
+      child: SingleChildScrollView(
+        controller: _requestScrollController,
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildRequestHeader(),
+            const SizedBox(height: 24),
+            _showReflector
+                ? _buildUnifiedGridContent()
+                : _buildCommandDeckContent(),
+            const SizedBox(height: 48),
+          ],
+        ),
       ),
     );
   }
@@ -416,72 +432,78 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
   }
 
 
+  // TODO(Refactor): Extract into ui/tabs/history_tab.dart
   Widget _buildHistoryTab() {
     // TODO(Logic): Bind to real transaction history from CurlRequesterState.history
-    return ListView.separated(
-      padding: const EdgeInsets.all(24),
-      itemCount: 5, // TODO(Logic): Use real history length
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        // TODO(Logic): Get real CurlTransaction from history list
-        return InkWell(
-          onTap: () => _showResponseModal(context, isHistory: true),
-          borderRadius: SqaStyles.radiusLarge,
-          child: SqaCard(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // TODO(Logic): Display real status code and latency metadata
-                    const SqaStatusBadge(text: '200 OK', color: Colors.green),
-                    const SizedBox(width: 12),
-                    Text(
-                      'POST /v1/users', // TODO(Logic): Display real method and path
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+    return Scrollbar(
+      controller: _historyScrollController,
+      child: ListView.separated(
+        controller: _historyScrollController,
+        padding: const EdgeInsets.all(24),
+        itemCount: 5, // TODO(Logic): Use real history length
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          // TODO(Logic): Get real CurlTransaction from history list
+          return InkWell(
+            onTap: () => _showResponseModal(context, isHistory: true),
+            borderRadius: SqaStyles.radiusLarge,
+            child: SqaCard(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      // TODO(Logic): Display real status code and latency metadata
+                      const SqaStatusBadge(text: '200 OK', color: Colors.green),
+                      const SizedBox(width: 12),
+                      Text(
+                        'POST /v1/users', // TODO(Logic): Display real method and path
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
+                      const Spacer(),
+                      Text(
+                        '2 mins ago', // TODO(Logic): Calculate real relative timestamp
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.grey,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    const Spacer(),
-                    Text(
-                      '2 mins ago', // TODO(Logic): Calculate real relative timestamp
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.grey,
+                    child: Text(
+                      // TODO(Logic): Provide real stringified cURL snippet for history item
+                      'curl -X POST "https://api.example.com/v1/users" -H "Content-Type: application/json" -d \'{"name": "John Doe"}\'',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.jetBrainsMono(
                         fontSize: 10,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(
-                    // TODO(Logic): Provide real stringified cURL snippet for history item
-                    'curl -X POST "https://api.example.com/v1/users" -H "Content-Type: application/json" -d \'{"name": "John Doe"}\'',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.jetBrainsMono(
-                      fontSize: 10,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
+  // TODO(Refactor): Extract into ui/modals/transaction_inspector_modal.dart
   Future<void> _showResponseModal(
     BuildContext context, {
     bool isHistory = false,

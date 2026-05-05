@@ -40,7 +40,7 @@ final class AppVersionProvider
   }
 }
 
-String _$appVersionHash() => r'd59213e4ad373f70e211bc6782ace25ca97861a3';
+String _$appVersionHash() => r'7ca3dad73568c03597e9a7fb2bce466db4fb4cfb';
 
 @ProviderFor(UpdateState)
 final updateStateProvider = UpdateStateProvider._();

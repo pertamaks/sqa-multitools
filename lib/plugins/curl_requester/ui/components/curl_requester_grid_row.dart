@@ -135,6 +135,7 @@ class CurlRequesterGridRow extends StatelessWidget {
                     ],
                   ),
                 ],
+                // TODO(UI): Add a trailing 'Delete Row' icon button here
               ],
             ),
           ),

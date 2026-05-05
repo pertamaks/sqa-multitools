@@ -334,6 +334,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
   }
 
   Widget _buildRawEditor() {
+    // TODO(Logic): Bind to raw JSON body provider and remove hardcoded hint
     return const SqaField(
       label: 'Request Body',
       hintText: '{\n  "name": "John Doe",\n  "email": "john@example.com"\n}',
@@ -347,6 +348,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
   }
 
   Widget _buildGridEditor() {
+    // TODO(Logic): Map structured JSON body from provider to CurlRequesterGridRow widgets
     return SqaCard(
       child: Column(
         children: [
@@ -462,6 +464,7 @@ class _CurlRequesterViewState extends State<CurlRequesterView>
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
+                    // TODO(Logic): Provide real stringified cURL snippet for history item
                     'curl -X POST "https://api.example.com/v1/users" -H "Content-Type: application/json" -d \'{"name": "John Doe"}\'',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -104,21 +104,20 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     _syncRawFromState();
   }
 
-  bool _isClearingHistory = false;
-  void _handleClearHistory() {
+  Future<void> _handleClearHistory() async {
     final history = ref.read(curlRequesterProvider).history;
     if (history.isEmpty) return;
 
-    if (_isClearingHistory) {
+    final confirmed = await SqaModal.showDanger(
+      context,
+      title: 'Clear History',
+      message:
+          'Are you sure you want to clear your entire request history? This action cannot be undone.',
+      confirmLabel: 'Clear All',
+    );
+
+    if (confirmed == true) {
       ref.read(curlRequesterProvider.notifier).clearHistory();
-      setState(() => _isClearingHistory = false);
-    } else {
-      setState(() => _isClearingHistory = true);
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && _isClearingHistory) {
-          setState(() => _isClearingHistory = false);
-        }
-      });
     }
   }
 
@@ -174,13 +173,9 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
               : SqaHoverIconButton(
                   icon: Symbols.delete_sweep,
                   onPressed: _handleClearHistory,
-                  tooltip: _isClearingHistory 
-                      ? 'Click again to confirm' 
-                      : 'Clear History',
+                  tooltip: 'Clear History',
                   iconSize: 20,
-                  color: _isClearingHistory
-                      ? Theme.of(context).colorScheme.error
-                      : Colors.grey.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.8),
                 ),
           tabs: const [
             Tab(text: 'Request', icon: Icon(Symbols.send)),

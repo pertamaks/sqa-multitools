@@ -66,12 +66,13 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       ),
       confirmLabel: 'Done',
       customActions: [
-        TextButton(
+        TextButton.icon(
+          icon: const Icon(Symbols.send, size: 18),
           onPressed: () {
             Navigator.of(context).pop(false);
             widget.onSendAgain?.call();
           },
-          child: Text(widget.transaction == null ? 'Send' : 'Send Again'),
+          label: Text(widget.transaction == null ? 'Send' : 'Send Again'),
         ),
         const SizedBox(width: 8),
         FilledButton(

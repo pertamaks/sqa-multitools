@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../core/models/sqa_plugin.dart';
+import '../../ui/widgets/sqa_faker_locale_picker.dart';
 import 'ui/curl_requester_view.dart';
 
 class CurlRequesterPlugin implements SqaPlugin {
@@ -18,7 +19,7 @@ class CurlRequesterPlugin implements SqaPlugin {
   IconData get icon => Symbols.terminal;
 
   @override
-  String? get badge => 'BETA';
+  String? get badge => null;
 
   @override
   Widget buildPluginWindow(BuildContext context) {
@@ -27,7 +28,15 @@ class CurlRequesterPlugin implements SqaPlugin {
 
   @override
   Widget buildSettingsPanel(BuildContext context) {
-    return const Center(child: Text('cURL Requester Settings'));
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          SqaFakerLocalePicker(),
+        ],
+      ),
+    );
   }
 
   @override

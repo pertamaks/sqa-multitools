@@ -43,6 +43,7 @@ To ensure a consistent and premium experience across all plugins:
 * **Scrollbars (Sliders)**: 
     - **Visibility**: Always set `thumbVisibility` to `true` via the global `ScrollbarThemeData` to ensure sliders are visible without hovering.
     - **Draggability**: Every scrollable region MUST be wrapped in a `Scrollbar` widget with an explicitly linked `ScrollController` to ensure the thumb is draggable.
+* **Submenu Artifacts**: To remove or replace the default black triangle from `SubmenuButton`, do NOT attempt to hide it via the `child` or `trailingIcon` properties (which results in double icons). Use the `submenuIcon` property with a `WidgetStatePropertyAll` (e.g., `submenuIcon: WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14))`) to correctly override the framework's default arrow.
 
 ## 6. Asset & Audio Optimization
 * **Lazy Loading**: Never pre-load large assets during global app startup.
@@ -134,9 +135,14 @@ To prevent structural "bleeding" and the "Heading Virus" (paragraphs accidentall
 
 ## 17. Destructive UX Patterns (Safety First)
 To prevent accidental data loss and maintain a premium, safe-feeling environment:
-* **Mandatory Confirmation**: ALL destructive actions (e.g., deleting a task, clearing history, discarding unsaved changes) MUST trigger a confirmation modal.
-* **Pattern Enforcement**: Always use `SqaModal.showDanger` for these triggers. This ensures consistent use of the `error` color scheme, destructive iconography (`Symbols.delete`), and clear "Delete/Discard" labeling.
-* **No Inline Deletion**: Never provide a direct delete action without an intermediate confirmation step, even for "simple" items like Todo tasks.
+* **Mandatory Confirmation**: ALL destructive actions (e.g., deleting a task, clearing history, discarding unsaved changes) MUST require a confirmation step.
+* **Modal Pattern**: Use `SqaModal.showDanger` for high-risk system deletions or infrequent destructive actions. This ensures consistent use of the `error` color scheme, destructive iconography (`Symbols.delete`), and clear "Delete/Discard" labeling.
+* **Two-Click Inline Pattern (Fast Actions)**: For high-frequency actions (e.g., clearing a request field, pasting over data, clearing a 50-item history), use the "Two-Click Inline" pattern to maintain workflow speed.
+    - **Visual State**: The button MUST transition from a subtle grey (`Colors.grey.withValues(alpha: 0.5)`) to a highlight color on the first click.
+    - **Highlight Color**: Use the `error` color for deletions and the `primary` color for overwrites (like Paste).
+    - **Safety Window**: Provide a 3-second auto-reset timer. The action only executes on the second click within this window.
+    - **Tooltips**: Update the tooltip during the active window (e.g., "Click again to confirm").
+* **No Single-Click Deletion**: Never provide a direct delete action without one of the two intermediate confirmation steps above.
 
 ## 18. High-Fidelity "Read-Only" Rendering (Viewer Architecture)
 To ensure that documents rendered for viewing (Read-Only mode) maintain absolute structural parity with complex Markdown/HTML source:

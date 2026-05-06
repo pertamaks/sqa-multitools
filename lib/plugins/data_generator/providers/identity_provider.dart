@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:faker_dart/faker_dart.dart';
 import '../../../core/utils/faker_fix.dart';
+import '../../../core/providers/faker_locale_provider.dart';
 import '../models/identity_state.dart';
 
 part 'identity_provider.g.dart';
@@ -12,7 +13,18 @@ class Identity extends _$Identity {
   @override
   IdentityState build() {
     _faker = Faker.instance;
-    return const IdentityState(resultsMap: <IdentityType, List<String>>{});
+    // Sync with global faker locale
+    final globalLocale = ref.watch(fakerLocaleProvider);
+    _faker.setLocale(globalLocale);
+
+    return IdentityState(
+      resultsMap: <IdentityType, List<String>>{},
+      locale: globalLocale,
+    );
+  }
+
+  void setLocale(FakerLocaleType locale) {
+    ref.read(fakerLocaleProvider.notifier).setLocale(locale);
   }
 
   void setType(IdentityType type) {
@@ -25,11 +37,6 @@ class Identity extends _$Identity {
 
   void setCustomDomain(String domain) {
     state = state.copyWith(customDomain: domain);
-  }
-
-  void setLocale(FakerLocaleType locale) {
-    state = state.copyWith(locale: locale);
-    _faker.setLocale(locale);
   }
 
   void setIncludeFormatting(bool value) {

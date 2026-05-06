@@ -45,6 +45,7 @@ class PreferencesService {
   static const String keyScreenshotFormat = 'screenshot_format';
   static const String keyScreenshotDelay = 'screenshot_delay';
   static const String keyTextEditorSaveDir = 'text_editor_save_dir';
+  static const String keyFakerLocale = 'faker_locale';
   static const String keyCurlHistory = 'plugin_curl_requester_history_v1';
 
   List<String>? getEnabledPluginIds() {
@@ -211,6 +212,14 @@ class PreferencesService {
 
   Future<void> setTextEditorSaveDir(String path) async {
     await _prefs.setString(keyTextEditorSaveDir, path);
+  }
+  
+  String getFakerLocale() {
+    return _prefs.getString(keyFakerLocale) ?? 'en_US';
+  }
+
+  Future<void> setFakerLocale(String locale) async {
+    await _prefs.setString(keyFakerLocale, locale);
   }
 }
 

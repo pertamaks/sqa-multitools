@@ -194,46 +194,92 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                     const SizedBox(width: 0),
                     SqaPopupMenu(
                       icon: Icon(
-                        Symbols.playing_cards,
+                        (widget.key.hashCode % 2 == 0) ? Symbols.ifl : Symbols.casino,
                         color: widget.isActive ? null : Colors.grey.withValues(alpha: 0.5),
+                        size: 20,
                       ),
                       tooltip: 'Faker Data',
                       children: [
-                        SqaPopupMenuItem(
-                          icon: const Icon(Symbols.person),
-                          label: 'Full Name',
-                          onPressed: () {
-                            _valueController.text = '{{faker.name}}';
-                            _commitChanges();
-                            widget.onFakerSelected?.call('{{faker.name}}');
-                          },
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuStyle: MenuStyle(
+                            padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
+                          ),
+                          menuChildren: [
+                            _fakerItem(Symbols.person, 'Full Name', 'name'),
+                            _fakerItem(Symbols.person_outline, 'First Name', 'firstName'),
+                            _fakerItem(Symbols.person_outline, 'Last Name', 'lastName'),
+                            _fakerItem(Symbols.work, 'Job Title', 'jobTitle'),
+                          ],
+                          child: _categoryLabel(Symbols.person, 'Personal'),
                         ),
-                        SqaPopupMenuItem(
-                          icon: const Icon(Symbols.mail),
-                          label: 'Email',
-                          onPressed: () {
-                            _valueController.text = '{{faker.email}}';
-                            _commitChanges();
-                            widget.onFakerSelected?.call('{{faker.email}}');
-                          },
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.mail, 'Email', 'email'),
+                            _fakerItem(Symbols.account_circle, 'Username', 'username'),
+                            _fakerItem(Symbols.password, 'Password', 'password'),
+                            _fakerItem(Symbols.phone, 'Phone Number', 'phone'),
+                          ],
+                          child: _categoryLabel(Symbols.contact_mail, 'Contact'),
                         ),
-                        SqaPopupMenuItem(
-                          icon: const Icon(Symbols.location_on),
-                          label: 'City',
-                          onPressed: () {
-                            _valueController.text = '{{faker.city}}';
-                            _commitChanges();
-                            widget.onFakerSelected?.call('{{faker.city}}');
-                          },
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.location_on, 'City', 'city'),
+                            _fakerItem(Symbols.home, 'Street Address', 'street'),
+                            _fakerItem(Symbols.public, 'Country', 'country'),
+                          ],
+                          child: _categoryLabel(Symbols.map, 'Location'),
                         ),
-                        SqaPopupMenuItem(
-                          icon: const Icon(Symbols.fingerprint),
-                          label: 'Guid',
-                          onPressed: () {
-                            _valueController.text = '{{faker.guid}}';
-                            _commitChanges();
-                            widget.onFakerSelected?.call('{{faker.guid}}');
-                          },
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.fingerprint, 'GUID / UUID', 'guid'),
+                            _fakerItem(Symbols.lan, 'IPv4 Address', 'ipv4'),
+                            _fakerItem(Symbols.link, 'URL', 'url'),
+                            _fakerItem(Symbols.palette, 'Color hex', 'color'),
+                          ],
+                          child: _categoryLabel(Symbols.terminal, 'Technical'),
+                        ),
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.business, 'Company Name', 'company'),
+                            _fakerItem(Symbols.shopping_cart, 'Product Name', 'product'),
+                            _fakerItem(Symbols.payments, 'Price', 'price'),
+                          ],
+                          child: _categoryLabel(Symbols.inventory_2, 'Business'),
+                        ),
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.credit_card, 'Credit Card', 'creditCard'),
+                            _fakerItem(Symbols.currency_exchange, 'Currency Code', 'currency'),
+                            _fakerItem(Symbols.payments, 'Amount', 'amount'),
+                            _fakerItem(Symbols.account_balance, 'Account Number', 'account'),
+                          ],
+                          child: _categoryLabel(Symbols.savings, 'Finance'),
+                        ),
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.history, 'Past Date', 'pastDate'),
+                            _fakerItem(Symbols.update, 'Future Date', 'futureDate'),
+                            _fakerItem(Symbols.today, 'Recent Date', 'recentDate'),
+                            _fakerItem(Symbols.calendar_month, 'Month', 'month'),
+                            _fakerItem(Symbols.calendar_view_day, 'Weekday', 'weekday'),
+                          ],
+                          child: _categoryLabel(Symbols.calendar_today, 'Date'),
+                        ),
+                        SubmenuButton(
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          menuChildren: [
+                            _fakerItem(Symbols.title, 'Single Word', 'word'),
+                            _fakerItem(Symbols.notes, 'Sentence', 'sentence'),
+                            _fakerItem(Symbols.description, 'Paragraph', 'paragraph'),
+                          ],
+                          child: _categoryLabel(Symbols.article, 'Text'),
                         ),
                       ],
                     ),
@@ -256,6 +302,32 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _categoryLabel(IconData icon, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _fakerItem(IconData icon, String label, String fakerType) {
+    return SqaPopupMenuItem(
+      icon: Icon(icon),
+      label: label,
+      onPressed: () {
+        _valueController.text = '{{faker.$fakerType}}';
+        _commitChanges();
+        widget.onFakerSelected?.call('{{faker.$fakerType}}');
+      },
     );
   }
 }

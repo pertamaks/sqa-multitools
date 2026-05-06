@@ -41,7 +41,7 @@ final class CurlRequesterProvider
   }
 }
 
-String _$curlRequesterHash() => r'fe68dbd2fccb8d387c807d25fd9b21a1ddb1ffe8';
+String _$curlRequesterHash() => r'd466c69ff3a829471ecf312861e19b19a66047ba';
 
 abstract class _$CurlRequester extends $Notifier<CurlRequesterState> {
   CurlRequesterState build();

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/curl_command.dart';
@@ -13,6 +13,12 @@ part 'curl_requester_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class CurlRequester extends _$CurlRequester {
+  final _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    validateStatus: (_) => true, // Capture all status codes
+  ));
+
   @override
   CurlRequesterState build() {
     try {
@@ -165,57 +171,66 @@ class CurlRequester extends _$CurlRequester {
 
     try {
       // 1. Resolve Placeholders (Faker Integration)
-      // If it's already resolved, this returns as is
-      final resolvedCommand = FakerResolutionService.resolveCommand(command);
+      final prefs = ref.read(preferencesServiceProvider);
+      final resolvedCommand = FakerResolutionService.resolveCommand(command, prefs);
 
       // 2. Prepare URL & Params
-      var uri = Uri.parse(resolvedCommand.url);
-      if (!uri.hasScheme) uri = Uri.parse('http://${resolvedCommand.url}');
+      String finalUrl = resolvedCommand.url;
+      if (!finalUrl.startsWith('http')) finalUrl = 'http://$finalUrl';
       
       final activeParams = Map<String, String>.from(resolvedCommand.queryParameters)
         ..removeWhere((k, _) => command.inactiveQueryParameters.contains(k));
       
-      if (activeParams.isNotEmpty) {
-        final newParams = {...uri.queryParameters, ...activeParams};
-        uri = uri.replace(queryParameters: newParams);
-      }
-
       // 3. Prepare Headers
-      final activeHeaders = Map<String, String>.from(resolvedCommand.headers)
+      final activeHeaders = Map<String, dynamic>.from(resolvedCommand.headers)
         ..removeWhere((k, _) => command.inactiveHeaders.contains(k));
 
-      // 4. Prepare and Send Request
-      final request = http.Request(command.method, uri);
-      request.headers.addAll(activeHeaders);
-      if (resolvedCommand.body.isNotEmpty) request.body = resolvedCommand.body;
+      // 4. Send Request via Dio
+      final response = await _dio.request(
+        finalUrl,
+        queryParameters: activeParams,
+        data: resolvedCommand.body.isNotEmpty ? resolvedCommand.body : null,
+        options: Options(
+          method: command.method,
+          headers: activeHeaders,
+          responseType: ResponseType.plain, // Keep body as string for inspector
+        ),
+      );
 
-      final client = http.Client();
-      final streamedResponse = await client.send(request).timeout(const Duration(seconds: 30));
-      final response = await http.Response.fromStream(streamedResponse);
-      client.close();
       stopwatch.stop();
 
-      // 5. Create Transaction (Save BOTH template and resolved command)
+      // 5. Create Transaction
       final transaction = CurlTransaction(
         id: const Uuid().v4(),
-        request: command, // Original template
-        resolvedRequest: resolvedCommand, // Actual data sent
-        statusCode: response.statusCode,
-        responseBody: response.body,
+        request: command, 
+        resolvedRequest: resolvedCommand, 
+        statusCode: response.statusCode ?? 0,
+        responseBody: response.data?.toString() ?? '',
         latency: stopwatch.elapsed,
-        responseSize: response.bodyBytes.length,
+        responseSize: (response.data?.toString().length ?? 0),
         timestamp: DateTime.now(),
       );
 
       _updateHistory(transaction);
+    } on DioException catch (e) {
+      stopwatch.stop();
+      final transaction = CurlTransaction(
+        id: const Uuid().v4(),
+        request: command,
+        statusCode: e.response?.statusCode ?? 0,
+        responseBody: 'Error [${e.type.name}]: ${e.message}\n\n${e.response?.data ?? ""}',
+        latency: stopwatch.elapsed,
+        responseSize: 0,
+        timestamp: DateTime.now(),
+      );
+      _updateHistory(transaction);
     } catch (e) {
       stopwatch.stop();
-      // Even on error, save the original template
       final transaction = CurlTransaction(
         id: const Uuid().v4(),
         request: command,
         statusCode: 0,
-        responseBody: 'Error: ${e.toString()}',
+        responseBody: 'System Error: ${e.toString()}',
         latency: stopwatch.elapsed,
         responseSize: 0,
         timestamp: DateTime.now(),

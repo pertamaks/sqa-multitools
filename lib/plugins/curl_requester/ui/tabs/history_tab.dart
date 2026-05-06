@@ -75,8 +75,6 @@ class HistoryTab extends ConsumerWidget {
 
           return InkWell(
             onTap: () {
-              ref.read(curlRequesterProvider.notifier).updateCommand(transaction.request);
-              onTransactionTap();
               showTransactionModal(transaction);
             },
             borderRadius: SqaStyles.radiusLarge,

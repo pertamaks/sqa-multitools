@@ -29,6 +29,7 @@ class SqaPluginLayout extends StatelessWidget {
   final Widget? filterOptions;
   final bool isFilterActive;
   final Widget? secondaryHeader;
+  final int initialTabIndex;
 
   const SqaPluginLayout({
     super.key,
@@ -50,6 +51,7 @@ class SqaPluginLayout extends StatelessWidget {
     this.filterOptions,
     this.isFilterActive = false,
     this.secondaryHeader,
+    this.initialTabIndex = 0,
   });
   @override
   Widget build(BuildContext context) {
@@ -105,8 +107,9 @@ class SqaPluginLayout extends StatelessWidget {
                     ),
                     if (tabs != null && tabs!.isNotEmpty)
                       DefaultTabController(
-                        key: ValueKey(tabs!.length),
+                        key: ValueKey('${tabs!.length}_$initialTabIndex'),
                         length: tabs!.length,
+                        initialIndex: initialTabIndex,
                         child: Expanded(
                           child: Column(
                             children: [

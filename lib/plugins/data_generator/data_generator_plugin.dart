@@ -43,27 +43,24 @@ class _DataGeneratorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4,
-      child: SqaPluginLayout(
-        icon: Symbols.wand_stars,
-        title: 'Data Generator',
-        description: 'Generate mock UUIDs, emails, numbers, and more.',
-        tabs: const [
-          Tab(icon: Icon(Symbols.person), text: 'Identity'),
-          Tab(icon: Icon(Symbols.notes), text: 'Lorem'),
-          Tab(icon: Icon(Symbols.glyphs), text: 'Glyphs'),
-          Tab(icon: Icon(Symbols.terminal), text: 'Dev'),
+    return SqaPluginLayout(
+      icon: Symbols.wand_stars,
+      title: 'Data Generator',
+      description: 'Generate mock UUIDs, emails, numbers, and more.',
+      tabs: const [
+        Tab(icon: Icon(Symbols.person), text: 'Identity'),
+        Tab(icon: Icon(Symbols.notes), text: 'Lorem'),
+        Tab(icon: Icon(Symbols.glyphs), text: 'Glyphs'),
+        Tab(icon: Icon(Symbols.terminal), text: 'Dev'),
+      ],
+      child: const TabBarView(
+        physics: NeverScrollableScrollPhysics(),
+        children: [
+          IdentityTabView(),
+          LoremTabView(),
+          GlyphsTabView(),
+          DevTabView(),
         ],
-        child: const TabBarView(
-          physics: NeverScrollableScrollPhysics(),
-          children: [
-            IdentityTabView(),
-            LoremTabView(),
-            GlyphsTabView(),
-            DevTabView(),
-          ],
-        ),
       ),
     );
   }

@@ -28,6 +28,8 @@ class SqaPluginLayout extends StatelessWidget {
   final String searchHint;
   final Widget? filterOptions;
   final bool isFilterActive;
+  final Widget? secondaryHeader;
+  final int initialTabIndex;
 
   const SqaPluginLayout({
     super.key,
@@ -48,6 +50,8 @@ class SqaPluginLayout extends StatelessWidget {
     this.searchHint = 'Search...',
     this.filterOptions,
     this.isFilterActive = false,
+    this.secondaryHeader,
+    this.initialTabIndex = 0,
   });
   @override
   Widget build(BuildContext context) {
@@ -103,8 +107,9 @@ class SqaPluginLayout extends StatelessWidget {
                     ),
                     if (tabs != null && tabs!.isNotEmpty)
                       DefaultTabController(
-                        key: ValueKey(tabs!.length),
+                        key: ValueKey('${tabs!.length}_$initialTabIndex'),
                         length: tabs!.length,
+                        initialIndex: initialTabIndex,
                         child: Expanded(
                           child: Column(
                             children: [
@@ -113,13 +118,21 @@ class SqaPluginLayout extends StatelessWidget {
                                 controller: tabController,
                                 isScrollable: isTabScrollable,
                               ),
+                              if (secondaryHeader != null) secondaryHeader!,
                               Expanded(child: this.child),
                             ],
                           ),
                         ),
                       )
                     else
-                      Expanded(child: this.child),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            if (secondaryHeader != null) secondaryHeader!,
+                            Expanded(child: this.child),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),

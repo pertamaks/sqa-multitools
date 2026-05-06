@@ -75,6 +75,7 @@ dependencies:
   win32: ^5.15.0
   markdown: ^7.3.1
   http: ^1.2.1
+  dio: ^5.4.3
   package_info_plus: ^8.0.0
 
   path: any

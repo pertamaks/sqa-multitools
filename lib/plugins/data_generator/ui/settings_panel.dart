@@ -4,6 +4,7 @@ import '../providers/identity_provider.dart';
 import 'widgets/locale_dropdown.dart';
 import 'widgets/count_dropdown.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
+import '../../../ui/widgets/sqa_faker_locale_picker.dart';
 import '../../../ui/widgets/sqa_switch.dart';
 
 class DataGeneratorSettingsPanel extends ConsumerWidget {
@@ -27,30 +28,10 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
+        const SqaFakerLocalePicker(),
+        const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'LOCALE',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  LocaleDropdown(
-                    value: state.locale,
-                    onChanged: (val) {
-                      if (val != null) notifier.setLocale(val);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

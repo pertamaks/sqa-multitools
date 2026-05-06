@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'ffmpeg_provider.dart';
+part of 'faker_locale_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,50 +9,51 @@ part of 'ffmpeg_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(Ffmpeg)
-final ffmpegProvider = FfmpegProvider._();
+@ProviderFor(FakerLocale)
+final fakerLocaleProvider = FakerLocaleProvider._();
 
-final class FfmpegProvider extends $NotifierProvider<Ffmpeg, FfmpegStatus> {
-  FfmpegProvider._()
+final class FakerLocaleProvider
+    extends $NotifierProvider<FakerLocale, FakerLocaleType> {
+  FakerLocaleProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'ffmpegProvider',
+        name: r'fakerLocaleProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$ffmpegHash();
+  String debugGetCreateSourceHash() => _$fakerLocaleHash();
 
   @$internal
   @override
-  Ffmpeg create() => Ffmpeg();
+  FakerLocale create() => FakerLocale();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(FfmpegStatus value) {
+  Override overrideWithValue(FakerLocaleType value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<FfmpegStatus>(value),
+      providerOverride: $SyncValueProvider<FakerLocaleType>(value),
     );
   }
 }
 
-String _$ffmpegHash() => r'c8f2c81e84c36436ead48852d9d42d405df5a96f';
+String _$fakerLocaleHash() => r'75b925cb364713e753641869da674dbc3c8f7263';
 
-abstract class _$Ffmpeg extends $Notifier<FfmpegStatus> {
-  FfmpegStatus build();
+abstract class _$FakerLocale extends $Notifier<FakerLocaleType> {
+  FakerLocaleType build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<FfmpegStatus, FfmpegStatus>;
+    final ref = this.ref as $Ref<FakerLocaleType, FakerLocaleType>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<FfmpegStatus, FfmpegStatus>,
-              FfmpegStatus,
+              AnyNotifier<FakerLocaleType, FakerLocaleType>,
+              FakerLocaleType,
               Object?,
               Object?
             >;

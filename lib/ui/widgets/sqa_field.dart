@@ -37,10 +37,16 @@ class SqaField extends StatefulWidget {
     this.gutterFontSize,
     this.showSentenceCaseButton = false,
     this.autofocus = false,
+    this.fontWeight,
+    this.color,
+    this.onSubmitted,
+    this.focusNode,
+    this.isSelectable = true,
   });
 
   final String label;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final UndoHistoryController? undoController;
   final String? initialValue;
   final IconData? icon;
@@ -54,10 +60,13 @@ class SqaField extends StatefulWidget {
   final ScrollController? horizontalScrollController;
   final bool wrap;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final TapRegionCallback? onTapOutside;
   final String? hintText;
   final bool showCopyButton;
   final Widget? trailing;
+  final FontWeight? fontWeight;
+  final Color? color;
   final int? collapsedMaxLines;
   final bool showLineNumbers;
   final bool isTransparent;
@@ -67,6 +76,7 @@ class SqaField extends StatefulWidget {
   final double? gutterFontSize;
   final bool showSentenceCaseButton;
   final bool autofocus;
+  final bool isSelectable;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -128,7 +138,7 @@ class _SqaFieldState extends State<SqaField> {
   int get _lineCount => _internalController.text.split('\n').length;
 
   void _updateStickyOffset() {
-    if (!widget.showCopyButton) return;
+    if (!widget.showCopyButton && !widget.showSentenceCaseButton) return;
 
     final RenderBox? containerBox =
         _containerKey.currentContext?.findRenderObject() as RenderBox?;
@@ -187,10 +197,11 @@ class _SqaFieldState extends State<SqaField> {
     _gutterScrollController = ScrollController();
     _internalHorizontalScrollController = ScrollController();
 
-    _focusNode = FocusNode();
-    _focusNode.addListener(() {
-      setState(() => _isFocused = _focusNode.hasFocus);
-    });
+    _focusNode = widget.focusNode ?? FocusNode();
+    if (widget.readOnly) {
+      _focusNode.canRequestFocus = false;
+    }
+    _focusNode.addListener(_onFocusChanged);
 
     _verticalScrollController.addListener(_syncGutterScroll);
   }
@@ -206,7 +217,10 @@ class _SqaFieldState extends State<SqaField> {
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    _focusNode.removeListener(_onFocusChanged);
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
     _scrollPosition?.removeListener(_updateStickyOffset);
     _internalController.removeListener(_onControllerChanged);
     if (widget.controller == null) {
@@ -218,6 +232,10 @@ class _SqaFieldState extends State<SqaField> {
     _internalHorizontalScrollController.dispose();
     _stickyTopNotifier.dispose();
     super.dispose();
+  }
+
+  void _onFocusChanged() {
+    setState(() => _isFocused = _focusNode.hasFocus);
   }
 
   int _lastLineCount = 0;
@@ -252,8 +270,18 @@ class _SqaFieldState extends State<SqaField> {
       _internalController = widget.controller!;
       _internalController.addListener(_onControllerChanged);
     } else if (widget.initialValue != null &&
-        widget.initialValue != oldWidget.initialValue) {
+        widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _internalController.text) {
       _internalController.text = widget.initialValue!;
+    }
+
+    if (widget.focusNode != oldWidget.focusNode) {
+      _focusNode.removeListener(_onFocusChanged);
+      if (oldWidget.focusNode == null) {
+        _focusNode.dispose();
+      }
+      _focusNode = widget.focusNode ?? FocusNode();
+      _focusNode.addListener(_onFocusChanged);
     }
   }
 
@@ -339,9 +367,9 @@ class _SqaFieldState extends State<SqaField> {
               decoration: BoxDecoration(
                 color: widget.isTransparent
                     ? Colors.transparent
-                    : (_isFocused
+                    : (!widget.readOnly && _isFocused
                           ? colorScheme.primaryContainer.withValues(alpha: 0.15)
-                          : (_isHovered
+                          : (!widget.readOnly && _isHovered
                                 ? colorScheme.surfaceContainerHighest
                                       .withValues(alpha: 0.1)
                                 : Colors.transparent)),
@@ -349,9 +377,9 @@ class _SqaFieldState extends State<SqaField> {
                 border: Border.all(
                   color: widget.isTransparent
                       ? Colors.transparent
-                      : (_isFocused
+                      : (!widget.readOnly && _isFocused
                             ? colorScheme.primary.withValues(alpha: 0.3)
-                            : (_isHovered
+                            : (!widget.readOnly && _isHovered
                                   ? colorScheme.outlineVariant.withValues(
                                       alpha: 0.3,
                                     )
@@ -359,7 +387,7 @@ class _SqaFieldState extends State<SqaField> {
                                       alpha: 0.0,
                                     ))),
                 ),
-                boxShadow: _isFocused
+                boxShadow: !widget.readOnly && _isFocused
                     ? [
                         BoxShadow(
                           color: colorScheme.primary.withValues(alpha: 0.05),
@@ -400,7 +428,7 @@ class _SqaFieldState extends State<SqaField> {
                     Padding(
                       padding: EdgeInsets.only(
                         bottom: (showFooter && _isExpanded) ? 40 : 0,
-                        right: widget.showCopyButton ? 44 : 0,
+                        right: (widget.showCopyButton || widget.showSentenceCaseButton || widget.trailing != null) ? 44 : 0,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.max,
@@ -419,6 +447,7 @@ class _SqaFieldState extends State<SqaField> {
                                   autofocus: widget.autofocus,
                                   readOnly: widget.readOnly,
                                   onChanged: widget.onChanged,
+                                  onSubmitted: widget.onSubmitted,
                                   scrollPhysics:
                                       (widget.collapsedMaxLines != null &&
                                           !_isExpanded)
@@ -439,7 +468,8 @@ class _SqaFieldState extends State<SqaField> {
                                           ?.copyWith(
                                             fontSize: fontSize,
                                             height: fontHeight,
-                                            color: colorScheme.onSurface,
+                                            color: widget.color ?? colorScheme.onSurface,
+                                            fontWeight: widget.fontWeight,
                                           ),
                                   strutStyle: StrutStyle(
                                     fontSize: fontSize,
@@ -464,6 +494,7 @@ class _SqaFieldState extends State<SqaField> {
                                   scrollController: _verticalScrollController,
                                   undoController: widget.undoController,
                                   onTapOutside: widget.onTapOutside,
+                                  enableInteractiveSelection: widget.isSelectable,
                                   textAlignVertical: TextAlignVertical.top,
                                 );
 
@@ -513,6 +544,7 @@ class _SqaFieldState extends State<SqaField> {
                         child: _buildExpansionFooter(theme),
                       ),
 
+                    // 4. Sticky Action Buttons
                     // 4. Sticky Action Buttons
                     if (widget.showCopyButton || widget.showSentenceCaseButton)
                       ValueListenableBuilder<double>(

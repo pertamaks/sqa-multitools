@@ -69,28 +69,25 @@ class SettingsView extends ConsumerWidget {
     final history = ref.watch(navigationHistoryProvider);
     final navService = ref.read(navigationServiceProvider);
 
-    return DefaultTabController(
-      length: 3,
-      initialIndex: initialTab,
-      child: SqaPluginLayout(
-        icon: Symbols.settings,
-        title: 'System Settings',
-        description: 'Personalize your SQA-Multitools experience.',
-        onBack: history != null ? () => navService.goBack() : null,
-        useMask: false, // Handle internal fading for specific tabs
-        tabs: [
-          const Tab(icon: Icon(Symbols.settings), text: 'General'),
-          const Tab(icon: Icon(Symbols.extension), text: 'Plugins'),
-          const Tab(icon: Icon(Symbols.coffee), text: 'Coffee Shop'),
+    return SqaPluginLayout(
+      icon: Symbols.settings,
+      title: 'System Settings',
+      description: 'Personalize your SQA-Multitools experience.',
+      onBack: history != null ? () => navService.goBack() : null,
+      useMask: false, // Handle internal fading for specific tabs
+      initialTabIndex: initialTab,
+      tabs: const [
+        Tab(icon: Icon(Symbols.settings), text: 'General'),
+        Tab(icon: Icon(Symbols.extension), text: 'Plugins'),
+        Tab(icon: Icon(Symbols.coffee), text: 'Coffee Shop'),
+      ],
+      child: const TabBarView(
+        physics: NeverScrollableScrollPhysics(),
+        children: [
+          SqaFadeWrapper(child: GeneralSettingsView()),
+          PluginsSettingsView(),
+          SqaFadeWrapper(child: CoffeeShopView()),
         ],
-        child: TabBarView(
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            SqaFadeWrapper(child: const GeneralSettingsView()),
-            const PluginsSettingsView(),
-            SqaFadeWrapper(child: const CoffeeShopView()),
-          ],
-        ),
       ),
     );
   }

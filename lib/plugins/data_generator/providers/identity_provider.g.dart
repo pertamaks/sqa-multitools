@@ -41,7 +41,7 @@ final class IdentityProvider
   }
 }
 
-String _$identityHash() => r'4104304fb66e98edf383fb8ded1fde82aeb1c0d9';
+String _$identityHash() => r'57058cd46cd741be99e29eb977b916c8111813eb';
 
 abstract class _$Identity extends $Notifier<IdentityState> {
   IdentityState build();

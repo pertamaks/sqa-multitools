@@ -48,4 +48,4 @@ final class UpdateServiceProvider
   }
 }
 
-String _$updateServiceHash() => r'a25cebc301f37cea1fca54537a730de9f56b581f';
+String _$updateServiceHash() => r'fedb516662068a9f42c6c1052bce6d04cc1d749c';

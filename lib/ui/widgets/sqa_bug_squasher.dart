@@ -286,15 +286,18 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
           Positioned(
             top: _bugPositionY,
             left: _bugPositionX,
-            child: GestureDetector(
-              onTap: _squash,
-              child: Transform(
-                transform: _bugTransform,
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/caterpillar.gif',
-                  width: kBugSize,
-                  height: kBugSize,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: _squash,
+                child: Transform(
+                  transform: _bugTransform,
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/caterpillar.gif',
+                    width: kBugSize,
+                    height: kBugSize,
+                  ),
                 ),
               ),
             ),

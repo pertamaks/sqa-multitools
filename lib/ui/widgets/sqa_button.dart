@@ -264,6 +264,10 @@ class SqaButton extends StatelessWidget {
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
       ),
+      mouseCursor: WidgetStateProperty.resolveWith<MouseCursor?>((states) {
+        if (states.contains(WidgetState.disabled)) return SystemMouseCursors.basic;
+        return SystemMouseCursors.click;
+      }),
     );
   }
 }

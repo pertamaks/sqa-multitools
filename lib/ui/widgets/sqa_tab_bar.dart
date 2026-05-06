@@ -103,6 +103,7 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
       indicatorColor: colorScheme.primary,
       indicatorSize: TabBarIndicatorSize.label,
       overlayColor: SqaStyles.buttonOverlay(context),
+      mouseCursor: SystemMouseCursors.click,
       labelStyle: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,

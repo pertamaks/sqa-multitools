@@ -97,10 +97,11 @@ class _TodoViewState extends ConsumerState<TodoView>
       trailing: _tabController.index == 2
           ? null
           : SqaButton(
-              label: _tabController.index == 1 ? 'Recurring' : 'Focus',
-              icon: Symbols.add,
+              label: _tabController.index == 1 ? '' : '',
+              icon: Symbols.blur_on,
               onPressed: () => _showAddTodoDialog(context),
               type: SqaButtonType.primary,
+              tooltip: _tabController.index == 1 ? 'Add Recurring Focus' : 'Add Focus',
             ),
       searchController: _searchController,
       onSearchChanged: (val) =>

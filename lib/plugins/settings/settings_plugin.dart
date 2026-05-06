@@ -1156,6 +1156,110 @@ class GeneralSettingsView extends ConsumerWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+
+                // Transparency Mode (Premium Feature - Tier 3)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Transparency Mode',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Text(
+                                'Enable premium transparency effects for a cleaner look.',
+                                style:
+                                    TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (supporterTier < 3)
+                          const Icon(Symbols.lock, size: 16, color: Colors.grey)
+                        else
+                          SqaSwitch(
+                            value: themeSettings.isTransparencyModeEnabled,
+                            onChanged: (v) {
+                              ref
+                                  .read(themeSettingsProvider.notifier)
+                                  .toggleTransparencyMode(v);
+                            },
+                          ),
+                      ],
+                    ),
+                    if (themeSettings.isTransparencyModeEnabled &&
+                        supporterTier >= 3) ...[
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Transparency Level',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Capped at 85% for readability.',
+                                style:
+                                    TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '${(themeSettings.opacity * 100).toInt()}%',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 4,
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 8,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 14,
+                          ),
+                        ),
+                        child: Slider(
+                          value: themeSettings.opacity,
+                          min: 0.2,
+                          max: 0.85,
+                          divisions: 65, // 1% increments from 20% to 85%
+                          onChanged: (v) {
+                            ref
+                                .read(themeSettingsProvider.notifier)
+                                .setOpacity(v);
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),

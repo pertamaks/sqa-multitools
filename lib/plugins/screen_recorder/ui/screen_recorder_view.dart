@@ -78,7 +78,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
 
     // Only auto-start if the user hasn't switched away to another plugin
     final currentPlugin = ref.read(activePluginProvider);
-    if (currentPlugin?.id != 'com.sqa.plugin.screen_recorder') {
+    if (currentPlugin?.id != 'com.sqa.screen_recorder') {
       return;
     }
 

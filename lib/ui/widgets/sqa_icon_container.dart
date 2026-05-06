@@ -50,6 +50,7 @@ class SqaIconContainer extends StatelessWidget {
         borderRadius: isCircular
             ? null
             : (borderRadius ?? SqaStyles.radiusMedium),
+        mouseCursor: SystemMouseCursors.click,
         child: content,
       );
     }

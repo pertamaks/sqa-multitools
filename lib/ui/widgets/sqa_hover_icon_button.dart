@@ -49,6 +49,7 @@ class _SqaHoverIconButtonState extends State<SqaHoverIconButton> {
     final currentColor = isEffectActive ? activeColor : baseColor;
 
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedScale(

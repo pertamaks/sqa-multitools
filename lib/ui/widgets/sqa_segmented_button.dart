@@ -135,6 +135,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       ).copyWith(
         shape: SqaStyles.buttonShape,
         overlayColor: SqaStyles.buttonOverlay(context),
+        mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
       ),
     );
 

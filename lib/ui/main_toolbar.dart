@@ -141,149 +141,152 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     bool hasTodoReminder,
     bool isTimerRunning,
   ) {
-    return GestureDetector(
-      onPanStart: (_) => windowManager.startDragging(),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: WindowConstants.kToolbarWindowHeight,
-        color: Colors.transparent,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Container(
-              height: WindowConstants.kToolbarWindowHeight,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(10),
-                  topRight: const Radius.circular(10),
-                  bottomLeft: Radius.circular(activePlugin != null ? 0 : 10),
-                  bottomRight: Radius.circular(activePlugin != null ? 0 : 10),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onPanStart: (_) => windowManager.startDragging(),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          height: WindowConstants.kToolbarWindowHeight,
+          color: Colors.transparent,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Container(
+                height: WindowConstants.kToolbarWindowHeight,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(10),
+                    topRight: const Radius.circular(10),
+                    bottomLeft: Radius.circular(activePlugin != null ? 0 : 10),
+                    bottomRight: Radius.circular(activePlugin != null ? 0 : 10),
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Transform.translate(
-                  offset: const Offset(0, -4.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: SqaInlineTooltip(
-                          scrollController: _scrollController,
-                          backgroundColor: colorScheme.surfaceContainerLow,
-                          child: SqaFadeWrapper(
-                            axis: Axis.horizontal,
-                            child: ClipRect(
-                              child: ScrollConfiguration(
-                                behavior: const SqaMouseDragScrollBehavior(),
-                                child: SingleChildScrollView(
-                                  key: const PageStorageKey(
-                                    'main_toolbar_scroll',
-                                  ),
-                                  controller: _scrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  clipBehavior: Clip.none,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: enabledPlugins
-                                        .asMap()
-                                        .entries
-                                        .map((entry) {
-                                          final plugin = entry.value;
-                                          final isActive =
-                                              activePlugin?.id == plugin.id;
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 10.0,
-                                            ),
-                                            child: ToolIcon(
-                                              icon: plugin.icon,
-                                              tooltip: _formatTooltip(
-                                                plugin,
-                                                plugin.name,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Transform.translate(
+                    offset: const Offset(0, -4.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: SqaInlineTooltip(
+                            scrollController: _scrollController,
+                            backgroundColor: colorScheme.surfaceContainerLow,
+                            child: SqaFadeWrapper(
+                              axis: Axis.horizontal,
+                              child: ClipRect(
+                                child: ScrollConfiguration(
+                                  behavior: const SqaMouseDragScrollBehavior(),
+                                  child: SingleChildScrollView(
+                                    key: const PageStorageKey(
+                                      'main_toolbar_scroll',
+                                    ),
+                                    controller: _scrollController,
+                                    scrollDirection: Axis.horizontal,
+                                    clipBehavior: Clip.none,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: enabledPlugins
+                                          .asMap()
+                                          .entries
+                                          .map((entry) {
+                                            final plugin = entry.value;
+                                            final isActive =
+                                                activePlugin?.id == plugin.id;
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 10.0,
                                               ),
-                                              isActive: isActive,
-                                              badge: _buildBadgeIcon(
-                                                plugin,
-                                                hasTodoReminder,
-                                                isTimerRunning,
+                                              child: ToolIcon(
+                                                icon: plugin.icon,
+                                                tooltip: _formatTooltip(
+                                                  plugin,
+                                                  plugin.name,
+                                                ),
+                                                isActive: isActive,
+                                                badge: _buildBadgeIcon(
+                                                  plugin,
+                                                  hasTodoReminder,
+                                                  isTimerRunning,
+                                                ),
+                                                badgeColor: _getBadgeColor(
+                                                  plugin,
+                                                  hasTodoReminder,
+                                                  isTimerRunning,
+                                                  colorScheme,
+                                                ),
+                                                onPressed: () =>
+                                                    _togglePlugin(plugin),
                                               ),
-                                              badgeColor: _getBadgeColor(
-                                                plugin,
-                                                hasTodoReminder,
-                                                isTimerRunning,
-                                                colorScheme,
-                                              ),
-                                              onPressed: () =>
-                                                  _togglePlugin(plugin),
-                                            ),
-                                          );
-                                        })
-                                        .toList(),
+                                            );
+                                          })
+                                          .toList(),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
 
-                      // Drag Handle & Global Download Indicator
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Icon(
-                            Symbols.drag_indicator,
-                            size: 20,
-                            color: colorScheme.outlineVariant,
-                          ),
-                          if (ref.watch(ffmpegProvider).isDownloading)
-                            SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  colorScheme.primary.withValues(alpha: 0.5),
+                        // Drag Handle & Global Download Indicator
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Symbols.drag_indicator,
+                              size: 20,
+                              color: colorScheme.outlineVariant,
+                            ),
+                            if (ref.watch(ffmpegProvider).isDownloading)
+                              SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    colorScheme.primary.withValues(alpha: 0.5),
+                                  ),
                                 ),
                               ),
+                          ],
+                        ),
+                        const SizedBox(width: 4),
+
+                        ToolIcon(
+                          icon: settingsPlugin.icon,
+                          tooltip: settingsPlugin.name,
+                          isActive: activePlugin?.id == settingsPlugin.id,
+                          badge: supporterTier >= 1
+                              ? const Icon(
+                                  Symbols.coffee,
+                                  size: 10,
+                                  color: Colors.white,
+                                  weight: 700,
+                                )
+                              : null,
+                          onPressed: () => _handleSettingsPress(settingsPlugin),
+                        ),
+                        const SizedBox(width: 4),
+
+                        // Close to Tray
+                        SqaInlineTooltipTrigger(
+                          tooltip: 'Close to Tray',
+                          child: IconButton(
+                            icon: const Icon(Symbols.close, size: 24),
+                            onPressed: () => WindowUtils.safeHide(),
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size(36, 36),
+                              padding: const EdgeInsets.all(6.0),
                             ),
-                        ],
-                      ),
-                      const SizedBox(width: 4),
-
-                      ToolIcon(
-                        icon: settingsPlugin.icon,
-                        tooltip: settingsPlugin.name,
-                        isActive: activePlugin?.id == settingsPlugin.id,
-                        badge: supporterTier >= 1
-                            ? const Icon(
-                                Symbols.coffee,
-                                size: 10,
-                                color: Colors.white,
-                                weight: 700,
-                              )
-                            : null,
-                        onPressed: () => _handleSettingsPress(settingsPlugin),
-                      ),
-                      const SizedBox(width: 4),
-
-                      // Close to Tray
-                      SqaInlineTooltipTrigger(
-                        tooltip: 'Close to Tray',
-                        child: IconButton(
-                          icon: const Icon(Symbols.close, size: 24),
-                          onPressed: () => WindowUtils.safeHide(),
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size(36, 36),
-                            padding: const EdgeInsets.all(6.0),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

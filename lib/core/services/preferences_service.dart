@@ -40,6 +40,8 @@ class PreferencesService {
   static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
   static const String keyHotkeyScreenshotToggle = 'hotkey_screenshot_toggle';
   static const String keyHotkeyAreaRecord = 'hotkey_area_record';
+  static const String keyAppOpacity = 'app_opacity';
+  static const String keyTransparencyMode = 'transparency_mode';
 
   static const String keyScreenshotSaveDir = 'screenshot_save_dir';
   static const String keyScreenshotFormat = 'screenshot_format';
@@ -140,6 +142,22 @@ class PreferencesService {
     return _prefs.getBool(keyBeautifierAutoFormat) ?? true;
   }
 
+  double getAppOpacity() {
+    return _prefs.getDouble(keyAppOpacity) ?? 1.0;
+  }
+
+  Future<void> setAppOpacity(double opacity) async {
+    await _prefs.setDouble(keyAppOpacity, opacity);
+  }
+
+  bool getTransparencyMode() {
+    return _prefs.getBool(keyTransparencyMode) ?? false;
+  }
+
+  Future<void> setTransparencyMode(bool enabled) async {
+    await _prefs.setBool(keyTransparencyMode, enabled);
+  }
+
   Future<void> setBeautifierAutoFormat(bool autoFormat) async {
     await _prefs.setBool(keyBeautifierAutoFormat, autoFormat);
   }
@@ -232,12 +250,16 @@ class ThemeSettings {
   final int seedColorValue;
   final bool useDynamicColor;
   final bool alwaysOnTop;
+  final double opacity;
+  final bool isTransparencyModeEnabled;
 
   const ThemeSettings({
     required this.modeIndex,
     required this.seedColorValue,
     required this.useDynamicColor,
     required this.alwaysOnTop,
+    required this.opacity,
+    required this.isTransparencyModeEnabled,
   });
 
   ThemeSettings copyWith({
@@ -245,12 +267,17 @@ class ThemeSettings {
     int? seedColorValue,
     bool? useDynamicColor,
     bool? alwaysOnTop,
+    double? opacity,
+    bool? isTransparencyModeEnabled,
   }) {
     return ThemeSettings(
       modeIndex: modeIndex ?? this.modeIndex,
       seedColorValue: seedColorValue ?? this.seedColorValue,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
       alwaysOnTop: alwaysOnTop ?? this.alwaysOnTop,
+      opacity: opacity ?? this.opacity,
+      isTransparencyModeEnabled:
+          isTransparencyModeEnabled ?? this.isTransparencyModeEnabled,
     );
   }
 }
@@ -264,6 +291,8 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
       alwaysOnTop: service.getAlwaysOnTop(),
+      opacity: service.getAppOpacity(),
+      isTransparencyModeEnabled: service.getTransparencyMode(),
     );
   }
 
@@ -288,6 +317,38 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
     windowManager.setAlwaysOnTop(value);
   }
 
+  void setOpacity(double value) {
+    double effectiveValue =
+        state.isTransparencyModeEnabled ? value.clamp(0.0, 0.85) : value;
+
+    // Round to 2 decimal places to avoid floating point drift that can break Sliders
+    effectiveValue = double.parse(effectiveValue.toStringAsFixed(2));
+
+    state = state.copyWith(opacity: effectiveValue);
+    ref.read(preferencesServiceProvider).setAppOpacity(effectiveValue);
+  }
+
+  void toggleTransparencyMode(bool enabled) {
+    final service = ref.read(preferencesServiceProvider);
+    double newOpacity = state.opacity;
+
+    if (enabled) {
+      // Activating mode sets opacity to 0.85 automatically
+      newOpacity = 0.85;
+    } else {
+      // Disabling mode returns to full opacity
+      newOpacity = 1.0;
+    }
+
+    state = state.copyWith(
+      isTransparencyModeEnabled: enabled,
+      opacity: newOpacity,
+    );
+
+    service.setTransparencyMode(enabled);
+    service.setAppOpacity(newOpacity);
+  }
+
   // Temporary preview method (not saved to prefs)
   void previewSeedColor(int colorValue) {
     state = state.copyWith(seedColorValue: colorValue);
@@ -301,6 +362,8 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
       alwaysOnTop: service.getAlwaysOnTop(),
+      opacity: service.getAppOpacity(),
+      isTransparencyModeEnabled: service.getTransparencyMode(),
     );
   }
 }

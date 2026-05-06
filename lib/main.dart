@@ -173,6 +173,66 @@ class SqaMultitoolsApp extends ConsumerWidget {
               }),
               interactive: true,
             ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            iconButtonTheme: IconButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            menuButtonTheme: MenuButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
             datePickerTheme: DatePickerThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
@@ -267,6 +327,66 @@ class SqaMultitoolsApp extends ConsumerWidget {
               }),
               interactive: true,
             ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            iconButtonTheme: IconButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            menuButtonTheme: MenuButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
             datePickerTheme: DatePickerThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
@@ -343,9 +463,12 @@ class SqaMultitoolsApp extends ConsumerWidget {
                 .isOverlayVisible;
             final isOverlayActive = isScreenshotVisible || isRecorderVisible;
 
-            return Material(
-              color: isOverlayActive ? Colors.transparent : null,
-              child: child ?? const SizedBox.shrink(),
+            return Opacity(
+              opacity: settings.opacity,
+              child: Material(
+                color: isOverlayActive ? Colors.transparent : null,
+                child: child ?? const SizedBox.shrink(),
+              ),
             );
           },
           home: const HotkeyInitializer(child: MainToolbar()),

@@ -149,27 +149,28 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         child: Container(
           height: WindowConstants.kToolbarWindowHeight,
           color: Colors.transparent,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
               child: Container(
                 height: WindowConstants.kToolbarWindowHeight,
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(10),
-                    topRight: const Radius.circular(10),
-                    bottomLeft: Radius.circular(activePlugin != null ? 0 : 10),
-                    bottomRight: Radius.circular(activePlugin != null ? 0 : 10),
+                    topLeft: const Radius.circular(SqaStyles.radiusWindow),
+                    topRight: const Radius.circular(SqaStyles.radiusWindow),
+                    bottomLeft: Radius.circular(
+                      activePlugin != null ? 0 : SqaStyles.radiusWindow,
+                    ),
+                    bottomRight: Radius.circular(
+                      activePlugin != null ? 0 : SqaStyles.radiusWindow,
+                    ),
                   ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Transform.translate(
-                    offset: const Offset(0, -4.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
                         Expanded(
                           child: SqaInlineTooltip(
                             scrollController: _scrollController,
@@ -288,13 +289,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                       ],
                     ),
                   ),
-                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // --- Helper Methods ---
@@ -445,27 +444,24 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
           : colorScheme.surfaceContainerLow,
       body: Stack(
         children: [
-          if (hasPlugin && !isOverlayActive)
-            Positioned.fill(
-              top: WindowConstants.kToolbarWindowHeight,
-              child: activePlugin.buildPluginWindow(context),
-            ),
-          if (!isOverlayActive)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: WindowConstants.kToolbarWindowHeight,
-              child: _buildToolbarBar(
-                colorScheme,
-                enabledPlugins,
-                activePlugin,
-                settingsPlugin,
-                supporterTier,
-                hasTodoReminder,
-                isTimerRunning,
-              ),
-            ),
+          Column(
+            children: [
+              if (!isOverlayActive)
+                _buildToolbarBar(
+                  colorScheme,
+                  enabledPlugins,
+                  activePlugin,
+                  settingsPlugin,
+                  supporterTier,
+                  hasTodoReminder,
+                  isTimerRunning,
+                ),
+              if (hasPlugin && !isOverlayActive)
+                Expanded(
+                  child: activePlugin.buildPluginWindow(context),
+                ),
+            ],
+          ),
           if (!isOverlayActive &&
               supporterTier >= 3 &&
               ref.watch(bugSquashEnabledProvider))

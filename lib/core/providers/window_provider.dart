@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import '../window/window_constants.dart';
+import '../../ui/widgets/sqa_styles.dart';
 
 enum WindowSizeMode { defaultExpanded, squareMode }
 
@@ -20,14 +21,14 @@ class WindowSizeModeNotifier extends Notifier<WindowSizeMode> {
 
   Future<void> _applySize() async {
     if (state == WindowSizeMode.squareMode) {
-      const size = Size(
+      final size = Size(
         WindowConstants.kSquareModeSize,
         WindowConstants.kSquareModeSize,
       );
       await windowManager.setMinimumSize(size);
       await windowManager.setSize(size);
     } else {
-      const size = Size(
+      final size = Size(
         WindowConstants.kDefaultWindowWidth,
         WindowConstants.kExpandedWindowHeight,
       );

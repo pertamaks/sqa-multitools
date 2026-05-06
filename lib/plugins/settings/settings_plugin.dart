@@ -133,8 +133,10 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           ],
           const SizedBox(height: 32),
           _buildRedemptionStatus(colorScheme, supporterTier),
-          const SizedBox(height: 32),
-          _buildResetDonationButton(colorScheme),
+          if (ref.watch(debugModeProvider)) ...[
+            const SizedBox(height: 32),
+            _buildResetDonationButton(colorScheme),
+          ],
         ],
       ),
     );
@@ -149,6 +151,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           title: 'The Coffee Shop',
           description: 'Fueling your QA workflow since 2026',
           color: Colors.brown,
+          iconMouseCursor: SystemMouseCursors.basic,
           onIconTap: () {
             if (ref
                 .read(debugTapCounterProvider.notifier)
@@ -341,11 +344,14 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
     required bool isUnlocked,
     required Color color,
   }) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     return SqaCard(
       padding: const EdgeInsets.all(16.0),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: SqaStyles.radiusLarge,
       borderSide: isUnlocked
-          ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
+          ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
           : null,
       child: Row(
         children: [
@@ -368,14 +374,13 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
                       ),
                     ),
                     Text(
                       price,
-                      style: TextStyle(
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: color,
                       ),
@@ -385,18 +390,21 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
           ),
           if (isUnlocked)
-            const Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Icon(Symbols.check_circle, color: Colors.green, size: 20),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Icon(
+                Symbols.check_circle,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
             ),
         ],
       ),
@@ -878,6 +886,34 @@ class GeneralSettingsView extends ConsumerWidget {
     {'name': 'Sapphire', 'color': Color(0xFF2196F3)},
   ];
 
+  Widget _buildTierBadge(
+    int requiredTier,
+    int currentTier,
+    ColorScheme colorScheme,
+  ) {
+    if (currentTier >= requiredTier) return const SizedBox.shrink();
+
+    String label = '';
+    IconData icon = Symbols.lock;
+
+    switch (requiredTier) {
+      case 1:
+        label = 'Unlock with espresso';
+        break;
+      case 2:
+        label = 'Unlock with latte';
+        break;
+      case 3:
+        label = 'Unlock with mocha';
+        break;
+    }
+
+    return Tooltip(
+      message: label,
+      child: Icon(icon, size: 16, color: colorScheme.outlineVariant),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeSettings = ref.watch(themeSettingsProvider);
@@ -952,34 +988,7 @@ class GeneralSettingsView extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (supporterTier < 1)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Colors.amber.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Symbols.lock, size: 10, color: Colors.amber),
-                            SizedBox(width: 4),
-                            Text(
-                              'In-House Service',
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    _buildTierBadge(1, supporterTier, colorScheme),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -1110,9 +1119,8 @@ class GeneralSettingsView extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    if (supporterTier < 2)
-                      const Icon(Symbols.lock, size: 16, color: Colors.grey)
-                    else
+                    _buildTierBadge(2, supporterTier, colorScheme),
+                    if (supporterTier >= 2)
                       SqaSwitch(
                         value: themeSettings.useDynamicColor,
                         onChanged: (v) {
@@ -1169,16 +1177,12 @@ class GeneralSettingsView extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  const Text(
-                                    'Transparency Mode',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                              const Text(
+                                'Transparency Mode',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const Text(
                                 'Enable premium transparency effects for a cleaner look.',
@@ -1188,9 +1192,8 @@ class GeneralSettingsView extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        if (supporterTier < 3)
-                          const Icon(Symbols.lock, size: 16, color: Colors.grey)
-                        else
+                        _buildTierBadge(3, supporterTier, colorScheme),
+                        if (supporterTier >= 3)
                           SqaSwitch(
                             value: themeSettings.isTransparencyModeEnabled,
                             onChanged: (v) {

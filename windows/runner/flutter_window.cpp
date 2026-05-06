@@ -4,6 +4,9 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -13,6 +16,16 @@ bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
     return false;
   }
+
+  // Force square window corners at the OS level to eliminate redundant borders.
+  // This allows Flutter to handle rounding without OS interference.
+  HWND hwnd = GetHandle();
+  int corner_preference = 2; // DWMWCP_ROUND
+  DwmSetWindowAttribute(hwnd, 33, &corner_preference, sizeof(corner_preference));
+
+  // Extend frame into client area to support true transparency and hide the OS border.
+  MARGINS margins = {-1, -1, -1, -1};
+  DwmExtendFrameIntoClientArea(hwnd, &margins);
 
   RECT frame = GetClientArea();
 

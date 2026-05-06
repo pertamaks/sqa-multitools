@@ -38,6 +38,8 @@ void main() async {
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setAsFrameless();
+    await windowManager.setHasShadow(false);
     await windowManager.setIcon('assets/desktop_new.png');
     await windowManager.setAlwaysOnTop(alwaysOnTop);
     await windowManager.setMinimumSize(
@@ -465,9 +467,15 @@ class SqaMultitoolsApp extends ConsumerWidget {
 
             return Opacity(
               opacity: settings.opacity,
-              child: Material(
-                color: isOverlayActive ? Colors.transparent : null,
-                child: child ?? const SizedBox.shrink(),
+              child: ClipRRect(
+                borderRadius: isOverlayActive
+                    ? BorderRadius.zero
+                    : SqaStyles.borderRadiusWindow,
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                child: Material(
+                  color: isOverlayActive ? Colors.transparent : null,
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             );
           },

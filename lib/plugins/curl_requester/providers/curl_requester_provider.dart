@@ -7,6 +7,7 @@ import '../models/curl_requester_state.dart';
 import '../models/curl_transaction.dart';
 import '../services/curl_parser_service.dart';
 import '../../../core/services/preferences_service.dart';
+import '../../../core/services/faker_resolution_service.dart';
 
 part 'curl_requester_provider.g.dart';
 
@@ -152,19 +153,26 @@ class CurlRequester extends _$CurlRequester {
   }
 
   Future<void> execute() async {
+    await executeCommand(state.currentCommand);
+  }
+
+  Future<void> executeCommand(CurlCommand command) async {
     if (state.isLoading) return;
-    final command = state.currentCommand;
     if (command.url.isEmpty) return;
 
     state = state.copyWith(isLoading: true);
     final stopwatch = Stopwatch()..start();
 
     try {
-      // 1. Prepare URL & Params
-      var uri = Uri.parse(command.url);
-      if (!uri.hasScheme) uri = Uri.parse('http://${command.url}');
+      // 1. Resolve Placeholders (Faker Integration)
+      // If it's already resolved, this returns as is
+      final resolvedCommand = FakerResolutionService.resolveCommand(command);
+
+      // 2. Prepare URL & Params
+      var uri = Uri.parse(resolvedCommand.url);
+      if (!uri.hasScheme) uri = Uri.parse('http://${resolvedCommand.url}');
       
-      final activeParams = Map<String, String>.from(command.queryParameters)
+      final activeParams = Map<String, String>.from(resolvedCommand.queryParameters)
         ..removeWhere((k, _) => command.inactiveQueryParameters.contains(k));
       
       if (activeParams.isNotEmpty) {
@@ -172,14 +180,14 @@ class CurlRequester extends _$CurlRequester {
         uri = uri.replace(queryParameters: newParams);
       }
 
-      // 2. Prepare Headers
-      final activeHeaders = Map<String, String>.from(command.headers)
+      // 3. Prepare Headers
+      final activeHeaders = Map<String, String>.from(resolvedCommand.headers)
         ..removeWhere((k, _) => command.inactiveHeaders.contains(k));
 
-      // 3. Prepare and Send Request
+      // 4. Prepare and Send Request
       final request = http.Request(command.method, uri);
       request.headers.addAll(activeHeaders);
-      if (command.body.isNotEmpty) request.body = command.body;
+      if (resolvedCommand.body.isNotEmpty) request.body = resolvedCommand.body;
 
       final client = http.Client();
       final streamedResponse = await client.send(request).timeout(const Duration(seconds: 30));
@@ -187,10 +195,11 @@ class CurlRequester extends _$CurlRequester {
       client.close();
       stopwatch.stop();
 
-      // 4. Create Transaction
+      // 5. Create Transaction (Save BOTH template and resolved command)
       final transaction = CurlTransaction(
         id: const Uuid().v4(),
-        request: command,
+        request: command, // Original template
+        resolvedRequest: resolvedCommand, // Actual data sent
         statusCode: response.statusCode,
         responseBody: response.body,
         latency: stopwatch.elapsed,
@@ -201,6 +210,7 @@ class CurlRequester extends _$CurlRequester {
       _updateHistory(transaction);
     } catch (e) {
       stopwatch.stop();
+      // Even on error, save the original template
       final transaction = CurlTransaction(
         id: const Uuid().v4(),
         request: command,

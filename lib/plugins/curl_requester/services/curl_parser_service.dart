@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../models/curl_command.dart';
 
 class CurlParserService {
@@ -10,10 +11,9 @@ class CurlParserService {
     final Map<String, String> queryParameters = {};
     String body = '';
 
-    // Standardize newlines and handle backslashes with potential trailing whitespace
-    final sanitizedCurl = curlString
-        .replaceAll(RegExp(r'\\\s*\n'), ' ')
-        .replaceAll('\n', ' ');
+    // Handle backslashes with potential trailing whitespace as line continuations
+    // We do NOT replace all newlines with spaces anymore to preserve multi-line bodies
+    final sanitizedCurl = curlString.replaceAll(RegExp(r'\\\s*\n'), ' ');
     final tokens = _tokenize(sanitizedCurl);
 
     final httpMethods = {'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'};
@@ -30,13 +30,17 @@ class CurlParserService {
             headers[parts[0].trim()] = parts.sublist(1).join(':').trim();
           }
         }
-      } else if (token == '-d' || token == '--data' || token == '--data-raw') {
-        if (i + 1 < tokens.length) body = tokens[++i];
+      } else if (token == '-d' || token == '--data' || token == '--data-raw' || token == '--data-binary') {
+        if (i + 1 < tokens.length) {
+          // Preserve newlines in body
+          body = tokens[++i];
+        }
       } else if (url.isEmpty && 
                  !token.startsWith('-') && 
                  token != 'curl' && 
                  !httpMethods.contains(token.toUpperCase())) {
-        url = token.replaceAll(RegExp(r'''^["']|["']$'''), '');
+        // Clean URL of all whitespace and quotes
+        url = token.replaceAll(RegExp(r'''^["']|["']$'''), '').replaceAll(RegExp(r'\s+'), '');
       }
     }
 
@@ -81,6 +85,8 @@ class CurlParserService {
   }
 
   static String stringify(CurlCommand command) {
+    if (command.url.isEmpty && command.body.isEmpty && command.headers.isEmpty) return '';
+
     final buffer = StringBuffer('curl');
     if (command.method != 'GET') {
       buffer.write(' -X ${command.method}');
@@ -92,23 +98,43 @@ class CurlParserService {
       ..removeWhere((k, v) => command.inactiveQueryParameters.contains(k));
     
     if (activeParams.isNotEmpty) {
-      final uri = Uri.parse(finalUrl);
-      finalUrl = uri.replace(queryParameters: {
-        ...uri.queryParameters,
-        ...activeParams,
-      }).toString();
+      try {
+        final uri = Uri.parse(finalUrl);
+        finalUrl = uri.replace(queryParameters: {
+          ...uri.queryParameters,
+          ...activeParams,
+        }).toString();
+        
+        // Post-process to ensure {{faker.*}} placeholders are NOT encoded
+        // Uri.replace will encode { to %7B and } to %7D
+        finalUrl = finalUrl.replaceAll('%7B%7B', '{{').replaceAll('%7D%7D', '}}');
+      } catch (_) {}
     }
     
+    // Also handle placeholders in the base URL itself
+    finalUrl = finalUrl.replaceAll('%7B%7B', '{{').replaceAll('%7D%7D', '}}');
+
     buffer.write(' "$finalUrl"');
 
     for (var entry in command.headers.entries) {
       if (command.inactiveHeaders.contains(entry.key)) continue;
-      buffer.write(' -H "${entry.key}: ${entry.value}"');
+      buffer.write(' \\\n  -H "${entry.key}: ${entry.value}"');
     }
+
     if (command.body.isNotEmpty) {
+      String displayBody = command.body;
+      try {
+        // Attempt to prettify JSON if it looks like JSON
+        final decoded = json.decode(command.body);
+        displayBody = const JsonEncoder.withIndent('  ').convert(decoded);
+      } catch (_) {
+        // Not JSON or already formatted, keep as is
+      }
+      
       // Use single quotes for body to handle internal double quotes common in JSON
-      buffer.write(" -d '${command.body}'");
+      buffer.write(" \\\n  -d '$displayBody'");
     }
+
     return buffer.toString();
   }
 }

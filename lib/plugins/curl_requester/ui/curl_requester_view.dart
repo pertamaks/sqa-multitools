@@ -104,19 +104,21 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     _syncRawFromState();
   }
 
-  Future<void> _clearHistory() async {
+  bool _isClearingHistory = false;
+  void _handleClearHistory() {
     final history = ref.read(curlRequesterProvider).history;
     if (history.isEmpty) return;
 
-    final confirmed = await SqaModal.showDanger(
-      context,
-      title: 'Clear History',
-      message: 'Are you sure you want to clear all request history?',
-      confirmLabel: 'Clear',
-    );
-
-    if (confirmed == true) {
+    if (_isClearingHistory) {
       ref.read(curlRequesterProvider.notifier).clearHistory();
+      setState(() => _isClearingHistory = false);
+    } else {
+      setState(() => _isClearingHistory = true);
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _isClearingHistory) {
+          setState(() => _isClearingHistory = false);
+        }
+      });
     }
   }
 
@@ -126,7 +128,13 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       transaction: transaction,
       isHistory: isHistory,
       onSendAgain: () async {
-        await ref.read(curlRequesterProvider.notifier).execute();
+        final notifier = ref.read(curlRequesterProvider.notifier);
+        if (isHistory && transaction?.resolvedRequest != null) {
+          await notifier.executeCommand(transaction!.resolvedRequest!);
+        } else {
+          await notifier.execute();
+        }
+        
         final history = ref.read(curlRequesterProvider).history;
         if (history.isNotEmpty) {
           _showResponseModal(transaction: history.first);
@@ -165,11 +173,14 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                 )
               : SqaHoverIconButton(
                   icon: Symbols.delete_sweep,
-                  onPressed: _clearHistory,
-                  tooltip: 'Clear History',
+                  onPressed: _handleClearHistory,
+                  tooltip: _isClearingHistory 
+                      ? 'Click again to confirm' 
+                      : 'Clear History',
                   iconSize: 20,
-                  color:
-                      Theme.of(context).colorScheme.error.withValues(alpha: 0.7),
+                  color: _isClearingHistory
+                      ? Theme.of(context).colorScheme.error
+                      : Colors.grey.withValues(alpha: 0.5),
                 ),
           tabs: const [
             Tab(text: 'Request', icon: Icon(Symbols.send)),

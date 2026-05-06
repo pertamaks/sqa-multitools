@@ -50,11 +50,28 @@ class HistoryTab extends ConsumerWidget {
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final transaction = history[index];
-          final uri = Uri.tryParse(transaction.request.url);
-          final path = uri?.path ?? '/';
+          final displayRequest = transaction.resolvedRequest ?? transaction.request;
+          
+          // Better URI parsing that handles lack of scheme
+          String url = displayRequest.url;
+          if (!url.startsWith('http')) url = 'http://$url';
+          final uri = Uri.tryParse(url);
+          
+          String path = uri?.path ?? '/';
+          if (path.isEmpty) path = '/';
+          
+          // Append query params to path for the title if they exist
+          final qParams = displayRequest.queryParameters.entries
+              .where((e) => !displayRequest.inactiveQueryParameters.contains(e.key))
+              .map((e) => '${e.key}=${e.value}')
+              .join('&');
+          final displayPath = qParams.isNotEmpty ? '$path?$qParams' : path;
+
           final statusColor = transaction.statusCode >= 200 && transaction.statusCode < 300
               ? Colors.green
-              : (transaction.statusCode >= 400 ? Colors.red : Colors.orange);
+              : (transaction.statusCode >= 400 || transaction.statusCode == 0 
+                  ? Colors.red 
+                  : Colors.orange);
 
           return InkWell(
             onTap: () {
@@ -71,21 +88,22 @@ class HistoryTab extends ConsumerWidget {
                   Row(
                     children: [
                       SqaStatusBadge(
-                        text: transaction.statusCode == 0 ? 'FAIL' : '${transaction.statusCode}',
+                        text: transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}',
                         color: statusColor,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '${transaction.request.method} $path',
+                          '${displayRequest.method} $displayPath',
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 12),
                       Text(
                         _formatRelativeTime(transaction.timestamp),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -107,7 +125,7 @@ class HistoryTab extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      CurlParserService.stringify(transaction.request),
+                      CurlParserService.stringify(displayRequest),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.jetBrainsMono(

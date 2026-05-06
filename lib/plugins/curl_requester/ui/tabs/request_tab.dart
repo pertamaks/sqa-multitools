@@ -9,7 +9,7 @@ import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_field.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 
-class RequestTab extends ConsumerWidget {
+class RequestTab extends ConsumerStatefulWidget {
   final ScrollController scrollController;
   final TextEditingController urlController;
   final TextEditingController curlController;
@@ -32,19 +32,61 @@ class RequestTab extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RequestTab> createState() => _RequestTabState();
+}
+
+class _RequestTabState extends ConsumerState<RequestTab> {
+  bool _isClearing = false;
+  bool _isPasting = false;
+
+  void _handleClear() {
+    final hasData = widget.urlController.text.isNotEmpty || 
+                    widget.curlController.text.isNotEmpty;
+    
+    if (!hasData || _isClearing) {
+      widget.onClearRequest();
+      setState(() => _isClearing = false);
+    } else {
+      setState(() => _isClearing = true);
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _isClearing) {
+          setState(() => _isClearing = false);
+        }
+      });
+    }
+  }
+
+  void _handlePaste() {
+    final hasData = widget.urlController.text.isNotEmpty || 
+                    widget.curlController.text.isNotEmpty;
+
+    if (!hasData || _isPasting) {
+      widget.onPasteFromClipboard();
+      setState(() => _isPasting = false);
+    } else {
+      setState(() => _isPasting = true);
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _isPasting) {
+          setState(() => _isPasting = false);
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         _buildRequestHeader(context),
         Expanded(
           child: Scrollbar(
-            controller: scrollController,
+            controller: widget.scrollController,
             child: SingleChildScrollView(
-              controller: scrollController,
+              controller: widget.scrollController,
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  showReflector
+                  widget.showReflector
                       ? _buildUnifiedGridContent(context, ref)
                       : _buildCommandDeckContent(context),
                 ],
@@ -68,12 +110,12 @@ class RequestTab extends ConsumerWidget {
           Row(
             children: [
               Icon(
-                showReflector ? Symbols.grid_3x3 : Symbols.terminal,
+                widget.showReflector ? Symbols.grid_3x3 : Symbols.terminal,
                 size: 18,
               ),
               const SizedBox(width: 8),
               Text(
-                showReflector ? 'Structured Request' : 'Command Deck (cURL)',
+                widget.showReflector ? 'Structured Request' : 'Command Deck (cURL)',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
@@ -84,25 +126,30 @@ class RequestTab extends ConsumerWidget {
           Row(
             children: [
               SqaHoverIconButton(
-                icon: showReflector ? Symbols.terminal : Symbols.grid_3x3,
-                onPressed: onToggleReflector,
-                tooltip: showReflector ? 'Switch to Command' : 'Show Grid',
+                icon: widget.showReflector ? Symbols.terminal : Symbols.grid_3x3,
+                onPressed: widget.onToggleReflector,
+                tooltip: widget.showReflector ? 'Switch to Command' : 'Show Grid',
                 iconSize: 18,
               ),
               const SizedBox(width: 8),
               SqaHoverIconButton(
                 icon: Symbols.content_paste,
-                onPressed: onPasteFromClipboard,
-                tooltip: 'Paste from Clipboard',
+                onPressed: _handlePaste,
+                tooltip: _isPasting ? 'Click again to overwrite' : 'Paste from Clipboard',
                 iconSize: 18,
+                color: _isPasting 
+                    ? Theme.of(context).colorScheme.primary 
+                    : Colors.grey.withValues(alpha: 0.5),
               ),
               const SizedBox(width: 8),
               SqaHoverIconButton(
                 icon: Symbols.delete_sweep,
-                onPressed: onClearRequest,
-                tooltip: 'Clear Request',
+                onPressed: _handleClear,
+                tooltip: _isClearing ? 'Click again to confirm' : 'Clear Request',
                 iconSize: 18,
-                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7),
+                color: _isClearing 
+                    ? Theme.of(context).colorScheme.error 
+                    : Colors.grey.withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -117,7 +164,7 @@ class RequestTab extends ConsumerWidget {
       child: SqaField(
         label: '',
         showLabel: false,
-        controller: curlController,
+        controller: widget.curlController,
         isMonospace: true,
         isMultiline: true,
         minLines: 8,
@@ -189,15 +236,15 @@ class RequestTab extends ConsumerWidget {
                           .contains(entry.key),
                       onChanged: (k, v) {
                         notifier.updateQueryParam(entry.key, k, v);
-                        onSyncRaw();
+                        widget.onSyncRaw();
                       },
                       onToggle: (isActive) {
                         notifier.toggleQueryParam(entry.key, isActive);
-                        onSyncRaw();
+                        widget.onSyncRaw();
                       },
                       onDelete: () {
                         notifier.removeQueryParam(entry.key);
-                        onSyncRaw();
+                        widget.onSyncRaw();
                       },
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
@@ -208,7 +255,7 @@ class RequestTab extends ConsumerWidget {
                 context,
                 onPressed: () {
                   notifier.addQueryParam();
-                  onSyncRaw();
+                  widget.onSyncRaw();
                 },
               ),
             ],
@@ -248,15 +295,15 @@ class RequestTab extends ConsumerWidget {
                           !state.currentCommand.inactiveHeaders.contains(entry.key),
                       onChanged: (k, v) {
                         notifier.updateHeader(entry.key, k, v);
-                        onSyncRaw();
+                        widget.onSyncRaw();
                       },
                       onToggle: (isActive) {
                         notifier.toggleHeader(entry.key, isActive);
-                        onSyncRaw();
+                        widget.onSyncRaw();
                       },
                       onDelete: () {
                         notifier.removeHeader(entry.key);
-                        onSyncRaw();
+                        widget.onSyncRaw();
                       },
                     ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
@@ -267,7 +314,7 @@ class RequestTab extends ConsumerWidget {
                 context,
                 onPressed: () {
                   notifier.addHeader();
-                  onSyncRaw();
+                  widget.onSyncRaw();
                 },
               ),
             ],
@@ -357,7 +404,7 @@ class RequestTab extends ConsumerWidget {
         current[lastKey] = typedValue;
 
         notifier.updateBody(jsonEncode(decoded));
-        onSyncRaw();
+        widget.onSyncRaw();
       } catch (_) {}
     }
 

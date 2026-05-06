@@ -15,6 +15,7 @@ class CurlRequesterGridRow extends StatefulWidget {
   final bool readOnlyValue;
   final void Function(String label, String value)? onChanged;
   final void Function(bool isActive)? onToggle;
+  final void Function(String placeholder)? onFakerSelected;
   final VoidCallback? onDelete;
 
   const CurlRequesterGridRow({
@@ -29,6 +30,7 @@ class CurlRequesterGridRow extends StatefulWidget {
     this.readOnlyValue = false,
     this.onChanged,
     this.onToggle,
+    this.onFakerSelected,
     this.onDelete,
   });
 
@@ -192,7 +194,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                     const SizedBox(width: 0),
                     SqaPopupMenu(
                       icon: Icon(
-                        Symbols.magic_button,
+                        Symbols.playing_cards,
                         color: widget.isActive ? null : Colors.grey.withValues(alpha: 0.5),
                       ),
                       tooltip: 'Faker Data',
@@ -201,28 +203,36 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           icon: const Icon(Symbols.person),
                           label: 'Full Name',
                           onPressed: () {
-                            // TODO(Logic): Implement Faker Full Name injection
+                            _valueController.text = '{{faker.name}}';
+                            _commitChanges();
+                            widget.onFakerSelected?.call('{{faker.name}}');
                           },
                         ),
                         SqaPopupMenuItem(
                           icon: const Icon(Symbols.mail),
                           label: 'Email',
                           onPressed: () {
-                            // TODO(Logic): Implement Faker Email injection
+                            _valueController.text = '{{faker.email}}';
+                            _commitChanges();
+                            widget.onFakerSelected?.call('{{faker.email}}');
                           },
                         ),
                         SqaPopupMenuItem(
                           icon: const Icon(Symbols.location_on),
                           label: 'City',
                           onPressed: () {
-                            // TODO(Logic): Implement Faker City injection
+                            _valueController.text = '{{faker.city}}';
+                            _commitChanges();
+                            widget.onFakerSelected?.call('{{faker.city}}');
                           },
                         ),
                         SqaPopupMenuItem(
                           icon: const Icon(Symbols.fingerprint),
                           label: 'Guid',
                           onPressed: () {
-                            // TODO(Logic): Implement Faker Guid injection
+                            _valueController.text = '{{faker.guid}}';
+                            _commitChanges();
+                            widget.onFakerSelected?.call('{{faker.guid}}');
                           },
                         ),
                       ],

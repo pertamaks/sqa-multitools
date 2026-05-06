@@ -51,13 +51,17 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
     final statusColor = transaction != null
         ? (transaction.statusCode >= 200 && transaction.statusCode < 300
             ? Colors.green
-            : (transaction.statusCode >= 400 ? Colors.red : Colors.orange))
+            : (transaction.statusCode >= 400 || transaction.statusCode == 0 
+                ? Colors.red 
+                : Colors.orange))
         : Colors.green;
 
     return SqaModal<bool>.custom(
       title: widget.isHistory ? 'Transaction Inspector' : 'Response',
       leading: SqaStatusBadge(
-        text: transaction != null ? '${transaction.statusCode}' : '...',
+        text: transaction != null 
+            ? (transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}') 
+            : '...',
         color: statusColor,
       ),
       confirmLabel: 'Done',
@@ -151,9 +155,9 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       maxLines: 40,
       maxHeight: MediaQuery.of(context).size.height * 0.6,
       fontSize: 12,
-      showCopyButton: true,
+      showCopyButton: false,
       initialValue: transaction != null
-          ? CurlParserService.stringify(transaction.request)
+          ? CurlParserService.stringify(transaction.resolvedRequest ?? transaction.request)
           : 'No request data available',
     );
   }

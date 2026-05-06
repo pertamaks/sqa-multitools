@@ -138,7 +138,7 @@ class _SqaFieldState extends State<SqaField> {
   int get _lineCount => _internalController.text.split('\n').length;
 
   void _updateStickyOffset() {
-    if (!widget.showCopyButton) return;
+    if (!widget.showCopyButton && !widget.showSentenceCaseButton) return;
 
     final RenderBox? containerBox =
         _containerKey.currentContext?.findRenderObject() as RenderBox?;
@@ -428,7 +428,7 @@ class _SqaFieldState extends State<SqaField> {
                     Padding(
                       padding: EdgeInsets.only(
                         bottom: (showFooter && _isExpanded) ? 40 : 0,
-                        right: widget.showCopyButton ? 44 : 0,
+                        right: (widget.showCopyButton || widget.showSentenceCaseButton || widget.trailing != null) ? 44 : 0,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.max,

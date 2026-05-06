@@ -18,7 +18,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'components/curl_requester_grid_row.dart';
 import '../providers/curl_requester_provider.dart';
 import '../models/curl_transaction.dart';
-import '../models/curl_requester_state.dart';
 import '../services/curl_parser_service.dart';
 
 
@@ -122,7 +121,13 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                   },
                   tooltip: 'Execute Command',
                 )
-              : null,
+              : SqaHoverIconButton(
+                  icon: Symbols.delete_sweep,
+                  onPressed: _clearHistory,
+                  tooltip: 'Clear History',
+                  iconSize: 20,
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7),
+                ),
           tabs: const [
             Tab(text: 'Request', icon: Icon(Symbols.send)),
             Tab(text: 'History', icon: Icon(Symbols.history)),
@@ -585,7 +590,11 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
               : (transaction.statusCode >= 400 ? Colors.red : Colors.orange);
 
           return InkWell(
-            onTap: () => _showResponseModal(context, isHistory: true, transaction: transaction),
+            onTap: () {
+              ref.read(curlRequesterProvider.notifier).updateCommand(transaction.request);
+              _syncRawFromState();
+              _showResponseModal(context, isHistory: true, transaction: transaction);
+            },
             borderRadius: SqaStyles.radiusLarge,
             child: SqaCard(
               padding: const EdgeInsets.all(12),
@@ -765,6 +774,7 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       readOnly: true,
       isMultiline: true,
       maxLines: 40,
+      maxHeight: MediaQuery.of(context).size.height * 0.6,
       fontSize: 12,
       showCopyButton: true,
       initialValue: transaction != null
@@ -780,7 +790,8 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       isMonospace: true,
       readOnly: true,
       isMultiline: true,
-      maxLines: 10,
+      maxLines: 40,
+      maxHeight: MediaQuery.of(context).size.height * 0.6,
       fontSize: 12,
       showCopyButton: false,
       initialValue: transaction?.responseBody ?? 'No response data available',
@@ -807,6 +818,22 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     }
     if (_urlController.text != state.currentCommand.url) {
       _urlController.text = state.currentCommand.url;
+    }
+  }
+
+  Future<void> _clearHistory() async {
+    final history = ref.read(curlRequesterProvider).history;
+    if (history.isEmpty) return;
+
+    final confirmed = await SqaModal.showDanger(
+      context,
+      title: 'Clear History',
+      message: 'Are you sure you want to clear all request history?',
+      confirmLabel: 'Clear',
+    );
+
+    if (confirmed == true) {
+      ref.read(curlRequesterProvider.notifier).clearHistory();
     }
   }
 }

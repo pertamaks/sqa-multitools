@@ -20,7 +20,7 @@ final class CurlRequesterProvider
         argument: null,
         retry: null,
         name: r'curlRequesterProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class CurlRequesterProvider
   }
 }
 
-String _$curlRequesterHash() => r'db1ff6bcae88ce64b249a0b83d208131cbd64183';
+String _$curlRequesterHash() => r'fe68dbd2fccb8d387c807d25fd9b21a1ddb1ffe8';
 
 abstract class _$CurlRequester extends $Notifier<CurlRequesterState> {
   CurlRequesterState build();

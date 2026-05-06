@@ -11,6 +11,7 @@ part of 'curl_requester_state.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$CurlRequesterState {
 
@@ -21,6 +22,8 @@ mixin _$CurlRequesterState {
 @pragma('vm:prefer-inline')
 $CurlRequesterStateCopyWith<CurlRequesterState> get copyWith => _$CurlRequesterStateCopyWithImpl<CurlRequesterState>(this as CurlRequesterState, _$identity);
 
+  /// Serializes this CurlRequesterState to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is CurlRequesterState&&(identical(other.currentCommand, currentCommand) || other.currentCommand == currentCommand)&&const DeepCollectionEquality().equals(other.history, history)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.lastError, lastError) || other.lastError == lastError));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,currentCommand,const DeepCollectionEquality().hash(history),isLoading,lastError);
 
@@ -215,11 +218,11 @@ return $default(_that.currentCommand,_that.history,_that.isLoading,_that.lastErr
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _CurlRequesterState implements CurlRequesterState {
   const _CurlRequesterState({this.currentCommand = const CurlCommand(), final  List<CurlTransaction> history = const [], this.isLoading = false, this.lastError}): _history = history;
-  
+  factory _CurlRequesterState.fromJson(Map<String, dynamic> json) => _$CurlRequesterStateFromJson(json);
 
 @override@JsonKey() final  CurlCommand currentCommand;
  final  List<CurlTransaction> _history;
@@ -238,14 +241,17 @@ class _CurlRequesterState implements CurlRequesterState {
 @pragma('vm:prefer-inline')
 _$CurlRequesterStateCopyWith<_CurlRequesterState> get copyWith => __$CurlRequesterStateCopyWithImpl<_CurlRequesterState>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$CurlRequesterStateToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _CurlRequesterState&&(identical(other.currentCommand, currentCommand) || other.currentCommand == currentCommand)&&const DeepCollectionEquality().equals(other._history, _history)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.lastError, lastError) || other.lastError == lastError));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,currentCommand,const DeepCollectionEquality().hash(_history),isLoading,lastError);
 

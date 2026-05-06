@@ -41,6 +41,7 @@ class SqaField extends StatefulWidget {
     this.color,
     this.onSubmitted,
     this.focusNode,
+    this.isSelectable = true,
   });
 
   final String label;
@@ -75,6 +76,7 @@ class SqaField extends StatefulWidget {
   final double? gutterFontSize;
   final bool showSentenceCaseButton;
   final bool autofocus;
+  final bool isSelectable;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -492,7 +494,7 @@ class _SqaFieldState extends State<SqaField> {
                                   scrollController: _verticalScrollController,
                                   undoController: widget.undoController,
                                   onTapOutside: widget.onTapOutside,
-                                  enableInteractiveSelection: !widget.readOnly,
+                                  enableInteractiveSelection: widget.isSelectable,
                                   textAlignVertical: TextAlignVertical.top,
                                 );
 

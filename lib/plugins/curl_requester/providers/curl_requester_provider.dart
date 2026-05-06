@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -5,13 +6,38 @@ import '../models/curl_command.dart';
 import '../models/curl_requester_state.dart';
 import '../models/curl_transaction.dart';
 import '../services/curl_parser_service.dart';
+import '../../../core/services/preferences_service.dart';
 
 part 'curl_requester_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class CurlRequester extends _$CurlRequester {
   @override
   CurlRequesterState build() {
+    try {
+      // Load history on build
+      final prefs = ref.read(preferencesServiceProvider);
+      final historyJson = prefs.rawPrefs.getString(PreferencesService.keyCurlHistory);
+      
+      if (historyJson != null) {
+        final decoded = jsonDecode(historyJson) as List;
+        final history = decoded
+            .map((e) => CurlTransaction.fromJson(e as Map<String, dynamic>))
+            .toList();
+            
+        // "shown as last curl in the request" - If history exists, populate current command
+        final lastCommand = history.isNotEmpty ? history.first.request : const CurlCommand();
+        
+        return CurlRequesterState(
+          history: history,
+          currentCommand: lastCommand,
+        );
+      }
+    } catch (e) {
+      // Fallback on error or incompatible data
+      return const CurlRequesterState();
+    }
+    
     return const CurlRequesterState();
   }
 
@@ -192,5 +218,17 @@ class CurlRequester extends _$CurlRequester {
     final newHistory = [transaction, ...state.history];
     if (newHistory.length > 50) newHistory.removeRange(50, newHistory.length);
     state = state.copyWith(isLoading: false, history: newHistory);
+    _saveHistory();
+  }
+
+  void _saveHistory() {
+    final prefs = ref.read(preferencesServiceProvider);
+    final historyJson = jsonEncode(state.history.map((e) => e.toJson()).toList());
+    prefs.rawPrefs.setString(PreferencesService.keyCurlHistory, historyJson);
+  }
+
+  void clearHistory() {
+    state = state.copyWith(history: []);
+    _saveHistory();
   }
 }

@@ -99,7 +99,7 @@ class CurlParserService {
       }).toString();
     }
     
-    buffer.write(' "${finalUrl}"');
+    buffer.write(' "$finalUrl"');
 
     for (var entry in command.headers.entries) {
       if (command.inactiveHeaders.contains(entry.key)) continue;

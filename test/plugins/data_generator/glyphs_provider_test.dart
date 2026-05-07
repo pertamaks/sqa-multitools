@@ -3,11 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqa_multitools/plugins/data_generator/providers/glyphs_provider.dart';
 import 'package:sqa_multitools/plugins/data_generator/models/glyphs_state.dart';
 import 'package:sqa_multitools/plugins/data_generator/models/text_state.dart';
+import 'package:sqa_multitools/core/services/preferences_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('GlyphsGenerator Provider Tests', () {
+    late SharedPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
     test('generate chinese returns CJK characters', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       final notifier = container.read(glyphsGeneratorProvider.notifier);
 
       notifier.setCategory(GlyphsCategory.chinese);
@@ -24,7 +37,11 @@ void main() {
     });
 
     test('generate arabic returns Arabic characters', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       final notifier = container.read(glyphsGeneratorProvider.notifier);
 
       notifier.setCategory(GlyphsCategory.arabic);
@@ -43,7 +60,11 @@ void main() {
     });
 
     test('generate japanese still works (from faker)', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       final notifier = container.read(glyphsGeneratorProvider.notifier);
 
       notifier.setCategory(GlyphsCategory.japanese);

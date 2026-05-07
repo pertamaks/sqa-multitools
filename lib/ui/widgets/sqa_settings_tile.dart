@@ -94,6 +94,7 @@ class SqaSettingsTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: SqaStyles.radiusLarge,
+      mouseCursor: SystemMouseCursors.click,
       child: content,
     );
   }

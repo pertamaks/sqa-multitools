@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/identity_provider.dart';
-import 'widgets/locale_dropdown.dart';
 import 'widgets/count_dropdown.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_faker_locale_picker.dart';

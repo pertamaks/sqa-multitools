@@ -162,11 +162,12 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
       }).toList(),
       builder: (context, controller, child) {
         final isShowing = controller.isOpen;
+        final bool isEnabled = widget.enabled;
 
         return Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: widget.enabled
+            onTap: isEnabled
                 ? () {
                     if (isShowing) {
                       controller.close();
@@ -175,6 +176,7 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                     }
                   }
                 : null,
+            mouseCursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
             borderRadius: SqaStyles.radiusSmall,
             overlayColor: SqaStyles.buttonOverlay(context),
             child: ConstrainedBox(

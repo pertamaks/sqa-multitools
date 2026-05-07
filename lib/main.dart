@@ -38,6 +38,8 @@ void main() async {
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.setAsFrameless();
+    await windowManager.setHasShadow(false);
     await windowManager.setIcon('assets/desktop_new.png');
     await windowManager.setAlwaysOnTop(alwaysOnTop);
     await windowManager.setMinimumSize(
@@ -173,6 +175,66 @@ class SqaMultitoolsApp extends ConsumerWidget {
               }),
               interactive: true,
             ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            iconButtonTheme: IconButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            menuButtonTheme: MenuButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
             datePickerTheme: DatePickerThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
@@ -267,6 +329,66 @@ class SqaMultitoolsApp extends ConsumerWidget {
               }),
               interactive: true,
             ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            iconButtonTheme: IconButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
+            menuButtonTheme: MenuButtonThemeData(
+              style: ButtonStyle(
+                mouseCursor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return SystemMouseCursors.basic;
+                  }
+                  return SystemMouseCursors.click;
+                }),
+              ),
+            ),
             datePickerTheme: DatePickerThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: SqaStyles.radiusLarge,
@@ -335,17 +457,30 @@ class SqaMultitoolsApp extends ConsumerWidget {
             ),
           ),
           builder: (context, child) {
-            final isScreenshotVisible = ref
-                .watch(screenshotProvider)
-                .isOverlayVisible;
-            final isRecorderVisible = ref
-                .watch(screenRecorderProvider)
-                .isOverlayVisible;
+            final isScreenshotVisible =
+                ref.watch(screenshotProvider).isOverlayVisible;
+            final isRecorderVisible =
+                ref.watch(screenRecorderProvider).isOverlayVisible;
             final isOverlayActive = isScreenshotVisible || isRecorderVisible;
 
-            return Material(
-              color: isOverlayActive ? Colors.transparent : null,
-              child: child ?? const SizedBox.shrink(),
+            final settings = ref.watch(themeSettingsProvider);
+
+            return Opacity(
+              opacity: isOverlayActive
+                  ? 1.0
+                  : (settings.isTransparencyModeEnabled
+                      ? settings.opacity
+                      : 1.0),
+              child: ClipRRect(
+                borderRadius: isOverlayActive
+                    ? BorderRadius.zero
+                    : SqaStyles.borderRadiusWindow,
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                child: Material(
+                  color: isOverlayActive ? Colors.transparent : null,
+                  child: child ?? const SizedBox.shrink(),
+                ),
+              ),
             );
           },
           home: const HotkeyInitializer(child: MainToolbar()),

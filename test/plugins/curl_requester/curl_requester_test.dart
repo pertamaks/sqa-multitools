@@ -25,11 +25,12 @@ void main() {
   });
 
   ProviderContainer createContainer({List<dynamic> overrides = const []}) {
+    final allOverrides = [
+      sharedPreferencesProvider.overrideWithValue(mockPrefs),
+      ...overrides,
+    ];
     final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(mockPrefs),
-        ...overrides,
-      ],
+      overrides: allOverrides.cast(),
     );
     addTearDown(container.dispose);
     return container;
@@ -71,16 +72,6 @@ void main() {
       final container = createContainer();
       final notifier = container.read(curlRequesterProvider.notifier);
       
-      final transaction = CurlTransaction(
-        id: '2',
-        request: const CurlCommand(url: 'https://test.com'),
-        statusCode: 200,
-        responseBody: 'OK',
-        latency: Duration.zero,
-        responseSize: 0,
-        timestamp: DateTime.now(),
-      );
-      
       // Access state to trigger build
       container.read(curlRequesterProvider);
       
@@ -102,8 +93,6 @@ void main() {
 
     test('Retention limit of 50 items is enforced and saved', () {
       final container = createContainer();
-      final notifier = container.read(curlRequesterProvider.notifier);
-      
       // Manually trigger build
       container.read(curlRequesterProvider);
       

@@ -41,6 +41,7 @@ class SqaCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: effectiveRadius,
+          mouseCursor: onTap != null ? SystemMouseCursors.click : null,
           child: Padding(
             padding: padding ?? const EdgeInsets.all(16.0),
             child: child,

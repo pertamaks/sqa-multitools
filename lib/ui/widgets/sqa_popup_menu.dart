@@ -53,7 +53,9 @@ class SqaPopupMenu extends StatelessWidget {
           },
           style: IconButton.styleFrom(
             shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ).copyWith(overlayColor: SqaStyles.buttonOverlay(context)),
+          ).copyWith(
+            overlayColor: SqaStyles.buttonOverlay(context),
+          ),
         );
       },
     );

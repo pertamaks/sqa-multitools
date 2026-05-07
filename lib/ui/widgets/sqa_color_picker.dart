@@ -44,16 +44,19 @@ class SqaColorPicker extends StatelessWidget {
 
     return MenuAnchor(
       builder: (context, controller, child) {
-        return GestureDetector(
-          onTap: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          behavior: HitTestBehavior.opaque,
-          child: AbsorbPointer(child: child),
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              if (controller.isOpen) {
+                controller.close();
+              } else {
+                controller.open();
+              }
+            },
+            behavior: HitTestBehavior.opaque,
+            child: AbsorbPointer(child: child),
+          ),
         );
       },
       style: MenuStyle(
@@ -96,6 +99,7 @@ class SqaColorPicker extends StatelessWidget {
                   onColorSelected(color['hex'] == '' ? null : color['hex']);
                 },
                 borderRadius: SqaStyles.radiusSmall,
+                mouseCursor: SystemMouseCursors.click,
                 child: Container(
                   width: 32,
                   height: 32,

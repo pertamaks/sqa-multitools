@@ -20,14 +20,14 @@ class WindowSizeModeNotifier extends Notifier<WindowSizeMode> {
 
   Future<void> _applySize() async {
     if (state == WindowSizeMode.squareMode) {
-      const size = Size(
+      final size = Size(
         WindowConstants.kSquareModeSize,
         WindowConstants.kSquareModeSize,
       );
       await windowManager.setMinimumSize(size);
       await windowManager.setSize(size);
     } else {
-      const size = Size(
+      final size = Size(
         WindowConstants.kDefaultWindowWidth,
         WindowConstants.kExpandedWindowHeight,
       );
@@ -36,7 +36,6 @@ class WindowSizeModeNotifier extends Notifier<WindowSizeMode> {
     }
   }
 
-  /// Reset to default when closing a plugin if needed
   void reset() {
     state = WindowSizeMode.defaultExpanded;
   }

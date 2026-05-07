@@ -13,6 +13,7 @@ class SqaPluginHeader extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onBack;
   final VoidCallback? onIconTap;
+  final MouseCursor? iconMouseCursor;
 
   const SqaPluginHeader({
     super.key,
@@ -24,6 +25,7 @@ class SqaPluginHeader extends StatelessWidget {
     this.trailing,
     this.onBack,
     this.onIconTap,
+    this.iconMouseCursor,
   });
 
   @override
@@ -46,16 +48,19 @@ class SqaPluginHeader extends StatelessWidget {
           const SizedBox(width: 8),
         ],
         if (icon != null) ...[
-          GestureDetector(
-            onTap: onIconTap,
-            behavior: HitTestBehavior.opaque,
-            child: SqaIconContainer(
-              icon: icon!,
-              color: effectiveColor,
-              size: 40,
-              iconSize: 24,
-              isCircular: false,
-              borderRadius: SqaStyles.radiusLarge,
+          MouseRegion(
+            cursor: iconMouseCursor ?? (onIconTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
+            child: GestureDetector(
+              onTap: onIconTap,
+              behavior: HitTestBehavior.opaque,
+              child: SqaIconContainer(
+                icon: icon!,
+                color: effectiveColor,
+                size: 40,
+                iconSize: 24,
+                isCircular: false,
+                borderRadius: SqaStyles.radiusLarge,
+              ),
             ),
           ),
           const SizedBox(width: 16),

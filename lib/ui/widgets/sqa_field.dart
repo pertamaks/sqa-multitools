@@ -649,16 +649,18 @@ class _SqaFieldState extends State<SqaField> {
   Widget _buildExpansionFooter(ThemeData theme) {
     final hiddenLines = _lineCount - widget.collapsedMaxLines!;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isExpanded = !_isExpanded;
-          if (!_isExpanded) {
-            _stickyTopNotifier.value = 4.0;
-          }
-        });
-      },
-      child: Container(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _isExpanded = !_isExpanded;
+            if (!_isExpanded) {
+              _stickyTopNotifier.value = 4.0;
+            }
+          });
+        },
+        child: Container(
         width: double.infinity,
         height: _isExpanded ? 40 : 60, // Taller when collapsed for gradient
         decoration: BoxDecoration(
@@ -700,8 +702,9 @@ class _SqaFieldState extends State<SqaField> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _NoScrollbarBehavior extends MaterialScrollBehavior {

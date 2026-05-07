@@ -2,11 +2,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqa_multitools/plugins/data_generator/models/identity_state.dart';
 import 'package:sqa_multitools/plugins/data_generator/providers/identity_provider.dart';
+import 'package:sqa_multitools/core/services/preferences_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('IdentityProvider Tests', () {
+    late SharedPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
     test('initial state is correct', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final state = container.read(identityProvider);
@@ -16,7 +29,11 @@ void main() {
     });
 
     test('toggle includeFormatting updates state', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final notifier = container.read(identityProvider.notifier);
@@ -29,7 +46,11 @@ void main() {
     });
 
     test('setting quantity does not trigger generation (manual)', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final notifier = container.read(identityProvider.notifier);
@@ -47,7 +68,11 @@ void main() {
     });
 
     test('setting type does not trigger generation (manual)', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final notifier = container.read(identityProvider.notifier);
@@ -68,7 +93,11 @@ void main() {
     });
 
     test('phone numbers do not contain placeholders', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final notifier = container.read(identityProvider.notifier);
@@ -88,7 +117,11 @@ void main() {
     });
 
     test('phone extensions can be toggled', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
       addTearDown(container.dispose);
 
       final notifier = container.read(identityProvider.notifier);

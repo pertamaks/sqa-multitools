@@ -14,8 +14,18 @@ class SqaStyles {
   /// Medium radius (8.0) for interactive elements like buttons and segmented controls.
   static final radiusMedium = BorderRadius.circular(8.0);
 
-  /// Large radius (12.0) for containers, cards, fields, and major UI sections.
+  /// Large radius (24.0) for major UI sections and windows.
   static final radiusLarge = BorderRadius.circular(12.0);
+
+  /// Extra large radius (32.0) for special containers.
+  static final radiusExtraLarge = BorderRadius.circular(32.0);
+
+  /// Standard window radius (12.0).
+  static const double radiusWindow = 8.0;
+  static final borderRadiusWindow = BorderRadius.circular(radiusWindow);
+
+  /// Margin around the window content (0.0 since shadow is removed).
+  static const double shellMargin = 0.0;
 
   // --- Interaction States ---
 

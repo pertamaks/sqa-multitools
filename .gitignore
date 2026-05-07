@@ -44,6 +44,12 @@ migrate_working_dir/
 /coverage/
 pubspec.lock
 
+# Test Artifacts
+/test_docs/
+/test_temp/
+/ffmpeg_log.txt
+/analysis_results.txt
+
 # Symbolication related
 app.*.symbols
 

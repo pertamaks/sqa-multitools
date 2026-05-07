@@ -331,14 +331,13 @@ class _TextListViewState extends ConsumerState<TextListView> {
   }) {
     final theme = Theme.of(context);
     final bool isTonal = type == SqaButtonType.tonal;
-    final String label = isTonal ? 'Create First Document' : 'New Document';
-    final bool hasIcon = !isTonal;
+    final String label = isTonal ? 'Create First Document' : '';
+    final bool hasIcon = !isTonal || isTonal; // Always show icon now
 
-    // Estimate width based on SqaButton styling (12px bold text, icons, and padding)
-    // Roughly: chars * 7.2px + icon(18px) + gap(8px) + padding(24px)
+    // Estimate width based on SqaButton styling
     final double estimatedWidth =
         (label.length * 7.2) + (hasIcon ? 26.0 : 0) + 24.0;
-    final double width = estimatedWidth.clamp(140.0, 240.0);
+    final double width = estimatedWidth.clamp(isTonal ? 160.0 : 44.0, 240.0);
 
     return MenuAnchor(
       alignmentOffset: const Offset(0, 8),
@@ -388,8 +387,9 @@ class _TextListViewState extends ConsumerState<TextListView> {
       builder: (context, controller, child) {
         return SqaButton(
           label: label,
-          icon: hasIcon ? Symbols.add : null,
+          icon: hasIcon ? Symbols.add_notes : null,
           type: type,
+          tooltip: 'New document',
           onPressed: () {
             if (controller.isOpen) {
               controller.close();

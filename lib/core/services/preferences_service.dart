@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:convert';
 import '../models/hotkey_info.dart';
+import 'coffee_shop_service.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError(
@@ -40,6 +41,8 @@ class PreferencesService {
   static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
   static const String keyHotkeyScreenshotToggle = 'hotkey_screenshot_toggle';
   static const String keyHotkeyAreaRecord = 'hotkey_area_record';
+  static const String keyAppOpacity = 'app_opacity';
+  static const String keyTransparencyMode = 'transparency_mode';
 
   static const String keyScreenshotSaveDir = 'screenshot_save_dir';
   static const String keyScreenshotFormat = 'screenshot_format';
@@ -140,6 +143,22 @@ class PreferencesService {
     return _prefs.getBool(keyBeautifierAutoFormat) ?? true;
   }
 
+  double getAppOpacity() {
+    return _prefs.getDouble(keyAppOpacity) ?? 1.0;
+  }
+
+  Future<void> setAppOpacity(double opacity) async {
+    await _prefs.setDouble(keyAppOpacity, opacity);
+  }
+
+  bool getTransparencyMode() {
+    return _prefs.getBool(keyTransparencyMode) ?? false;
+  }
+
+  Future<void> setTransparencyMode(bool enabled) async {
+    await _prefs.setBool(keyTransparencyMode, enabled);
+  }
+
   Future<void> setBeautifierAutoFormat(bool autoFormat) async {
     await _prefs.setBool(keyBeautifierAutoFormat, autoFormat);
   }
@@ -232,12 +251,16 @@ class ThemeSettings {
   final int seedColorValue;
   final bool useDynamicColor;
   final bool alwaysOnTop;
+  final double opacity;
+  final bool isTransparencyModeEnabled;
 
   const ThemeSettings({
     required this.modeIndex,
     required this.seedColorValue,
     required this.useDynamicColor,
     required this.alwaysOnTop,
+    required this.opacity,
+    required this.isTransparencyModeEnabled,
   });
 
   ThemeSettings copyWith({
@@ -245,12 +268,17 @@ class ThemeSettings {
     int? seedColorValue,
     bool? useDynamicColor,
     bool? alwaysOnTop,
+    double? opacity,
+    bool? isTransparencyModeEnabled,
   }) {
     return ThemeSettings(
       modeIndex: modeIndex ?? this.modeIndex,
       seedColorValue: seedColorValue ?? this.seedColorValue,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
       alwaysOnTop: alwaysOnTop ?? this.alwaysOnTop,
+      opacity: opacity ?? this.opacity,
+      isTransparencyModeEnabled:
+          isTransparencyModeEnabled ?? this.isTransparencyModeEnabled,
     );
   }
 }
@@ -259,11 +287,53 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
   @override
   ThemeSettings build() {
     final service = ref.watch(preferencesServiceProvider);
-    return ThemeSettings(
+    
+    final initialSettings = ThemeSettings(
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
       alwaysOnTop: service.getAlwaysOnTop(),
+      opacity: service.getAppOpacity(),
+      isTransparencyModeEnabled: service.getTransparencyMode(),
+    );
+
+    return _applyTierConstraints(initialSettings);
+  }
+
+  ThemeSettings _applyTierConstraints(ThemeSettings settings) {
+    final tier = ref.read(supporterTierProvider);
+    
+    int seedColorValue = settings.seedColorValue;
+    bool useDynamicColor = settings.useDynamicColor;
+    bool isTransparencyEnabled = settings.isTransparencyModeEnabled;
+    double opacity = settings.opacity;
+
+    // Tier 1: Custom Accent Colors (except Teal)
+    if (tier < 1 && seedColorValue != 0xFF009688) {
+      seedColorValue = 0xFF009688;
+    }
+
+    // Tier 2: Dynamic Color Sync
+    if (tier < 2) {
+      useDynamicColor = false;
+    }
+
+    // Tier 3: Transparency Mode
+    if (tier < 3) {
+      isTransparencyEnabled = false;
+      opacity = 1.0;
+    }
+
+    // Global enforcement: If transparency mode is OFF, opacity MUST be 1.0
+    if (!isTransparencyEnabled) {
+      opacity = 1.0;
+    }
+
+    return settings.copyWith(
+      seedColorValue: seedColorValue,
+      useDynamicColor: useDynamicColor,
+      isTransparencyModeEnabled: isTransparencyEnabled,
+      opacity: opacity,
     );
   }
 
@@ -288,20 +358,70 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
     windowManager.setAlwaysOnTop(value);
   }
 
-  // Temporary preview method (not saved to prefs)
+  void setOpacity(double value) {
+    // Clamping logic: if transparency is enabled, we cap it at 0.85
+    // If not, it should generally be 1.0 (opaque)
+    double effectiveValue =
+        state.isTransparencyModeEnabled ? value.clamp(0.2, 0.85) : 1.0;
+
+    // Round to 2 decimal places to avoid floating point drift that can break Sliders
+    effectiveValue = double.parse(effectiveValue.toStringAsFixed(2));
+
+    state = state.copyWith(opacity: effectiveValue);
+    ref.read(preferencesServiceProvider).setAppOpacity(effectiveValue);
+  }
+
+  void toggleTransparencyMode(bool enabled) {
+    final service = ref.read(preferencesServiceProvider);
+    double newOpacity = state.opacity;
+
+    if (enabled) {
+      // Activating mode sets opacity to 0.85 automatically
+      newOpacity = 0.85;
+    } else {
+      // Disabling mode returns to full opacity
+      newOpacity = 1.0;
+    }
+
+    state = state.copyWith(
+      isTransparencyModeEnabled: enabled,
+      opacity: newOpacity,
+    );
+
+    service.setTransparencyMode(enabled);
+    service.setAppOpacity(newOpacity);
+  }
+
+  // Temporary preview methods (not saved to prefs)
+  
   void previewSeedColor(int colorValue) {
     state = state.copyWith(seedColorValue: colorValue);
+  }
+
+  void previewTransparency(bool enabled) {
+    state = state.copyWith(
+      isTransparencyModeEnabled: enabled,
+      opacity: enabled ? 0.85 : 1.0,
+    );
+  }
+
+  void previewDynamicColor(bool enabled) {
+    state = state.copyWith(useDynamicColor: enabled);
   }
 
   // Restore state from saved preferences (used when closing settings preview)
   void resetToSaved() {
     final service = ref.read(preferencesServiceProvider);
-    state = ThemeSettings(
+    final savedSettings = ThemeSettings(
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
       alwaysOnTop: service.getAlwaysOnTop(),
+      opacity: service.getAppOpacity(),
+      isTransparencyModeEnabled: service.getTransparencyMode(),
     );
+    
+    state = _applyTierConstraints(savedSettings);
   }
 }
 

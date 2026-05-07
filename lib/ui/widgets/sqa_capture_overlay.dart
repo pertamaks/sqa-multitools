@@ -709,13 +709,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         top: localY,
         width: display.size.width,
         height: display.size.height,
-        child: Center(
-          child:
-              widget.instructionBuilder?.call(context, delegate.captureMode) ??
-              _DefaultInstruction(
-                mode: delegate.captureMode,
-                targeting: delegate.isTargetingWindow,
-              ),
+        child: IgnorePointer(
+          child: Center(
+            child:
+                widget.instructionBuilder?.call(context, delegate.captureMode) ??
+                _DefaultInstruction(
+                  mode: delegate.captureMode,
+                  targeting: delegate.isTargetingWindow,
+                ),
+          ),
         ),
       );
     }).toList();

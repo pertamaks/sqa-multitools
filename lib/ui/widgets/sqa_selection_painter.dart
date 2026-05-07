@@ -51,13 +51,18 @@ class SqaSelectionPainter extends CustomPainter {
       final backgroundPaint = Paint()
         ..color = Colors.black.withValues(alpha: isRecording ? 0.3 : 0.6);
 
+      final path = Path()..addRect(Offset.zero & size);
+
       if (selectionRect != null) {
-        final path = Path()
-          ..addRect(Offset.zero & size)
-          ..addRect(selectionRect!)
-          ..fillType = PathFillType.evenOdd;
-        canvas.drawPath(path, backgroundPaint);
+        path.addRect(selectionRect!);
+        path.fillType = PathFillType.evenOdd;
+      } else if (targetedWindowRect != null) {
+        // Spotlight the targeted window/monitor if no selection is active
+        path.addRect(targetedWindowRect!);
+        path.fillType = PathFillType.evenOdd;
       }
+
+      canvas.drawPath(path, backgroundPaint);
     }
 
     // 2. Window/Monitor Hover Highlight

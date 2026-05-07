@@ -207,6 +207,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       captureRect: captureRect,
       availableDisplays: displays,
       lockedDisplay: null,
+      isTargetingWindow: state.captureMode == CaptureMode.window,
     );
 
     // Wait for Flutter to commit the first frame of the overlay

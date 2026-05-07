@@ -444,6 +444,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
           : colorScheme.surfaceContainerLow,
       body: Stack(
         children: [
+          const SizedBox.expand(),
           Column(
             children: [
               if (!isOverlayActive)

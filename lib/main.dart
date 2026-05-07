@@ -457,16 +457,20 @@ class SqaMultitoolsApp extends ConsumerWidget {
             ),
           ),
           builder: (context, child) {
-            final isScreenshotVisible = ref
-                .watch(screenshotProvider)
-                .isOverlayVisible;
-            final isRecorderVisible = ref
-                .watch(screenRecorderProvider)
-                .isOverlayVisible;
+            final isScreenshotVisible =
+                ref.watch(screenshotProvider).isOverlayVisible;
+            final isRecorderVisible =
+                ref.watch(screenRecorderProvider).isOverlayVisible;
             final isOverlayActive = isScreenshotVisible || isRecorderVisible;
 
+            final settings = ref.watch(themeSettingsProvider);
+
             return Opacity(
-              opacity: settings.isTransparencyModeEnabled ? settings.opacity : 1.0,
+              opacity: isOverlayActive
+                  ? 1.0
+                  : (settings.isTransparencyModeEnabled
+                      ? settings.opacity
+                      : 1.0),
               child: ClipRRect(
                 borderRadius: isOverlayActive
                     ? BorderRadius.zero

@@ -95,19 +95,18 @@ class TextEditor extends _$TextEditor {
     );
   }
 
-  void createFromTemplate(TextTemplateType type) {
-    if (state.documents.length >= state.maxDocuments) {
-      state = state.copyWith(
-        errorMessage: 'Maximum of ${state.maxDocuments} documents reached.',
-      );
-      return;
-    }
+  Future<void> createFromTemplate(TextTemplateType type) async {
+    state = state.copyWith(isLoading: true);
+    
+    // Brief delay to allow the loading transition to be visible
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+
     final String initialContent;
     final String name;
 
     switch (type) {
       case TextTemplateType.bugReport:
-        name = "";
+        name = "Bug Report";
         initialContent = """# Bug Report
 ## Summary
 (Brief description)
@@ -126,7 +125,7 @@ class TextEditor extends _$TextEditor {
 - """;
         break;
       case TextTemplateType.devTicket:
-        name = "";
+        name = "Dev Ticket";
         initialContent = """# Development Ticket
 ## Summary
 (Goal)
@@ -138,7 +137,7 @@ class TextEditor extends _$TextEditor {
 - [ ] """;
         break;
       case TextTemplateType.empty:
-        name = "";
+        name = "Untitled";
         initialContent = "";
         break;
     }
@@ -155,6 +154,7 @@ class TextEditor extends _$TextEditor {
       activeDocument: newDoc,
       viewMode: TextEditorViewMode.editor,
       hasUnsavedChanges: true,
+      isLoading: false,
     );
   }
 
@@ -238,15 +238,7 @@ class TextEditor extends _$TextEditor {
       String finalName = doc.name;
       final isNew = !state.documents.any((d) => d.id == doc.id);
 
-      if (isNew && state.documents.length >= state.maxDocuments) {
-        state = state.copyWith(
-          isSaving: false,
-          errorMessage: 'Maximum of ${state.maxDocuments} documents reached.',
-        );
-        return;
-      }
-
-      if (finalName.isEmpty || isNew || oldName != null) {
+      if (isNew && oldName != null) {
         finalName = await _storage.getNextAvailableName(finalName);
       }
 

@@ -61,8 +61,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
     return SqaPluginLayout(
       icon: Symbols.edit_note,
       title: 'Text Editor',
-      description:
-          'Manage and edit your text documents. (${state.documents.length}/${state.maxDocuments})',
+      description: 'Manage and edit your MarkDown documents.',
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

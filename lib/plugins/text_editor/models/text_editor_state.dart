@@ -16,7 +16,6 @@ abstract class TextEditorState with _$TextEditorState {
     @Default(false) bool hasUnsavedChanges,
     String? errorMessage,
     String? savePath,
-    @Default(20) int maxDocuments,
     @Default('') String searchQuery,
   }) = _TextEditorState;
 }

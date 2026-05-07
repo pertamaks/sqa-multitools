@@ -115,22 +115,6 @@ class _TextEditorSettings extends ConsumerWidget {
                   tooltip: 'Change Save Directory',
                 ),
               ),
-              const Divider(height: 1),
-              SqaSettingsTile(
-                icon: Symbols.format_list_numbered,
-                title: 'Document Limit',
-                subtitle: 'Max documents allowed',
-                trailing: Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Text(
-                    '${state.maxDocuments}',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

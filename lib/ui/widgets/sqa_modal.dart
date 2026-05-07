@@ -429,7 +429,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                                     padding: const EdgeInsets.only(
                                       right: 16,
                                     ), // Align scrollbar with buttons
-                                    child: (widget.child != null)
+                                    child: widget.child != null
                                         ? SingleChildScrollView(
                                             controller: _scrollController,
                                             padding: const EdgeInsets.only(
@@ -439,22 +439,21 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                                             child: widget.child!,
                                           )
                                         : (widget.items.isEmpty
-                                              ? Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 24,
-                                                      ),
-                                                  child: _buildEmpty(theme),
-                                                )
-                                              : (widget.isTileMode
-                                                    ? _buildTileContent(
-                                                        context,
-                                                        theme,
-                                                      )
-                                                    : _buildListContent(
-                                                        context,
-                                                        theme,
-                                                      ))),
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 24,
+                                                ),
+                                                child: _buildEmpty(theme),
+                                              )
+                                            : (widget.isTileMode
+                                                ? _buildTileContent(
+                                                    context,
+                                                    theme,
+                                                  )
+                                                : _buildListContent(
+                                                    context,
+                                                    theme,
+                                                  ))),
                                   ),
                                 ),
                               ),
@@ -525,139 +524,132 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
   }
 
   Widget _buildTileContent(BuildContext context, ThemeData theme) {
-    return Scrollbar(
+    return SingleChildScrollView(
       controller: _scrollController,
-      thumbVisibility: true,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(right: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: widget.items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            final tile = widget.tileBuilder!(item, index);
+      padding: const EdgeInsets.only(right: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: widget.items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final tile = widget.tileBuilder!(item, index);
 
-            return SqaCard(
-              margin: const EdgeInsets.only(bottom: 12),
-              onTap: () => Navigator.of(context).pop(item),
-              padding: EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Thumbnail
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(8),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 32 / 9,
-                      child: tile.imagePath != null
-                          ? Image.file(
-                              File(tile.imagePath!),
-                              fit: BoxFit.cover,
-                              key: ValueKey(
-                                tile.imagePath! +
-                                    DateTime.now().millisecond.toString(),
-                              ),
-                            )
-                          : Container(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              child: Center(
-                                child: Icon(
-                                  Symbols.desktop_windows,
-                                  size: 32,
-                                  color: theme.colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.3),
-                                ),
+          return SqaCard(
+            margin: const EdgeInsets.only(bottom: 12),
+            onTap: () => Navigator.of(context).pop(item),
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 32 / 9,
+                    child: tile.imagePath != null
+                        ? Image.file(
+                            File(tile.imagePath!),
+                            fit: BoxFit.cover,
+                            key: ValueKey(tile.imagePath),
+                          )
+                        : Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: Center(
+                              child: Icon(
+                                Symbols.desktop_windows,
+                                size: 32,
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
-                    ),
+                          ),
                   ),
-                  // Label + Badge
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          tile.label,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                ),
+                // Label + Badge
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        tile.label,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (tile.badge != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            tile.badge!,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
-                        if (tile.badge != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer
-                                  .withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              tile.badge!,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize:
-                                    11, // Standard Label size per GEMINI.md
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
   Widget _buildListContent(BuildContext context, ThemeData theme) {
-    return Scrollbar(
+    return SingleChildScrollView(
       controller: _scrollController,
-      thumbVisibility: true,
-      child: ListView.separated(
-        controller: _scrollController,
-        itemCount: widget.items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          final item = widget.items[index];
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: widget.items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
           final listItem = widget.itemBuilder!(item, index);
 
-          return SqaCard(
-            padding: EdgeInsets.zero,
-            child: ListTile(
-              leading: Icon(listItem.icon, size: 20),
-              title: Text(
-                listItem.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          return Padding(
+            padding: EdgeInsets.only(bottom: index == widget.items.length - 1 ? 0 : 8),
+            child: SqaCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: Icon(listItem.icon, size: 20),
+                title: Text(
+                  listItem.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: listItem.subtitle != null
+                    ? Text(
+                        listItem.subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11, // Standard Label size per GEMINI.md
+                        ),
+                      )
+                    : null,
+                onTap: () => Navigator.of(context).pop(item),
               ),
-              subtitle: listItem.subtitle != null
-                  ? Text(
-                      listItem.subtitle!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11, // Standard Label size per GEMINI.md
-                      ),
-                    )
-                  : null,
-              onTap: () => Navigator.of(context).pop(item),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }

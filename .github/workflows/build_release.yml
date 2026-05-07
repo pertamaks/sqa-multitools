@@ -8,6 +8,9 @@ on:
     tags:
       - 'v*' # Builds trigger when pushing a version tag
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest

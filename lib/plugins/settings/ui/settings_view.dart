@@ -4,7 +4,6 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../core/providers/plugin_provider.dart';
-import '../providers/settings_debug_provider.dart';
 import 'general_settings_view.dart';
 import 'plugins_settings_view.dart';
 import 'coffee_shop_view.dart';

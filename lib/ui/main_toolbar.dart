@@ -438,7 +438,6 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       }
     });
 
-    final themeSettings = ref.watch(themeSettingsProvider);
     return Scaffold(
       backgroundColor: isOverlayActive
           ? Colors.transparent

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../providers/curl_requester_provider.dart';
-import '../../services/curl_parser_service.dart';
 import '../components/curl_requester_grid_row.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_field.dart';

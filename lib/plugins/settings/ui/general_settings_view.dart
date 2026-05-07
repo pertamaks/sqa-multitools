@@ -397,7 +397,7 @@ class GeneralSettingsView extends ConsumerWidget {
                               const Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Transparency Level',
                                     style: TextStyle(
                                       fontSize: 12,
@@ -497,7 +497,7 @@ class GeneralSettingsView extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Text(
+                          Text(
                             'Keep the toolbar above all other windows.',
                             style: TextStyle(fontSize: 11, color: Colors.grey),
                           ),

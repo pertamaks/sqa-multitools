@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import '../window/window_constants.dart';
-import '../../ui/widgets/sqa_styles.dart';
 
 enum WindowSizeMode { defaultExpanded, squareMode }
 
@@ -37,7 +36,6 @@ class WindowSizeModeNotifier extends Notifier<WindowSizeMode> {
     }
   }
 
-  /// Reset to default when closing a plugin if needed
   void reset() {
     state = WindowSizeMode.defaultExpanded;
   }

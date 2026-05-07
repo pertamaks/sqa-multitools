@@ -16,8 +16,6 @@ import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
 import 'ui/widgets/sqa_styles.dart';
 import 'ui/widgets/sqa_scroll_behavior.dart';
-import 'core/services/coffee_shop_service.dart';
-import 'core/providers/plugin_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -186,7 +186,7 @@ class CurlRequester extends _$CurlRequester {
         ..removeWhere((k, _) => command.inactiveHeaders.contains(k));
 
       // 4. Send Request via Dio
-      final response = await _dio.request(
+      final response = await _dio.request<String>(
         finalUrl,
         queryParameters: activeParams,
         data: resolvedCommand.body.isNotEmpty ? resolvedCommand.body : null,

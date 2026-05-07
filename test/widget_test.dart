@@ -26,43 +26,47 @@ class MockFfmpeg extends Ffmpeg {
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    const MethodChannel(
-      'dev.leanflutter.plugins/hotkey_manager',
-    ).setMockMethodCallHandler((MethodCall call) async => null);
-    const MethodChannel(
-      'dev.leanflutter.plugins/hotkey_manager_event',
-    ).setMockMethodCallHandler((MethodCall call) async => null);
-    const MethodChannel(
-      'dev.leanflutter.plugins/screen_retriever',
-    ).setMockMethodCallHandler((MethodCall call) async {
-      if (call.method == 'getAllDisplays') {
-        return {
-          'displays': [
-            {
-              'id': '1',
-              'name': 'Screen 1',
-              'size': {'width': 1920.0, 'height': 1080.0},
-              'scaleFactor': 1.0,
-            },
-          ],
-        };
-      }
-      return null;
-    });
-    const MethodChannel('window_manager').setMockMethodCallHandler((
-      MethodCall call,
-    ) async {
-      if (call.method == 'getBounds') {
-        return {'x': 0.0, 'y': 0.0, 'width': 800.0, 'height': 600.0};
-      }
-      if (call.method == 'getSize') {
-        return {'width': 800.0, 'height': 600.0};
-      }
-      if (call.method == 'getPosition') {
-        return {'x': 0.0, 'y': 0.0};
-      }
-      return true;
-    });
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),
+      (MethodCall call) async => null,
+    );
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.leanflutter.plugins/hotkey_manager_event'),
+      (MethodCall call) async => null,
+    );
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.leanflutter.plugins/screen_retriever'),
+      (MethodCall call) async {
+        if (call.method == 'getAllDisplays') {
+          return {
+            'displays': [
+              {
+                'id': '1',
+                'name': 'Screen 1',
+                'size': {'width': 1920.0, 'height': 1080.0},
+                'scaleFactor': 1.0,
+              },
+            ],
+          };
+        }
+        return null;
+      },
+    );
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('window_manager'),
+      (MethodCall call) async {
+        if (call.method == 'getBounds') {
+          return {'x': 0.0, 'y': 0.0, 'width': 800.0, 'height': 600.0};
+        }
+        if (call.method == 'getSize') {
+          return {'width': 800.0, 'height': 600.0};
+        }
+        if (call.method == 'getPosition') {
+          return {'x': 0.0, 'y': 0.0};
+        }
+        return true;
+      },
+    );
     PathProviderPlatform.instance = MockPathProvider();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -81,7 +85,7 @@ void main() {
       expect(find.byType(SqaMultitoolsApp), findsOneWidget);
 
       // Wait a bit for Ffmpeg's Process.run to finish
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       // Dispose the ProviderScope to clean up any active timers from plugins
       await tester.pumpWidget(Container());

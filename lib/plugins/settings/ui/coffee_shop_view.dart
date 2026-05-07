@@ -7,7 +7,6 @@ import '../../../core/services/coffee_shop_service.dart';
 import '../../../core/providers/debug_provider.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
-import '../../../ui/widgets/sqa_icon_container.dart';
 import '../../../ui/widgets/sqa_info_banner.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_switch.dart';

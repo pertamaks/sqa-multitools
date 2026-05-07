@@ -7,12 +7,11 @@ import '../../models/curl_transaction.dart';
 import '../../services/curl_parser_service.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_status_badge.dart';
-import '../../../../ui/widgets/sqa_styles.dart';
 
 class HistoryTab extends ConsumerWidget {
   final ScrollController scrollController;
   final VoidCallback onTransactionTap;
-  final Function(CurlTransaction) showTransactionModal;
+  final void Function(CurlTransaction) showTransactionModal;
 
   const HistoryTab({
     super.key,

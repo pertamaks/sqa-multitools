@@ -1,0 +1,105 @@
+# =============================================================================
+# SQA-Multitools .gitignore
+# =============================================================================
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# =============================================================================
+# IDE / Editor
+# =============================================================================
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (uncomment to ignore)
+#.vscode/
+
+# =============================================================================
+# Flutter / Dart / Pub
+# =============================================================================
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+pubspec.lock
+
+# Test Artifacts
+/test_docs/
+/test_temp/
+/ffmpeg_log.txt
+/analysis_results.txt
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# =============================================================================
+# Platform Build Artifacts
+# =============================================================================
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# =============================================================================
+# Agent / AI Tooling
+# =============================================================================
+.gemini/
+GEMINI.md
+.env
+
+# =============================================================================
+# Scratch / Debug Output (catch-all for temp dumps)
+# =============================================================================
+*.txt
+!README.txt
+!LICENSE.txt
+/tmp/
+
+# =============================================================================
+# Development / Experimental (SQA Checkpoint)
+# =============================================================================
+lib/plugins/text_editor_v2/
+assets/appflowy-editor-main/
+
+# Local Assets (Unused in Repo)
+assets/toolbar_new.png
+assets/app_icon_.ico
+assets/md_extreme_test.md
+assets/result.md
+assets/source.md
+assets/insomnia-develop
+
+# =============================================================================
+# Web Landing Page
+# =============================================================================
+web-landing/
+
+# =============================================================================
+# License Worker
+# =============================================================================
+license-worker/

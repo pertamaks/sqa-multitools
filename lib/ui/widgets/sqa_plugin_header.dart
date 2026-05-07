@@ -1,0 +1,97 @@
+import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../ui/widgets/sqa_icon_container.dart';
+import 'sqa_hover_icon_button.dart';
+import 'sqa_styles.dart';
+
+class SqaPluginHeader extends StatelessWidget {
+  final IconData? icon;
+  final String title;
+  final String description;
+  final Widget? titleWidget;
+  final Color? color;
+  final Widget? trailing;
+  final VoidCallback? onBack;
+  final VoidCallback? onIconTap;
+  final MouseCursor? iconMouseCursor;
+
+  const SqaPluginHeader({
+    super.key,
+    this.icon,
+    this.title = '',
+    this.description = '',
+    this.titleWidget,
+    this.color,
+    this.trailing,
+    this.onBack,
+    this.onIconTap,
+    this.iconMouseCursor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final effectiveColor = color ?? colorScheme.primary;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (onBack != null) ...[
+          SqaHoverIconButton(
+            icon: Symbols.arrow_back,
+            onPressed: onBack!,
+            tooltip: 'Back',
+            iconSize: 20,
+            padding: 8,
+          ),
+          const SizedBox(width: 8),
+        ],
+        if (icon != null) ...[
+          MouseRegion(
+            cursor: iconMouseCursor ?? (onIconTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
+            child: GestureDetector(
+              onTap: onIconTap,
+              behavior: HitTestBehavior.opaque,
+              child: SqaIconContainer(
+                icon: icon!,
+                color: effectiveColor,
+                size: 40,
+                iconSize: 24,
+                isCircular: false,
+                borderRadius: SqaStyles.radiusLarge,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+        Expanded(
+          child:
+              titleWidget ??
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: effectiveColor,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+        ),
+        if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+      ],
+    );
+  }
+}

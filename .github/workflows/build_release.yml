@@ -32,13 +32,13 @@ jobs:
         run: flutter build windows --release
         
       - name: Zip Bundle
-        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath sqa-tools-windows.zip
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath sqa-multitools-${{ github.ref_name }}-windows.zip
         
       - name: Upload Artifact Map
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: sqa-tools-windows.zip
+          path: sqa-multitools-${{ github.ref_name }}-windows.zip
 
   create-release:
     needs: [build-windows]
@@ -54,6 +54,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            sqa-tools-windows.zip
+            sqa-multitools-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

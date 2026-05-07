@@ -32,13 +32,16 @@ jobs:
         run: flutter build windows --release
         
       - name: Zip Bundle
-        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath sqa-multitools-${{ github.ref_name }}-windows.zip
+        run: |
+          $refName = "${{ github.ref_name }}"
+          $sanitizedName = $refName -replace '/', '-'
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "sqa-multitools-$sanitizedName-windows.zip"
         
       - name: Upload Artifact Map
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: sqa-multitools-${{ github.ref_name }}-windows.zip
+          path: sqa-multitools-*-windows.zip
 
   create-release:
     needs: [build-windows]

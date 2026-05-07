@@ -20,6 +20,11 @@ jobs:
         with:
           channel: 'stable'
           
+      - name: Enable Windows Support
+        run: |
+          flutter config --enable-windows-desktop
+          flutter create --platforms=windows .
+
       - name: Install Dependencies
         run: flutter pub get
         

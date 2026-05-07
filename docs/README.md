@@ -6,19 +6,23 @@ This folder contains the Software Requirements Specification (SRS) and project-w
 
 The SRS is split into feature-specific documents to ensure clarity and maintainability.
 
-### [00. Core Architecture](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
+### [00. Core Architecture](srs/00_core.md)
 Introduction, technology stack (Material 3, Flutter, Riverpod), and plugin contract.
 
 ### Features & Plugins
-- **[Clipboard Management](file:///e:/Github/sqa-tools/docs/srs/plugin_clipboard.md)**
-- **[Color Picker](file:///e:/Github/sqa-tools/docs/srs/plugin_color_picker.md)**
-- **[Data Generator](file:///e:/Github/sqa-tools/docs/srs/plugin_data_generator.md)**
-- **[Magic 8-Ball](file:///e:/Github/sqa-tools/docs/srs/plugin_magic_8ball.md)**
-- **[Screen Recorder](file:///e:/Github/sqa-tools/docs/srs/plugin_screen_recorder.md)**
-- **[Screenshot Tool](file:///e:/Github/sqa-tools/docs/srs/plugin_screenshot.md)**
-- **[Settings Dashboard](file:///e:/Github/sqa-tools/docs/srs/plugin_settings.md)**
-- **[Timer / Countdown](file:///e:/Github/sqa-tools/docs/srs/plugin_timer.md)**
-- **[Coffee Shop & Squash the Bug](file:///e:/Github/sqa-tools/docs/srs/feature_coffee_shop.md)**
+- **[Code Beautifier](srs/plugin_beautifier.md)**
+- **[cURL Requester](srs/plugin_curl_requester.md)**
+- **[Data Generator](srs/plugin_data_generator.md)**
+- **[QA Oracle](srs/plugin_magic_8ball.md)**
+- **[QA Cheatsheet](srs/plugin_qa_cheatsheet.md)**
+- **[Screen Recorder](srs/plugin_screen_recorder.md)**
+- **[Screenshot Tool](srs/plugin_screenshot.md)**
+- **[Security Payloads](srs/plugin_security_payloads.md)**
+- **[Settings Dashboard](srs/plugin_settings.md)**
+- **[Text Editor](srs/plugin_text_editor.md)**
+- **[Timer / Countdown](srs/plugin_timer.md)**
+- **[TODO & Tasks](srs/plugin_todo.md)**
+- **[Coffee Shop & Squash the Bug](srs/feature_coffee_shop.md)**
 
 ## Document Liveness
 

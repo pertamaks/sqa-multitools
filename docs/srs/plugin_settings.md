@@ -12,7 +12,7 @@ The tool is called **Settings Dashboard**. It manages app-wide preferences, plug
 - **Redemption Code:** A unique string used to unlock tiers.
 
 ### References
-- [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
+- [Core Architecture SRS](00_core.md)
 
 ## 2. Overall Description
 ### Product Perspective

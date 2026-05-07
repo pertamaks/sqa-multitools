@@ -13,8 +13,8 @@ The software is called **SQA-Multitools**. It is a modular desktop utility suite
 - **Material 3:** Google's latest design system.
 
 ### References
-- [Main Documentation Index](file:///e:/Github/sqa-tools/docs/README.md)
-- [Agent Guidelines (gemini.md)](file:///e:/Github/sqa-tools/gemini.md)
+- [Main Documentation Index](../README.md)
+- [Agent Guidelines (AGENT.md)](../../AGENT.md)
 
 ## 2. Overall Description
 ### Product Perspective
@@ -50,6 +50,18 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 - **Source:** Static `version.json` hosted on Cloudflare Pages.
 - **Distribution:** Redirects to GitHub Releases for build downloads.
 - **Processing:** Performs semantic version comparison (Local vs Remote).
+
+### Single Instance Mutex
+- **Description:** Prevents multiple instances of the application from running simultaneously on the same machine.
+- **Native Implementation:** Uses a Global Mutex (`sqa_multitools_single_instance_mutex`) in the C++ runner.
+- **Behavior:** If a second instance is launched, it detects the existing mutex, finds the first instance's window, restores/focuses it, and exits immediately.
+- **Dart Integration:** The `MainToolbar` listens for window focus events to restore transparency and visibility if the app was "safe hidden" in the tray.
+
+### CI/CD Release Pipeline
+- **Description:** Automated build and distribution system using GitHub Actions.
+- **Triggers:** New version tags (e.g., `v0.1.0`).
+- **Manual Approval Gate:** Uses GitHub Environments (`production`) to require a maintainer's manual sign-off before artifacts are published as a GitHub Release.
+- **Artifact Sanitation:** Automatic PowerShell logic to ensure branch-based filenames are sanitized for Windows file system compatibility.
 
 ## 4. External Interface Requirements
 ### User Interfaces (UI)

@@ -12,7 +12,7 @@ The tool is called **QA Oracle**. It provides randomized responses to common QA 
 - **QA-isms:** Common QA industry phrases and jokes.
 
 ### References
-- [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
+- [Core Architecture SRS](00_core.md)
 
 ## 2. Overall Description
 ### Product Perspective

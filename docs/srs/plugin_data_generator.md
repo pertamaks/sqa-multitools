@@ -11,7 +11,7 @@ The tool is called **Data Generator**. It automates the creation of mock test da
 - **TBD:** To Be Defined.
 
 ### References
-- [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
+- [Core Architecture SRS](00_core.md)
 
 ## 2. Overall Description
 ### Product Perspective

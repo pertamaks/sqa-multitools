@@ -12,8 +12,8 @@ The feature is called **Coffee Shop**. It provides a way to support the project 
 - **Squash the Bug:** An interactive mini-game for Tier 3 supporters.
 
 ### References
-- [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
-- [Settings Dashboard SRS](file:///e:/Github/sqa-tools/docs/srs/plugin_settings.md)
+- [Core Architecture SRS](00_core.md)
+- [Settings Dashboard SRS](plugin_settings.md)
 
 ## 2. Overall Description
 ### Product Perspective

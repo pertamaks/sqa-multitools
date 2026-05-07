@@ -13,7 +13,7 @@ The tool is called **Color Picker**. It provides color identification and captur
 - **HSL:** Hue, Saturation, Lightness color model.
 
 ### References
-- [Core Architecture SRS](file:///E:/Github/sqa-tools/docs/srs/00_core.md)
+- [Core Architecture SRS](00_core.md)
 
 ## 2. Overall Description
 ### Product Perspective

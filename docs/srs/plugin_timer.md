@@ -11,7 +11,7 @@ The tool is called **Timer & Clock**. It provides real-time clock synchronizatio
 - **TBD:** To Be Defined.
 
 ### References
-- [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
+- [Core Architecture SRS](00_core.md)
 
 ## 2. Overall Description
 ### Product Perspective

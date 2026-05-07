@@ -12,8 +12,8 @@ The tool is called **Screen Recorder**. It captures screen video for bug reports
 - **JIT:** Just-In-Time download.
 
 ### References
-- [Core Architecture SRS](file:///e:/Github/sqa-tools/docs/srs/00_core.md)
-- [Agent Guidelines (GEMINI.md)](file:///e:/Github/sqa-multitools/GEMINI.md)
+- [Core Architecture SRS](00_core.md)
+- [Agent Guidelines (AGENT.md)](../../AGENT.md)
 
 ## 2. Overall Description
 ### Product Perspective

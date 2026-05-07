@@ -15,13 +15,15 @@ A modular desktop utility suite built for QA Engineers and Developers. SQA-Multi
 | **Timer & Countdown** | Stopwatch, countdown timer, and Unix timestamp converter |
 | **Data Generator** | Generate mock UUIDs, emails, names, addresses, and glyphs on the fly |
 | **Code Beautifier** | Format and syntax-highlight JSON, XML, YAML, and Dart with line numbers |
-| **Clipboard Manager** | Searchable clipboard history with drag-and-drop support |
-| **Color Picker** | Pick colors from anywhere on screen with format conversion |
+| **Text Editor** | Premium Markdown editor for bug reports and dev tickets with "Smart Paste" support |
+| **cURL Requester** | Simplified HTTP client with history and "Mini-Postman" transaction inspection |
 | **Screen Recorder** | Record your screen with a draggable floating control bar |
 | **Screenshot** | Capture full-screen or region-select screenshots |
-| **Magic 8-Ball** | The essential QA decision-making tool 🎱 |
+| **TODO & Tasks** | Lightweight task management for development sprints |
+| **QA Cheatsheet** | Quick access to standard QA checklists and project-specific guides |
 | **Security Payloads** | Quick-access XSS/SQL injection test strings |
 | **Settings** | Theme selection, preferences, and Coffee Shop license manager |
+| **QA Oracle** | The essential QA decision-making tool 🎱 |
 
 ## Architecture
 
@@ -39,15 +41,17 @@ lib/
 │   └── widgets/       # 18 standardized Material 3 widgets
 └── plugins/           # Feature modules (each self-contained)
     ├── beautifier/
-    ├── clipboard/
-    ├── color_picker/
+    ├── curl_requester/
     ├── data_generator/
     ├── magic_8ball/
+    ├── qa_cheatsheet/
     ├── screen_recorder/
     ├── screenshot/
     ├── security_payloads/
     ├── settings/
-    └── timer/
+    ├── text_editor/
+    ├── timer/
+    └── todo/
 ```
 
 ## Tech Stack
@@ -56,7 +60,8 @@ lib/
 - **State Management:** Riverpod + Riverpod Generator
 - **Immutability:** Freezed
 - **UI:** Material 3 with custom frameless window chrome
-- **CI/CD:** GitHub Actions — automated Windows release builds on version tags
+- **Native:** Windows Mutex for single-instance enforcement
+- **CI/CD:** GitHub Actions — automated Windows release builds on version tags with manual approval gate
 
 ## Getting Started
 
@@ -96,6 +101,11 @@ flutter build windows --release
 ```
 
 The compiled bundle will be at `build/windows/x64/runner/Release/`.
+
+### Automated Pipeline
+Releases are automatically triggered by pushing a version tag (e.g., `v0.1.0`). This process is guarded by a manual approval gate in GitHub Actions. 
+
+For full details on the release workflow and branching strategy, see **[RELEASE.md](RELEASE.md)**.
 
 ## Documentation
 

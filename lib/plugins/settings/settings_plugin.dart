@@ -914,6 +914,67 @@ class GeneralSettingsView extends ConsumerWidget {
     );
   }
 
+  Widget _buildTasterBanner(
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+    bool show,
+  ) {
+    if (!show) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            Icon(Symbols.info, size: 16, color: colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'This is a taster service. If you enjoy this blend, you can order it at the shop!',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            SqaButton.tonal(
+              onPressed: () {
+                DefaultTabController.of(context).animateTo(2);
+              },
+              icon: Symbols.coffee_maker,
+              label: '',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewBadge(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'PREVIEW',
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.onPrimaryContainer,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeSettings = ref.watch(themeSettingsProvider);
@@ -976,163 +1037,306 @@ class GeneralSettingsView extends ConsumerWidget {
                   },
                 ),
                 const SizedBox(height: 24),
-
-                // Color Selection
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Premium Effects Group
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Accent Color',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    _buildTierBadge(1, supporterTier, colorScheme),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: curatedColors.map((colorMap) {
-                    final name = colorMap['name'] as String;
-                    final color = colorMap['color'] as Color;
-                    final isSelected =
-                        themeSettings.seedColorValue == color.toARGB32();
-                    final isLocked = name != 'Teal' && supporterTier < 1;
-
-                    return GestureDetector(
-                      onTap: () {
-                        if (isLocked) {
-                          ref
-                              .read(themeSettingsProvider.notifier)
-                              .previewSeedColor(color.toARGB32());
-                        } else {
-                          ref
-                              .read(themeSettingsProvider.notifier)
-                              .setSeedColor(color.toARGB32());
-                        }
-                      },
-                      child: Tooltip(
-                        message: isLocked ? '$name (Preview)' : name,
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : Colors.transparent,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              if (isSelected)
-                                BoxShadow(
-                                  color: color.withValues(alpha: 0.4),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                            ],
-                          ),
-                          child: isLocked
-                              ? const Icon(
-                                  Symbols.lock,
-                                  color: Colors.white,
-                                  size: 14,
-                                )
-                              : (isSelected
-                                    ? const Icon(
-                                        Symbols.check,
-                                        color: Colors.white,
-                                        size: 18,
-                                      )
-                                    : null),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                // Preview Warning / Upgrade Prompt
-                if (supporterTier < 1 &&
-                    themeSettings.seedColorValue !=
-                        curatedColors[0]['color'].toARGB32()) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: colorScheme.outlineVariant),
-                    ),
-                    child: Row(
+                    Row(
                       children: [
-                        Icon(
-                          Symbols.info,
-                          size: 16,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'This is a taster service. If you enjoy this blend, you can order it at the shop!',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                        Icon(Symbols.coffee, size: 16, color: colorScheme.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Coffee Shop Amenities',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                            color: colorScheme.primary,
                           ),
-                        ),
-                        SqaButton.tonal(
-                          onPressed: () {
-                            DefaultTabController.of(context).animateTo(2);
-                          },
-                          label: 'Order at Shop',
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
 
-                const SizedBox(height: 24),
-                // Dynamic Color Sync
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sync with Windows Accent',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                    // Accent Color Selection
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Accent Color',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        _buildTierBadge(1, supporterTier, colorScheme),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: curatedColors.map((colorMap) {
+                        final name = colorMap['name'] as String;
+                        final color = colorMap['color'] as Color;
+                        final isSelected =
+                            themeSettings.seedColorValue == color.toARGB32();
+                        final isLocked = name != 'Teal' && supporterTier < 1;
+
+                        return GestureDetector(
+                          onTap: () {
+                            if (isLocked) {
+                              ref
+                                  .read(themeSettingsProvider.notifier)
+                                  .previewSeedColor(color.toARGB32());
+                            } else {
+                              ref
+                                  .read(themeSettingsProvider.notifier)
+                                  .setSeedColor(color.toARGB32());
+                            }
+                          },
+                          child: Tooltip(
+                            message: isLocked ? '$name (Preview)' : name,
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : Colors.transparent,
+                                  width: 3,
+                                ),
+                                boxShadow: [
+                                  if (isSelected)
+                                    BoxShadow(
+                                      color: color.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                ],
+                              ),
+                              child: isLocked
+                                  ? const Icon(
+                                      Symbols.lock,
+                                      color: Colors.white,
+                                      size: 14,
+                                    )
+                                  : (isSelected
+                                        ? const Icon(
+                                            Symbols.check,
+                                            color: Colors.white,
+                                            size: 18,
+                                          )
+                                        : null),
                             ),
                           ),
-                          Text(
-                            'Use your system colors as the app theme.',
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                        );
+                      }).toList(),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Dynamic Color Sync
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: supporterTier < 2 ? () {
+                        final isCurrentlyPreviewing = themeSettings.useDynamicColor;
+                        ref.read(themeSettingsProvider.notifier).previewDynamicColor(!isCurrentlyPreviewing);
+                      } : null,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Sync with Windows Accent',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (supporterTier < 2 && themeSettings.useDynamicColor) ...[
+                                      const SizedBox(width: 8),
+                                      _buildPreviewBadge(colorScheme),
+                                    ],
+                                  ],
+                                ),
+                                const Text(
+                                  'Use your system colors as the app theme.',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                                ),
+                              ],
+                            ),
                           ),
+                          _buildTierBadge(2, supporterTier, colorScheme),
+                          if (supporterTier >= 2)
+                            SqaSwitch(
+                              value: themeSettings.useDynamicColor,
+                              onChanged: (v) {
+                                ref
+                                    .read(themeSettingsProvider.notifier)
+                                    .setUseDynamicColor(v);
+                              },
+                            ),
                         ],
                       ),
                     ),
-                    _buildTierBadge(2, supporterTier, colorScheme),
-                    if (supporterTier >= 2)
-                      SqaSwitch(
-                        value: themeSettings.useDynamicColor,
-                        onChanged: (v) {
-                          ref
-                              .read(themeSettingsProvider.notifier)
-                              .setUseDynamicColor(v);
-                        },
-                      ),
+                    
+                    const SizedBox(height: 24),
+
+                    // Transparency Mode
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: supporterTier < 3 ? () {
+                            final isCurrentlyPreviewing = themeSettings.isTransparencyModeEnabled;
+                            ref.read(themeSettingsProvider.notifier).previewTransparency(!isCurrentlyPreviewing);
+                          } : null,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          'Transparency Mode',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        if (supporterTier < 3 && themeSettings.isTransparencyModeEnabled) ...[
+                                          const SizedBox(width: 8),
+                                          _buildPreviewBadge(colorScheme),
+                                        ],
+                                      ],
+                                    ),
+                                    const Text(
+                                      'Enable premium transparency effects for a cleaner look.',
+                                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              _buildTierBadge(3, supporterTier, colorScheme),
+                              if (supporterTier >= 3)
+                                SqaSwitch(
+                                  value: themeSettings.isTransparencyModeEnabled,
+                                  onChanged: (v) {
+                                    ref
+                                        .read(themeSettingsProvider.notifier)
+                                        .toggleTransparencyMode(v);
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (themeSettings.isTransparencyModeEnabled && supporterTier >= 3) ...[
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Transparency Level',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Capped at 20% for readability.',
+                                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '${(themeSettings.opacity * 100).toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 4,
+                              thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 8,
+                              ),
+                              overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 14,
+                              ),
+                            ),
+                            child: Slider(
+                              value: themeSettings.opacity,
+                              min: 0.2,
+                              max: 0.85,
+                              divisions: 65,
+                              onChanged: (v) {
+                                ref
+                                    .read(themeSettingsProvider.notifier)
+                                    .setOpacity(v);
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    
+                    // Premium Group Taster Banner
+                    _buildTasterBanner(
+                      context,
+                      ref,
+                      colorScheme,
+                      (supporterTier < 1 && themeSettings.seedColorValue != curatedColors[0]['color'].toARGB32()) ||
+                      (supporterTier < 2 && themeSettings.useDynamicColor) ||
+                      (supporterTier < 3 && themeSettings.isTransparencyModeEnabled),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                // Always on Top Toggle
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          // Window Behavior Section
+          SqaCard(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Symbols.desktop_windows, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Window Behavior',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
                 Row(
                   children: [
                     const Expanded(
@@ -1162,105 +1366,6 @@ class GeneralSettingsView extends ConsumerWidget {
                             .setAlwaysOnTop(v);
                       },
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Transparency Mode (Premium Feature - Tier 3)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Transparency Mode',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Text(
-                                'Enable premium transparency effects for a cleaner look.',
-                                style:
-                                    TextStyle(fontSize: 11, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        _buildTierBadge(3, supporterTier, colorScheme),
-                        if (supporterTier >= 3)
-                          SqaSwitch(
-                            value: themeSettings.isTransparencyModeEnabled,
-                            onChanged: (v) {
-                              ref
-                                  .read(themeSettingsProvider.notifier)
-                                  .toggleTransparencyMode(v);
-                            },
-                          ),
-                      ],
-                    ),
-                    if (themeSettings.isTransparencyModeEnabled &&
-                        supporterTier >= 3) ...[
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Transparency Level',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Capped at 85% for readability.',
-                                style:
-                                    TextStyle(fontSize: 11, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            '${(themeSettings.opacity * 100).toInt()}%',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 4,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 8,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 14,
-                          ),
-                        ),
-                        child: Slider(
-                          value: themeSettings.opacity,
-                          min: 0.2,
-                          max: 0.85,
-                          divisions: 65, // 1% increments from 20% to 85%
-                          onChanged: (v) {
-                            ref
-                                .read(themeSettingsProvider.notifier)
-                                .setOpacity(v);
-                          },
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ],

@@ -33,6 +33,7 @@ class SettingsDebugActions extends _$SettingsDebugActions {
     final themeNotifier = ref.read(themeSettingsProvider.notifier);
     themeNotifier.setSeedColor(0xFF009688); // Default Teal
     themeNotifier.setUseDynamicColor(false);
+    themeNotifier.toggleTransparencyMode(false);
   }
 }
 

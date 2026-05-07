@@ -16,6 +16,8 @@ import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
 import 'ui/widgets/sqa_styles.dart';
 import 'ui/widgets/sqa_scroll_behavior.dart';
+import 'core/services/coffee_shop_service.dart';
+import 'core/providers/plugin_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -466,7 +468,7 @@ class SqaMultitoolsApp extends ConsumerWidget {
             final isOverlayActive = isScreenshotVisible || isRecorderVisible;
 
             return Opacity(
-              opacity: settings.opacity,
+              opacity: settings.isTransparencyModeEnabled ? settings.opacity : 1.0,
               child: ClipRRect(
                 borderRadius: isOverlayActive
                     ? BorderRadius.zero

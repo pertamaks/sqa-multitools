@@ -59,6 +59,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   }
 
   @override
+  void onWindowFocus() {
+    WindowUtils.safeShow();
+  }
+
+  @override
   void dispose() {
     windowManager.removeListener(this);
     _scrollController.dispose();

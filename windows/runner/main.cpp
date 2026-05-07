@@ -12,9 +12,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   HANDLE hMutex = CreateMutex(NULL, TRUE, mutex_name);
 
   if (GetLastError() == ERROR_ALREADY_EXISTS) {
-    HWND hwnd = FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"sqa_multitools");
+    HWND hwnd = FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"SQA-Multitools");
+    if (!hwnd) hwnd = FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"sqa_multitools");
+
     if (hwnd) {
-      if (IsIconic(hwnd)) ShowWindow(hwnd, SW_RESTORE);
+      ShowWindow(hwnd, SW_SHOW);
+      ShowWindow(hwnd, SW_RESTORE);
       SetForegroundWindow(hwnd);
     }
     if (hMutex) CloseHandle(hMutex);

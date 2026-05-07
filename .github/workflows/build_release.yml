@@ -2,6 +2,9 @@ name: Build Release
 
 on:
   push:
+    branches:
+      - main
+      - 'release/**'
     tags:
       - 'v*' # Builds trigger when pushing a version tag
 
@@ -34,6 +37,7 @@ jobs:
 
   create-release:
     needs: [build-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts

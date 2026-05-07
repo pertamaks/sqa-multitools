@@ -19,6 +19,14 @@ dart analyze
 flutter test
 ```
 
+### GitHub Issue Templates
+We use structured templates for bug reports and feature requests. Avoid opening blank issues. Ensure you provide:
+- **Reproducible steps** for bugs.
+- **Expected vs Actual** behavior.
+- **System context** (Windows version, app version).
+
+---
+
 ### State Management
 Use **Riverpod** (`flutter_riverpod`) for all state management. When adding new providers, prefer `riverpod_generator` annotations. State must be:
 - **Modular:** Isolated per plugin — no cross-plugin state leakage.
@@ -119,23 +127,34 @@ All plugins consume a shared widget library in `lib/ui/widgets/`. This ensures a
 
 | Widget | Purpose |
 |---|---|
-| `SqaButton` | Primary, tonal, outlined, and text actions |
-| `SqaCard` | Standard surface with consistent radius/border |
-| `SqaField` | Copyable text display with sticky copy button, snap-height expansion, line numbers |
-| `SqaTabBar` | Optimized navigation tabs |
-| `SqaSegmentedButton` | Compact multi-option switcher |
-| `SqaDropdown` | Selection menus |
-| `SqaFloatingBar` | Draggable control bar for capture tools |
-| `SqaPluginLayout` | Standardized window structure (header + tabs + body) |
-| `SqaPluginHeader` | Title/description with vertical fade |
-| `SqaPluginScrollableContent` | Centering wrapper with overflow scrolling |
-| `SqaSettingsButton` | Gear icon for plugin settings |
-| `SqaSettingsTile` | Configuration rows |
-| `SqaSwitch` | 0.6-scale toggle for preferences |
-| `SqaIconContainer` | Background-icon patterns |
-| `SqaInfoBanner` | Tips and notes |
-| `SqaToast` | Notification popups |
-| `SqaFadeWrapper` | Scroll-aware edge fading |
+| **`SqaButton`** | Primary, tonal, outlined, and text actions |
+| **`SqaCard`** | Standard surface with consistent radius/border |
+| **`SqaField`** | Copyable text display with sticky copy button, snap-height expansion, line numbers |
+| ****`SqaMarkdownViewer`**** | High-fidelity Markdown and HTML renderer with table support |
+| **`SqaModal`** | Premium dialog system featuring `show`, `showDanger`, and `showInfo` patterns |
+| **`SqaTabBar`** | Optimized navigation tabs |
+| **`SqaSegmentedButton`** | Compact multi-option switcher |
+| **`SqaDropdown`** | Standardized selection menus |
+| **`SqaPopupMenu`** | Standardized popup menu items |
+| **`SqaFloatingBar`** | Draggable control bar for capture tools |
+| **`SqaCaptureOverlay`** | Centralized foundation for Screenshot and Screen Recorder tools |
+| **`SqaAnnotationStage`** | Layer for drawing, shapes, and markup over captured images |
+| **`SqaPluginLayout`** | Standardized window structure (header + tabs + body) |
+| **`SqaPluginHeader`** | Title/description with vertical fade |
+| **`SqaPluginScrollableContent`** | Centering wrapper with overflow scrolling |
+| **`SqaSearchFilterBar`** | Unified search field and category filter pills |
+| **`SqaGridTable`** | Complex data table with row/colspan support |
+| **`SqaSettingsButton`** | Gear icon for plugin settings |
+| **`SqaSettingsTile`** | Configuration rows |
+| **`SqaSwitch`** | 0.6-scale toggle for preferences |
+| **`SqaIconContainer`** | Background-icon patterns |
+| **`SqaInfoBanner`** | Tips and notes |
+| **`SqaToast`** | Notification popups |
+| **`SqaStatusBadge`** | Minimalist indicators (e.g., BETA, FUN, ALPHA) |
+| **`SqaFadeWrapper`** | Scroll-aware edge fading |
+| **`SqaBugSquasher`** | The interactive "Squash the Bug" mini-game |
+| **`SqaSmartText`** | Auto-link and Markdown-lite text utility |
+| **`SqaInlineTooltip`** | Micro-help popovers for fields |
 
 ---
 
@@ -151,6 +170,12 @@ All plugins consume a shared widget library in `lib/ui/widgets/`. This ensures a
 
 - Any change to a core feature or plugin **must** include an update to the corresponding SRS document in `docs/srs/`.
 - If your change affects these contributing guidelines, update this file as well.
+
+---
+
+## 8. Release Process
+
+The SQA-Multitools release pipeline is automated but guarded by a manual verification step. For full details on triggering builds, manual approval, and the release checklist, see **[RELEASE.md](RELEASE.md)**.
 
 ---
 

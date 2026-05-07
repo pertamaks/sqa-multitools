@@ -44,6 +44,7 @@ jobs:
     needs: [build-windows]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4

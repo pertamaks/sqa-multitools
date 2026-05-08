@@ -112,7 +112,8 @@ SQA-Multitools is a standalone Windows desktop application designed to improve Q
 - Plugin toggle response time: <100ms.
 
 ### Safety & Security
-- Local data only. Encryption is **TBD**.
+- **Data Privacy & Local-First Execution**: Mandatory NFR ensuring that all user data (recordings, screenshots, notes, logs) is stored and processed exclusively on the local machine. The application MUST NOT send user-generated content to external servers or AI models for analysis.
+- **Encryption**: TBD.
 
 ### Reliability
 - Uptime: 99.9% during active sessions.

@@ -107,6 +107,15 @@ Releases are automatically triggered by pushing a version tag (e.g., `v0.1.0`). 
 
 For full details on the release workflow and branching strategy, see **[RELEASE.md](RELEASE.md)**.
 
+## Data Privacy & AI Disclosure
+
+**Privacy First:** SQA-Multitools is built on a **Local-First** architecture. 
+- 🔒 **100% Local:** All data (recordings, screenshots, notes, logs, and cURL history) stays on your machine.
+- 🚫 **No AI Analysis:** Your data is never sent to external AI models for processing or training.
+- 📡 **Offline Ready:** Core features do not require an internet connection.
+
+**Development Disclosure:** We use AI coding assistants to accelerate development. However, SQA-Multitools is **not** an "AI Agent" app. Every line of code is human-verified, passes strict automated tests, and the source is available for your audit.
+
 ## Documentation
 
 - **[Project Docs](docs/README.md)** — SRS index and feature specifications

@@ -18,9 +18,9 @@ class QaOraclePlugin implements SqaPlugin {
   String get name => 'QA Oracle';
   @override
   String get description =>
-      'Get sarcastic but honest answers to your toughest QA questions.';
+      'Get randomized, sarcastic but honest answers to your toughest QA questions.';
   @override
-  IconData get icon => Symbols.auto_awesome;
+  IconData get icon => Symbols.casino;
   @override
   String? get badge => 'FUN';
   @override
@@ -72,7 +72,7 @@ class _QaOracleSettingsPanel extends ConsumerWidget {
     return SqaCard(
       padding: EdgeInsets.zero,
       child: SqaSettingsTile(
-        icon: Symbols.psychology,
+        icon: Symbols.chat,
         title: 'Oracle Personality',
         subtitle: 'Choose how the Oracle communicates with you.',
         trailing: SqaDropdown<OracleMode>(
@@ -184,7 +184,7 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
           ),
           const SizedBox(height: 16),
           Text(
-            'Tap the Oracle to consult or text to copy',
+            'Tap the 8-Ball to consult or text to copy',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

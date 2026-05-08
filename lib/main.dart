@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
@@ -19,7 +20,9 @@ import 'ui/widgets/sqa_scroll_behavior.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AudioService.instance.init();
+  if (Platform.isWindows) {
+    AudioService.instance.init();
+  }
 
   final prefs = await SharedPreferences.getInstance();
   await windowManager.ensureInitialized();
@@ -39,8 +42,10 @@ void main() async {
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
-    await windowManager.setIcon('assets/desktop_new.png');
+    if (Platform.isWindows) {
+      await windowManager.setHasShadow(false);
+      await windowManager.setIcon('assets/desktop_new.png');
+    }
     await windowManager.setAlwaysOnTop(alwaysOnTop);
     await windowManager.setMinimumSize(
       const Size(

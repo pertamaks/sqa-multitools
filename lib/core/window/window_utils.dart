@@ -274,7 +274,9 @@ class WindowUtils {
     final wm = window_manager.windowManager;
     await wm.setOpacity(0.0);
     await wm.setSkipTaskbar(true);
-    await wm.setIgnoreMouseEvents(true);
+    if (Platform.isWindows) {
+      await wm.setIgnoreMouseEvents(true);
+    }
   }
 
   /// Restores the window from its "safe hide" state.
@@ -283,7 +285,9 @@ class WindowUtils {
     await wm.show(); // Ensure OS window is visible
     await wm.setOpacity(1.0);
     await wm.setSkipTaskbar(false);
-    await wm.setIgnoreMouseEvents(false);
+    if (Platform.isWindows) {
+      await wm.setIgnoreMouseEvents(false);
+    }
     await wm.focus();
   }
 }

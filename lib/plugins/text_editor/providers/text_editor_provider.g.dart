@@ -88,7 +88,7 @@ final class TextEditorProvider
   }
 }
 
-String _$textEditorHash() => r'24821cb7d34e4c03b89d8ab7ac7e16230e4bf2c2';
+String _$textEditorHash() => r'4e2d176c5abed448dc1e20505989492cdefc70a5';
 
 abstract class _$TextEditor extends $Notifier<TextEditorState> {
   TextEditorState build();

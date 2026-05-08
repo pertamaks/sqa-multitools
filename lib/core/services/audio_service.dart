@@ -13,7 +13,9 @@ class AudioService {
 
   /// Initializes the player on the main thread.
   void init() {
-    if (kIsWeb || Platform.environment.containsKey('FLUTTER_TEST')) return;
+    if (kIsWeb ||
+        Platform.environment.containsKey('FLUTTER_TEST') ||
+        Platform.isLinux) return;
     try {
       _player ??= AudioPlayer();
     } catch (e) {

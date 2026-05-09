@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
@@ -13,9 +12,7 @@ class AudioService {
 
   /// Initializes the player on the main thread.
   void init() {
-    if (kIsWeb ||
-        Platform.environment.containsKey('FLUTTER_TEST') ||
-        Platform.isLinux) return;
+    if (kIsWeb || Platform.environment.containsKey('FLUTTER_TEST')) return;
     try {
       _player ??= AudioPlayer();
     } catch (e) {
@@ -52,8 +49,24 @@ class AudioService {
 
       await _player?.seek(Duration.zero);
       await _player?.play();
-    } catch (e) {
-      debugPrint('AudioService play error: $e');
+    } catch (e, stack) {
+      debugPrint('AudioService play error: $e. Attempting self-healing...');
+      
+      // DISPOSE and RE-INIT for Linux stability
+      try {
+        await _player?.dispose();
+        _player = null;
+        _currentPath = null;
+        init();
+        
+        // Retry once
+        final assetPath = path.startsWith('assets/') ? path : 'assets/$path';
+        await _player?.setAsset(assetPath);
+        await _player?.play();
+      } catch (retryError) {
+        debugPrint('AudioService self-healing failed: $retryError');
+        debugPrint('Original Stack trace: $stack');
+      }
     }
   }
 

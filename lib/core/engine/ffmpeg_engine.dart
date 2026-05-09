@@ -30,13 +30,18 @@ class FfmpegVideoConfig {
 }
 
 class FfmpegEngine {
-  static const String _downloadUrl =
-      'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip';
+  static String get _downloadUrl {
+    if (Platform.isWindows) {
+      return 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip';
+    } else {
+      return 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz';
+    }
+  }
 
   static Future<File> get _executableFile async {
     final dir = await getApplicationSupportDirectory();
-    final ffmpegDir = Directory('${dir.path}\\ffmpeg');
-    return File('${ffmpegDir.path}\\bin\\ffmpeg.exe');
+    final ext = Platform.isWindows ? '.exe' : '';
+    return File('${dir.path}${Platform.pathSeparator}ffmpeg${Platform.pathSeparator}bin${Platform.pathSeparator}ffmpeg$ext');
   }
 
   static String? _resolvedExecutable;
@@ -71,8 +76,10 @@ class FfmpegEngine {
     void Function(double progress) onProgress,
   ) async {
     final dir = await getApplicationSupportDirectory();
-    final zipFile = File('${dir.path}\\ffmpeg_temp.zip');
-    final ffmpegDir = Directory('${dir.path}\\ffmpeg');
+    final isWin = Platform.isWindows;
+    final tempExt = isWin ? '.zip' : '.tar.xz';
+    final zipFile = File('${dir.path}${Platform.pathSeparator}ffmpeg_temp$tempExt');
+    final ffmpegDir = Directory('${dir.path}${Platform.pathSeparator}ffmpeg');
 
     try {
       final client = HttpClient();
@@ -113,7 +120,7 @@ class FfmpegEngine {
       // We must optionally move the bin contents up, or just find ffmpeg.exe.
       final extractedBins = await ffmpegDir
           .list(recursive: true)
-          .where((e) => e is File && e.path.endsWith('ffmpeg.exe'))
+          .where((e) => e is File && e.path.endsWith(isWin ? 'ffmpeg.exe' : 'ffmpeg'))
           .toList();
 
       if (extractedBins.isNotEmpty) {
@@ -147,7 +154,7 @@ class FfmpegEngine {
     try {
       final result = await Process.run(_resolvedExecutable!, [
         '-f',
-        'dshow',
+        Platform.isWindows ? 'dshow' : 'pulse', // Use PulseAudio on Linux
         '-list_devices',
         'true',
         '-i',
@@ -183,7 +190,12 @@ class FfmpegEngine {
   }) {
     final args = <String>[];
     args.addAll(['-y']);
-    args.addAll(['-f', 'gdigrab', '-framerate', '${config.framerate}']);
+    if (Platform.isWindows) {
+      args.addAll(['-f', 'gdigrab']);
+    } else {
+      args.addAll(['-f', 'x11grab']);
+    }
+    args.addAll(['-framerate', '${config.framerate}']);
 
     if (config.showCursor == false) {
       args.addAll(['-draw_mouse', '0']);
@@ -256,10 +268,21 @@ class FfmpegEngine {
       filters.add('scale=-2:360');
     }
 
-    args.addAll(['-i', 'desktop']);
+    if (Platform.isWindows) {
+      args.addAll(['-i', 'desktop']);
+    } else {
+      args.addAll(['-i', Platform.environment['DISPLAY'] ?? ':0.0']);
+    }
 
     if (config.microphoneEnabled && config.selectedAudioDevice != null) {
-      args.addAll(['-f', 'dshow', '-i', 'audio=${config.selectedAudioDevice}']);
+      args.addAll([
+        '-f',
+        Platform.isWindows ? 'dshow' : 'pulse',
+        '-i',
+        Platform.isWindows
+            ? 'audio=${config.selectedAudioDevice}'
+            : config.selectedAudioDevice!,
+      ]);
     }
 
     if (filters.isNotEmpty) {
@@ -302,7 +325,7 @@ class FfmpegEngine {
     );
     final process = await Process.start(_resolvedExecutable!, args);
 
-    final logFile = File('${Directory.current.path}\\ffmpeg_log.txt');
+    final logFile = File('${Directory.current.path}${Platform.pathSeparator}ffmpeg_log.txt');
     if (await logFile.exists()) await logFile.delete();
 
     process.stderr.transform(utf8.decoder).listen((data) {
@@ -321,7 +344,7 @@ class FfmpegEngine {
 
     final tempDir = await getTemporaryDirectory();
     final outputPath =
-        '${tempDir.path}\\sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg';
+        '${tempDir.path}${Platform.pathSeparator}sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg';
 
     Display? targetDisplay;
     double maxOverlap = -1.0;
@@ -366,7 +389,7 @@ class FfmpegEngine {
 
     final args = [
       '-f',
-      'gdigrab',
+      Platform.isWindows ? 'gdigrab' : 'x11grab',
       '-offset_x',
       '$x',
       '-offset_y',
@@ -374,7 +397,7 @@ class FfmpegEngine {
       '-video_size',
       '${w}x$h',
       '-i',
-      'desktop',
+      Platform.isWindows ? 'desktop' : (Platform.environment['DISPLAY'] ?? ':0.0'),
       '-frames:v',
       '1',
       '-vf',
@@ -450,7 +473,7 @@ class FfmpegEngine {
 
     final args = [
       '-f',
-      'gdigrab',
+      Platform.isWindows ? 'gdigrab' : 'x11grab',
       '-offset_x',
       '$x',
       '-offset_y',
@@ -460,7 +483,7 @@ class FfmpegEngine {
       '-draw_mouse',
       '0',
       '-i',
-      'desktop',
+      Platform.isWindows ? 'desktop' : (Platform.environment['DISPLAY'] ?? ':0.0'),
       '-frames:v',
       '1',
       '-y',

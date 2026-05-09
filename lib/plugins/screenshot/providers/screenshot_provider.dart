@@ -179,7 +179,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (Platform.isWindows) {
+      await windowManager.setHasShadow(false);
+    }
     await windowManager.setBackgroundColor(Colors.transparent);
 
     // 3. Update state early so Flutter starts building the transparent overlay UI
@@ -202,7 +204,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     // 4. Expand the window while it is ghosted and Flutter is ready
     await windowManager.setBounds(overlayRect);
     await windowManager.setAlwaysOnTop(true);
-    await windowManager.setIgnoreMouseEvents(false);
+    if (Platform.isWindows) {
+      await windowManager.setIgnoreMouseEvents(false);
+    }
 
     // 5. Robust sync delay for Windows DWM buffer allocation
     await coordinator.waitForSync(
@@ -214,6 +218,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     );
 
     // 6. Finally reveal and focus
+    if (Platform.isLinux) {
+      await windowManager.setBackgroundColor(Colors.transparent);
+    }
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
@@ -251,12 +258,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     // 5. Finally restore native attributes, reveal and focus
     // Move all attribute changes here to prevent DWM flushes on giant window
-    await Future.wait([
-      windowManager.setHasShadow(true),
+    final List<Future> restoreFutures = [
       windowManager.setTitleBarStyle(TitleBarStyle.hidden),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
-      windowManager.setIgnoreMouseEvents(false),
-    ]);
+    ];
+    if (Platform.isWindows) {
+      restoreFutures.add(windowManager.setHasShadow(true));
+      restoreFutures.add(windowManager.setIgnoreMouseEvents(false));
+    }
+    await Future.wait(restoreFutures);
 
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
@@ -444,10 +454,19 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       }
 
       if (await File(savePath).exists() && shouldCopy) {
-        await Process.run('powershell', [
-          '-Command',
-          'Set-Clipboard -Path "$savePath"',
-        ]);
+        if (Platform.isWindows) {
+          await Process.run('powershell', [
+            '-Command',
+            'Set-Clipboard -Path "$savePath"',
+          ]);
+        } else {
+          // On Linux, we can use xclip or xsel if installed
+          try {
+            await Process.run('xclip', ['-selection', 'clipboard', '-t', 'image/png', '-i', savePath]);
+          } catch (_) {
+            debugPrint('[Screenshot] xclip not found, skipping clipboard copy');
+          }
+        }
       }
 
       // Cleanup temp bits
@@ -484,12 +503,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       // 5. Finally restore attributes, reveal and focus
       // Move all attribute changes here to prevent DWM flushes on giant window
-      await Future.wait([
-        windowManager.setHasShadow(true),
+      final List<Future> restoreFutures = [
         windowManager.setTitleBarStyle(TitleBarStyle.hidden),
         windowManager.setAlwaysOnTop(theme.alwaysOnTop),
-        windowManager.setIgnoreMouseEvents(false),
-      ]);
+      ];
+      if (Platform.isWindows) {
+        restoreFutures.add(windowManager.setHasShadow(true));
+        restoreFutures.add(windowManager.setIgnoreMouseEvents(false));
+      }
+      await Future.wait(restoreFutures);
 
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
@@ -509,7 +531,11 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      await Process.start('explorer.exe', [targetDir.path]);
+      if (Platform.isWindows) {
+        await Process.start('explorer.exe', [targetDir.path]);
+      } else {
+        await Process.start('xdg-open', [targetDir.path]);
+      }
     }
   }
 

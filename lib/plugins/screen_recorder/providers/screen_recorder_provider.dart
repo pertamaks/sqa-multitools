@@ -195,7 +195,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (Platform.isWindows) {
+      await windowManager.setHasShadow(false);
+    }
     await windowManager.setBackgroundColor(Colors.transparent);
 
     // 3. Update state early so Flutter starts building the transparent overlay UI
@@ -228,6 +230,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     );
 
     // 6. Finally reveal and focus
+    if (Platform.isLinux) {
+      await windowManager.setBackgroundColor(Colors.transparent);
+    }
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
@@ -235,7 +240,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   /// Toggles whether the window intercepts mouse events.
   /// Used to allow clicking THROUGH the overlay to reach underlying apps.
   Future<void> setIgnoreMouseEvents(bool ignore) async {
-    await windowManager.setIgnoreMouseEvents(ignore);
+    if (Platform.isWindows) {
+      await windowManager.setIgnoreMouseEvents(ignore);
+    }
   }
 
   Future<void> toggleRecording() async {
@@ -322,7 +329,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // Construct save path
     final dir =
         state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory('${dir}${Platform.pathSeparator}SQA_Recordings');
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final filename =
@@ -400,7 +407,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     if (!ref.mounted) return;
     final dir = state.saveDirectory ?? documentsDir.path;
     if (!ref.mounted) return;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory('${dir}${Platform.pathSeparator}SQA_Recordings');
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
       state = state.copyWith(recentRecordings: []);
@@ -508,7 +515,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      await Process.start('explorer.exe', [targetDir.path]);
+      if (Platform.isWindows) {
+        await Process.start('explorer.exe', [targetDir.path]);
+      } else {
+        await Process.start('xdg-open', [targetDir.path]);
+      }
     }
   }
 
@@ -554,12 +565,16 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 7. Finally restore attributes, reveal and focus
     // Move all attribute changes here to prevent DWM flushes on giant window
-    await Future.wait([
-      windowManager.setHasShadow(true),
+    final List<Future> restoreFutures = [
       windowManager.setTitleBarStyle(TitleBarStyle.hidden),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
       setIgnoreMouseEvents(false),
-    ]);
+    ];
+    if (Platform.isWindows) {
+      restoreFutures.add(windowManager.setHasShadow(true));
+      restoreFutures.add(setIgnoreMouseEvents(false));
+    }
+    await Future.wait(restoreFutures);
 
     await windowManager.setOpacity(1.0);
     await windowManager.focus();

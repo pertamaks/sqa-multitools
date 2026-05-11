@@ -10,7 +10,6 @@
 #include <file_selector_windows/file_selector_windows.h>
 #include <hotkey_manager_windows/hotkey_manager_windows_plugin_c_api.h>
 #include <irondash_engine_context/irondash_engine_context_plugin_c_api.h>
-#include <just_audio_windows/just_audio_windows_plugin.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <super_native_extensions/super_native_extensions_plugin_c_api.h>
 #include <system_tray/system_tray_plugin.h>
@@ -26,8 +25,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("HotkeyManagerWindowsPluginCApi"));
   IrondashEngineContextPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("IrondashEngineContextPluginCApi"));
-  JustAudioWindowsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("JustAudioWindowsPlugin"));
   ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ScreenRetrieverWindowsPluginCApi"));
   SuperNativeExtensionsPluginCApiRegisterWithRegistrar(

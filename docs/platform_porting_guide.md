@@ -9,9 +9,9 @@ This document describes how to extend SQA-Multitools to a new desktop platform
 ## 1. Architecture Overview
 
 SQA-Multitools uses the **Platform Interface Pattern** to isolate OS-specific
-native code from shared application logic. The pattern mirrors how Flutter's
+native code from shared application logic. ~~The pattern mirrors how Flutter's
 official plugins (e.g. `path_provider`, `url_launcher`) handle multi-platform
-support, adapted for app-level code.
+support, adapted for app-level code.~~ **(Completed: WindowNativeApi abstraction implemented May 2026)**
 
 ```
 lib/core/window/
@@ -191,8 +191,8 @@ porting. They are listed in priority order.
 | Download URL | `BtbN win64-gpl.zip` | Needs macOS binary | Needs Linux binary |
 | Capture input | `gdigrab` | `avfoundation` + screen index | `x11grab` or `kmsgrab` |
 | Audio device listing | `dshow` | `avfoundation` audio sources | `pulse` / `alsa` |
-| Binary name | `ffmpeg.exe` | `ffmpeg` | `ffmpeg` |
-| Path separator | `\\` (hardcoded) | `/` | `/` |
+| Binary name | ~~`ffmpeg.exe`~~ | `ffmpeg` | `ffmpeg` | **(Completed: Now platform-aware)** |
+| Path separator | ~~`\\` (hardcoded)~~ | `/` | `/` | **(Completed: Now using `p.join`)** |
 
 **Recommended approach:** Apply the same Platform Interface Pattern to create a
 `CaptureBackendWindows` / `CaptureBackendMacOs` abstraction inside `ffmpeg_engine.dart`.
@@ -206,26 +206,26 @@ The `buildArguments()` method is the primary place to branch.
 | macOS | PowerShell not available | ❌ Broken |
 | Linux | PowerShell not available | ❌ Broken |
 
-**Recommended fix:** Replace with `super_clipboard` (already a project dependency)
+**~~Recommended fix:~~** ~~Replace with `super_clipboard` (already a project dependency)
 to write image bytes directly to the clipboard in a platform-agnostic way.
-This is a straightforward fix that removes the platform branch entirely.
+This is a straightforward fix that removes the platform branch entirely.~~ **(Completed: Fully migrated to `super_clipboard` May 2026)**
 
 ### 4.3 Screenshot Save Path (`lib/plugins/screenshot/providers/screenshot_provider.dart`, line ~359)
 
 ```dart
-// Current — Windows-specific backslash:
+~~// Current — Windows-specific backslash:
 final savePath = '${saveDir.path}\\$filename';
 
 // Fix — use path package (already a dependency):
 import 'package:path/path.dart' as p;
-final savePath = p.join(saveDir.path, filename);
+final savePath = p.join(saveDir.path, filename);~~ **(Completed: All paths normalized with `package:path`)**
 ```
 
 ### 4.4 Audio Backend (`pubspec.yaml`)
 
-`just_audio_windows: ^0.2.1` is Windows-only. `just_audio` automatically selects
+`just_audio_windows: ^0.2.1` is Windows-only. ~~`just_audio` automatically selects
 the correct backend per platform — **removing this dependency is all that is needed**
-for macOS and Linux audio to work.
+for macOS and Linux audio to work.~~ **(Completed: Dependency removed May 2026)**
 
 ### 4.5 Window Opacity (`setHasShadow`, `setIgnoreMouseEvents`)
 
@@ -315,11 +315,11 @@ build-macos:
 
 | Feature | Effort | Blocker? |
 |---------|--------|---------|
-| `WindowNativeApi` impl | Medium | Only until implemented |
+| `WindowNativeApi` impl | Medium | ~~Only until implemented~~ **(Done)** |
 | FFmpeg `avfoundation` | High | Yes — screenshot/recorder broken without it |
-| Remove `just_audio_windows` | Very Low | Yes — compile fails |
-| Fix path separator | Very Low | No — silent data issue |
-| Replace PowerShell clipboard | Low | No — clipboard just won't work |
+| ~~Remove `just_audio_windows`~~ | ~~Very Low~~ | ~~Yes — compile fails~~ **(Done)** |
+| ~~Fix path separator~~ | ~~Very Low~~ | ~~No — silent data issue~~ **(Done)** |
+| ~~Replace PowerShell clipboard~~ | ~~Low~~ | ~~No — clipboard just won't work~~ **(Done)** |
 | macOS entitlements | Low–Medium | Yes — OS silently blocks features |
 | Overlay timing tuning | Medium | No — functional, may look off |
 | CI pipeline job | Low | No — can build locally first |

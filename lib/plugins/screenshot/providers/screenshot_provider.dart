@@ -10,6 +10,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:super_clipboard/super_clipboard.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
@@ -346,9 +348,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     // Construct save path
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Screenshots');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final timestamp = DateTime.now()
@@ -356,7 +358,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         .replaceAll(RegExp(r'[:.-]'), '')
         .replaceAll(' ', '_');
     final filename = 'SQA_SS_$timestamp.${state.format.toLowerCase()}';
-    final savePath = '${saveDir.path}\\$filename';
+    final savePath = p.join(saveDir.path, filename);
 
     try {
       // 1. Capture Annotations (Foreground) - High DPI Aware
@@ -383,10 +385,14 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       }
 
       final tempDir = await getTemporaryDirectory();
-      final fgPath =
-          '${tempDir.path}\\sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png';
-      final bgPath =
-          '${tempDir.path}\\sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fgPath = p.join(
+        tempDir.path,
+        'sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      final bgPath = p.join(
+        tempDir.path,
+        'sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
 
       if (annotationBytes != null) {
         await File(fgPath).writeAsBytes(annotationBytes);
@@ -444,10 +450,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       }
 
       if (await File(savePath).exists() && shouldCopy) {
-        await Process.run('powershell', [
-          '-Command',
-          'Set-Clipboard -Path "$savePath"',
-        ]);
+        final clipboard = SystemClipboard.instance;
+        if (clipboard != null) {
+          final item = DataWriterItem();
+          item.add(
+            Formats.png(
+              await File(savePath).readAsBytes(),
+            ), // Note: works for jpg/webp too as raw bytes
+          );
+          await clipboard.write([item]);
+        }
       }
 
       // Cleanup temp bits
@@ -503,13 +515,19 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> openSaveDirectory() async {
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Screenshots');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      await Process.start('explorer.exe', [targetDir.path]);
+      final uri = Uri.directory(targetDir.path);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else if (Platform.isWindows) {
+        // Fallback for Windows if url_launcher directory launch fails
+        await Process.start('explorer.exe', [targetDir.path]);
+      }
     }
   }
 

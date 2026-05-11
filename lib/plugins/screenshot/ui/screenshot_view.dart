@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
@@ -237,10 +239,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                           .where((info) {
                             if (state.searchQuery.isEmpty) return true;
                             final query = state.searchQuery.toLowerCase();
-                            final filename = info.file.path
-                                .split('\\')
-                                .last
-                                .toLowerCase();
+                            final filename = p.basename(info.file.path).toLowerCase();
                             return filename.contains(query);
                           })
                           .map((CaptureInfo info) {
@@ -249,10 +248,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                             ) {
                               if (state.searchQuery.isEmpty) return true;
                               final query = state.searchQuery.toLowerCase();
-                              final filename = info.file.path
-                                  .split('\\')
-                                  .last
-                                  .toLowerCase();
+                              final filename = p.basename(info.file.path).toLowerCase();
                               return filename.contains(query);
                             }).toList();
                             final isLast = filteredList.last == info;
@@ -266,9 +262,16 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                       notifier.renameCapture(info, newName),
                                   onValidate: (name) =>
                                       notifier.validateNewName(name, info),
-                                  onOpen: () => Process.start('explorer.exe', [
-                                    info.file.path,
-                                  ]),
+                                  onOpen: () async {
+                                    final uri = Uri.file(info.file.path);
+                                    if (await canLaunchUrl(uri)) {
+                                      await launchUrl(uri);
+                                    } else if (Platform.isWindows) {
+                                      await Process.start('explorer.exe', [
+                                        info.file.path,
+                                      ]);
+                                    }
+                                  },
                                   onOpenFolder: () =>
                                       notifier.openSaveDirectory(),
                                 ),

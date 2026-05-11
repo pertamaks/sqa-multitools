@@ -443,40 +443,71 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       }
     });
 
-    return Scaffold(
-      backgroundColor: isOverlayActive
-          ? Colors.transparent
-          : colorScheme.surfaceContainerLow,
-      body: Stack(
-        children: [
-          const SizedBox.expand(),
-          Column(
-            children: [
-              if (!isOverlayActive)
-                _buildToolbarBar(
-                  colorScheme,
-                  enabledPlugins,
-                  activePlugin,
-                  settingsPlugin,
-                  supporterTier,
-                  hasTodoReminder,
-                  isTimerRunning,
+    return ExcludeSemantics(
+      child: Scaffold(
+        backgroundColor: isOverlayActive
+            ? Colors.transparent
+            : colorScheme.surfaceContainerLow,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            // Clamp the toolbar's allocated height so the Column never exceeds
+            // its parent constraint during transient window-resize frames.
+            final toolbarSlot = constraints.maxHeight.clamp(
+              0.0,
+              WindowConstants.kToolbarWindowHeight,
+            );
+
+            return Stack(
+              children: [
+                const SizedBox.expand(),
+                ExcludeSemantics(
+                  child: Column(
+                    children: [
+                      if (!isOverlayActive)
+                        SizedBox(
+                          height: toolbarSlot,
+                          child: OverflowBox(
+                            maxHeight: WindowConstants.kToolbarWindowHeight,
+                            alignment: Alignment.topLeft,
+                            child: _buildToolbarBar(
+                              colorScheme,
+                              enabledPlugins,
+                              activePlugin,
+                              settingsPlugin,
+                              supporterTier,
+                              hasTodoReminder,
+                              isTimerRunning,
+                            ),
+                          ),
+                        ),
+                      if (hasPlugin && !isOverlayActive)
+                        Expanded(
+                          child: KeyedSubtree(
+                            key: ValueKey('plugin_${activePlugin.id}'),
+                            child: activePlugin.buildPluginWindow(context),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              if (hasPlugin && !isOverlayActive)
-                Expanded(
-                  child: activePlugin.buildPluginWindow(context),
-                ),
-            ],
-          ),
-          if (!isOverlayActive &&
-              supporterTier >= 3 &&
-              ref.watch(bugSquashEnabledProvider))
-            SquashTheBugOverlay(key: SquashTheBugOverlay.bugKey),
-          if (isScreenshotVisible)
-            const Positioned.fill(child: ScreenshotOverlay()),
-          if (isRecorderVisible)
-            const Positioned.fill(child: ScreenRecorderOverlay()),
-        ],
+                if (!isOverlayActive &&
+                    supporterTier >= 3 &&
+                    ref.watch(bugSquashEnabledProvider))
+                  ExcludeSemantics(
+                    child: SquashTheBugOverlay(key: SquashTheBugOverlay.bugKey),
+                  ),
+                if (isScreenshotVisible)
+                  const Positioned.fill(
+                    child: ExcludeSemantics(child: ScreenshotOverlay()),
+                  ),
+                if (isRecorderVisible)
+                  const Positioned.fill(
+                    child: ExcludeSemantics(child: ScreenRecorderOverlay()),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

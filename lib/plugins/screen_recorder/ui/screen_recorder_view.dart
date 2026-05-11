@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 import '../providers/screen_recorder_provider.dart';
 import '../models/screen_recorder_state.dart';
 import '../screen_recorder_plugin.dart';
@@ -306,10 +308,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                         .where((info) {
                           if (state.searchQuery.isEmpty) return true;
                           final query = state.searchQuery.toLowerCase();
-                          final filename = info.file.path
-                              .split('\\')
-                              .last
-                              .toLowerCase();
+                          final filename = p.basename(info.file.path).toLowerCase();
                           return filename.contains(query);
                         })
                         .map((RecordingInfo info) {
@@ -318,10 +317,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                           ) {
                             if (state.searchQuery.isEmpty) return true;
                             final query = state.searchQuery.toLowerCase();
-                            final filename = info.file.path
-                                .split('\\')
-                                .last
-                                .toLowerCase();
+                            final filename = p.basename(info.file.path).toLowerCase();
                             return filename.contains(query);
                           }).toList();
                           final isLast = filteredList.last == info;
@@ -335,9 +331,16 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                     notifier.renameRecording(info, newName),
                                 onValidate: (name) =>
                                     notifier.validateNewName(name, info),
-                                onOpen: () => Process.start('explorer.exe', [
-                                  info.file.path,
-                                ]),
+                                onOpen: () async {
+                                  final uri = Uri.file(info.file.path);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  } else if (Platform.isWindows) {
+                                    await Process.start('explorer.exe', [
+                                      info.file.path,
+                                    ]);
+                                  }
+                                },
                                 onOpenFolder: () =>
                                     notifier.openSaveDirectory(),
                               ),

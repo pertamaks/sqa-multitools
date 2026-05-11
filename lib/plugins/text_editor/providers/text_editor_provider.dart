@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/services/preferences_service.dart';
@@ -296,9 +297,11 @@ class TextEditor extends _$TextEditor {
 
   Future<void> openSaveFolder() async {
     final dir = await _storage.storageDir;
-    final path = dir.path;
-    if (Platform.isWindows) {
-      await Process.run('explorer.exe', [path]);
+    final uri = Uri.directory(dir.path);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else if (Platform.isWindows) {
+      await Process.run('explorer.exe', [dir.path]);
     }
   }
 

@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   hotkey_manager_windows
   irondash_engine_context
-  just_audio_windows
   screen_retriever_windows
   super_native_extensions
   system_tray

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -33,10 +34,11 @@ class FfmpegEngine {
   static const String _downloadUrl =
       'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip';
 
+  static String get _executableName => Platform.isWindows ? 'ffmpeg.exe' : 'ffmpeg';
+
   static Future<File> get _executableFile async {
     final dir = await getApplicationSupportDirectory();
-    final ffmpegDir = Directory('${dir.path}\\ffmpeg');
-    return File('${ffmpegDir.path}\\bin\\ffmpeg.exe');
+    return File(p.join(dir.path, 'ffmpeg', 'bin', _executableName));
   }
 
   static String? _resolvedExecutable;
@@ -47,9 +49,9 @@ class FfmpegEngine {
 
     // 1. Check system PATH
     try {
-      final result = await Process.run('ffmpeg', ['-version']);
+      final result = await Process.run(_executableName, ['-version']);
       if (result.exitCode == 0) {
-        _resolvedExecutable = 'ffmpeg';
+        _resolvedExecutable = _executableName;
         return true;
       }
     } catch (_) {
@@ -71,8 +73,8 @@ class FfmpegEngine {
     void Function(double progress) onProgress,
   ) async {
     final dir = await getApplicationSupportDirectory();
-    final zipFile = File('${dir.path}\\ffmpeg_temp.zip');
-    final ffmpegDir = Directory('${dir.path}\\ffmpeg');
+    final zipFile = File(p.join(dir.path, 'ffmpeg_temp.zip'));
+    final ffmpegDir = Directory(p.join(dir.path, 'ffmpeg'));
 
     try {
       final client = HttpClient();
@@ -109,11 +111,10 @@ class FfmpegEngine {
         'destPath': ffmpegDir.path,
       });
 
-      // BtbN releases typically contain a root folder like "ffmpeg-master-latest-win64-gpl".
-      // We must optionally move the bin contents up, or just find ffmpeg.exe.
+      // We must optionally move the bin contents up, or just find ffmpeg binary.
       final extractedBins = await ffmpegDir
           .list(recursive: true)
-          .where((e) => e is File && e.path.endsWith('ffmpeg.exe'))
+          .where((e) => e is File && e.path.endsWith(_executableName))
           .toList();
 
       if (extractedBins.isNotEmpty) {
@@ -302,7 +303,7 @@ class FfmpegEngine {
     );
     final process = await Process.start(_resolvedExecutable!, args);
 
-    final logFile = File('${Directory.current.path}\\ffmpeg_log.txt');
+    final logFile = File(p.join(Directory.current.path, 'ffmpeg_log.txt'));
     if (await logFile.exists()) await logFile.delete();
 
     process.stderr.transform(utf8.decoder).listen((data) {
@@ -320,8 +321,10 @@ class FfmpegEngine {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return null;
 
     final tempDir = await getTemporaryDirectory();
-    final outputPath =
-        '${tempDir.path}\\sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg';
+    final outputPath = p.join(
+      tempDir.path,
+      'sqa_thumb_${DateTime.now().microsecondsSinceEpoch}.jpg',
+    );
 
     Display? targetDisplay;
     double maxOverlap = -1.0;

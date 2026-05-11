@@ -7,6 +7,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:url_launcher/url_launcher.dart';
 import '../models/screen_recorder_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
@@ -320,14 +322,14 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       captureRect: finalRect,
     );
     // Construct save path
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final filename =
         'SQA_REC_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}_${DateTime.now().hour.toString().padLeft(2, '0')}${DateTime.now().minute.toString().padLeft(2, '0')}${DateTime.now().second.toString().padLeft(2, '0')}.${state.format.toLowerCase()}';
-    final savePath = '${saveDir.path}/$filename';
+    final savePath = p.join(saveDir.path, filename);
 
     try {
       final config = FfmpegVideoConfig(
@@ -397,10 +399,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Future<void> refreshRecentRecordings() async {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
-    if (!ref.mounted) return;
     final dir = state.saveDirectory ?? documentsDir.path;
     if (!ref.mounted) return;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
       state = state.copyWith(recentRecordings: []);
@@ -500,15 +501,20 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   Future<void> openSaveDirectory() async {
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
 
     // fallback to root dir if subfolder doesn't exist yet
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      await Process.start('explorer.exe', [targetDir.path]);
+      final uri = Uri.directory(targetDir.path);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else if (Platform.isWindows) {
+        await Process.start('explorer.exe', [targetDir.path]);
+      }
     }
   }
 

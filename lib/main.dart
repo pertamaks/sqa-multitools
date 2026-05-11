@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/window/window_utils.dart';
+import 'core/window/window_native_api.dart';
+import 'core/window/window_native_api_windows.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,6 +22,14 @@ import 'ui/widgets/sqa_scroll_behavior.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register the platform-specific native window API implementation.
+  // Add else-if branches here when macOS / Linux support is added.
+  // See docs/platform_porting_guide.md for instructions.
+  if (Platform.isWindows) {
+    WindowNativeApi.register(WindowNativeApiWindows());
+  }
+
   AudioService.instance.init();
 
   final prefs = await SharedPreferences.getInstance();

@@ -339,8 +339,7 @@ class _SqaFieldState extends State<SqaField> {
                   ],
                   Text(
                     widget.label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: SqaTextStyles.labelBold(context).copyWith(
                       letterSpacing: 1.1,
                       color: colorScheme.primary,
                     ),
@@ -463,9 +462,9 @@ class _SqaFieldState extends State<SqaField> {
                                   minLines: widget.minLines ?? 1,
                                   style:
                                       (widget.isMonospace
-                                              ? GoogleFonts.jetBrainsMono()
-                                              : theme.textTheme.bodyMedium)
-                                          ?.copyWith(
+                                              ? SqaTextStyles.mono(context)
+                                              : SqaTextStyles.body(context))
+                                          .copyWith(
                                             fontSize: fontSize,
                                             height: fontHeight,
                                             color: widget.color ?? colorScheme.onSurface,
@@ -474,11 +473,13 @@ class _SqaFieldState extends State<SqaField> {
                                   strutStyle: StrutStyle(
                                     fontSize: fontSize,
                                     height: fontHeight,
+                                    forceStrutHeight: true,
                                     leadingDistribution:
                                         TextLeadingDistribution.even,
                                   ),
                                   decoration: InputDecoration(
-                                    isDense: true,
+                                    filled: false,
+                                    isDense: false,
                                     hintText: widget.hintText,
                                     hintStyle: TextStyle(
                                       color: colorScheme.onSurface.withValues(
@@ -488,7 +489,7 @@ class _SqaFieldState extends State<SqaField> {
                                     border: InputBorder.none,
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 16,
-                                      vertical: 14,
+                                      vertical: SqaSpacing.small,
                                     ),
                                   ),
                                   scrollController: _verticalScrollController,
@@ -615,28 +616,37 @@ class _SqaFieldState extends State<SqaField> {
 
         return Container(
           width: 40,
-          padding: const EdgeInsets.only(top: 6.5),
-          child: ScrollConfiguration(
-            behavior: const _NoScrollbarBehavior(),
-            child: SingleChildScrollView(
-              controller: _gutterScrollController,
-              physics: const NeverScrollableScrollPhysics(), // Sync only
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  numbers,
-                  style: GoogleFonts.jetBrainsMono().copyWith(
-                    fontSize: gFontSize,
-                    height: (fontSize * fontHeight) / gFontSize,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              filled: false,
+              isDense: false,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: SqaSpacing.small,
+              ),
+              border: InputBorder.none,
+            ),
+            child: ScrollConfiguration(
+              behavior: const _NoScrollbarBehavior(),
+              child: SingleChildScrollView(
+                controller: _gutterScrollController,
+                physics: const NeverScrollableScrollPhysics(), // Sync only
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(
+                    numbers,
+                    style: SqaTextStyles.mono(context).copyWith(
+                      fontSize: gFontSize,
+                      height: (fontSize * fontHeight) / gFontSize,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                    ),
+                    strutStyle: StrutStyle(
+                      fontSize: fontSize,
+                      height: fontHeight,
+                      forceStrutHeight: true,
+                      leadingDistribution: TextLeadingDistribution.even,
+                    ),
+                    textAlign: TextAlign.right,
                   ),
-                  strutStyle: StrutStyle(
-                    fontSize: fontSize,
-                    height: fontHeight,
-                    forceStrutHeight: true,
-                    leadingDistribution: TextLeadingDistribution.even,
-                  ),
-                  textAlign: TextAlign.right,
                 ),
               ),
             ),
@@ -661,23 +671,9 @@ class _SqaFieldState extends State<SqaField> {
           });
         },
         child: Container(
-        width: double.infinity,
-        height: _isExpanded ? 40 : 60, // Taller when collapsed for gradient
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.colorScheme.surface.withValues(alpha: 0),
-              theme.colorScheme.surface.withValues(
-                alpha: _isExpanded ? 0.8 : 0.6,
-              ),
-              theme.colorScheme.surface,
-            ],
-            stops: const [0.0, 0.4, 1.0],
-          ),
-        ),
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          width: double.infinity,
+          height: _isExpanded ? 40 : 60, // Taller when collapsed
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
         alignment: Alignment.bottomCenter,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

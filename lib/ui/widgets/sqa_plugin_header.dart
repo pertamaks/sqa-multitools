@@ -45,7 +45,7 @@ class SqaPluginHeader extends StatelessWidget {
             iconSize: 20,
             padding: 8,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: SqaSpacing.small),
         ],
         if (icon != null) ...[
           MouseRegion(
@@ -63,7 +63,7 @@ class SqaPluginHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: SqaSpacing.large),
         ],
         Expanded(
           child:
@@ -71,26 +71,22 @@ class SqaPluginHeader extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: effectiveColor,
+                    Text(
+                      title,
+                      style: SqaTextStyles.headline(context).copyWith(
+                        color: effectiveColor,
+                      ),
                     ),
-                  ),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                      color: colorScheme.onSurfaceVariant,
+                    Text(
+                      description,
+                      style: SqaTextStyles.bodySecondary(context).copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ),
                 ],
               ),
         ),
-        if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+        if (trailing != null) ...[SizedBox(width: SqaSpacing.medium), trailing!],
       ],
     );
   }

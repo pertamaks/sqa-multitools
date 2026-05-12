@@ -133,7 +133,7 @@ class SqaButton extends StatelessWidget {
     Widget button;
     final localColor = color;
     final style = _getButtonStyle(context);
-    final child = _buildContent();
+    final child = _buildContent(context);
 
     final bool isIconOnly = icon != null && label.isEmpty;
 
@@ -242,14 +242,10 @@ class SqaButton extends StatelessWidget {
     return result;
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 0.2,
-      ),
+      style: SqaTextStyles.labelBold(context),
     );
   }
 
@@ -259,7 +255,7 @@ class SqaButton extends StatelessWidget {
       padding: WidgetStateProperty.all(
         label.isEmpty
             ? EdgeInsets.zero
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            : const EdgeInsets.symmetric(horizontal: SqaSpacing.medium, vertical: 0),
       ),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),

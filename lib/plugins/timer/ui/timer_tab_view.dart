@@ -6,6 +6,8 @@ import 'interactive_time_segment.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_styles.dart';
+
 
 class TimerTabView extends ConsumerWidget {
   const TimerTabView({super.key});
@@ -38,15 +40,14 @@ class TimerTabView extends ConsumerWidget {
                 key: ValueKey(
                   '${state.initialDuration == Duration.zero}_${state.isRunning}',
                 ),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                style: SqaTextStyles.bodySecondary(context).copyWith(
                   letterSpacing: 2.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: SqaSpacing.medium),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -64,7 +65,7 @@ class TimerTabView extends ConsumerWidget {
                   notifier.setDuration(newDur);
                 },
               ),
-              _buildColon(theme, state.isRunning),
+              _buildColon(context, theme, state.isRunning),
               InteractiveTimeSegment(
                 value: minutes,
                 maxValue: 59,
@@ -78,7 +79,7 @@ class TimerTabView extends ConsumerWidget {
                   notifier.setDuration(newDur);
                 },
               ),
-              _buildColon(theme, state.isRunning),
+              _buildColon(context, theme, state.isRunning),
               InteractiveTimeSegment(
                 value: seconds,
                 maxValue: 59,
@@ -95,26 +96,26 @@ class TimerTabView extends ConsumerWidget {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 24),
+                  SizedBox(height: SqaSpacing.xLarge),
                   Padding(
                     padding: const EdgeInsets.only(left: 4.0),
                     child: Text(
                       '.${ms.toString().padLeft(3, '0')}',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontFamily: 'monospace',
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.5,
+                        style: SqaTextStyles.mono(
+                          context,
+                          fontSize: 24,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        ).copyWith(
+                          fontWeight: FontWeight.w400,
                         ),
-                        fontWeight: FontWeight.w400,
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: SqaSpacing.xLarge),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: SqaSpacing.xLarge),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -124,7 +125,7 @@ class TimerTabView extends ConsumerWidget {
                 label: state.isRunning ? 'Pause' : 'Start',
                 width: 120,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: SqaSpacing.medium),
               Builder(
                 builder: (context) {
                   final isAtInitial =
@@ -169,17 +170,16 @@ class TimerTabView extends ConsumerWidget {
     );
   }
 
-  Widget _buildColon(ThemeData theme, bool isRunning) {
+  Widget _buildColon(BuildContext context, ThemeData theme, bool isRunning) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 24),
+        SizedBox(height: SqaSpacing.xLarge),
         Padding(
           padding: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 4.0),
           child: Text(
             ':',
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontFamily: 'monospace',
+            style: SqaTextStyles.mono(context, fontSize: 32).copyWith(
               color: isRunning
                   ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : theme.colorScheme.onSurface,
@@ -187,7 +187,7 @@ class TimerTabView extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: SqaSpacing.xLarge),
       ],
     );
   }

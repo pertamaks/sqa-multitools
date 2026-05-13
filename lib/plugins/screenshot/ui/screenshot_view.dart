@@ -9,8 +9,8 @@ import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import '../../../ui/widgets/sqa_icon_container.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/providers/plugin_provider.dart';
 import '../providers/screenshot_provider.dart';
@@ -121,20 +121,16 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                             ],
                           ),
                         ),
-                        Tooltip(
-                          message: 'Screenshot Settings',
-                          child: SqaIconContainer(
-                            icon: Symbols.tune,
-                            color: theme.colorScheme.primary,
-                            backgroundColor: Colors.transparent,
-                            size: 32,
-                            iconSize: 18,
-                            onTap: () {
-                              ref
-                                  .read(navigationServiceProvider)
-                                  .jumpToPluginSettings(ScreenshotPlugin().id);
-                            },
-                          ),
+                        SqaHoverIconButton(
+                          icon: Symbols.tune,
+                          onPressed: () {
+                            ref
+                                .read(navigationServiceProvider)
+                                .jumpToPluginSettings(ScreenshotPlugin().id);
+                          },
+                          tooltip: 'Screenshot Settings',
+                          iconSize: 18,
+                          color: theme.colorScheme.primary,
                         ),
                       ],
                     ),

@@ -10,6 +10,7 @@ import 'ui/text_editor_view.dart';
 import 'package:file_selector/file_selector.dart';
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
+import '../../ui/widgets/sqa_hover_icon_button.dart';
 
 class TextEditorPlugin implements SqaPlugin {
   @override
@@ -101,8 +102,8 @@ class _TextEditorSettings extends ConsumerWidget {
                 icon: Symbols.folder,
                 title: 'Save Directory',
                 subtitle: state.savePath ?? 'Documents/SQA_Notes (Default)',
-                trailing: IconButton(
-                  icon: const Icon(Symbols.edit, size: 16),
+                trailing: SqaHoverIconButton(
+                  icon: Symbols.edit,
                   onPressed: () async {
                     final directoryPath = await getDirectoryPath(
                       initialDirectory: state.savePath,
@@ -113,6 +114,7 @@ class _TextEditorSettings extends ConsumerWidget {
                     }
                   },
                   tooltip: 'Change Save Directory',
+                  iconSize: 16,
                 ),
               ),
             ],

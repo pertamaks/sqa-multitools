@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../security_payload_models.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_field.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class PayloadCard extends StatefulWidget {
   final SecurityPayload payload;
@@ -61,14 +62,12 @@ class _PayloadCardState extends State<PayloadCard> {
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(
-                  _isExpanded ? Symbols.expand_less : Symbols.info,
-                  size: 20,
-                  color: _isExpanded
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
+              SqaHoverIconButton(
+                icon: _isExpanded ? Symbols.expand_less : Symbols.info,
+                iconSize: 20,
+                color: _isExpanded
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
                 onPressed: () {
                   setState(() {
                     _isExpanded = !_isExpanded;

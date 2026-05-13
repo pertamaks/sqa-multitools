@@ -7,6 +7,7 @@ import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_smart_text.dart';
 import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 import 'todo_item_badges.dart';
@@ -262,11 +263,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                       padding: const EdgeInsets.only(right: 8.0),
                       child: SqaPopupMenu(
                         alignmentOffset: const Offset(-100, 4),
-                        icon: Icon(
-                          Symbols.more_vert,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                        icon: Symbols.more_vert,
                         children: [
                           if (widget.item.recurringTodoId == null) ...[
                             if (!isOverdueByDay)
@@ -379,17 +376,14 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                     color: colorScheme.primary,
                   ),
                 )
-              : IconButton(
-                  icon: Icon(
-                    Symbols.person_add,
-                    size: 22,
-                    color: colorScheme.primary,
-                  ),
+              : SqaHoverIconButton(
+                  icon: Symbols.person_add,
+                  iconSize: 22,
+                  color: colorScheme.primary,
                   onPressed: () =>
                       TodoItemDialogs.showDelegate(context, ref, widget.item),
                   tooltip: 'Update Delegation',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  padding: 0,
                 ),
         if (!isDeferred && !isDelegated) ...[
           widget.isReadOnly
@@ -411,19 +405,17 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                           TodoItemDialogs.incrementHelpCount(ref);
                           TodoItemDialogs.showNotes(context, ref, widget.item);
                         },
-                  child: IconButton(
-                    icon: Icon(
-                      isTerminal
-                          ? Symbols.check_box
-                          : Symbols.check_box_outline_blank,
-                      size: 22,
-                      color: isTerminal
-                          ? colorScheme.primary
-                          : (widget.item.notes.isNotEmpty
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant),
-                      fill: isTerminal ? 1 : 0,
-                    ),
+                  child: SqaHoverIconButton(
+                    icon: isTerminal
+                        ? Symbols.check_box
+                        : Symbols.check_box_outline_blank,
+                    iconSize: 22,
+                    padding: 0,
+                    color: isTerminal
+                        ? colorScheme.primary
+                        : (widget.item.notes.isNotEmpty
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant),
                     onPressed: () {
                       TodoItemDialogs.incrementHelpCount(ref);
                       final isDoneNow = !isTerminal;
@@ -443,8 +435,6 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                         : (showHelp
                               ? 'Mark as Done (Long press to add notes)'
                               : 'Mark as Done'),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
                 ),
         ],

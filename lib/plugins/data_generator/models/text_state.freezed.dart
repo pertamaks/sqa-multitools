@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TextState {
 
- TextType get selectedType; int get size; Map<TextType, List<String>> get resultsMap; bool get includeFormatting;
+ TextType get selectedType; int get size; Map<TextType, List<List<String>>> get resultsMap; bool get includeFormatting;
 /// Create a copy of TextState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $TextStateCopyWith<$Res>  {
   factory $TextStateCopyWith(TextState value, $Res Function(TextState) _then) = _$TextStateCopyWithImpl;
 @useResult
 $Res call({
- TextType selectedType, int size, Map<TextType, List<String>> resultsMap, bool includeFormatting
+ TextType selectedType, int size, Map<TextType, List<List<String>>> resultsMap, bool includeFormatting
 });
 
 
@@ -67,7 +67,7 @@ class _$TextStateCopyWithImpl<$Res>
 selectedType: null == selectedType ? _self.selectedType : selectedType // ignore: cast_nullable_to_non_nullable
 as TextType,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,resultsMap: null == resultsMap ? _self.resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<TextType, List<String>>,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
+as Map<TextType, List<List<String>>>,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -153,7 +153,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TextType selectedType,  int size,  Map<TextType, List<String>> resultsMap,  bool includeFormatting)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( TextType selectedType,  int size,  Map<TextType, List<List<String>>> resultsMap,  bool includeFormatting)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TextState() when $default != null:
 return $default(_that.selectedType,_that.size,_that.resultsMap,_that.includeFormatting);case _:
@@ -174,7 +174,7 @@ return $default(_that.selectedType,_that.size,_that.resultsMap,_that.includeForm
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TextType selectedType,  int size,  Map<TextType, List<String>> resultsMap,  bool includeFormatting)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( TextType selectedType,  int size,  Map<TextType, List<List<String>>> resultsMap,  bool includeFormatting)  $default,) {final _that = this;
 switch (_that) {
 case _TextState():
 return $default(_that.selectedType,_that.size,_that.resultsMap,_that.includeFormatting);case _:
@@ -194,7 +194,7 @@ return $default(_that.selectedType,_that.size,_that.resultsMap,_that.includeForm
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TextType selectedType,  int size,  Map<TextType, List<String>> resultsMap,  bool includeFormatting)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( TextType selectedType,  int size,  Map<TextType, List<List<String>>> resultsMap,  bool includeFormatting)?  $default,) {final _that = this;
 switch (_that) {
 case _TextState() when $default != null:
 return $default(_that.selectedType,_that.size,_that.resultsMap,_that.includeFormatting);case _:
@@ -209,13 +209,13 @@ return $default(_that.selectedType,_that.size,_that.resultsMap,_that.includeForm
 
 
 class _TextState implements TextState {
-  const _TextState({this.selectedType = TextType.bytes, this.size = 100, final  Map<TextType, List<String>> resultsMap = const {}, this.includeFormatting = true}): _resultsMap = resultsMap;
+  const _TextState({this.selectedType = TextType.bytes, this.size = 100, final  Map<TextType, List<List<String>>> resultsMap = const <TextType, List<List<String>>>{}, this.includeFormatting = true}): _resultsMap = resultsMap;
   
 
 @override@JsonKey() final  TextType selectedType;
 @override@JsonKey() final  int size;
- final  Map<TextType, List<String>> _resultsMap;
-@override@JsonKey() Map<TextType, List<String>> get resultsMap {
+ final  Map<TextType, List<List<String>>> _resultsMap;
+@override@JsonKey() Map<TextType, List<List<String>>> get resultsMap {
   if (_resultsMap is EqualUnmodifiableMapView) return _resultsMap;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_resultsMap);
@@ -253,7 +253,7 @@ abstract mixin class _$TextStateCopyWith<$Res> implements $TextStateCopyWith<$Re
   factory _$TextStateCopyWith(_TextState value, $Res Function(_TextState) _then) = __$TextStateCopyWithImpl;
 @override @useResult
 $Res call({
- TextType selectedType, int size, Map<TextType, List<String>> resultsMap, bool includeFormatting
+ TextType selectedType, int size, Map<TextType, List<List<String>>> resultsMap, bool includeFormatting
 });
 
 
@@ -275,7 +275,7 @@ class __$TextStateCopyWithImpl<$Res>
 selectedType: null == selectedType ? _self.selectedType : selectedType // ignore: cast_nullable_to_non_nullable
 as TextType,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,resultsMap: null == resultsMap ? _self._resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<TextType, List<String>>,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
+as Map<TextType, List<List<String>>>,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

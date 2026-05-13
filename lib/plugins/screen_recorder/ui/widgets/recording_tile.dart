@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../models/screen_recorder_state.dart';
 import '../../../../ui/widgets/sqa_icon_container.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
 
 class RecordingTile extends StatelessWidget {
@@ -57,13 +58,14 @@ class RecordingTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Symbols.play_arrow, size: 18),
+          SqaHoverIconButton(
+            icon: Symbols.play_arrow,
             onPressed: onOpen,
             tooltip: 'Play',
+            iconSize: 18,
           ),
           SqaPopupMenu(
-            icon: const Icon(Symbols.more_vert, size: 18),
+            icon: Symbols.more_vert,
             tooltip: 'Actions',
             children: [
               SqaPopupMenuItem(

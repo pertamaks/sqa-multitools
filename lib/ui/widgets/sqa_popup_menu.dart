@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'sqa_styles.dart';
+import 'sqa_hover_icon_button.dart';
 
 /// A centralized, premium popup menu for SQA-Multitools.
 ///
 /// Reuses the MenuStyle and animation logic from SqaDropdown to ensure
 /// visual consistency across the application.
 class SqaPopupMenu extends StatelessWidget {
-  final Widget icon;
+  final IconData icon;
   final List<Widget> children;
   final String? tooltip;
   final Offset alignmentOffset;
+  final Widget Function(BuildContext, MenuController, Widget?)? builder;
 
   const SqaPopupMenu({
     super.key,
@@ -17,6 +19,7 @@ class SqaPopupMenu extends StatelessWidget {
     required this.children,
     this.tooltip,
     this.alignmentOffset = const Offset(-8, 4),
+    this.builder,
   });
 
   @override
@@ -40,10 +43,10 @@ class SqaPopupMenu extends StatelessWidget {
         ),
       ),
       menuChildren: children,
-      builder: (context, controller, child) {
-        return IconButton(
+      builder: builder ?? (context, controller, child) {
+        return SqaHoverIconButton(
           icon: icon,
-          tooltip: tooltip,
+          tooltip: tooltip ?? 'Actions',
           onPressed: () {
             if (controller.isOpen) {
               controller.close();
@@ -51,11 +54,7 @@ class SqaPopupMenu extends StatelessWidget {
               controller.open();
             }
           },
-          style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ).copyWith(
-            overlayColor: SqaStyles.buttonOverlay(context),
-          ),
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         );
       },
     );

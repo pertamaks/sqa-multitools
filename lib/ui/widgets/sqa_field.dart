@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
 import 'sqa_hover_icon_button.dart';

@@ -7,6 +7,7 @@ import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_status_badge.dart';
 import '../../../../ui/widgets/sqa_metadata_item.dart';
 import '../../../../ui/widgets/sqa_segmented_button.dart';
+import '../../../../ui/widgets/sqa_button.dart';
 
 enum ModalTab { request, response }
 
@@ -67,18 +68,18 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       ),
       confirmLabel: 'Done',
       customActions: [
-        TextButton.icon(
-          icon: const Icon(Symbols.send, size: 18),
+        SqaButton.tonal(
+          icon: Symbols.send,
           onPressed: () {
             Navigator.of(context).pop(false);
             widget.onSendAgain?.call();
           },
-          label: Text(widget.transaction == null ? 'Send' : 'Send Again'),
+          label: widget.transaction == null ? 'Send' : 'Send Again',
         ),
         const SizedBox(width: 8),
-        FilledButton(
+        SqaButton.primary(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Done'),
+          label: 'Done',
         ),
       ],
       topBar: Row(

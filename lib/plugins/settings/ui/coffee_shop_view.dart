@@ -16,6 +16,7 @@ import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../providers/settings_debug_provider.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class CoffeeShopView extends ConsumerStatefulWidget {
   const CoffeeShopView({super.key});
@@ -240,23 +241,20 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
     String label,
     ColorScheme colorScheme,
   ) {
-    return Tooltip(
-      message: 'Trigger $label Border',
-      child: IconButton(
-        onPressed: () {
-          try {
-            ref.read(bugTriggerProvider.notifier).trigger(side);
-          } catch (e) {
-            // Overlay might not be active
-          }
-        },
-        icon: Icon(icon, size: 16),
-        style: IconButton.styleFrom(
-          backgroundColor: colorScheme.surface,
-          padding: const EdgeInsets.all(4),
-          minimumSize: const Size(32, 32),
-        ),
-      ),
+    return SqaHoverIconButton(
+      onPressed: () {
+        try {
+          ref.read(bugTriggerProvider.notifier).trigger(side);
+        } catch (e) {
+          // Overlay might not be active
+        }
+      },
+      icon: icon,
+      iconSize: 16,
+      backgroundColor: colorScheme.surface,
+      padding: 4,
+      tooltip: 'Trigger $label Border',
+      borderRadius: BorderRadius.circular(4),
     );
   }
 
@@ -481,9 +479,9 @@ class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
       confirmLabel: 'Verify',
       cancelLabel: 'Cancel',
       customActions: [
-        TextButton(
+        SqaButton.tonal(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          label: 'Cancel',
         ),
         const SizedBox(width: 8),
         SqaButton(

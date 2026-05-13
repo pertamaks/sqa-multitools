@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/identity_provider.dart';
+import '../providers/dev_provider.dart';
 import 'widgets/count_dropdown.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_faker_locale_picker.dart';
@@ -56,11 +57,20 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         SqaSettingsTile(
-          title: 'INCLUDE FORMATTING',
-          subtitle: 'Prefix each result with a bullet point (•)',
+          title: 'IDENTITY BULLETS',
+          subtitle: 'Prefix identity results with a bullet point (•)',
           trailing: SqaSwitch(
             value: state.includeFormatting,
             onChanged: (val) => notifier.setIncludeFormatting(val),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SqaSettingsTile(
+          title: 'DEV BULLETS',
+          subtitle: 'Prefix UUID results with a bullet point (•)',
+          trailing: SqaSwitch(
+            value: ref.watch(devGeneratorProvider).includeFormatting,
+            onChanged: (val) => ref.read(devGeneratorProvider.notifier).setIncludeFormatting(val),
           ),
         ),
         SqaSettingsTile(

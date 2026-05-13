@@ -16,7 +16,7 @@ class GlyphsGenerator extends _$GlyphsGenerator {
   @override
   GlyphsState build() {
     _faker = Faker.instance;
-    return const GlyphsState(resultsMap: <GlyphsCategory, List<String>>{});
+    return const GlyphsState(resultsMap: <GlyphsCategory, List<List<String>>>{});
   }
 
   void setCategory(GlyphsCategory category) {
@@ -33,26 +33,45 @@ class GlyphsGenerator extends _$GlyphsGenerator {
 
   void clear() {
     state = state.copyWith(
-      resultsMap: <GlyphsCategory, List<String>>{
+      resultsMap: <GlyphsCategory, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedCategory: <String>[],
+        state.selectedCategory: <List<String>>[],
       },
     );
   }
 
   void generate() {
+    const count = 1;
+    // ignore: unused_local_variable
     final identityState = ref.read(identityProvider);
-    final count = identityState.quantity;
 
-    final List<String> results = [];
+    final List<String> currentGeneration = [];
     for (int i = 0; i < count; i++) {
-      results.add(_generateSingle());
+      currentGeneration.add(_generateSingle());
+    }
+
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedCategory] ?? []);
+    final newHistory = [currentGeneration, ...currentHistory];
+
+    if (newHistory.length > 10) {
+      newHistory.removeRange(10, newHistory.length);
     }
 
     state = state.copyWith(
-      resultsMap: <GlyphsCategory, List<String>>{
+      resultsMap: <GlyphsCategory, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedCategory: results,
+        state.selectedCategory: newHistory,
+      },
+    );
+  }
+
+  void removeHistory(List<String> session) {
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedCategory] ?? []);
+    currentHistory.remove(session);
+    state = state.copyWith(
+      resultsMap: <GlyphsCategory, List<List<String>>>{
+        ...state.resultsMap,
+        state.selectedCategory: currentHistory,
       },
     );
   }

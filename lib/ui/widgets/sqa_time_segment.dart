@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'sqa_hover_icon_button.dart';
 
 class SqaTimeSegment extends StatefulWidget {
   final int value;
@@ -77,13 +78,12 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
             AnimatedOpacity(
               opacity: _isHovered && widget.isEnabled ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
-              child: IconButton(
-                onPressed: widget.isEnabled ? _increment : null,
-                icon: const Icon(Icons.keyboard_arrow_up, size: 24),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minHeight: 24, minWidth: 40),
-                visualDensity: VisualDensity.compact,
-                splashRadius: 20,
+              child: SqaHoverIconButton(
+                onPressed: widget.isEnabled ? _increment : () {},
+                icon: Icons.keyboard_arrow_up,
+                iconSize: 24,
+                padding: 0,
+                tooltip: 'Increment',
               ),
             ),
 
@@ -111,13 +111,12 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
             AnimatedOpacity(
               opacity: _isHovered && widget.isEnabled ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
-              child: IconButton(
-                onPressed: widget.isEnabled ? _decrement : null,
-                icon: const Icon(Icons.keyboard_arrow_down, size: 24),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minHeight: 24, minWidth: 40),
-                visualDensity: VisualDensity.compact,
-                splashRadius: 20,
+              child: SqaHoverIconButton(
+                onPressed: widget.isEnabled ? _decrement : () {},
+                icon: Icons.keyboard_arrow_down,
+                iconSize: 24,
+                padding: 0,
+                tooltip: 'Decrement',
               ),
             ),
           ],

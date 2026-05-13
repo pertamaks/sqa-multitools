@@ -4,6 +4,7 @@ import '../../../../ui/widgets/sqa_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:sqa_multitools/ui/widgets/sqa_toast.dart';
+import 'package:sqa_multitools/ui/widgets/sqa_hover_icon_button.dart';
 
 class SqaLinkMenuWidget extends StatefulWidget {
   final String? initialUrl;
@@ -95,13 +96,13 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
                   width: 1.5,
                 ),
               ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  Symbols.check_circle,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
+              suffixIcon: SqaHoverIconButton(
+                icon: Symbols.check_circle,
+                iconSize: 20,
+                color: theme.colorScheme.primary,
                 onPressed: () => widget.onSubmitted(_controller.text),
+                tooltip: 'Apply Link',
+                padding: 12,
               ),
             ),
             onSubmitted: widget.onSubmitted,

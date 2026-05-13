@@ -434,7 +434,7 @@ class GeneralSettingsView extends ConsumerWidget {
                             child: Slider(
                               value: themeSettings.opacity,
                               min: 0.2,
-                              max: 0.85,
+                              max: 0.95,
                               divisions: 65,
                               onChanged: (v) {
                                 ref

@@ -22,6 +22,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_date_picker.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class TodoView extends ConsumerStatefulWidget {
   const TodoView({super.key});
@@ -557,8 +558,9 @@ class _TodoViewState extends ConsumerState<TodoView>
             state.customDateRange != null)
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
-            child: IconButton(
-              icon: const Icon(Symbols.calendar_today, size: 20),
+            child: SqaHoverIconButton(
+              icon: Symbols.calendar_today,
+              iconSize: 20,
               color: Theme.of(context).colorScheme.primary,
               tooltip:
                   '${DateFormat('MMM d, y').format(state.customDateRange!.start)} - ${DateFormat('MMM d, y').format(state.customDateRange!.end)}',

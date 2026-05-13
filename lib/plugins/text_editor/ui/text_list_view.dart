@@ -11,6 +11,7 @@ import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
@@ -65,18 +66,11 @@ class _TextListViewState extends ConsumerState<TextListView> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Symbols.refresh, size: 20),
+          SqaHoverIconButton(
+            icon: Symbols.refresh,
             onPressed: () => notifier.initialize(),
             tooltip: 'Refresh file list',
-            style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.onSurfaceVariant,
-              padding: const EdgeInsets.all(8),
-              minimumSize: const Size(40, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
-              ),
-            ),
+            iconSize: 20,
           ),
           const SizedBox(width: 4),
           _buildNewDocumentButton(context, notifier),
@@ -271,7 +265,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
     return SqaPopupMenu(
       alignmentOffset: const Offset(-100, 8),
       tooltip: 'Actions',
-      icon: const Icon(Symbols.more_vert, size: 20),
+      icon: Symbols.more_vert,
       children: [
         SqaPopupMenuItem(
           icon: const Icon(Symbols.edit),

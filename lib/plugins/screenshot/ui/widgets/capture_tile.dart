@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../models/screenshot_state.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class CaptureTile extends StatelessWidget {
   final CaptureInfo info;
@@ -70,13 +71,14 @@ class CaptureTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Symbols.open_in_new, size: 18),
+          SqaHoverIconButton(
+            icon: Symbols.open_in_new,
             onPressed: onOpen,
             tooltip: 'Open',
+            iconSize: 18,
           ),
           SqaPopupMenu(
-            icon: const Icon(Symbols.more_vert, size: 18),
+            icon: Symbols.more_vert,
             tooltip: 'Actions',
             children: [
               SqaPopupMenuItem(

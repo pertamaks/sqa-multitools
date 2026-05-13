@@ -193,11 +193,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                   if (showFaker) ...[
                     const SizedBox(width: 0),
                     SqaPopupMenu(
-                      icon: Icon(
-                        (widget.key.hashCode % 2 == 0) ? Symbols.ifl : Symbols.casino,
-                        color: widget.isActive ? null : Colors.grey.withValues(alpha: 0.5),
-                        size: 20,
-                      ),
+                      icon: (widget.key.hashCode % 2 == 0) ? Symbols.ifl : Symbols.casino,
                       tooltip: 'Faker Data',
                       children: [
                         SubmenuButton(

@@ -13,6 +13,7 @@ import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../core/providers/ffmpeg_provider.dart';
 import '../../../../core/providers/hotkey_provider.dart';
 import '../../../../core/services/preferences_service.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class ScreenRecorderSettings extends ConsumerWidget {
   const ScreenRecorderSettings({super.key});
@@ -202,8 +203,8 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 icon: Symbols.folder,
                 title: 'Save Directory',
                 subtitle: state.saveDirectory ?? 'Default Videos Directory',
-                trailing: IconButton(
-                  icon: const Icon(Symbols.edit, size: 16),
+                trailing: SqaHoverIconButton(
+                  icon: Symbols.edit,
                   onPressed: () async {
                     final directoryPath = await getDirectoryPath(
                       initialDirectory: state.saveDirectory,
@@ -214,6 +215,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                     }
                   },
                   tooltip: 'Change Save Directory',
+                  iconSize: 16,
                 ),
               ),
             ],

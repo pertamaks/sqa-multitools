@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_button.dart';
 import 'sqa_settings_button.dart';
 import 'sqa_styles.dart';
+import 'sqa_hover_icon_button.dart';
 
 /// A standardized row of action buttons: [Clear] | [Primary Action] | [Settings].
 ///
@@ -38,16 +39,14 @@ class SqaActionButtonGroup extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Clear Button
-        IconButton(
-          icon: const Icon(Symbols.delete, size: 20),
-          onPressed: onClear,
-          style: IconButton.styleFrom(
-            foregroundColor: theme.colorScheme.outline,
-            padding: const EdgeInsets.all(8),
-            minimumSize: const Size(40, 40),
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-          ),
-          tooltip: clearTooltip,
+        SqaHoverIconButton(
+          icon: Symbols.delete,
+          onPressed: onClear!,
+          color: theme.colorScheme.outline,
+          padding: 8,
+          iconSize: 20,
+          tooltip: clearTooltip ?? 'Clear Results',
+          borderRadius: SqaStyles.radiusLarge,
         ),
         const SizedBox(width: 8),
 

@@ -66,11 +66,7 @@ class SqaComboField extends StatelessWidget {
       trailing: items.isEmpty 
         ? null 
         : SqaPopupMenu(
-            icon: Icon(
-              pickerIcon,
-              size: 18,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            icon: pickerIcon,
             tooltip: pickerTooltip,
             children: items,
           ),

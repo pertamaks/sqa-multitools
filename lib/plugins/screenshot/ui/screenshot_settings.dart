@@ -11,6 +11,7 @@ import '../../../ui/widgets/sqa_hotkey_field.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../providers/screenshot_provider.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class ScreenshotSettings extends ConsumerWidget {
   const ScreenshotSettings({super.key});
@@ -81,8 +82,8 @@ class ScreenshotSettings extends ConsumerWidget {
                 icon: Symbols.folder,
                 title: 'Save Directory',
                 subtitle: state.saveDirectory ?? 'Documents/SQA_Screenshots',
-                trailing: IconButton(
-                  icon: const Icon(Symbols.edit, size: 16),
+                trailing: SqaHoverIconButton(
+                  icon: Symbols.edit,
                   onPressed: () async {
                     final directoryPath = await getDirectoryPath(
                       initialDirectory: state.saveDirectory,
@@ -93,6 +94,7 @@ class ScreenshotSettings extends ConsumerWidget {
                     }
                   },
                   tooltip: 'Change Save Directory',
+                  iconSize: 16,
                 ),
               ),
             ],

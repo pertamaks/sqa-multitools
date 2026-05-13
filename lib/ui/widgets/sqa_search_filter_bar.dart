@@ -127,10 +127,9 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 widget.onChanged?.call(val);
                 setState(() {});
               },
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+              style: SqaTextStyles.body(context),
               decoration: InputDecoration(
+                filled: false,
                 isDense: true,
                 hintText: widget.hintText,
                 hintStyle: TextStyle(
@@ -138,7 +137,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  vertical: 14,
+                  vertical: SqaSpacing.small,
                   horizontal: 0,
                 ),
               ),

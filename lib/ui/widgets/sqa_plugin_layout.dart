@@ -118,7 +118,7 @@ class SqaPluginLayout extends StatelessWidget {
                                 controller: tabController,
                                 isScrollable: isTabScrollable,
                               ),
-                              ?secondaryHeader,
+                              if (secondaryHeader != null) secondaryHeader!,
                               Expanded(child: this.child),
                             ],
                           ),
@@ -128,7 +128,7 @@ class SqaPluginLayout extends StatelessWidget {
                       Expanded(
                         child: Column(
                           children: [
-                            ?secondaryHeader,
+                            if (secondaryHeader != null) secondaryHeader!,
                             Expanded(child: this.child),
                           ],
                         ),

@@ -61,18 +61,6 @@ class _SqaHoverIconButtonState extends State<SqaHoverIconButton> {
             widget.icon,
             size: widget.iconSize,
             weight: widget.weight,
-            shadows: isEffectActive
-                ? [
-                    Shadow(
-                      color: activeColor.withValues(alpha: 0.6),
-                      blurRadius: 12,
-                    ),
-                    Shadow(
-                      color: activeColor.withValues(alpha: 0.4),
-                      blurRadius: 4,
-                    ),
-                  ]
-                : [],
           ),
           onPressed: widget.onPressed,
           tooltip: widget.tooltip,

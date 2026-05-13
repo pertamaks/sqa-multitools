@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'sqa_styles.dart';
 
 /// A centralized state for the inline tooltip overlay.
 class _SqaInlineTooltipState extends InheritedWidget {
@@ -149,17 +150,9 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
                           _hoveredTooltip!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: SqaTextStyles.labelBold(context).copyWith(
                             color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                offset: const Offset(1, 1),
-                                blurRadius: 2,
-                              ),
-                            ],
+                            fontSize: 11, // Overriding to 11px to keep it compact inline
                           ),
                         ),
                       ),

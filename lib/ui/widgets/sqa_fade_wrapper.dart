@@ -29,26 +29,9 @@ class SqaFadeWrapper extends StatefulWidget {
   State<SqaFadeWrapper> createState() => _SqaFadeWrapperState();
 }
 
-class _SqaFadeWrapperState extends State<SqaFadeWrapper>
-    with SingleTickerProviderStateMixin {
+class _SqaFadeWrapperState extends State<SqaFadeWrapper> {
   double _startIntensity = 0.0;
   double _endIntensity = 0.0;
-  late AnimationController _pulseController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
 
   void _updateIntensity(ScrollMetrics metrics) {
     if (metrics.axis != widget.axis) return;
@@ -95,44 +78,34 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper>
         }
         return false;
       },
-      child: AnimatedBuilder(
-        animation: _pulseController,
-        builder: (context, child) {
-          // Pulse oscillation for the "breathing" effect
-          final pulse = Curves.easeInOut.transform(_pulseController.value);
+      child: ShaderMask(
+        shaderCallback: (Rect rect) {
+          final isVertical = widget.axis == Axis.vertical;
 
-          return ShaderMask(
-            shaderCallback: (Rect rect) {
-              final isVertical = widget.axis == Axis.vertical;
+          // Static edge gradient
+          final startStop = widget.depth;
+          final endStop = (1.0 - widget.depth);
 
-              // We adjust the stops based on pulse to give it that "alive" look
-              // Standard edge is subtle (default 4%), pulsing adds minimal depth.
-              final startStop = widget.depth + (widget.pulseDepth * pulse);
-              final endStop =
-                  (1.0 - widget.depth) - (widget.pulseDepth * pulse);
-
-              return LinearGradient(
-                begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,
-                end: isVertical
-                    ? Alignment.bottomCenter
-                    : Alignment.centerRight,
-                colors: [
-                  Colors.black.withValues(
-                    alpha: 1.0 - (widget.showStart ? _startIntensity : 0),
-                  ),
-                  Colors.black,
-                  Colors.black,
-                  Colors.black.withValues(
-                    alpha: 1.0 - (widget.showEnd ? _endIntensity : 0),
-                  ),
-                ],
-                stops: [0.0, startStop, endStop, 1.0],
-              ).createShader(rect);
-            },
-            blendMode: BlendMode.dstIn,
-            child: widget.child,
-          );
+          return LinearGradient(
+            begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,
+            end: isVertical
+                ? Alignment.bottomCenter
+                : Alignment.centerRight,
+            colors: [
+              Colors.black.withValues(
+                alpha: 1.0 - (widget.showStart ? _startIntensity : 0),
+              ),
+              Colors.black,
+              Colors.black,
+              Colors.black.withValues(
+                alpha: 1.0 - (widget.showEnd ? _endIntensity : 0),
+              ),
+            ],
+            stops: [0.0, startStop, endStop, 1.0],
+          ).createShader(rect);
         },
+        blendMode: BlendMode.dstIn,
+        child: widget.child,
       ),
     );
   }

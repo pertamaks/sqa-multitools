@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'sqa_card.dart';
 import 'sqa_styles.dart';
 import 'sqa_fade_wrapper.dart';
+import 'sqa_hover_icon_button.dart';
 
 /// Data model for a tile-style picker item (with optional thumbnail image).
 class SqaPickerTile {
@@ -48,6 +49,12 @@ class SqaModal<T> extends StatefulWidget {
   final IconData? icon;
   final Widget? topBar;
   final Widget? leading;
+  final bool scrollable;
+
+  // Constraint settings
+  final double widthFactor;
+  final double heightFactor;
+  final double? maxWidth;
 
   /// Creates a **tile-style** picker with thumbnail image cards.
   const SqaModal.tile({
@@ -58,6 +65,9 @@ class SqaModal<T> extends StatefulWidget {
     this.onRefresh,
     this.topBar,
     this.leading,
+    this.widthFactor = 0.85,
+    this.heightFactor = 0.7,
+    this.maxWidth = 320,
   }) : isTileMode = true,
        isConfirmMode = false,
        itemBuilder = null,
@@ -70,7 +80,8 @@ class SqaModal<T> extends StatefulWidget {
        confirmColor = null,
        icon = null,
        child = null,
-       customActions = null;
+       customActions = null,
+       scrollable = true;
 
   /// Creates a **list-style** picker with simple icon + label rows.
   const SqaModal.list({
@@ -84,6 +95,9 @@ class SqaModal<T> extends StatefulWidget {
     this.onRefresh,
     this.topBar,
     this.leading,
+    this.widthFactor = 0.85,
+    this.heightFactor = 0.7,
+    this.maxWidth = 500,
   }) : isTileMode = false,
        isConfirmMode = false,
        tileBuilder = null,
@@ -93,7 +107,8 @@ class SqaModal<T> extends StatefulWidget {
        confirmColor = null,
        icon = null,
        child = null,
-       customActions = null;
+       customActions = null,
+       scrollable = true;
 
   /// Creates a **confirmation** modal with a title and message.
   const SqaModal.confirm({
@@ -106,6 +121,9 @@ class SqaModal<T> extends StatefulWidget {
     this.icon,
     this.topBar,
     this.leading,
+    this.widthFactor = 0.85,
+    this.heightFactor = 0.7,
+    this.maxWidth = 500,
   }) : isTileMode = false,
        isConfirmMode = true,
        items = const [],
@@ -116,7 +134,8 @@ class SqaModal<T> extends StatefulWidget {
        emptyLabel = '',
        onRefresh = null,
        child = null,
-       customActions = null;
+       customActions = null,
+       scrollable = true;
 
   /// Creates a **custom** modal with a title and arbitrary child content.
   const SqaModal.custom({
@@ -130,6 +149,10 @@ class SqaModal<T> extends StatefulWidget {
     this.icon,
     this.topBar,
     this.leading,
+    this.scrollable = true,
+    this.widthFactor = 0.85,
+    this.heightFactor = 0.7,
+    this.maxWidth = 900,
   }) : isTileMode = false,
        isConfirmMode = false,
        items = const [],
@@ -331,6 +354,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
@@ -353,114 +377,113 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
               widget.title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize:
-                    20, // Match SqaPluginHeader standard for consistent branding
+                fontSize: 20,
               ),
             ),
           ),
-          if (widget.onRefresh != null)
-            IconButton(
-              icon: const Icon(Icons.refresh, size: 16),
-              onPressed: widget.onRefresh,
+          if (widget.onRefresh != null) ...[
+            SqaHoverIconButton(
+              icon: Icons.refresh,
+              onPressed: widget.onRefresh!,
               tooltip: 'Refresh',
+              iconSize: 20,
             ),
+            const SizedBox(width: 4),
+          ],
+          SqaHoverIconButton(
+            icon: Symbols.close,
+            onPressed: () => Navigator.of(context).pop(),
+            tooltip: 'Close',
+            iconSize: 20,
+          ),
         ],
       ),
       contentPadding: EdgeInsets.zero,
       content: ConstrainedBox(
         constraints: BoxConstraints(
-          minWidth: widget.isTileMode 
-              ? 320 
-              : MediaQuery.of(context).size.width * 0.85 < 500 
-                  ? MediaQuery.of(context).size.width * 0.85 
-                  : 500,
-          maxWidth: widget.isTileMode 
-              ? 320 
-              : MediaQuery.of(context).size.width * 0.85 > 900 
-                  ? 900 
-                  : MediaQuery.of(context).size.width * 0.85,
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
+          minHeight: 0,
+          maxHeight: size.height * widget.heightFactor,
+          minWidth: widget.isTileMode ? 320.0 : 400.0,
+          maxWidth: widget.maxWidth ?? 900.0,
         ),
-        child: widget.isLoading
-            ? const SizedBox(
-                height: 200,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : (widget.isConfirmMode
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: widget.message != null
-                          ? Text(
-                              widget.message!,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                height: 1.5,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    )
+        child: SizedBox(
+          width: (size.width * widget.widthFactor).clamp(
+            widget.isTileMode ? 320.0 : 400.0,
+            widget.maxWidth ?? 900.0,
+          ),
+          child: widget.isLoading
+              ? const SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : (widget.isConfirmMode
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                        child: widget.message != null
+                            ? Text(
+                                widget.message!,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  height: 1.5,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      )
                     : Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           if (widget.topBar != null) ...[
                             Padding(
-                              padding: const EdgeInsets.only(
-                                left: 24,
-                                right: 24,
-                                bottom: 16,
-                              ),
+                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                               child: widget.topBar!,
                             ),
                           ],
-                          Flexible(
-                            child: ScrollConfiguration(
-                              behavior: const _NoScrollbarBehavior(),
-                              child: Scrollbar(
-                                controller: _scrollController,
-                                thumbVisibility: true,
-                                thickness: 6.0,
-                                radius: const Radius.circular(3),
-                                child: SqaFadeWrapper(
-                                  depth:
-                                      0.08, // Increased for better visibility in modal
-                                  threshold: 20.0, // Trigger sooner
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      right: 16,
-                                    ), // Align scrollbar with buttons
-                                    child: widget.child != null
-                                        ? SingleChildScrollView(
-                                            controller: _scrollController,
-                                            padding: const EdgeInsets.only(
-                                              left: 24,
-                                              right: 12,
-                                            ),
-                                            child: widget.child!,
-                                          )
-                                        : (widget.items.isEmpty
-                                            ? Padding(
+                          Expanded(
+                            child: widget.scrollable
+                                ? ScrollConfiguration(
+                                  behavior: const _NoScrollbarBehavior(),
+                                  child: Scrollbar(
+                                    controller: _scrollController,
+                                    thumbVisibility: true,
+                                    thickness: 6.0,
+                                    radius: const Radius.circular(3),
+                                    child: SqaFadeWrapper(
+                                      depth: 0.08,
+                                      threshold: 20.0,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(right: 16),
+                                        child: widget.child != null
+                                            ? SingleChildScrollView(
+                                                controller: _scrollController,
                                                 padding: const EdgeInsets.only(
                                                   left: 24,
+                                                  right: 12,
                                                 ),
-                                                child: _buildEmpty(theme),
+                                                child: widget.child!,
                                               )
-                                            : (widget.isTileMode
-                                                ? _buildTileContent(
-                                                    context,
-                                                    theme,
+                                            : (widget.items.isEmpty
+                                                ? Padding(
+                                                    padding: const EdgeInsets.only(
+                                                      left: 24,
+                                                      right: 12,
+                                                    ),
+                                                    child: _buildEmpty(theme),
                                                   )
-                                                : _buildListContent(
-                                                    context,
-                                                    theme,
-                                                  ))),
+                                                : (widget.isTileMode
+                                                    ? _buildTileContent(context, theme)
+                                                    : _buildListContent(context, theme))),
+                                      ),
+                                    ),
                                   ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  child: widget.child!,
                                 ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )),
+                        ),
+                      ],
+                    ))),
       ),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       actionsAlignment: MainAxisAlignment.end,
@@ -478,7 +501,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                 ),
                 child: Text(widget.cancelLabel ?? 'Cancel'),
               ),
-              const SizedBox(width: 4), // Tighter internal spacing
+              const SizedBox(width: 4),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style:
@@ -541,11 +564,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Thumbnail
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(8),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                   child: AspectRatio(
                     aspectRatio: 32 / 9,
                     child: tile.imagePath != null
@@ -560,37 +580,26 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                               child: Icon(
                                 Symbols.desktop_windows,
                                 size: 32,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.3),
+                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                               ),
                             ),
                           ),
                   ),
                 ),
-                // Label + Badge
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         tile.label,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       if (tile.badge != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer
-                                .withValues(alpha: 0.5),
+                            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -641,7 +650,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 11, // Standard Label size per GEMINI.md
+                          fontSize: 11,
                         ),
                       )
                     : null,

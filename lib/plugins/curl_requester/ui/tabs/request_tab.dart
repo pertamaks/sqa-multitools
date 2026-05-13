@@ -78,20 +78,19 @@ class _RequestTabState extends ConsumerState<RequestTab> {
       children: [
         _buildRequestHeader(context),
         Expanded(
-          child: Scrollbar(
-            controller: widget.scrollController,
-            child: SingleChildScrollView(
-              controller: widget.scrollController,
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  widget.showReflector
-                      ? _buildUnifiedGridContent(context, ref)
-                      : _buildCommandDeckContent(context),
-                ],
-              ),
-            ),
-          ),
+          child: widget.showReflector
+              ? Scrollbar(
+                  controller: widget.scrollController,
+                  child: SingleChildScrollView(
+                    controller: widget.scrollController,
+                    padding: const EdgeInsets.all(16),
+                    child: _buildUnifiedGridContent(context, ref),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: _buildCommandDeckContent(context),
+                ),
         ),
       ],
     );
@@ -99,7 +98,7 @@ class _RequestTabState extends ConsumerState<RequestTab> {
 
   Widget _buildRequestHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
       ),
@@ -114,10 +113,12 @@ class _RequestTabState extends ConsumerState<RequestTab> {
               ),
               const SizedBox(width: 8),
               Text(
-                widget.showReflector ? 'Structured Request' : 'Command Deck (cURL)',
+                widget.showReflector ? 'STRUCTURED REQUEST' : 'COMMAND DECK (CURL)',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
               ),
             ],
@@ -158,19 +159,19 @@ class _RequestTabState extends ConsumerState<RequestTab> {
   }
 
   Widget _buildCommandDeckContent(BuildContext context) {
-    return SqaCard(
-      padding: const EdgeInsets.all(16),
+    return SizedBox.expand(
       child: SqaField(
         label: '',
         showLabel: false,
         controller: widget.curlController,
         isMonospace: true,
         isMultiline: true,
-        minLines: 8,
-        maxLines: 20,
+        maxLines: null,
+        expands: true,
         fontSize: 12,
         hintText: 'Paste curl command here...',
         showCopyButton: false,
+        showLineNumbers: true,
       ),
     );
   }
@@ -192,11 +193,12 @@ class _RequestTabState extends ConsumerState<RequestTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'JSON Body',
+          'JSON BODY',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.1,
                 color: Theme.of(context).colorScheme.primary,
+                fontSize: 10,
               ),
         ),
         const SizedBox(height: 16),
@@ -213,11 +215,12 @@ class _RequestTabState extends ConsumerState<RequestTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Query Parameters',
+          'QUERY PARAMETERS',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.1,
                 color: Theme.of(context).colorScheme.primary,
+                fontSize: 10,
               ),
         ),
         const SizedBox(height: 12),
@@ -272,11 +275,12 @@ class _RequestTabState extends ConsumerState<RequestTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Headers',
+          'HEADERS',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.1,
                 color: Theme.of(context).colorScheme.primary,
+                fontSize: 10,
               ),
         ),
         const SizedBox(height: 12),

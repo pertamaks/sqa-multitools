@@ -58,6 +58,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
 
     return SqaModal<bool>.custom(
       title: widget.isHistory ? 'Transaction Inspector' : 'Response',
+      scrollable: false,
       leading: SqaStatusBadge(
         text: transaction != null 
             ? (transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}') 
@@ -131,18 +132,9 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
           ],
         ],
       ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-          minWidth: MediaQuery.of(context).size.width * 0.85 > 800
-              ? 800
-              : MediaQuery.of(context).size.width * 0.85,
-          maxWidth: 800,
-        ),
-        child: _modalTab == ModalTab.request
-            ? _buildRequestModalContent(context, transaction)
-            : _buildResponseContent(context, transaction),
-      ),
+      child: _modalTab == ModalTab.request
+          ? _buildRequestModalContent(context, transaction)
+          : _buildResponseContent(context, transaction),
     );
   }
 
@@ -153,10 +145,11 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       isMonospace: true,
       readOnly: true,
       isMultiline: true,
-      maxLines: 40,
-      maxHeight: MediaQuery.of(context).size.height * 0.6,
+      maxLines: null,
+      expands: true,
       fontSize: 12,
       showCopyButton: false,
+      showLineNumbers: true,
       initialValue: transaction != null
           ? CurlParserService.stringify(transaction.resolvedRequest ?? transaction.request)
           : 'No request data available',
@@ -170,10 +163,11 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       isMonospace: true,
       readOnly: true,
       isMultiline: true,
-      maxLines: 40,
-      maxHeight: MediaQuery.of(context).size.height * 0.6,
+      maxLines: null,
+      expands: true,
       fontSize: 12,
       showCopyButton: false,
+      showLineNumbers: true,
       initialValue: transaction?.responseBody ?? 'No response data available',
     );
   }

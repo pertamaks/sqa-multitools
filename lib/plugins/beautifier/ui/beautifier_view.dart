@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/github.dart';
 
 import '../providers/beautifier_provider.dart';
+import '../models/beautifier_state.dart';
 import '../widgets/beautifier_highlighter.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_switch.dart';
 import '../../../ui/widgets/sqa_toast.dart';
-import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import '../../../ui/widgets/sqa_action_button_group.dart';
 import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_styles.dart';
+import '../../../ui/widgets/sqa_button.dart';
+import '../../../core/providers/plugin_provider.dart';
 
 class BeautifierView extends ConsumerStatefulWidget {
   const BeautifierView({super.key});
@@ -24,9 +28,7 @@ class BeautifierView extends ConsumerStatefulWidget {
 
 class _BeautifierViewState extends ConsumerState<BeautifierView> {
   late BeautifierHighlightController _inputController;
-  late BeautifierHighlightController _outputController;
   late ScrollController _inputHorizontalController;
-  late ScrollController _outputHorizontalController;
 
   @override
   void initState() {
@@ -40,14 +42,7 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
       theme: initialTheme,
     );
 
-    _outputController = BeautifierHighlightController(
-      text: initialState.output,
-      language: initialState.language,
-      theme: initialTheme,
-    );
-
     _inputHorizontalController = ScrollController();
-    _outputHorizontalController = ScrollController();
 
     _inputController.addListener(() {
       ref.read(beautifierProvider.notifier).updateInput(_inputController.text);
@@ -57,10 +52,18 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
   @override
   void dispose() {
     _inputController.dispose();
-    _outputController.dispose();
     _inputHorizontalController.dispose();
-    _outputHorizontalController.dispose();
     super.dispose();
+  }
+
+  void _showOutputModal(String output, BeautifierLanguage language) {
+    showDialog(
+      context: context,
+      builder: (context) => BeautifierOutputModal(
+        output: output,
+        language: language,
+      ),
+    );
   }
 
   @override
@@ -71,109 +74,68 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
     final codeTheme = isDark ? atomOneDarkTheme : githubTheme;
 
     _inputController.language = state.language;
-    _outputController.language = state.language;
     _inputController.theme = codeTheme;
-    _outputController.theme = codeTheme;
 
+    // Listen for formatting completion
     ref.listen(beautifierProvider, (previous, next) {
       if (next.error != null && next.error != previous?.error) {
         SqaToast.show(context, next.error!, type: SqaToastType.error);
+      } else if (next.output.isNotEmpty && next.output != previous?.output) {
+        _showOutputModal(next.output, next.language);
       }
     });
 
-    if (_outputController.text != state.output) {
-      _outputController.text = state.output;
-    }
-
     return SqaPluginLayout(
       icon: Symbols.code_blocks,
-      title: 'Code Beautifier',
-      description: 'Format messy source code into readable structure.',
-      child: SqaPluginScrollableContent(
-        center: false,
+      title: 'Beautifier',
+      description: 'Clean and format source code instantly.',
+      trailing: SqaButton.primary(
+        icon: Symbols.auto_fix,
+        label: '',
+        onPressed: state.input.isEmpty 
+          ? null 
+          : () => ref.read(beautifierProvider.notifier).format(),
+      ),
+      secondaryHeader: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Center(
+          child: SqaSegmentedButton<BeautifierLanguage>(
+            stretches: false,
+            segments: BeautifierLanguage.values.map((lang) {
+              return ButtonSegment(
+                value: lang,
+                label: Text(lang.label),
+                icon: Icon(lang.icon, size: 16),
+              );
+            }).toList(),
+            selected: {state.language},
+            onSelectionChanged: (set) {
+              ref.read(beautifierProvider.notifier).setLanguage(set.first);
+            },
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'SOURCE LANGUAGE',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SqaSegmentedButton<BeautifierLanguage>(
-                  segments: BeautifierLanguage.values.map((lang) {
-                    return ButtonSegment(
-                      value: lang,
-                      label: Text(lang.label),
-                      icon: Icon(lang.icon),
-                    );
-                  }).toList(),
-                  selected: {state.language},
-                  onSelectionChanged: (set) {
-                    ref
-                        .read(beautifierProvider.notifier)
-                        .setLanguage(set.first);
-                  },
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _getUsageDescription(state.language),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SqaField(
-              label: 'Raw Input',
-              controller: _inputController,
-              isMultiline: true,
-              isMonospace: true,
-              minLines: 1,
-              showLineNumbers: true,
-              wrap: state.inputWrapText,
-              horizontalScrollController: _inputHorizontalController,
-              collapsedMaxLines: 15,
-              trailing: _buildWrapToggle(
-                state.inputWrapText,
-                (val) =>
-                    ref.read(beautifierProvider.notifier).setInputWrapText(val),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SqaActionButtonGroup(
-              onClear: _clearAll,
-              actionLabel: 'Format Code',
-              actionIcon: Symbols.auto_fix,
-              onAction: () => ref.read(beautifierProvider.notifier).format(),
-              sourcePluginId: 'com.sqa.beautifier',
-              actionWidth: 160,
-            ),
-            const SizedBox(height: 16),
-            SqaField(
-              label: 'Beautified Output',
-              controller: _outputController,
-              isMultiline: true,
-              isMonospace: true,
-              readOnly: true,
-              minLines: 1,
-              showLineNumbers: true,
-              wrap: state.outputWrapText,
-              horizontalScrollController: _outputHorizontalController,
-              collapsedMaxLines: 15,
-              trailing: _buildWrapToggle(
-                state.outputWrapText,
-                (val) => ref
-                    .read(beautifierProvider.notifier)
-                    .setOutputWrapText(val),
+            _buildToolbar(context, state),
+            const SizedBox(height: 12),
+            Expanded(
+              child: SqaField(
+                label: 'Raw Input',
+                showLabel: false,
+                controller: _inputController,
+                isMultiline: true,
+                isMonospace: true,
+                minLines: 1,
+                showLineNumbers: true,
+                showCopyButton: false,
+                wrap: state.inputWrapText,
+                horizontalScrollController: _inputHorizontalController,
+                expands: true,
+                hintText: 'Paste your messy code here...',
               ),
             ),
           ],
@@ -182,13 +144,69 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
     );
   }
 
+  Widget _buildToolbar(BuildContext context, BeautifierState state) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+        borderRadius: SqaStyles.radiusMedium,
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          Text(
+            state.language.label.toUpperCase(),
+            style: SqaTextStyles.labelBold(context).copyWith(
+              fontSize: 10,
+              color: theme.colorScheme.primary,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const Spacer(),
+          // Settings (Tune)
+          SqaHoverIconButton(
+            icon: Symbols.tune,
+            onPressed: () {
+              ref.read(navigationServiceProvider).jumpToPluginSettings('com.sqa.beautifier');
+            },
+            tooltip: 'Plugin Settings',
+            iconSize: 20,
+          ),
+          // Clear Input
+          SqaHoverIconButton(
+            icon: Symbols.delete_sweep,
+            onPressed: _clearAll,
+            tooltip: 'Clear Input',
+            iconSize: 20,
+            color: theme.colorScheme.error.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            height: 20,
+            width: 1,
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 8),
+          // Wrap Toggle
+          _buildWrapToggle(
+            state.inputWrapText,
+            (val) => ref.read(beautifierProvider.notifier).setInputWrapText(val),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+
   Future<void> _clearAll() async {
     final state = ref.read(beautifierProvider);
-    if (state.input.isNotEmpty || state.output.isNotEmpty) {
+    if (state.input.isNotEmpty) {
       final confirmed = await SqaModal.showDanger(
         context,
-        title: 'Clear Code',
-        message: 'Are you sure you want to clear all input and output code?',
+        title: 'Clear Input',
+        message: 'Are you sure you want to clear the input code?',
         confirmLabel: 'Clear',
       );
       if (confirmed != true) return;
@@ -196,7 +214,6 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
 
     ref.read(beautifierProvider.notifier).clear();
     _inputController.clear();
-    _outputController.clear();
   }
 
   Widget _buildWrapToggle(bool value, ValueChanged<bool> onChanged) {
@@ -206,35 +223,62 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
       children: [
         Text(
           'WRAP',
-          style: theme.textTheme.labelSmall?.copyWith(
+          style: SqaTextStyles.labelBold(context).copyWith(
             fontSize: 9,
-            fontWeight: FontWeight.bold,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
+        const SizedBox(width: 4),
         SqaSwitch(value: value, onChanged: onChanged),
       ],
     );
   }
+}
 
-  String _getUsageDescription(BeautifierLanguage language) {
-    switch (language) {
-      case BeautifierLanguage.json:
-        return 'Standardize JSON indentation and key sorting for better readability.';
-      case BeautifierLanguage.sql:
-        return 'Format SQL queries with proper keyword capitalization and alignment.';
-      case BeautifierLanguage.xml:
-        return 'Prettify XML tags and attributes with hierarchical indentation.';
-      case BeautifierLanguage.html:
-        return 'Clean up HTML structure and nested elements.';
-      case BeautifierLanguage.dart:
-        return 'Basic Dart formatting for code snippets and logic.';
-      case BeautifierLanguage.yaml:
-        return 'Validate and format YAML configuration files.';
-      case BeautifierLanguage.javascript:
-        return 'Format JS code with consistent bracing and spacing.';
-      case BeautifierLanguage.css:
-        return 'Organize CSS rules and properties into a clean structure.';
-    }
+class BeautifierOutputModal extends StatelessWidget {
+  final String output;
+  final BeautifierLanguage language;
+
+  const BeautifierOutputModal({
+    super.key,
+    required this.output,
+    required this.language,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SqaModal.custom(
+      title: '${language.label} Output',
+      scrollable: false,
+      confirmLabel: 'Close',
+      customActions: [
+        SqaButton.tonal(
+          label: 'Copy',
+          icon: Symbols.content_copy,
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: output));
+            SqaToast.show(context, 'Output copied to clipboard', type: SqaToastType.success);
+          },
+        ),
+        const SizedBox(width: 8),
+        SqaButton.primary(
+          label: 'Close',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+      child: SqaField(
+        label: 'Output',
+        showLabel: false,
+        isMonospace: true,
+        readOnly: true,
+        isMultiline: true,
+        maxLines: null,
+        expands: true,
+        fontSize: 12,
+        showLineNumbers: true,
+        showCopyButton: false,
+        initialValue: output,
+      ),
+    );
   }
 }

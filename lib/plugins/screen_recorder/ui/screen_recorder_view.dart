@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
 import '../providers/screen_recorder_provider.dart';
 import '../models/screen_recorder_state.dart';
@@ -20,6 +18,7 @@ import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../core/models/capture_mode.dart';
 import '../../../../core/providers/plugin_provider.dart';
 import '../../../../core/providers/ffmpeg_provider.dart';
+import '../../../../core/utils/platform_utils.dart';
 
 class ScreenRecorderView extends ConsumerStatefulWidget {
   const ScreenRecorderView({super.key});
@@ -328,16 +327,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                     notifier.renameRecording(info, newName),
                                 onValidate: (name) =>
                                     notifier.validateNewName(name, info),
-                                onOpen: () async {
-                                  final uri = Uri.file(info.file.path);
-                                  if (await canLaunchUrl(uri)) {
-                                    await launchUrl(uri);
-                                  } else if (Platform.isWindows) {
-                                    await Process.start('explorer.exe', [
-                                      info.file.path,
-                                    ]);
-                                  }
-                                },
+                                onOpen: () => PlatformUtils.openPath(info.file.path),
                                 onOpenFolder: () =>
                                     notifier.openSaveDirectory(),
                               ),

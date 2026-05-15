@@ -11,7 +11,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:super_clipboard/super_clipboard.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/platform_utils.dart';
 
 import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
@@ -521,13 +521,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      final uri = Uri.directory(targetDir.path);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else if (Platform.isWindows) {
-        // Fallback for Windows if url_launcher directory launch fails
-        await Process.start('explorer.exe', [targetDir.path]);
-      }
+      await PlatformUtils.openPath(targetDir.path);
     }
   }
 
@@ -560,10 +554,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   String? validateNewName(String name, CaptureInfo currentInfo) {
     if (name.trim().isEmpty) return 'Name cannot be empty';
 
-    // Windows prohibited characters: < > : " / \ | ? *
-    final prohibited = RegExp(r'[<>:"/\\|?*]');
-    if (prohibited.hasMatch(name)) {
-      return 'Contains invalid characters: < > : " / \\ | ? *';
+    if (!PlatformUtils.isValidFilename(name)) {
+      return 'Contains invalid characters for your platform';
     }
 
     // Check for duplicates

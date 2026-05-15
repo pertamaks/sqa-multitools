@@ -7,6 +7,7 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import '../models/capture_mode.dart';
+import 'ffmpeg_platform_config.dart';
 
 /// Configuration for a video recording session.
 /// Decoupled from plugin-specific states to allow core-level use.
@@ -31,10 +32,11 @@ class FfmpegVideoConfig {
 }
 
 class FfmpegEngine {
-  static const String _downloadUrl =
-      'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip';
+  static final FfmpegPlatformConfig _config = FfmpegPlatformConfig.current();
 
-  static String get _executableName => Platform.isWindows ? 'ffmpeg.exe' : 'ffmpeg';
+  static String get _downloadUrl => _config.downloadUrl;
+
+  static String get _executableName => _config.executableName;
 
   static Future<File> get _executableFile async {
     final dir = await getApplicationSupportDirectory();
@@ -146,19 +148,12 @@ class FfmpegEngine {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return [];
 
     try {
-      final result = await Process.run(_resolvedExecutable!, [
-        '-f',
-        'dshow',
-        '-list_devices',
-        'true',
-        '-i',
-        'dummy',
-      ]);
+      final result = await Process.run(_resolvedExecutable!, _config.buildListAudioDevicesArgs());
 
       final output = result.stderr as String;
       final lines = output.split('\n');
       final devices = <String>[];
-      final deviceRegex = RegExp(r'\[dshow @ .*\] "(.*)" \(audio\)');
+      final deviceRegex = _config.audioDeviceRegex;
 
       for (final line in lines) {
         final match = deviceRegex.firstMatch(line);
@@ -184,11 +179,11 @@ class FfmpegEngine {
   }) {
     final args = <String>[];
     args.addAll(['-y']);
-    args.addAll(['-f', 'gdigrab', '-framerate', '${config.framerate}']);
-
-    if (config.showCursor == false) {
-      args.addAll(['-draw_mouse', '0']);
-    }
+    
+    // Platform-specific input args
+    args.addAll(_config.buildVideoArgs(
+      config: config,
+    ));
 
     final filters = <String>[];
     if (config.captureMode == CaptureMode.window ||
@@ -257,10 +252,10 @@ class FfmpegEngine {
       filters.add('scale=-2:360');
     }
 
-    args.addAll(['-i', 'desktop']);
+    args.addAll(['-i', _config.videoInputName]);
 
     if (config.microphoneEnabled && config.selectedAudioDevice != null) {
-      args.addAll(['-f', 'dshow', '-i', 'audio=${config.selectedAudioDevice}']);
+      args.addAll(_config.buildAudioArgs(config.selectedAudioDevice!));
     }
 
     if (filters.isNotEmpty) {
@@ -368,18 +363,19 @@ class FfmpegEngine {
     if (h % 2 != 0) h -= 1;
 
     final args = [
-      '-f',
-      'gdigrab',
-      '-offset_x',
-      '$x',
-      '-offset_y',
-      '$y',
-      '-video_size',
-      '${w}x$h',
-      '-i',
-      'desktop',
-      '-frames:v',
-      '1',
+      ..._config.buildVideoArgs(
+        config: FfmpegVideoConfig(
+          framerate: 1,
+          showCursor: false,
+          captureMode: CaptureMode.area,
+        ),
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+      ),
+      '-i', _config.videoInputName,
+      '-frames:v', '1',
       '-vf',
       'scale=320:-2',
       '-y',
@@ -452,20 +448,19 @@ class FfmpegEngine {
     if (h % 2 != 0) h -= 1;
 
     final args = [
-      '-f',
-      'gdigrab',
-      '-offset_x',
-      '$x',
-      '-offset_y',
-      '$y',
-      '-video_size',
-      '${w}x$h',
-      '-draw_mouse',
-      '0',
-      '-i',
-      'desktop',
-      '-frames:v',
-      '1',
+      ..._config.buildVideoArgs(
+        config: FfmpegVideoConfig(
+          framerate: 1,
+          showCursor: false,
+          captureMode: CaptureMode.area,
+        ),
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+      ),
+      '-i', _config.videoInputName,
+      '-frames:v', '1',
       '-y',
       savePath,
     ];

@@ -62,8 +62,10 @@ To ensure long-term maintainability and a consistent "Single Product" feel:
 
 ## 8. Cross-Platform Strategy & Native Interop
 * **Platform Guarding**: Guard all platform-specific code (e.g., `win32`) with `if (Platform.isWindows)`.
-* **Abstraction**: Define shared interfaces in `lib/core/` for native behaviors and implement platform-specific versions.
-* **Build Safety**: Use conditional imports for platform-specific libraries to prevent compilation errors on non-target platforms.
+* **Abstraction**: Define shared interfaces in `lib/core/` for native behaviors (e.g., `WindowNativeApi`, `FfmpegPlatformConfig`).
+* **Platform Loader Pattern**: Always register native API implementations in `lib/core/window/window_native_api_loader_io.dart` rather than `main.dart` to maintain entry-point purity.
+* **Build Safety**: Use conditional imports (`export ... if (dart.library.io)`) to ensure OS-specific libraries do not break compilation on non-target platforms.
+* **Strategy Pattern for Engines**: Subsystems with heavy platform differences (like FFmpeg capture) MUST use a `Strategy` interface to isolate command-line argument building and binary URLs.
 
 ## 9. Feature Development Workflow
 * **The Mock-up Phase & Systematic Tagging:** When building a new UI or decoupling an existing one, all missing dynamic logic, hardcoded mock data, and pending architectural splits MUST be explicitly tagged. Use standard markers (`// TODO(Logic): ...`, `// TODO(UI): ...`, `// TODO(Refactor): ...`) to create a clear, searchable integration roadmap before any backend or provider code is written.

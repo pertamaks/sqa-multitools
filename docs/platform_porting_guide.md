@@ -9,16 +9,16 @@ This document describes how to extend SQA-Multitools to a new desktop platform
 ## 1. Architecture Overview
 
 SQA-Multitools uses the **Platform Interface Pattern** to isolate OS-specific
-native code from shared application logic. ~~The pattern mirrors how Flutter's
-official plugins (e.g. `path_provider`, `url_launcher`) handle multi-platform
-support, adapted for app-level code.~~ **(Completed: WindowNativeApi abstraction implemented May 2026)**
+native code from shared application logic. **(Completed: WindowNativeApi abstraction and Platform Loader implemented May 2026)**
 
 ```
 lib/core/window/
   window_native_api.dart               ← Abstract contract (pure Dart)
-  window_native_api_windows.dart       ← Windows implementation (win32 / PowerShell)
-  window_native_api_macos.dart         ← (future) macOS implementation
-  window_native_api_linux.dart         ← (future) Linux implementation
+  window_native_api_windows.dart       ← Windows implementation
+  window_native_api_macos.dart         ← macOS implementation (shell)
+  window_native_api_linux.dart         ← Linux implementation (shell)
+  window_native_api_loader.dart        ← Entry point (conditional imports)
+  window_native_api_loader_io.dart     ← Platform registration logic
   window_utils.dart                    ← Facade — callers only ever touch this
 ```
 
@@ -130,24 +130,23 @@ class WindowNativeApiMacOs implements WindowNativeApi {
 }
 ```
 
-### Step 2: Register in `main.dart`
+### Step 2: Register in `window_native_api_loader_io.dart`
+
+Instead of modifying `main.dart` directly, add your platform to the `setupNativeApi` method in `lib/core/window/window_native_api_loader_io.dart`:
 
 ```dart
-import 'core/window/window_native_api.dart';
-import 'core/window/window_native_api_windows.dart';
-import 'core/window/window_native_api_macos.dart'; // add this
+import 'window_native_api_macos.dart'; // add this
 
-void main() async {
-  // ... existing setup ...
-
+void setupNativeApi() {
   if (Platform.isWindows) {
     WindowNativeApi.register(WindowNativeApiWindows());
   } else if (Platform.isMacOS) {
-    WindowNativeApi.register(WindowNativeApiMacOs()); // add this
+    WindowNativeApi.register(WindowNativeApiMacOS()); // add this
   }
-  // else: stub defaults are used (safe no-ops)
 }
 ```
+
+This ensures that `main.dart` remains clean and platform-agnostic.
 
 ### Step 3: Update `pubspec.yaml`
 
@@ -186,17 +185,17 @@ porting. They are listed in priority order.
 
 ### 4.1 FFmpeg Capture Engine (`lib/core/engine/ffmpeg_engine.dart`)
 
+**Status: COMPLETED (May 2026)**
+
+The `FfmpegEngine` now utilizes the **FfmpegPlatformConfig Strategy Pattern**. 
+
 | Item | Windows | macOS | Linux |
 |------|---------|-------|-------|
-| Download URL | `BtbN win64-gpl.zip` | Needs macOS binary | Needs Linux binary |
-| Capture input | `gdigrab` | `avfoundation` + screen index | `x11grab` or `kmsgrab` |
-| Audio device listing | `dshow` | `avfoundation` audio sources | `pulse` / `alsa` |
-| Binary name | ~~`ffmpeg.exe`~~ | `ffmpeg` | `ffmpeg` | **(Completed: Now platform-aware)** |
-| Path separator | ~~`\\` (hardcoded)~~ | `/` | `/` | **(Completed: Now using `p.join`)** |
+| Download URL | `BtbN win64-gpl.zip` | `evermeet.cx` shell | `johnvansickle` shell |
+| Capture input | `gdigrab` | `avfoundation` | `x11grab` |
+| Audio input | `dshow` | `avfoundation` | `pulse` |
 
-**Recommended approach:** Apply the same Platform Interface Pattern to create a
-`CaptureBackendWindows` / `CaptureBackendMacOs` abstraction inside `ffmpeg_engine.dart`.
-The `buildArguments()` method is the primary place to branch.
+**To extend:** Add a new implementation of `FfmpegPlatformConfig` in `lib/core/engine/ffmpeg_platform_config.dart`.
 
 ### 4.2 Screenshot Clipboard Copy (`lib/plugins/screenshot/providers/screenshot_provider.dart`)
 

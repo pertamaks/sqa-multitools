@@ -358,9 +358,11 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusLarge),
-      titlePadding: const EdgeInsets.symmetric(
-        horizontal: SqaTokens.spacingLarge,
-        vertical: SqaTokens.spacingXXSmall + SqaTokens.spacingMedium,
+      titlePadding: const EdgeInsets.fromLTRB(
+        SqaTokens.spacingXLarge, // 24px - Aligns with content
+        SqaTokens.spacingXXSmall + SqaTokens.spacingMedium,
+        SqaTokens.spacingSmall,  // 8px - Pushes X to the edge
+        SqaTokens.spacingXXSmall + SqaTokens.spacingMedium,
       ),
       title: Row(
         children: [
@@ -421,7 +423,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                 )
               : (widget.isConfirmMode
                   ? Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, SqaTokens.spacingXLarge),
                       child: widget.message != null
                           ? Text(
                               widget.message!,
@@ -468,6 +470,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                                                 padding: const EdgeInsets.only(
                                                   left: 24,
                                                   right: 12,
+                                                  bottom: SqaTokens.spacingXLarge,
                                                 ),
                                                 child: widget.child!,
                                               )
@@ -500,8 +503,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
         ),
       ),
       actionsPadding: const EdgeInsets.symmetric(
-        horizontal: SqaTokens.spacingMedium,
-        vertical: SqaTokens.spacingMedium,
+        horizontal: SqaTokens.spacingXLarge,
+        vertical: SqaTokens.spacingLarge,
       ),
       actionsAlignment: MainAxisAlignment.end,
       actions:
@@ -512,13 +515,13 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                 onPressed: () => Navigator.of(context).pop(false),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: SqaTokens.spacingMedium,
+                    horizontal: SqaTokens.spacingSmall + 2,
                     vertical: SqaTokens.spacingSmall + 4,
                   ),
                 ),
                 child: Text(widget.cancelLabel ?? 'Cancel'),
               ),
-              const SizedBox(width: SqaTokens.spacingTiny),
+              const SizedBox(width: SqaTokens.spacingXXSmall),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style:
@@ -566,7 +569,10 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
   Widget _buildTileContent(BuildContext context, ThemeData theme) {
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
+      padding: const EdgeInsets.only(
+        right: SqaTokens.spacingSmall,
+        bottom: SqaTokens.spacingXLarge,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: widget.items.asMap().entries.map((entry) {
@@ -648,6 +654,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
   Widget _buildListContent(BuildContext context, ThemeData theme) {
     return SingleChildScrollView(
       controller: _scrollController,
+      padding: const EdgeInsets.only(bottom: SqaTokens.spacingXLarge),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: widget.items.asMap().entries.map((entry) {

@@ -77,7 +77,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
           },
           label: widget.transaction == null ? 'Send' : 'Send Again',
         ),
-        const SizedBox(width: SqaTokens.spacingSmall),
+        const SizedBox(width: SqaTokens.spacingXXSmall),
         SqaButton.primary(
           onPressed: () => Navigator.of(context).pop(true),
           label: 'Done',

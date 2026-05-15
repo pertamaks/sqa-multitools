@@ -53,7 +53,7 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
               SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
             },
           ),
-          const SizedBox(width: SqaTokens.spacingSmall),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
           SqaButton.primary(
             label: 'Close',
             onPressed: () => Navigator.of(context).pop(),

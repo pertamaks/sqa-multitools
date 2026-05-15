@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
@@ -73,14 +74,16 @@ class SqaPluginHeader extends StatelessWidget {
                 children: [
                     Text(
                       title,
-                      style: theme.textTheme.headlineSmall?.copyWith(
+                      style: GoogleFonts.dmSans(
+                        fontSize: SqaTokens.fontSizeXLarge,
                         color: effectiveColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       description,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: GoogleFonts.dmSans(
+                        fontSize: SqaTokens.fontSizeSmall,
                         fontStyle: FontStyle.italic,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

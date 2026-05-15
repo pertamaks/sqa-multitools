@@ -59,6 +59,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
+        constraints: const BoxConstraints(
+          minHeight: 40,
+          maxHeight: 40,
+        ),
         decoration: BoxDecoration(
           color: _isFocused
               ? colorScheme.primaryContainer.withValues(alpha: 0.15)
@@ -138,7 +142,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  vertical: SqaTokens.spacingSmall,
+                  vertical: 0,
                   horizontal: 0,
                 ),
               ),
@@ -148,7 +152,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
         if (_effectiveController.text.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(
-              right: widget.filterOptions != null ? SqaTokens.spacingSmall : SqaTokens.spacingMedium,
+              right: widget.filterOptions != null ? SqaTokens.spacingXSmall : SqaTokens.spacingSmall,
             ),
             child: SqaHoverIconButton(
               icon: Symbols.close,
@@ -165,7 +169,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           ),
         if (widget.filterOptions != null)
           Padding(
-            padding: const EdgeInsets.only(right: SqaTokens.spacingMedium),
+            padding: const EdgeInsets.only(right: SqaTokens.spacingSmall + 2),
             child: SqaHoverIconButton(
               icon: Symbols.tune,
               iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
@@ -203,11 +207,9 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           margin: const EdgeInsets.only(right: SqaTokens.spacingXSmall),
         ),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: widget.filterOptions!,
-          ),
+          child: widget.filterOptions!,
         ),
+        const SizedBox(width: SqaTokens.spacingSmall),
       ],
     );
   }

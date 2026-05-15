@@ -7,6 +7,7 @@ import '../models/screen_recorder_state.dart';
 import '../screen_recorder_plugin.dart';
 import './widgets/config_snippet.dart';
 import './widgets/recording_tile.dart';
+import '../../../../ui/widgets/sqa_history_list.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_segmented_button.dart';
@@ -286,60 +287,30 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
 
             const SizedBox(height: SqaTokens.spacingXXLarge),
 
-            // Recent Recordings List
-            if (state.recentRecordings.isNotEmpty) ...[
-              Text(
-                'RECENT RECORDINGS',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: SqaTokens.spacingMedium),
-              SqaCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    ...state.recentRecordings
-                        .where((info) {
-                          if (state.searchQuery.isEmpty) return true;
-                          final query = state.searchQuery.toLowerCase();
-                          final filename = p.basename(info.file.path).toLowerCase();
-                          return filename.contains(query);
-                        })
-                        .map((RecordingInfo info) {
-                          final filteredList = state.recentRecordings.where((
-                            info,
-                          ) {
-                            if (state.searchQuery.isEmpty) return true;
-                            final query = state.searchQuery.toLowerCase();
-                            final filename = p.basename(info.file.path).toLowerCase();
-                            return filename.contains(query);
-                          }).toList();
-                          final isLast = filteredList.last == info;
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              RecordingTile(
-                                info: info,
-                                onDelete: () => notifier.deleteRecording(info),
-                                onRename: (newName) =>
-                                    notifier.renameRecording(info, newName),
-                                onValidate: (name) =>
-                                    notifier.validateNewName(name, info),
-                                onOpen: () => PlatformUtils.openPath(info.file.path),
-                                onOpenFolder: () =>
-                                    notifier.openSaveDirectory(),
-                              ),
-                              if (!isLast) const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
-                            ],
-                          );
-                        }),
-                  ],
-                ),
-              ),
-              const SizedBox(height: SqaTokens.spacingXXLarge),
-            ],
+            SqaHistoryList<RecordingInfo>(
+              items: state.recentRecordings.where((info) {
+                if (state.searchQuery.isEmpty) return true;
+                final query = state.searchQuery.toLowerCase();
+                final filename = p.basename(info.file.path).toLowerCase();
+                return filename.contains(query);
+              }).toList(),
+              title: 'Recent Recordings',
+              emptyLabel: 'No recordings found',
+              emptyIcon: Symbols.videocam_off,
+              itemBuilder: (context, info, isLast) {
+                return RecordingTile(
+                  info: info,
+                  onDelete: () => notifier.deleteRecording(info),
+                  onRename: (newName) =>
+                      notifier.renameRecording(info, newName),
+                  onValidate: (name) =>
+                      notifier.validateNewName(name, info),
+                  onOpen: () => PlatformUtils.openPath(info.file.path),
+                  onOpenFolder: () =>
+                      notifier.openSaveDirectory(),
+                );
+              },
+            ),
           ],
         ),
       ),

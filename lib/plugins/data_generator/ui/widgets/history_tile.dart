@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../../ui/widgets/sqa_modal.dart';
 
 class DataHistoryTile extends StatelessWidget {
   final String title;
@@ -82,7 +83,17 @@ class DataHistoryTile extends StatelessWidget {
                   label: 'Delete',
                   icon: const Icon(Symbols.delete),
                   isDestructive: true,
-                  onPressed: onDelete,
+                  onPressed: () async {
+                    final confirmed = await SqaModal.showDanger(
+                      context,
+                      title: 'Delete History?',
+                      message: 'Are you sure you want to delete this specific generation entry?',
+                      confirmLabel: 'Delete',
+                    );
+                    if (confirmed == true) {
+                      onDelete();
+                    }
+                  },
                 ),
               ],
             ),

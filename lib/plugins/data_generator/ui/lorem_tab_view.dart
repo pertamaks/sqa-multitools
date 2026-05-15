@@ -12,6 +12,7 @@ import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import 'widgets/history_tile.dart';
+import '../../../ui/widgets/sqa_history_list.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../core/utils/locale_names.dart';
@@ -51,7 +52,7 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
               SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
             },
           ),
-          const SizedBox(width: SqaTokens.spacingSmall),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
           SqaButton.primary(
             label: 'Close',
             onPressed: () => Navigator.of(context).pop(),
@@ -101,88 +102,32 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
           const TextConfigPanel(),
           const SizedBox(height: SqaTokens.spacingXLarge),
           
-          if (history.isNotEmpty) ...[
-            Row(
-              children: [
-                Text(
-                  'History',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    letterSpacing: 1.2,
+          SqaHistoryList<List<String>>(
+            items: history,
+            title: 'History',
+            onClearAll: () => notifier.clear(),
+            itemBuilder: (context, item, isLast) {
+              final index = history.indexOf(item);
+              final displayIndex = history.length - index;
+              return DataHistoryTile(
+                title: '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
+                subtitle: item.first,
+                icon: Symbols.notes,
+                onTap: () => _showResult(item, 'Lorem Result'),
+                onDelete: () => notifier.removeHistory(item),
+                customActions: [
+                  SqaHoverIconButton(
+                    icon: Symbols.content_copy,
+                    tooltip: 'Copy all',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: item.join('\n')));
+                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                    },
                   ),
-                ),
-                const Spacer(),
-                SqaHoverIconButton(
-                  icon: Symbols.delete_sweep,
-                  onPressed: () async {
-                    final confirmed = await SqaModal.showDanger(
-                      context,
-                      title: 'Clear History',
-                      message: 'Are you sure you want to clear all generation history for this category?',
-                      confirmLabel: 'Clear All',
-                    );
-                    if (confirmed == true) {
-                      notifier.clear();
-                    }
-                  },
-                  tooltip: 'Clear All',
-                  iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
-                  color: theme.colorScheme.error.withValues(alpha: 0.7),
-                ),
-              ],
-            ),
-            const SizedBox(height: SqaTokens.spacingMedium),
-            SqaCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  for (int i = 0; i < history.length; i++) ...[
-                    DataHistoryTile(
-                      title: '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} (${history.length - i})',
-                      subtitle: history[i].first,
-                      icon: Symbols.notes,
-                      onTap: () => _showResult(history[i], 'Lorem Result'),
-                      onDelete: () => ref.read(textGeneratorProvider.notifier).removeHistory(history[i]),
-                      customActions: [
-                        SqaHoverIconButton(
-                          icon: Symbols.content_copy,
-                          tooltip: 'Copy all',
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: history[i].join('\n')));
-                            SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
-                          },
-                        ),
-                      ],
-                    ),
-                    if (i < history.length - 1) 
-                      const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
-                  ],
                 ],
-              ),
-            ),
-          ] else
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: SqaTokens.spacingXXXLarge),
-                child: Column(
-                  children: [
-                    Icon(
-                      Symbols.history,
-                      size: SqaTokens.spacingXXXLarge * 1.5,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
-                    ),
-                    const SizedBox(height: SqaTokens.spacingLarge),
-                    Text(
-                      'No history yet',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+              );
+            },
+          ),
         ],
       ),
     );

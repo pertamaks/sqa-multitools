@@ -38,93 +38,110 @@ class CaptureTile extends StatelessWidget {
         ? filename.substring(0, filename.lastIndexOf('.'))
         : filename;
 
-    return ListTile(
-      dense: true,
-      leading: Container(
-        width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
-        height: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
-        decoration: BoxDecoration(
-          borderRadius: SqaTokens.borderRadiusSmall,
-          color: theme.colorScheme.surfaceContainerHighest,
+    return InkWell(
+      onTap: onOpen,
+      borderRadius: BorderRadius.circular(SqaTokens.radiusMedium),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingLarge,
+          vertical: SqaTokens.spacingSmall + 2,
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Image.file(
-          info.file,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Center(
-            child: Icon(
-              Symbols.image_not_supported,
-              size: SqaTokens.spacingLarge,
-              color: theme.colorScheme.onSurfaceVariant,
+        child: Row(
+          children: [
+            Container(
+              width: SqaTokens.spacingXXLarge,
+              height: SqaTokens.spacingXXLarge,
+              decoration: BoxDecoration(
+                borderRadius: SqaTokens.borderRadiusSmall,
+                color: theme.colorScheme.surfaceContainerHighest,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.file(
+                info.file,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Center(
+                  child: Icon(
+                    Symbols.image_not_supported,
+                    size: SqaTokens.spacingLarge,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: SqaTokens.spacingLarge),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    filename,
+                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${_formatSize(info.size)} • ${info.modified.hour}:${info.modified.minute.toString().padLeft(2, '0')}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SqaHoverIconButton(
+              icon: Symbols.open_in_new,
+              onPressed: onOpen,
+              tooltip: 'Open',
+              iconSize: SqaTokens.spacingLarge + 2,
+            ),
+            SqaPopupMenu(
+              icon: Symbols.more_vert,
+              tooltip: 'Actions',
+              children: [
+                SqaPopupMenuItem(
+                  onPressed: () async {
+                    final newName = await SqaModal.showPrompt(
+                      context,
+                      title: 'Rename Capture',
+                      message: 'Enter a new name for this screenshot:',
+                      initialValue: nameWithoutExt,
+                      validator: onValidate,
+                    );
+                    if (newName != null && newName.isNotEmpty) {
+                      onRename(newName);
+                    }
+                  },
+                  icon: const Icon(Symbols.edit),
+                  label: 'Rename',
+                ),
+                SqaPopupMenuItem(
+                  onPressed: onOpenFolder,
+                  icon: const Icon(Symbols.folder_open),
+                  label: 'Open Folder',
+                ),
+                const Divider(height: 1),
+                SqaPopupMenuItem(
+                  onPressed: () async {
+                    final confirm = await SqaModal.showDanger(
+                      context,
+                      title: 'Delete Capture?',
+                      message:
+                          'Are you sure you want to permanently delete this file? This action cannot be undone.',
+                      confirmLabel: 'Delete',
+                      icon: Symbols.delete,
+                    );
+                    if (confirm == true) {
+                      onDelete();
+                    }
+                  },
+                  icon: const Icon(Symbols.delete),
+                  label: 'Delete',
+                  isDestructive: true,
+                ),
+              ],
+            ),
+          ],
         ),
-      ),
-      title: Text(
-        filename,
-        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        '${_formatSize(info.size)} • ${info.modified.hour}:${info.modified.minute.toString().padLeft(2, '0')}',
-        style: theme.textTheme.labelSmall,
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SqaHoverIconButton(
-            icon: Symbols.open_in_new,
-            onPressed: onOpen,
-            tooltip: 'Open',
-            iconSize: SqaTokens.spacingLarge + 2,
-          ),
-          SqaPopupMenu(
-            icon: Symbols.more_vert,
-            tooltip: 'Actions',
-            children: [
-              SqaPopupMenuItem(
-                onPressed: () async {
-                  final newName = await SqaModal.showPrompt(
-                    context,
-                    title: 'Rename Capture',
-                    message: 'Enter a new name for this screenshot:',
-                    initialValue: nameWithoutExt,
-                    validator: onValidate,
-                  );
-                  if (newName != null && newName.isNotEmpty) {
-                    onRename(newName);
-                  }
-                },
-                icon: const Icon(Symbols.edit),
-                label: 'Rename',
-              ),
-              SqaPopupMenuItem(
-                onPressed: onOpenFolder,
-                icon: const Icon(Symbols.folder_open),
-                label: 'Open Folder',
-              ),
-              const Divider(height: 1),
-              SqaPopupMenuItem(
-                onPressed: () async {
-                  final confirm = await SqaModal.showDanger(
-                    context,
-                    title: 'Delete Capture?',
-                    message:
-                        'Are you sure you want to permanently delete this file? This action cannot be undone.',
-                    confirmLabel: 'Delete',
-                    icon: Symbols.delete,
-                  );
-                  if (confirm == true) {
-                    onDelete();
-                  }
-                },
-                icon: const Icon(Symbols.delete),
-                label: 'Delete',
-                isDestructive: true,
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

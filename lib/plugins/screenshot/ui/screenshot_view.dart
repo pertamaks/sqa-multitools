@@ -18,6 +18,7 @@ import '../models/screenshot_state.dart';
 import '../screenshot_plugin.dart';
 import 'widgets/config_snippet.dart';
 import 'widgets/capture_tile.dart';
+import '../../../ui/widgets/sqa_history_list.dart';
 
 class ScreenshotView extends ConsumerStatefulWidget {
   const ScreenshotView({super.key});
@@ -217,61 +218,30 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
 
               const SizedBox(height: SqaTokens.spacingXXLarge),
 
-              // Recent Captures List
-              if (state.recentCaptures.isNotEmpty) ...[
-                Text(
-                  'RECENT CAPTURES',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                SqaHistoryList<CaptureInfo>(
+                  items: state.recentCaptures.where((info) {
+                    if (state.searchQuery.isEmpty) return true;
+                    final query = state.searchQuery.toLowerCase();
+                    final filename = p.basename(info.file.path).toLowerCase();
+                    return filename.contains(query);
+                  }).toList(),
+                  title: 'Recent Captures',
+                  emptyLabel: 'No captures found',
+                  emptyIcon: Symbols.image_not_supported,
+                  itemBuilder: (context, info, isLast) {
+                    return CaptureTile(
+                      info: info,
+                      onDelete: () => notifier.deleteCapture(info),
+                      onRename: (newName) =>
+                          notifier.renameCapture(info, newName),
+                      onValidate: (name) =>
+                          notifier.validateNewName(name, info),
+                      onOpen: () => PlatformUtils.openPath(info.file.path),
+                      onOpenFolder: () =>
+                          notifier.openSaveDirectory(),
+                    );
+                  },
                 ),
-                const SizedBox(height: SqaTokens.spacingMedium),
-                SqaCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      ...state.recentCaptures
-                          .where((info) {
-                            if (state.searchQuery.isEmpty) return true;
-                            final query = state.searchQuery.toLowerCase();
-                            final filename = p.basename(info.file.path).toLowerCase();
-                            return filename.contains(query);
-                          })
-                          .map((CaptureInfo info) {
-                            final filteredList = state.recentCaptures.where((
-                              info,
-                            ) {
-                              if (state.searchQuery.isEmpty) return true;
-                              final query = state.searchQuery.toLowerCase();
-                              final filename = p.basename(info.file.path).toLowerCase();
-                              return filename.contains(query);
-                            }).toList();
-                            final isLast = filteredList.last == info;
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CaptureTile(
-                                  info: info,
-                                  onDelete: () => notifier.deleteCapture(info),
-                                  onRename: (newName) =>
-                                      notifier.renameCapture(info, newName),
-                                  onValidate: (name) =>
-                                      notifier.validateNewName(name, info),
-                                  onOpen: () => PlatformUtils.openPath(info.file.path),
-                                  onOpenFolder: () =>
-                                      notifier.openSaveDirectory(),
-                                ),
-                                if (!isLast)
-                                  const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingXXLarge),
-                              ],
-                            );
-                          }),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: SqaTokens.spacingXXLarge),
-              ],
             ],
           ),
         ),

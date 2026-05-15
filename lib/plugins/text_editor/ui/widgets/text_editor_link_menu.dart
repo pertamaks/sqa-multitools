@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:sqa_multitools/ui/widgets/sqa_toast.dart';
 import 'package:sqa_multitools/ui/widgets/sqa_hover_icon_button.dart';
+import 'package:sqa_multitools/ui/widgets/sqa_design_tokens.dart';
 
 class SqaLinkMenuWidget extends StatefulWidget {
   final String? initialUrl;
@@ -47,30 +48,30 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(Symbols.link, size: 18, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
+              Icon(Symbols.link, size: SqaTokens.spacingLarge, color: theme.colorScheme.primary),
+              const SizedBox(width: SqaTokens.spacingSmall),
               Text(
                 widget.initialUrl == null ? 'Add Link' : 'Edit Link',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
-                  fontSize: 13,
+                  fontSize: SqaTokens.fontSizeSmall,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           TextField(
             controller: _controller,
             focusNode: _focusNode,
-            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+            style: theme.textTheme.bodyMedium?.copyWith(fontSize: SqaTokens.fontSizeSmall),
             decoration: InputDecoration(
               hintText: 'Paste or type a link...',
               hintStyle: TextStyle(
@@ -78,8 +79,8 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
               ),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
+                horizontal: SqaTokens.spacingMedium,
+                vertical: SqaTokens.spacingMedium,
               ),
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
@@ -98,19 +99,19 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
               ),
               suffixIcon: SqaHoverIconButton(
                 icon: Symbols.check_circle,
-                iconSize: 20,
+                iconSize: SqaTokens.spacingLarge + SqaTokens.spacingExtraSmall,
                 color: theme.colorScheme.primary,
                 onPressed: () => widget.onSubmitted(_controller.text),
                 tooltip: 'Apply Link',
-                padding: 12,
+                padding: SqaTokens.spacingMedium,
               ),
             ),
             onSubmitted: widget.onSubmitted,
           ),
           if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             const Divider(height: 1, thickness: 0.5),
-            const SizedBox(height: 8),
+            const SizedBox(height: SqaTokens.spacingSmall),
             _buildLinkMenuItem(
               icon: Symbols.open_in_new,
               label: 'Open Link',
@@ -152,7 +153,10 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
       onTap: onTap,
       borderRadius: SqaStyles.radiusMedium,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingSmall,
+          vertical: SqaTokens.spacingMedium,
+        ),
         child: Row(
           children: [
             Icon(
@@ -160,12 +164,12 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
               size: 18,
               color: color ?? theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SqaTokens.spacingMedium),
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: color ?? theme.colorScheme.onSurface,
-                fontSize: 12,
+                fontSize: SqaTokens.fontSizeSmall,
                 fontWeight: FontWeight.w500,
               ),
             ),

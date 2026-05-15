@@ -4,6 +4,7 @@ import '../../security_payload_models.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_field.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class PayloadCard extends StatefulWidget {
   final SecurityPayload payload;
@@ -24,8 +25,8 @@ class _PayloadCardState extends State<PayloadCard> {
     final p = widget.payload;
 
     return SqaCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
+      padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,20 +40,20 @@ class _PayloadCardState extends State<PayloadCard> {
                     Text(
                       p.name,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: SqaTokens.spacingLarge,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: SqaTokens.spacingSmall),
                     Row(
                       children: [
                         _buildRiskIndicator(p.risk),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: SqaTokens.spacingMedium),
                         Expanded(
                           child: Text(
                             p.description,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: SqaTokens.spacingMedium,
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ),
@@ -64,7 +65,7 @@ class _PayloadCardState extends State<PayloadCard> {
               ),
               SqaHoverIconButton(
                 icon: _isExpanded ? Symbols.expand_less : Symbols.info,
-                iconSize: 20,
+                iconSize: SqaTokens.spacingXLarge,
                 color: _isExpanded
                     ? colorScheme.primary
                     : colorScheme.onSurfaceVariant,
@@ -77,7 +78,7 @@ class _PayloadCardState extends State<PayloadCard> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: SqaTokens.spacingMedium),
           SqaField(
             label: 'PAYLOAD',
             initialValue: p.payload,
@@ -87,11 +88,11 @@ class _PayloadCardState extends State<PayloadCard> {
             wrap: false, // Enable horizontal scrolling for long content
           ),
           if (_isExpanded) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: SqaTokens.spacingLarge),
             const Divider(),
-            const SizedBox(height: 16),
+            const SizedBox(height: SqaTokens.spacingLarge),
             _buildDetailRow('HOW TO TEST', p.howToTest, Symbols.experiment),
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             _buildDetailRow(
               'SUCCESS INDICATOR',
               p.successIndicator,
@@ -118,12 +119,12 @@ class _PayloadCardState extends State<PayloadCard> {
       children: [
         Icon(
           icon,
-          size: 16,
+          size: SqaTokens.spacingLarge,
           color: isHighlight
               ? colorScheme.primary
               : colorScheme.onSurfaceVariant,
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: SqaTokens.spacingMedium),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,17 +132,17 @@ class _PayloadCardState extends State<PayloadCard> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: SqaTokens.fontSizeSmall,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.1,
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: SqaTokens.spacingXSmall),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: SqaTokens.spacingMedium,
                   height: 1.5,
                   fontWeight: isHighlight ? FontWeight.w500 : FontWeight.normal,
                   color: isHighlight ? colorScheme.primary : null,
@@ -176,8 +177,8 @@ class _PayloadCardState extends State<PayloadCard> {
     }
 
     return Container(
-      width: 8,
-      height: 8,
+      width: SqaTokens.spacingSmall,
+      height: SqaTokens.spacingSmall,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,

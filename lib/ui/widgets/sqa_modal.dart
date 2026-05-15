@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'sqa_card.dart';
 import 'sqa_styles.dart';
@@ -298,7 +299,7 @@ class _PromptDialogState extends State<_PromptDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(widget.cancelLabel),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: SqaTokens.spacingTiny),
         FilledButton(
           onPressed: isValid
               ? () => Navigator.of(context).pop(_currentValue)
@@ -316,7 +317,7 @@ class _PromptDialogState extends State<_PromptDialog> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingMedium),
           TextField(
             autofocus: true,
             controller: _controller,
@@ -327,15 +328,15 @@ class _PromptDialogState extends State<_PromptDialog> {
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 12,
-                horizontal: 12,
+                vertical: SqaTokens.spacingSmall + 4,
+                horizontal: SqaTokens.spacingSmall + 4,
               ),
               errorText: error,
-              errorStyle: const TextStyle(fontSize: 10),
+              errorStyle: const TextStyle(fontSize: SqaTokens.fontSizeSmall - 2),
             ),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
         ],
       ),
     );
@@ -357,27 +358,30 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
     final size = MediaQuery.of(context).size;
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-      titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusLarge),
+      titlePadding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingLarge,
+        vertical: SqaTokens.spacingXXSmall + SqaTokens.spacingMedium,
+      ),
       title: Row(
         children: [
           if (widget.leading != null) ...[
             widget.leading!,
-            const SizedBox(width: 8),
+            const SizedBox(width: SqaTokens.spacingSmall),
           ] else if (widget.icon != null) ...[
             Icon(
               widget.icon,
               size: 20,
               color: widget.confirmColor ?? theme.colorScheme.primary,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: SqaTokens.spacingSmall),
           ],
           Expanded(
             child: Text(
               widget.title,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
+                fontSize: SqaTokens.fontSizeLarge + 4,
               ),
             ),
           ),
@@ -386,15 +390,15 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
               icon: Icons.refresh,
               onPressed: widget.onRefresh!,
               tooltip: 'Refresh',
-              iconSize: 20,
+              iconSize: SqaTokens.fontSizeLarge + 4,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: SqaTokens.spacingTiny),
           ],
           SqaHoverIconButton(
             icon: Symbols.close,
             onPressed: () => Navigator.of(context).pop(),
             tooltip: 'Close',
-            iconSize: 20,
+            iconSize: SqaTokens.fontSizeLarge + 4,
           ),
         ],
       ),
@@ -417,31 +421,36 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               : (widget.isConfirmMode
-                    ? Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-                        child: widget.message != null
-                            ? Text(
-                                widget.message!,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  height: 1.5,
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (widget.topBar != null) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                              child: widget.topBar!,
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                      child: widget.message != null
+                          ? Text(
+                              widget.message!,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                height: 1.5,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (widget.topBar != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              SqaTokens.spacingLarge,
+                              0,
+                              SqaTokens.spacingLarge,
+                              SqaTokens.spacingMedium,
                             ),
-                          ],
-                          Expanded(
-                            child: widget.scrollable
-                                ? ScrollConfiguration(
+                            child: widget.topBar!,
+                          ),
+                        ],
+                        Expanded(
+                          child: widget.scrollable
+                              ? ScrollConfiguration(
                                   behavior: const _NoScrollbarBehavior(),
                                   child: Scrollbar(
                                     controller: _scrollController,
@@ -452,7 +461,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                                       depth: 0.08,
                                       threshold: 20.0,
                                       child: Padding(
-                                        padding: const EdgeInsets.only(right: 16),
+                                        padding: const EdgeInsets.only(
+                                            right: SqaTokens.spacingMedium),
                                         child: widget.child != null
                                             ? SingleChildScrollView(
                                                 controller: _scrollController,
@@ -465,27 +475,35 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                                             : (widget.items.isEmpty
                                                 ? Padding(
                                                     padding: const EdgeInsets.only(
-                                                      left: 24,
-                                                      right: 12,
+                                                      left: SqaTokens.spacingLarge,
+                                                      right: SqaTokens.spacingSmall +
+                                                          4,
                                                     ),
                                                     child: _buildEmpty(theme),
                                                   )
                                                 : (widget.isTileMode
-                                                    ? _buildTileContent(context, theme)
-                                                    : _buildListContent(context, theme))),
+                                                    ? _buildTileContent(
+                                                        context, theme)
+                                                    : _buildListContent(
+                                                        context, theme))),
                                       ),
                                     ),
                                   ),
                                 )
                               : Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24),
                                   child: widget.child!,
                                 ),
                         ),
                       ],
-                    ))),
+                    )),
+        ),
       ),
-      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      actionsPadding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingMedium,
+        vertical: SqaTokens.spacingMedium,
+      ),
       actionsAlignment: MainAxisAlignment.end,
       actions:
           widget.customActions ??
@@ -495,13 +513,13 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                 onPressed: () => Navigator.of(context).pop(false),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    horizontal: SqaTokens.spacingMedium,
+                    vertical: SqaTokens.spacingSmall + 4,
                   ),
                 ),
                 child: Text(widget.cancelLabel ?? 'Cancel'),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: SqaTokens.spacingTiny),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style:
@@ -514,8 +532,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                         .copyWith(
                           padding: WidgetStateProperty.all(
                             const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                              horizontal: SqaTokens.spacingMedium,
+                              vertical: SqaTokens.spacingSmall + 4,
                             ),
                           ),
                         ),
@@ -535,8 +553,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(widget.emptyIcon, size: 48, color: Colors.grey),
-          const SizedBox(height: 16),
+          Icon(widget.emptyIcon, size: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge, color: Colors.grey),
+          const SizedBox(height: SqaTokens.spacingMedium),
           Text(
             widget.emptyLabel,
             style: theme.textTheme.titleSmall?.copyWith(color: Colors.grey),
@@ -549,7 +567,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
   Widget _buildTileContent(BuildContext context, ThemeData theme) {
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: widget.items.asMap().entries.map((entry) {
@@ -558,7 +576,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
           final tile = widget.tileBuilder!(item, index);
 
           return SqaCard(
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: const EdgeInsets.only(bottom: SqaTokens.spacingSmall + 4),
             onTap: () => Navigator.of(context).pop(item),
             padding: EdgeInsets.zero,
             child: Column(
@@ -579,7 +597,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                             child: Center(
                               child: Icon(
                                 Symbols.desktop_windows,
-                                size: 32,
+                                size: SqaTokens.spacingXXLarge,
                                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                               ),
                             ),
@@ -587,7 +605,10 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: SqaTokens.spacingSmall + 4,
+                    vertical: SqaTokens.spacingSmall,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -597,17 +618,20 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                       ),
                       if (tile.badge != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SqaTokens.spacingXSmall + 2,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
                           ),
                           child: Text(
                             tile.badge!,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: theme.colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                              fontSize: SqaTokens.fontSizeSmall - 1,
                             ),
                           ),
                         ),
@@ -633,11 +657,16 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
           final listItem = widget.itemBuilder!(item, index);
 
           return Padding(
-            padding: EdgeInsets.only(bottom: index == widget.items.length - 1 ? 0 : 8),
+            padding: EdgeInsets.only(
+              bottom: index == widget.items.length - 1 ? 0 : SqaTokens.spacingSmall,
+            ),
             child: SqaCard(
               padding: EdgeInsets.zero,
               child: ListTile(
-                leading: Icon(listItem.icon, size: 20),
+                leading: Icon(
+                  listItem.icon,
+                  size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                ),
                 title: Text(
                   listItem.label,
                   maxLines: 1,
@@ -650,7 +679,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          fontSize: SqaTokens.fontSizeSmall - 1,
                         ),
                       )
                     : null,

@@ -4,6 +4,7 @@ import '../../models/screenshot_state.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class CaptureTile extends StatelessWidget {
   final CaptureInfo info;
@@ -40,10 +41,10 @@ class CaptureTile extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: Container(
-        width: 42,
-        height: 42,
+        width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+        height: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: SqaTokens.borderRadiusSmall,
           color: theme.colorScheme.surfaceContainerHighest,
         ),
         clipBehavior: Clip.antiAlias,
@@ -53,7 +54,7 @@ class CaptureTile extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) => Center(
             child: Icon(
               Symbols.image_not_supported,
-              size: 16,
+              size: SqaTokens.spacingLarge,
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
@@ -75,7 +76,7 @@ class CaptureTile extends StatelessWidget {
             icon: Symbols.open_in_new,
             onPressed: onOpen,
             tooltip: 'Open',
-            iconSize: 18,
+            iconSize: SqaTokens.spacingLarge + 2,
           ),
           SqaPopupMenu(
             icon: Symbols.more_vert,

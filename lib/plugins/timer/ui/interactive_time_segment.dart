@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class InteractiveTimeSegment extends StatefulWidget {
   final int value;
@@ -77,17 +79,17 @@ class _InteractiveTimeSegmentState extends State<InteractiveTimeSegment> {
               child: SqaHoverIconButton(
                 onPressed: widget.isEnabled ? _increment : () {},
                 icon: Icons.keyboard_arrow_up,
-                iconSize: 24,
-                padding: 0,
+                iconSize: SqaTokens.spacingXLarge,
+                padding: SqaTokens.spacingNone,
                 tooltip: 'Increment',
               ),
             ),
 
             // Value Display
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: SqaTokens.borderRadiusMedium,
                 color: _isHovered && widget.isEnabled
                     ? theme.colorScheme.surfaceContainerHighest.withValues(
                         alpha: 0.5,
@@ -107,8 +109,8 @@ class _InteractiveTimeSegmentState extends State<InteractiveTimeSegment> {
               child: SqaHoverIconButton(
                 onPressed: widget.isEnabled ? _decrement : () {},
                 icon: Icons.keyboard_arrow_down,
-                iconSize: 24,
-                padding: 0,
+                iconSize: SqaTokens.spacingXLarge,
+                padding: SqaTokens.spacingNone,
                 tooltip: 'Decrement',
               ),
             ),

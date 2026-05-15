@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 
 /// A centralized state for the inline tooltip overlay.
@@ -77,7 +78,7 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
       });
     }
 
-    _scrollEndTimer = Timer(const Duration(milliseconds: 150), () {
+    _scrollEndTimer = Timer(SqaTokens.durationFast, () {
       if (mounted) {
         setState(() {
           _isScrolling = false;
@@ -135,11 +136,8 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
                         child: _buildTail(colorScheme, isLeading: true),
                       ),
                     Container(
-                      constraints: const BoxConstraints(maxWidth: 300),
-                      padding: EdgeInsets.only(
-                        left: _alignLeft ? 16.0 : 8.0,
-                        right: _alignLeft ? 8.0 : 16.0,
-                      ),
+                      constraints: const BoxConstraints(maxWidth: SqaTokens.spacingXXXLarge * 6),
+                      padding: EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
                       color:
                           (widget.backgroundColor ??
                           colorScheme.surfaceContainerLow),
@@ -150,9 +148,10 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
                           _hoveredTooltip!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: SqaTextStyles.labelBold(context).copyWith(
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
-                            fontSize: 11, // Overriding to 11px to keep it compact inline
+                            fontWeight: FontWeight.bold,
+                            fontSize: SqaTokens.fontSizeSmall,
                           ),
                         ),
                       ),
@@ -175,7 +174,7 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
     final baseColor =
         (widget.backgroundColor ?? colorScheme.surfaceContainerLow);
     return Container(
-      width: 32,
+      width: SqaTokens.spacingLarge,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: isLeading ? Alignment.centerRight : Alignment.centerLeft,

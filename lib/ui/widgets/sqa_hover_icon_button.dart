@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 /// A premium, minimal icon button that features a luminescent glow effect on hover.
 ///
@@ -24,8 +25,8 @@ class SqaHoverIconButton extends StatefulWidget {
     this.iconWidget,
     required this.onPressed,
     this.tooltip,
-    this.iconSize = 16,
-    this.padding = 8,
+    this.iconSize = SqaTokens.spacingLarge,
+    this.padding = SqaTokens.spacingSmall,
     this.color,
     this.hoverColor,
     this.backgroundColor,

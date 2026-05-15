@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:intl/intl.dart';
+
 import '../providers/todo_provider.dart';
 import '../providers/todo_notification_provider.dart';
 import '../models/todo_state.dart';
@@ -11,17 +14,16 @@ import 'widgets/recurring_todo_item.dart';
 import 'widgets/wake_time_prompt.dart';
 import 'widgets/todo_history_view.dart';
 import 'widgets/todo_list_group.dart';
+
 import '../../../core/providers/plugin_provider.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
-import '../../../ui/widgets/sqa_button.dart';
-import '../../../ui/widgets/sqa_styles.dart';
-import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_toast.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import 'package:intl/intl.dart';
-import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_date_picker.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../ui/widgets/sqa_segmented_button.dart';
+import '../../../ui/widgets/sqa_button.dart';
+import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 
 class TodoView extends ConsumerStatefulWidget {
@@ -245,26 +247,27 @@ class _TodoViewState extends ConsumerState<TodoView>
     if (pending.isEmpty && completed.isEmpty && deferredTodos.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(SqaTokens.spacingXXLarge),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Symbols.wb_sunny,
-                size: 48,
+                size: SqaTokens.spacingXXXLarge * 1.5,
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.5,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingLarge),
               Text(
                 'No focus created for today.',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
+                  fontSize: SqaTokens.fontSizeLarge,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: SqaTokens.spacingSmall),
               Text(
                 'Add a new focus block to get started.',
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -279,7 +282,7 @@ class _TodoViewState extends ConsumerState<TodoView>
 
     return SqaPluginScrollableContent(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         child: Column(
           children: [
             if (active.isNotEmpty) ...[
@@ -289,12 +292,12 @@ class _TodoViewState extends ConsumerState<TodoView>
                 count: active.length,
                 isPrimary: true,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SqaTokens.spacingMedium),
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: active.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: SqaTokens.spacingMedium),
                 itemBuilder: (context, index) {
                   final item = active[index];
                   return TodoListItem(
@@ -309,12 +312,12 @@ class _TodoViewState extends ConsumerState<TodoView>
             ] else if (timesUp.isEmpty) ...[
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer.withValues(
                     alpha: 0.2,
                   ),
-                  borderRadius: SqaStyles.radiusLarge,
+                  borderRadius: SqaTokens.borderRadiusMedium,
                   border: Border.all(
                     color: theme.colorScheme.primary.withValues(alpha: 0.2),
                   ),
@@ -323,10 +326,10 @@ class _TodoViewState extends ConsumerState<TodoView>
                   children: [
                     Icon(
                       Symbols.verified,
-                      size: 48,
+                      size: SqaTokens.spacingXXXLarge * 1.5,
                       color: theme.colorScheme.primary,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: SqaTokens.spacingLarge),
                     Text(
                       'All Caught Up!',
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -334,7 +337,7 @@ class _TodoViewState extends ConsumerState<TodoView>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: SqaTokens.spacingXSmall),
                     Text(
                       'You have completed all active focus blocks.',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -346,7 +349,7 @@ class _TodoViewState extends ConsumerState<TodoView>
               ),
             ],
             if (timesUp.isNotEmpty) ...[
-              if (active.isNotEmpty) const SizedBox(height: 16),
+              if (active.isNotEmpty) const SizedBox(height: SqaTokens.spacingLarge),
               TodoExpansionGroup(
                 icon: Symbols.alarm_off,
                 title: "Time's Up — How did it go?",
@@ -357,7 +360,7 @@ class _TodoViewState extends ConsumerState<TodoView>
               ),
             ],
             if (completed.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingLarge),
               TodoExpansionGroup(
                 icon: Symbols.check_circle,
                 title: 'Completed Focus Blocks',
@@ -379,7 +382,7 @@ class _TodoViewState extends ConsumerState<TodoView>
               ),
             ],
             if (deferredTodos.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingLarge),
               TodoExpansionGroup(
                 icon: Symbols.schedule_send,
                 title: 'Deferred Focus Blocks',
@@ -507,7 +510,7 @@ class _TodoViewState extends ConsumerState<TodoView>
     }
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
       child: TodoHistoryView(historyTodos: historyTodos),
     );
   }
@@ -518,7 +521,6 @@ class _TodoViewState extends ConsumerState<TodoView>
         Expanded(
           child: SqaSegmentedButton<HistoryFilter>(
             stretches: true,
-            storageKey: 'todo_history_filter',
             segments: const [
               ButtonSegment(
                 value: HistoryFilter.last7Days,
@@ -557,10 +559,10 @@ class _TodoViewState extends ConsumerState<TodoView>
         if (state.historyFilter == HistoryFilter.custom &&
             state.customDateRange != null)
           Padding(
-            padding: const EdgeInsets.only(left: 8.0),
+            padding: const EdgeInsets.only(left: SqaTokens.spacingSmall),
             child: SqaHoverIconButton(
               icon: Symbols.calendar_today,
-              iconSize: 20,
+              iconSize: SqaTokens.spacingXLarge,
               color: Theme.of(context).colorScheme.primary,
               tooltip:
                   '${DateFormat('MMM d, y').format(state.customDateRange!.start)} - ${DateFormat('MMM d, y').format(state.customDateRange!.end)}',
@@ -611,15 +613,18 @@ class _TodoViewState extends ConsumerState<TodoView>
           children: [
             Icon(
               Symbols.sync,
-              size: 48,
+              size: SqaTokens.spacingXXXLarge * 1.5,
               color: Theme.of(context).colorScheme.outlineVariant,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: SqaTokens.spacingLarge),
             const Text('No recurring focus blocks yet.'),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: SqaTokens.spacingSmall),
+            Text(
               'Add one to auto-generate focus blocks daily.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: SqaTokens.fontSizeSmall,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -628,7 +633,7 @@ class _TodoViewState extends ConsumerState<TodoView>
 
     return SqaPluginScrollableContent(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -638,12 +643,12 @@ class _TodoViewState extends ConsumerState<TodoView>
               count: recurring.length,
               isPrimary: true,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: SqaTokens.spacingLarge),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: recurring.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: SqaTokens.spacingMedium),
               itemBuilder: (context, index) {
                 return RecurringTodoItem(item: recurring[index]);
               },

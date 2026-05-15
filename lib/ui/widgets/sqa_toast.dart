@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 
 enum SqaToastType { success, error, info, warning }
@@ -53,7 +54,7 @@ class SqaToast {
 
     final textStyle = SqaTextStyles.labelBold(context).copyWith(
       color: colorScheme.onSurface,
-      fontSize: 11,
+      fontSize: SqaTokens.fontSizeTiny,
     );
 
     _currentEntry = OverlayEntry(
@@ -111,7 +112,7 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: SqaTokens.durationSlow,
     );
 
     _opacity = CurvedAnimation(
@@ -148,7 +149,7 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 24,
+      bottom: SqaTokens.spacingLarge,
       left: 0,
       right: 0,
       child: Material(
@@ -159,7 +160,10 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
             child: SlideTransition(
               position: _offset,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SqaTokens.spacingMedium,
+                  vertical: SqaTokens.spacingSmall + 2,
+                ),
                 decoration: BoxDecoration(
                   color: widget.backgroundColor,
                   borderRadius: SqaStyles.radiusLarge,
@@ -167,7 +171,7 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 12,
+                      blurRadius: SqaTokens.spacingSmall + 4,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -175,8 +179,10 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(widget.icon, color: widget.iconColor, size: 18),
-                    const SizedBox(width: 10),
+                    Icon(widget.icon,
+                        color: widget.iconColor,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                    const SizedBox(width: SqaTokens.spacingSmall + 2),
                     Flexible(
                       child: Text(
                         widget.message,

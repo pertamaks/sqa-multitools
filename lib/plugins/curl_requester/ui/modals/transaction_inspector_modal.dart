@@ -8,6 +8,7 @@ import '../../../../ui/widgets/sqa_status_badge.dart';
 import '../../../../ui/widgets/sqa_metadata_item.dart';
 import '../../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../../ui/widgets/sqa_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 enum ModalTab { request, response }
 
@@ -76,7 +77,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
           },
           label: widget.transaction == null ? 'Send' : 'Send Again',
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
         SqaButton.primary(
           onPressed: () => Navigator.of(context).pop(true),
           label: 'Done',
@@ -97,7 +98,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
                         ? '${transaction.latency.inMilliseconds} ms'
                         : '0 ms',
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: SqaTokens.spacingMedium),
                   SqaMetadataItem(
                     icon: Symbols.database,
                     text: transaction != null
@@ -109,7 +110,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
             ),
           ),
           if (widget.isHistory) ...[
-            const SizedBox(width: 16),
+            const SizedBox(width: SqaTokens.spacingLarge),
             SqaSegmentedButton<ModalTab>(
               stretches: false,
               minScale: 0.8,
@@ -117,12 +118,12 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
                 ButtonSegment(
                   value: ModalTab.request,
                   label: Text('REQ'),
-                  icon: Icon(Symbols.send, size: 14),
+                  icon: Icon(Symbols.send, size: SqaTokens.spacingLarge),
                 ),
                 ButtonSegment(
                   value: ModalTab.response,
                   label: Text('RES'),
-                  icon: Icon(Symbols.data_object, size: 14),
+                  icon: Icon(Symbols.data_object, size: SqaTokens.spacingLarge),
                 ),
               ],
               selected: {_modalTab},
@@ -148,7 +149,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       isMultiline: true,
       maxLines: null,
       expands: true,
-      fontSize: 12,
+      fontSize: SqaTokens.fontSizeSmall,
       showCopyButton: false,
       showLineNumbers: true,
       initialValue: transaction != null
@@ -166,7 +167,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       isMultiline: true,
       maxLines: null,
       expands: true,
-      fontSize: 12,
+      fontSize: SqaTokens.fontSizeSmall,
       showCopyButton: false,
       showLineNumbers: true,
       initialValue: transaction?.responseBody ?? 'No response data available',

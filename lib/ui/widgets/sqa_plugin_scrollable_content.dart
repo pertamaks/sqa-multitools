@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_fade_wrapper.dart';
 
 /// A wrapper widget for plugin content that handles centering and scrolling.
@@ -15,7 +16,7 @@ class SqaPluginScrollableContent extends StatefulWidget {
   const SqaPluginScrollableContent({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(24.0),
+    this.padding = const EdgeInsets.all(SqaTokens.spacingLarge),
     this.controller,
     this.center = true,
   });

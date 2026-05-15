@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../../ui/widgets/sqa_field.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class CurlRequesterGridRow extends StatefulWidget {
   final String label;
@@ -119,7 +120,12 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
       duration: const Duration(milliseconds: 200),
       opacity: widget.isActive ? 1.0 : 0.4,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16.0 + (widget.depth * 24.0), 8, 16, 8),
+        padding: EdgeInsets.fromLTRB(
+          SqaTokens.spacingLarge + (widget.depth * SqaTokens.spacingXLarge),
+          SqaTokens.spacingSmall,
+          SqaTokens.spacingLarge,
+          SqaTokens.spacingSmall,
+        ),
         child: Row(
           children: [
             if (widget.showCheckbox) ...[
@@ -127,22 +133,22 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                 icon: widget.isActive ? Symbols.check_box : Symbols.check_box_outline_blank,
                 onPressed: () => widget.onToggle?.call(!widget.isActive),
                 tooltip: 'Toggle Active',
-                iconSize: 20,
+                iconSize: SqaTokens.spacingXLarge,
                 color: widget.isActive
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 0),
+              const SizedBox(width: SqaTokens.spacingSmall),
             ],
             if (widget.isParent)
               Icon(
                 Symbols.keyboard_arrow_down,
-                size: 16,
+                size: SqaTokens.spacingLarge,
                 color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5),
               )
             else
-              const SizedBox(width: 4),
-            const SizedBox(width: 4),
+              const SizedBox(width: SqaTokens.spacingXSmall),
+            const SizedBox(width: SqaTokens.spacingXSmall),
             Expanded(
               flex: 2,
               child: SqaField(
@@ -151,7 +157,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                 controller: _labelController,
                 focusNode: _labelFocusNode,
                 isMonospace: true,
-                fontSize: 12,
+                fontSize: SqaTokens.spacingMedium,
                 showCopyButton: false,
                 onSubmitted: (_) => _commitChanges(),
                 onTapOutside: (_) => _commitChanges(),
@@ -162,10 +168,10 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0.0),
+              padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
               child: Icon(
                 Symbols.chevron_right,
-                size: 16,
+                size: SqaTokens.spacingLarge,
                 color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5),
               ),
             ),
@@ -180,7 +186,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                       controller: _valueController,
                       focusNode: _valueFocusNode,
                       isMonospace: true,
-                      fontSize: 12,
+                      fontSize: SqaTokens.spacingMedium,
                       showCopyButton: false,
                       readOnly: widget.readOnlyValue,
                       onSubmitted: (_) => _commitChanges(),
@@ -191,15 +197,17 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                     ),
                   ),
                   if (showFaker) ...[
-                    const SizedBox(width: 0),
+                    const SizedBox(width: SqaTokens.spacingSmall),
                     SqaPopupMenu(
                       icon: (widget.key.hashCode % 2 == 0) ? Symbols.ifl : Symbols.casino,
                       tooltip: 'Faker Data',
                       children: [
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuStyle: MenuStyle(
-                            padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
+                            padding: WidgetStateProperty.all(
+                              const EdgeInsets.all(SqaTokens.spacingXSmall),
+                            ),
                           ),
                           menuChildren: [
                             _fakerItem(Symbols.person, 'Full Name', 'name'),
@@ -210,7 +218,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.person, 'Personal'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.mail, 'Email', 'email'),
                             _fakerItem(Symbols.account_circle, 'Username', 'username'),
@@ -220,7 +228,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.contact_mail, 'Contact'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.location_on, 'City', 'city'),
                             _fakerItem(Symbols.home, 'Street Address', 'street'),
@@ -229,7 +237,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.map, 'Location'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.fingerprint, 'GUID / UUID', 'guid'),
                             _fakerItem(Symbols.lan, 'IPv4 Address', 'ipv4'),
@@ -239,7 +247,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.terminal, 'Technical'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.business, 'Company Name', 'company'),
                             _fakerItem(Symbols.shopping_cart, 'Product Name', 'product'),
@@ -248,7 +256,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.inventory_2, 'Business'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.credit_card, 'Credit Card', 'creditCard'),
                             _fakerItem(Symbols.currency_exchange, 'Currency Code', 'currency'),
@@ -258,7 +266,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.savings, 'Finance'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.history, 'Past Date', 'pastDate'),
                             _fakerItem(Symbols.update, 'Future Date', 'futureDate'),
@@ -269,7 +277,7 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                           child: _categoryLabel(Symbols.calendar_today, 'Date'),
                         ),
                         SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14, color: Colors.grey)),
+                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
                           menuChildren: [
                             _fakerItem(Symbols.title, 'Single Word', 'word'),
                             _fakerItem(Symbols.notes, 'Sentence', 'sentence'),
@@ -281,12 +289,12 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
                     ),
                   ],
                   if (!widget.isParent && widget.onDelete != null) ...[
-                    const SizedBox(width: 0),
+                    const SizedBox(width: SqaTokens.spacingSmall),
                     SqaHoverIconButton(
                       icon: Symbols.delete,
                       onPressed: _handleDelete,
                       tooltip: _isDeleting ? 'Click again to confirm' : 'Delete Row',
-                      iconSize: 18,
+                      iconSize: SqaTokens.spacingLarge + 2,
                       color: _isDeleting
                           ? Theme.of(context).colorScheme.error
                           : Colors.grey.withValues(alpha: 0.5),
@@ -303,13 +311,16 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
 
   Widget _categoryLabel(IconData icon, String label) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingMedium,
+        vertical: SqaTokens.spacingSmall,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 12)),
+          Icon(icon, size: SqaTokens.spacingLarge),
+          const SizedBox(width: SqaTokens.spacingMedium),
+          Text(label, style: const TextStyle(fontSize: SqaTokens.spacingMedium)),
         ],
       ),
     );

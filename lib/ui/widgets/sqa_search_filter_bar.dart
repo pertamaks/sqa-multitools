@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_hover_icon_button.dart';
 
 class SqaSearchFilterBar extends StatefulWidget {
@@ -65,7 +65,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
               : (_isHovered
                     ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
                     : colorScheme.surfaceContainerLow.withValues(alpha: 0.2)),
-          borderRadius: SqaStyles.radiusLarge,
+          borderRadius: SqaTokens.borderRadiusLarge,
           border: Border.all(
             color: _isFocused
                 ? colorScheme.primary.withValues(alpha: 0.3)
@@ -110,10 +110,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       key: const ValueKey('search_mode'),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+          padding: const EdgeInsets.only(left: SqaTokens.spacingMedium, right: SqaTokens.spacingSmall),
           child: Icon(
             Symbols.search,
-            size: 18,
+            size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
             color: _isFocused
                 ? colorScheme.primary
                 : colorScheme.onSurfaceVariant,
@@ -128,7 +128,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 widget.onChanged?.call(val);
                 setState(() {});
               },
-              style: SqaTextStyles.body(context),
+              style: Theme.of(context).textTheme.bodyMedium,
               decoration: InputDecoration(
                 filled: false,
                 isDense: true,
@@ -138,7 +138,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  vertical: SqaSpacing.small,
+                  vertical: SqaTokens.spacingSmall,
                   horizontal: 0,
                 ),
               ),
@@ -148,11 +148,11 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
         if (_effectiveController.text.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(
-              right: widget.filterOptions != null ? 8.0 : 16.0,
+              right: widget.filterOptions != null ? SqaTokens.spacingSmall : SqaTokens.spacingMedium,
             ),
             child: SqaHoverIconButton(
               icon: Symbols.close,
-              iconSize: 16,
+              iconSize: SqaTokens.spacingLarge,
               onPressed: () {
                 _effectiveController.clear();
                 widget.onChanged?.call('');
@@ -165,10 +165,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           ),
         if (widget.filterOptions != null)
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: const EdgeInsets.only(right: SqaTokens.spacingMedium),
             child: SqaHoverIconButton(
               icon: Symbols.tune,
-              iconSize: 18,
+              iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
               color: widget.isFilterActive
                   ? colorScheme.primary
                   : colorScheme.onSurfaceVariant,
@@ -186,10 +186,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       key: const ValueKey('filter_mode'),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12.0, right: 8.0),
+          padding: const EdgeInsets.only(left: SqaTokens.spacingSmall + 4, right: SqaTokens.spacingSmall),
           child: SqaHoverIconButton(
             icon: Symbols.search,
-            iconSize: 18,
+            iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
             color: colorScheme.onSurfaceVariant,
             onPressed: () => setState(() => _isFilterMode = false),
             tooltip: 'Back to Search',
@@ -197,10 +197,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           ),
         ),
         Container(
-          height: 20,
+          height: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
           width: 1,
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          margin: const EdgeInsets.only(right: 4.0),
+          margin: const EdgeInsets.only(right: SqaTokens.spacingXSmall),
         ),
         Expanded(
           child: Padding(

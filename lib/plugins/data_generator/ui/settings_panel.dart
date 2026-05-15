@@ -6,6 +6,7 @@ import 'widgets/count_dropdown.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_faker_locale_picker.dart';
 import '../../../ui/widgets/sqa_switch.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class DataGeneratorSettingsPanel extends ConsumerWidget {
   const DataGeneratorSettingsPanel({super.key});
@@ -27,9 +28,9 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
             letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         const SqaFakerLocalePicker(),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         Row(
           children: [
             Expanded(
@@ -43,7 +44,7 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: SqaTokens.spacingXSmall),
                   CountDropdown(
                     value: state.quantity,
                     onChanged: (val) {
@@ -55,7 +56,7 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: SqaTokens.spacingLarge),
         SqaSettingsTile(
           title: 'IDENTITY BULLETS',
           subtitle: 'Prefix identity results with a bullet point (•)',
@@ -64,7 +65,7 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
             onChanged: (val) => notifier.setIncludeFormatting(val),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: SqaTokens.spacingSmall),
         SqaSettingsTile(
           title: 'DEV BULLETS',
           subtitle: 'Prefix UUID results with a bullet point (•)',

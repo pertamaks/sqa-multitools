@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 /// A standardized switch toggle for SQA-Multitools.
 ///
@@ -21,7 +22,7 @@ class SqaSwitch extends StatelessWidget {
     // We use Transform.scale to maintain consistency with the established
     // design in the settings plugin.
     return SizedBox(
-      height: 36, // Match standard toolbar button height
+      height: SqaTokens.spacingXXLarge + SqaTokens.spacingXSmall, // Match standard toolbar button height (36)
       child: Transform.scale(
         scale: scale,
         child: Switch(

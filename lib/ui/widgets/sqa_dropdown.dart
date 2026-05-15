@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 
 /// A standardized dropdown button for SQA-Multitools.
@@ -116,7 +117,7 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
       controller: _menuController,
       onOpen: () => _animationController.forward(),
       onClose: () => _animationController.reverse(),
-      alignmentOffset: const Offset(0, 4),
+      alignmentOffset: const Offset(0, SqaTokens.spacingXSmall),
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
@@ -124,7 +125,7 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
         elevation: WidgetStateProperty.all(8.0),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: SqaStyles.radiusLarge,
+            borderRadius: SqaTokens.borderRadiusLarge,
             side: BorderSide(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
@@ -141,16 +142,19 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
             }
           },
           style: MenuItemButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-            minimumSize: Size(maxWidth - 8, 36),
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingMedium,
+              vertical: 0,
+            ),
+            minimumSize: Size(maxWidth - SqaTokens.spacingSmall, 36),
+            shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
             backgroundColor: isSelected
                 ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
                 : null,
           ),
           child: DefaultTextStyle.merge(
             style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11, // Unified to 11px
+              fontSize: SqaTokens.fontSizeSmall - 1, // Unified to 11px
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected
                   ? theme.colorScheme.primary
@@ -177,23 +181,23 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                   }
                 : null,
             mouseCursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-            borderRadius: SqaStyles.radiusSmall,
+            borderRadius: SqaTokens.borderRadiusSmall,
             overlayColor: SqaStyles.buttonOverlay(context),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
+                  horizontal: SqaTokens.spacingSmall + 2,
                   vertical: 0,
                 ),
-                height: 32,
+                height: SqaTokens.spacingXXLarge,
                 decoration: BoxDecoration(
                   color: isShowing
                       ? colorScheme.primary.withValues(alpha: 0.1)
                       : colorScheme.surfaceContainerHighest.withValues(
                           alpha: widget.enabled ? 0.4 : 0.2,
                         ),
-                  borderRadius: SqaStyles.radiusSmall,
+                  borderRadius: SqaTokens.borderRadiusSmall,
                   border: Border.all(
                     color: isShowing
                         ? colorScheme.primary.withValues(alpha: 0.5)
@@ -209,7 +213,7 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                     Expanded(
                       child: DefaultTextStyle.merge(
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
+                          fontSize: SqaTokens.fontSizeSmall - 1,
                           fontWeight: FontWeight.w600,
                           color: widget.enabled
                               ? colorScheme.onSurface
@@ -222,12 +226,12 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                             .child,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: SqaTokens.spacingXSmall),
                     RotationTransition(
                       turns: _rotateAnimation,
                       child: Icon(
                         Symbols.keyboard_arrow_down,
-                        size: 16,
+                        size: SqaTokens.spacingLarge,
                         color: isShowing
                             ? colorScheme.primary
                             : colorScheme.onSurfaceVariant,

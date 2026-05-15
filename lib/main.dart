@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
@@ -12,6 +13,7 @@ import 'package:appflowy_editor/appflowy_editor.dart';
 import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/audio_service.dart';
+import 'core/services/logging_service.dart';
 import 'ui/main_toolbar.dart';
 import 'plugins/screen_recorder/providers/screen_recorder_provider.dart';
 import 'plugins/screenshot/providers/screenshot_provider.dart';
@@ -19,23 +21,58 @@ import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
 import 'ui/widgets/sqa_styles.dart';
 import 'ui/widgets/sqa_scroll_behavior.dart';
+import 'ui/widgets/sqa_toast.dart';
 import 'core/ui/sqa_theme.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
+late final ProviderContainer globalProviderContainer;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final prefs = await SharedPreferences.getInstance();
+
+  // Create the shared container for all providers
+  globalProviderContainer = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+    ],
+  );
+
+  // Setup Global Error Handling using the shared container
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    globalProviderContainer.read(loggingServiceProvider.notifier).logError(
+      'Flutter Error: ${details.exception}',
+      'FlutterFramework',
+      details.exception,
+      details.stack,
+    );
+    _showGlobalErrorToast('Framework Error: ${details.exception}');
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    globalProviderContainer.read(loggingServiceProvider.notifier).logError(
+      'Async Error: $error',
+      'AsyncDispatcher',
+      error,
+      stack,
+    );
+    _showGlobalErrorToast('Runtime Error: $error');
+    return true;
+  };
+
   // Register the platform-specific native window API implementation.
-  // Add else-if branches here when macOS / Linux support is added.
-  // See docs/platform_porting_guide.md for instructions.
   if (Platform.isWindows) {
     WindowNativeApi.register(WindowNativeApiWindows());
   }
 
   AudioService.instance.init();
 
-  final prefs = await SharedPreferences.getInstance();
   await windowManager.ensureInitialized();
+
+  // Run migrations
+  await globalProviderContainer.read(preferencesServiceProvider).migrate();
 
   final alwaysOnTop = prefs.getBool('always_on_top') ?? true;
 
@@ -69,20 +106,28 @@ void main() async {
   await TrayManager.init();
 
   runApp(
-    ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    UncontrolledProviderScope(
+      container: globalProviderContainer,
       child: const SqaMultitoolsApp(),
     ),
   );
 }
 
-
+void _showGlobalErrorToast(String message) {
+  final context = navigatorKey.currentContext;
+  if (context != null) {
+    SqaToast.show(context, message, type: SqaToastType.error);
+  }
+}
 
 class SqaMultitoolsApp extends ConsumerWidget {
   const SqaMultitoolsApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize logging service early
+    ref.read(loggingServiceProvider);
+    
     final settings = ref.watch(themeSettingsProvider);
     final themeMode = ThemeMode.values[settings.modeIndex];
 
@@ -103,6 +148,7 @@ class SqaMultitoolsApp extends ConsumerWidget {
         );
 
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'SQA-Multitools',
           debugShowCheckedModeBanner: false,
           themeMode: themeMode,

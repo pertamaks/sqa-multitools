@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_modal.dart';
 import 'sqa_button.dart';
 import 'sqa_styles.dart';
@@ -59,7 +60,7 @@ class _SqaUpdateModalState extends State<SqaUpdateModal> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Later'),
           ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
         SqaButton(
           label: 'Download Now',
           icon: Symbols.download,
@@ -80,15 +81,15 @@ class _SqaUpdateModalState extends State<SqaUpdateModal> {
                 ),
               ),
               if (updateInfo.isCritical) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: SqaTokens.spacingSmall),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
+                    horizontal: SqaTokens.spacingXSmall - 2,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
                     color: colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: SqaTokens.borderRadiusSmall,
                   ),
                   child: Text(
                     'CRITICAL',
@@ -110,10 +111,10 @@ class _SqaUpdateModalState extends State<SqaUpdateModal> {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
           Container(
             constraints: const BoxConstraints(maxHeight: 200),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(SqaTokens.spacingSmall + 4),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: SqaStyles.radiusLarge,

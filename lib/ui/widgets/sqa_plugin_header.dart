@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
 import 'sqa_hover_icon_button.dart';
@@ -42,10 +43,10 @@ class SqaPluginHeader extends StatelessWidget {
             icon: Symbols.arrow_back,
             onPressed: onBack!,
             tooltip: 'Back',
-            iconSize: 20,
-            padding: 8,
+            iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+            padding: SqaTokens.spacingSmall,
           ),
-          SizedBox(width: SqaSpacing.small),
+          const SizedBox(width: SqaTokens.spacingSmall),
         ],
         if (icon != null) ...[
           MouseRegion(
@@ -56,14 +57,14 @@ class SqaPluginHeader extends StatelessWidget {
               child: SqaIconContainer(
                 icon: icon!,
                 color: effectiveColor,
-                size: 40,
-                iconSize: 24,
+                size: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+                iconSize: SqaTokens.spacingLarge + SqaTokens.spacingSmall,
                 isCircular: false,
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
               ),
             ),
           ),
-          SizedBox(width: SqaSpacing.large),
+          const SizedBox(width: SqaTokens.spacingLarge),
         ],
         Expanded(
           child:
@@ -73,20 +74,22 @@ class SqaPluginHeader extends StatelessWidget {
                 children: [
                     Text(
                       title,
-                      style: SqaTextStyles.headline(context).copyWith(
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         color: effectiveColor,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       description,
-                      style: SqaTextStyles.bodySecondary(context).copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         fontStyle: FontStyle.italic,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                 ],
               ),
         ),
-        if (trailing != null) ...[SizedBox(width: SqaSpacing.medium), trailing!],
+        if (trailing != null) ...[const SizedBox(width: SqaTokens.spacingMedium), trailing!],
       ],
     );
   }

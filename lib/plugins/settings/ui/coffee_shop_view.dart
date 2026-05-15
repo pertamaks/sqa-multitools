@@ -17,6 +17,7 @@ import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../providers/settings_debug_provider.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class CoffeeShopView extends ConsumerStatefulWidget {
   const CoffeeShopView({super.key});
@@ -50,16 +51,16 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildMenuHeader(colorScheme),
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           _buildCoffeeMenu(colorScheme, supporterTier),
           if (supporterTier >= 3) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: SqaTokens.spacingMedium),
             _buildBugSquashToggle(colorScheme),
           ],
-          const SizedBox(height: 32),
+          const SizedBox(height: SqaTokens.spacingXXLarge),
           _buildRedemptionStatus(colorScheme, supporterTier),
           if (ref.watch(debugModeProvider)) ...[
-            const SizedBox(height: 32),
+            const SizedBox(height: SqaTokens.spacingXXLarge),
             _buildResetDonationButton(colorScheme),
           ],
         ],
@@ -90,14 +91,14 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
             }
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: SqaTokens.spacingLarge),
         const SqaInfoBanner(
           title: 'Barista\'s Note:',
           text:
               'Every tool in SQA-Multitools is on the house! But if these features have saved you from a "Works on my machine" nightmare, consider tipping the barista. Your support keeps the coffee brewing and the bugs squashing!',
           color: Colors.brown,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: SqaTokens.spacingLarge),
         SqaButton.tonal(
           onPressed: _launchDonation,
           icon: Symbols.coffee,
@@ -119,7 +120,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           isUnlocked: tier >= 1,
           color: Colors.brown.shade300,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         _buildMenuCard(
           title: 'Vanilla Latte',
           price: '\$5',
@@ -128,7 +129,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           isUnlocked: tier >= 2,
           color: Colors.orange.shade300,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         _buildMenuCard(
           title: 'Double Mocha',
           price: '\$10+',
@@ -165,7 +166,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           ),
         ),
         if (ref.watch<bool>(debugModeProvider)) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
           _buildBugDiagnostics(colorScheme),
         ],
       ],
@@ -176,7 +177,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
     final isEnabled = ref.watch(bugSquashEnabledProvider);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(SqaTokens.spacingMedium),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: SqaStyles.radiusLarge,
@@ -199,7 +200,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
             ],
           ),
           if (isEnabled) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             Row(
               children: [
                 Text(
@@ -212,7 +213,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SqaTokens.spacingSmall),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -223,9 +224,9 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
               ],
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: SqaTokens.spacingMedium),
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: SqaTokens.spacingMedium),
           SizedBox(
             width: double.infinity,
             child: _buildResetDonationButton(colorScheme),
@@ -270,7 +271,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
     final textTheme = theme.textTheme;
 
     return SqaCard(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       borderRadius: SqaStyles.radiusLarge,
       borderSide: isUnlocked
           ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
@@ -278,14 +279,14 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(SqaTokens.spacingMedium),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 28),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: SqaTokens.spacingLarge),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -309,7 +310,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: SqaTokens.spacingSmall),
                 Text(
                   description,
                   style: textTheme.bodySmall?.copyWith(
@@ -321,7 +322,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           ),
           if (isUnlocked)
             Padding(
-              padding: const EdgeInsets.only(left: 8.0),
+              padding: const EdgeInsets.only(left: SqaTokens.spacingSmall),
               child: Icon(
                 Symbols.check_circle,
                 color: theme.colorScheme.primary,
@@ -334,10 +335,10 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
   }
 
   Widget _buildRedemptionStatus(ColorScheme colorScheme, int tier) {
-    final email = ref.watch(coffeeShopServiceProvider).supporterEmail;
+    final emailAsync = ref.watch(supporterEmailProvider);
 
     return SqaCard(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       child: Row(
         children: [
           Expanded(
@@ -350,17 +351,28 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                if (tier > 0 && email != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Bound to: ${_maskEmail(email)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
+                if (tier > 0) ...[
+                  const SizedBox(height: SqaTokens.spacingSmall),
+                  emailAsync.when(
+                    data: (email) => Text(
+                      'Bound to: ${email != null && email.isNotEmpty ? _maskEmail(email) : 'Verified User'}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    loading: () => const SizedBox(
+                      height: 2,
+                      width: 100,
+                      child: LinearProgressIndicator(),
+                    ),
+                    error: (error, stack) => const Text(
+                      'License Active',
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
                 ] else ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: SqaTokens.spacingSmall),
                   const Text(
                     'Redeem your coffee receipt to unlock features.',
                     style: TextStyle(fontSize: 12),
@@ -369,7 +381,7 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: SqaTokens.spacingLarge),
           SqaButton(
             label: tier > 0 ? 'Change' : 'Redeem',
             onPressed: () => _showRedemptionModal(context),
@@ -483,7 +495,7 @@ class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           label: 'Cancel',
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
         SqaButton(
           label: 'Verify',
           onPressed: _isLoading ? null : _handleRedeem,
@@ -499,9 +511,9 @@ class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
             'Enter your details to activate your supporter tier. Your email is used to bind the license to you.',
             style: TextStyle(fontSize: 12),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: SqaTokens.spacingLarge),
           label('Email Address'),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
           TextField(
             controller: _emailController,
             decoration: const InputDecoration(
@@ -511,9 +523,9 @@ class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
             keyboardType: TextInputType.emailAddress,
             enabled: !_isLoading,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           label('Receipt Code'),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
           TextField(
             controller: _codeController,
             decoration: const InputDecoration(
@@ -524,7 +536,7 @@ class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
             enabled: !_isLoading,
           ),
           if (_error != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: SqaTokens.spacingLarge),
             Text(
               _error!,
               style: TextStyle(
@@ -534,7 +546,7 @@ class _SqaRedemptionModalState extends ConsumerState<SqaRedemptionModal> {
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: SqaTokens.spacingMedium),
         ],
       ),
     );

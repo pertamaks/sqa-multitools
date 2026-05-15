@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/beautifier_provider.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_switch.dart';
 import '../../../ui/widgets/sqa_dropdown.dart';
@@ -31,10 +32,9 @@ class BeautifierSettings extends ConsumerWidget {
           'BEAUTIFIER SETTINGS',
           style: theme.textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         SqaSettingsTile(
           title: 'AUTO-FORMAT ON CHANGE',
           subtitle: 'Format code automatically as you type.',
@@ -48,7 +48,7 @@ class BeautifierSettings extends ConsumerWidget {
           title: 'INDENTATION WIDTH',
           subtitle: 'Number of spaces per indentation level.',
           trailing: SizedBox(
-            width: 80,
+            width: SqaTokens.spacingLarge * 5, // 80px standardized
             child: SqaDropdown<int>(
               value: indentWidth,
               items: [2, 4, 8].map((w) {

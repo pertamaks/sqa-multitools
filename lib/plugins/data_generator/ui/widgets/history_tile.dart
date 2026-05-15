@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class DataHistoryTile extends StatelessWidget {
   final String title;
@@ -29,23 +30,26 @@ class DataHistoryTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: SqaStyles.radiusMedium,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingLarge,
+          vertical: SqaTokens.spacingMedium,
+        ),
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: SqaTokens.spacingXXLarge,
+              height: SqaTokens.spacingXXLarge,
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: SqaStyles.radiusSmall,
               ),
               child: Icon(
                 icon,
-                size: 16,
+                size: SqaTokens.spacingLarge,
                 color: theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: SqaTokens.spacingLarge),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +60,7 @@ class DataHistoryTile extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: SqaTokens.spacingXSmall / 2),
                   Text(
                     subtitle,
                     style: theme.textTheme.labelSmall?.copyWith(

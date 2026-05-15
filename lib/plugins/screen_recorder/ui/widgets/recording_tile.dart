@@ -5,6 +5,7 @@ import '../../../../ui/widgets/sqa_icon_container.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class RecordingTile extends StatelessWidget {
   final RecordingInfo info;
@@ -43,8 +44,8 @@ class RecordingTile extends StatelessWidget {
       leading: SqaIconContainer(
         icon: Symbols.movie,
         color: theme.colorScheme.primary,
-        size: 32,
-        iconSize: 16,
+        size: SqaTokens.spacingXXLarge,
+        iconSize: SqaTokens.spacingLarge,
       ),
       title: Text(
         filename,
@@ -62,7 +63,7 @@ class RecordingTile extends StatelessWidget {
             icon: Symbols.play_arrow,
             onPressed: onOpen,
             tooltip: 'Play',
-            iconSize: 18,
+            iconSize: SqaTokens.spacingLarge + 2,
           ),
           SqaPopupMenu(
             icon: Symbols.more_vert,

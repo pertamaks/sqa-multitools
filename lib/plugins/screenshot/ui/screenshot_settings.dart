@@ -12,6 +12,7 @@ import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../providers/screenshot_provider.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class ScreenshotSettings extends ConsumerWidget {
   const ScreenshotSettings({super.key});
@@ -28,12 +29,12 @@ class ScreenshotSettings extends ConsumerWidget {
         const SqaDependencyCard(pluginName: 'Screenshot'),
         // --- SECTION: CAPTURE ---
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: Text(
             'CAPTURE CONFIGURATION',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 11,
+              fontSize: SqaTokens.fontSizeSmall,
               letterSpacing: 1.0,
               color: theme.colorScheme.primary,
             ),
@@ -41,7 +42,7 @@ class ScreenshotSettings extends ConsumerWidget {
         ),
         SqaCard(
           padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 24),
+          margin: const EdgeInsets.only(bottom: SqaTokens.spacingXXLarge),
           child: Column(
             children: [
               SqaSettingsTile(
@@ -62,12 +63,12 @@ class ScreenshotSettings extends ConsumerWidget {
 
         // --- SECTION: FILES ---
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: Text(
             'SYSTEM & FILES',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 11,
+              fontSize: SqaTokens.fontSizeSmall,
               letterSpacing: 1.0,
               color: theme.colorScheme.primary,
             ),
@@ -75,7 +76,7 @@ class ScreenshotSettings extends ConsumerWidget {
         ),
         SqaCard(
           padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 24),
+          margin: const EdgeInsets.only(bottom: SqaTokens.spacingXXLarge),
           child: Column(
             children: [
               SqaSettingsTile(
@@ -94,7 +95,7 @@ class ScreenshotSettings extends ConsumerWidget {
                     }
                   },
                   tooltip: 'Change Save Directory',
-                  iconSize: 16,
+                  iconSize: SqaTokens.spacingLarge,
                 ),
               ),
             ],
@@ -103,19 +104,19 @@ class ScreenshotSettings extends ConsumerWidget {
 
         // --- SECTION: HOTKEYS ---
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: Text(
             'HOTKEYS',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 11,
+              fontSize: SqaTokens.fontSizeSmall,
               letterSpacing: 1.0,
               color: theme.colorScheme.primary,
             ),
           ),
         ),
         SqaCard(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
           child: SqaHotkeyField(
             label: 'Start Capture',
             value: ref.watch(hotkeySettingsProvider).screenshotToggle,

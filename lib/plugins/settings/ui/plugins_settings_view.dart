@@ -9,6 +9,8 @@ import '../../../ui/widgets/sqa_switch.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_styles.dart';
+import '../../../ui/widgets/sqa_safe_plugin_builder.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class PluginsSettingsView extends ConsumerStatefulWidget {
   const PluginsSettingsView({super.key});
@@ -68,7 +70,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          padding: const EdgeInsets.fromLTRB(SqaTokens.spacingLarge, SqaTokens.spacingSmall, SqaTokens.spacingLarge, 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -101,7 +103,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                       .reorder(oldIndex, newIndex);
                 },
                 scrollController: _scrollController,
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(SqaTokens.spacingLarge),
                 itemCount: allPlugins.length,
                 buildDefaultDragHandles: false,
                 proxyDecorator: (child, index, animation) {
@@ -133,7 +135,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                   return SqaCard(
                     // Use a dynamic key to force rebuild and collapse when toggling editMode
                     key: ValueKey('${plugin.id}_$editMode'),
-                    margin: const EdgeInsets.only(bottom: 8.0),
+                    margin: const EdgeInsets.only(bottom: SqaTokens.spacingSmall),
                     padding: EdgeInsets.zero,
                     borderSide: isFocused
                         ? BorderSide(
@@ -154,10 +156,10 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                             ReorderableDragStartListener(
                               index: index,
                               child: Padding(
-                                padding: const EdgeInsets.only(right: 12.0),
+                                padding: const EdgeInsets.only(right: SqaTokens.spacingMedium),
                                 child: Icon(
                                   Symbols.drag_indicator,
-                                  size: 20,
+                                  size: SqaTokens.spacingXLarge,
                                   color: Theme.of(
                                     context,
                                   ).colorScheme.outlineVariant,
@@ -166,8 +168,8 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                             ),
                           SqaIconContainer(
                             icon: plugin.icon,
-                            size: 32,
-                            iconSize: 18,
+                            size: SqaTokens.spacingXXLarge,
+                            iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                           ),
                         ],
                       ),
@@ -179,7 +181,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           if (plugin.badge != null) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: SqaTokens.spacingSmall),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -193,7 +195,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                                     : Theme.of(
                                         context,
                                       ).colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
                               ),
                               child: Text(
                                 plugin.badge!,
@@ -205,8 +207,8 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                                           plugin.badge == 'BETA'
                                       ? Colors.white
                                       : Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimaryContainer,
+                                        context,
+                                      ).colorScheme.onPrimaryContainer,
                                 ),
                               ),
                             ),
@@ -230,10 +232,14 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                             ),
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(SqaTokens.spacingLarge),
                           child: SizedBox(
                             width: double.infinity,
-                            child: plugin.buildSettingsPanel(context),
+                            child: SqaSafePluginBuilder(
+                              pluginId: plugin.id,
+                              pluginName: '${plugin.name} Settings',
+                              builder: (context) => plugin.buildSettingsPanel(context),
+                            ),
                           ),
                         ),
                       ],

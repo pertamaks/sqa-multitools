@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 import 'sqa_hover_icon_button.dart';
 
@@ -18,7 +19,7 @@ class SqaPopupMenu extends StatelessWidget {
     required this.icon,
     required this.children,
     this.tooltip,
-    this.alignmentOffset = const Offset(-8, 4),
+    this.alignmentOffset = const Offset(-SqaTokens.spacingSmall, SqaTokens.spacingTiny),
     this.builder,
   });
 
@@ -31,11 +32,11 @@ class SqaPopupMenu extends StatelessWidget {
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-        elevation: WidgetStateProperty.all(8.0),
+        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
+        elevation: WidgetStateProperty.all(SqaTokens.spacingSmall),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: SqaStyles.radiusLarge,
+            borderRadius: SqaTokens.borderRadiusLarge,
             side: BorderSide(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
@@ -86,24 +87,29 @@ class SqaPopupMenuItem extends StatelessWidget {
     return MenuItemButton(
       onPressed: onPressed,
       style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        minimumSize: const Size(120, 36),
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingSmall + 4,
+          vertical: 0,
+        ),
+        minimumSize: const Size(120, SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
+        shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconTheme(
-            data: IconThemeData(size: 18, color: color),
+            data: IconThemeData(
+              size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+              color: color,
+            ),
             child: icon,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: SqaTokens.spacingSmall + 4),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
+            style: SqaTextStyles.labelBold(context).copyWith(
               color: color,
+              fontSize: SqaTokens.fontSizeTiny,
             ),
           ),
         ],

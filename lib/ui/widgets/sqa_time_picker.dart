@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'sqa_time_segment.dart';
 import 'sqa_segmented_button.dart';
 import 'sqa_modal.dart';
+import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 /// A centralized, premium time picker widget for SQA-Multitools.
@@ -47,7 +48,7 @@ class SqaTimePicker extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingMedium),
               SqaTimePicker(
                 hour: currentHour,
                 minute: currentMinute,
@@ -58,7 +59,7 @@ class SqaTimePicker extends StatelessWidget {
                   currentMinute = m;
                 }),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingMedium),
             ],
           ),
         ),
@@ -96,7 +97,7 @@ class SqaTimePicker extends StatelessWidget {
               onSelectionChanged: (v) => onFormatChanged?.call(v.first),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingMedium),
         ],
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -120,7 +121,7 @@ class SqaTimePicker extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 24.0),
               child: Text(
                 ':',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: SqaTokens.fontSizeXXXLarge, fontWeight: FontWeight.bold),
               ),
             ),
             SqaTimeSegment(
@@ -129,7 +130,7 @@ class SqaTimePicker extends StatelessWidget {
               onChanged: (v) => onTimeChanged(hour, v),
             ),
             if (!use24Hour) ...[
-              const SizedBox(width: 16),
+              const SizedBox(width: SqaTokens.spacingMedium),
               SqaSegmentedButton<bool>(
                 stretches: false,
                 fontSize: 10,

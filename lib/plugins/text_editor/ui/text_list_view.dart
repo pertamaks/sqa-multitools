@@ -13,6 +13,7 @@ import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
 
@@ -70,9 +71,9 @@ class _TextListViewState extends ConsumerState<TextListView> {
             icon: Symbols.refresh,
             onPressed: () => notifier.initialize(),
             tooltip: 'Refresh file list',
-            iconSize: 20,
+            iconSize: SqaTokens.spacingXLarge,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: SqaTokens.spacingXSmall),
           _buildNewDocumentButton(context, notifier),
         ],
       ),
@@ -85,19 +86,19 @@ class _TextListViewState extends ConsumerState<TextListView> {
             : Column(
                 children: [
                   _buildFilterBar(context),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: SqaTokens.spacingLarge),
                   if (filteredDocs.isEmpty)
                     _buildNoResultsState(context)
                   else
                     ...filteredDocs.map((doc) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
                         child: SqaCard(
                           onTap: () => notifier.viewDocument(doc),
                           child: Row(
                             children: [
                               _buildFileIcon(context),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: SqaTokens.spacingLarge),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,17 +112,17 @@ class _TextListViewState extends ConsumerState<TextListView> {
                                           ),
                                         ),
                                         if (doc.isPinned) ...[
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: SqaTokens.spacingSmall),
                                           Icon(
                                             Symbols.keep,
-                                            size: 16,
+                                            size: SqaTokens.spacingLarge,
                                             color: theme.colorScheme.primary,
                                             fill: 1,
                                           ),
                                         ],
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: SqaTokens.spacingXSmall),
                                     Text(
                                       'Last modified: ${DateFormat.yMMMd().add_Hm().format(doc.lastModified)}',
                                       style: theme.textTheme.labelSmall
@@ -142,7 +143,10 @@ class _TextListViewState extends ConsumerState<TextListView> {
                       );
                     }),
                   Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
+                    padding: const EdgeInsets.only(
+                      top: SqaTokens.spacingSmall,
+                      bottom: SqaTokens.spacingXLarge,
+                    ),
                     child: _buildOpenFolderButton(context, notifier),
                   ),
                 ],
@@ -153,7 +157,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
 
   Widget _buildFilterBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall),
       child: SqaSegmentedButton<TextListFilter>(
         stretches: true,
         storageKey: 'text_list_filter',
@@ -179,15 +183,15 @@ class _TextListViewState extends ConsumerState<TextListView> {
         children: [
           Icon(
             Symbols.search_off,
-            size: 48,
+            size: SqaTokens.spacingXXXLarge,
             color: Theme.of(context).colorScheme.outlineVariant,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           Text(
             'No documents match your search',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
           Text(
             'Try adjusting your keywords or clearing the search.',
             style: Theme.of(context).textTheme.bodySmall,
@@ -207,19 +211,19 @@ class _TextListViewState extends ConsumerState<TextListView> {
           size: 48,
           color: Theme.of(context).colorScheme.outlineVariant,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: SqaTokens.spacingLarge),
         Text(
           'No documents found',
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: SqaTokens.spacingSmall),
         Text(
           'Create a new document from a template to get started.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: SqaTokens.spacingXLarge),
         _buildNewDocumentButton(context, notifier, type: SqaButtonType.tonal),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         _buildOpenFolderButton(context, notifier),
       ],
     );
@@ -227,7 +231,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
 
   Widget _buildFileIcon(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(SqaTokens.spacingSmall),
       decoration: BoxDecoration(
         color: Theme.of(
           context,
@@ -236,7 +240,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
       ),
       child: Icon(
         Symbols.description,
-        size: 20,
+        size: SqaTokens.spacingXLarge,
         color: Theme.of(context).colorScheme.primary,
       ),
     );
@@ -263,7 +267,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
     final theme = Theme.of(context);
 
     return SqaPopupMenu(
-      alignmentOffset: const Offset(-100, 8),
+      alignmentOffset: const Offset(-100, SqaTokens.spacingSmall),
       tooltip: 'Actions',
       icon: Symbols.more_vert,
       children: [
@@ -333,11 +337,11 @@ class _TextListViewState extends ConsumerState<TextListView> {
     final double width = estimatedWidth.clamp(isTonal ? 160.0 : 44.0, 240.0);
 
     return MenuAnchor(
-      alignmentOffset: const Offset(0, 8),
+      alignmentOffset: const Offset(0, SqaTokens.spacingSmall),
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
+        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
         elevation: WidgetStateProperty.all(8.0),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
@@ -409,19 +413,22 @@ class _TextListViewState extends ConsumerState<TextListView> {
     return MenuItemButton(
       onPressed: () => notifier.createFromTemplate(type),
       style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingMedium,
+          vertical: SqaTokens.spacingSmall,
+        ),
         minimumSize: Size(width - 8, 36), // Account for menu padding
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 12),
+          Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny, color: color),
+          const SizedBox(width: SqaTokens.spacingMedium),
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
+              fontSize: SqaTokens.fontSizeSmall,
               fontWeight: FontWeight.w500,
             ),
           ),

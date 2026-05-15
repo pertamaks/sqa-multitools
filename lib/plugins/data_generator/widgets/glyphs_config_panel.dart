@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../providers/glyphs_provider.dart';
 import '../models/text_state.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class GlyphsConfigPanel extends ConsumerStatefulWidget {
   const GlyphsConfigPanel({super.key});
@@ -61,7 +62,7 @@ class _GlyphsConfigPanelState extends ConsumerState<GlyphsConfigPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
+        const SizedBox(height: SqaTokens.spacingLarge),
         SqaField(
           label: labelText,
           hintText: hintText,

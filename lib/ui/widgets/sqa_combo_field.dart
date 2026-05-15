@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_field.dart';
 import 'sqa_popup_menu.dart';
@@ -37,7 +38,7 @@ class SqaComboField extends StatelessWidget {
     this.controller,
     this.isMonospace = false,
     this.readOnly = false,
-    this.fontSize = 13.0,
+    this.fontSize = SqaTokens.fontSizeMedium,
     this.fontWeight,
     this.color,
     this.showCopyButton = false,

@@ -8,14 +8,15 @@ import 'package:flutter_highlight/themes/github.dart';
 import '../providers/beautifier_provider.dart';
 import '../models/beautifier_state.dart';
 import '../widgets/beautifier_highlighter.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_switch.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
-import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../core/providers/plugin_provider.dart';
 
@@ -57,7 +58,7 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
   }
 
   void _showOutputModal(String output, BeautifierLanguage language) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => BeautifierOutputModal(
         output: output,
@@ -97,7 +98,10 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
           : () => ref.read(beautifierProvider.notifier).format(),
       ),
       secondaryHeader: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingXLarge,
+          vertical: SqaTokens.spacingSmall,
+        ),
         child: Center(
           child: SqaSegmentedButton<BeautifierLanguage>(
             stretches: false,
@@ -105,7 +109,7 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
               return ButtonSegment(
                 value: lang,
                 label: Text(lang.label),
-                icon: Icon(lang.icon, size: 16),
+                icon: Icon(lang.icon, size: SqaTokens.spacingLarge),
               );
             }).toList(),
             selected: {state.language},
@@ -116,12 +120,17 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        padding: const EdgeInsets.fromLTRB(
+          SqaTokens.spacingLarge,
+          0,
+          SqaTokens.spacingLarge,
+          SqaTokens.spacingLarge,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildToolbar(context, state),
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             Expanded(
               child: SqaField(
                 label: 'Raw Input',
@@ -148,18 +157,21 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
     final theme = Theme.of(context);
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingXSmall,
+        vertical: SqaTokens.spacingXSmall,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
-        borderRadius: SqaStyles.radiusMedium,
+        borderRadius: SqaTokens.borderRadiusMedium,
       ),
       child: Row(
         children: [
-          const SizedBox(width: 12),
+          const SizedBox(width: SqaTokens.spacingMedium),
           Text(
             state.language.label.toUpperCase(),
-            style: SqaTextStyles.labelBold(context).copyWith(
-              fontSize: 10,
+            style: SqaTokens.labelBold(context).copyWith(
+              fontSize: SqaTokens.spacingSmall + 2,
               color: theme.colorScheme.primary,
               letterSpacing: 1.1,
             ),
@@ -172,29 +184,29 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
               ref.read(navigationServiceProvider).jumpToPluginSettings('com.sqa.beautifier');
             },
             tooltip: 'Plugin Settings',
-            iconSize: 20,
+            iconSize: SqaTokens.spacingXLarge,
           ),
           // Clear Input
           SqaHoverIconButton(
             icon: Symbols.delete_sweep,
             onPressed: _clearAll,
             tooltip: 'Clear Input',
-            iconSize: 20,
+            iconSize: SqaTokens.spacingXLarge,
             color: theme.colorScheme.error.withValues(alpha: 0.7),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           Container(
-            height: 20,
+            height: SqaTokens.spacingXLarge,
             width: 1,
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           // Wrap Toggle
           _buildWrapToggle(
             state.inputWrapText,
             (val) => ref.read(beautifierProvider.notifier).setInputWrapText(val),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
         ],
       ),
     );
@@ -223,12 +235,12 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
       children: [
         Text(
           'WRAP',
-          style: SqaTextStyles.labelBold(context).copyWith(
-            fontSize: 9,
+          style: SqaTokens.labelBold(context).copyWith(
+            fontSize: SqaTokens.spacingSmall + 1,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: SqaTokens.spacingXSmall),
         SqaSwitch(value: value, onChanged: onChanged),
       ],
     );
@@ -247,7 +259,7 @@ class BeautifierOutputModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SqaModal.custom(
+    return SqaModal<void>.custom(
       title: '${language.label} Output',
       scrollable: false,
       confirmLabel: 'Close',
@@ -260,7 +272,7 @@ class BeautifierOutputModal extends StatelessWidget {
             SqaToast.show(context, 'Output copied to clipboard', type: SqaToastType.success);
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
         SqaButton.primary(
           label: 'Close',
           onPressed: () => Navigator.of(context).pop(),
@@ -274,7 +286,7 @@ class BeautifierOutputModal extends StatelessWidget {
         isMultiline: true,
         maxLines: null,
         expands: true,
-        fontSize: 12,
+        fontSize: SqaTokens.spacingMedium,
         showLineNumbers: true,
         showCopyButton: false,
         initialValue: output,

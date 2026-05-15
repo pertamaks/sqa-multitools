@@ -25,6 +25,7 @@ import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
 import '../core/providers/ffmpeg_provider.dart';
+import 'widgets/sqa_safe_plugin_builder.dart';
 
 class MainToolbar extends ConsumerStatefulWidget {
   const MainToolbar({super.key});
@@ -380,8 +381,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final settingsPlugin = ref.watch(settingsPluginProvider);
     final supporterTier = ref.watch(supporterTierProvider);
     final hasTodoReminder = ref.watch(todoNotificationProvider);
-    final timerState = ref.watch(timerProvider);
-    final isTimerRunning = timerState.isRunning;
+    final timerState = ref.watch(timerProvider.select((s) => s.isRunning));
+    final isTimerRunning = timerState;
     final colorScheme = Theme.of(context).colorScheme;
 
     ref.listen(ffmpegProvider, (previous, next) {
@@ -484,7 +485,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                         Expanded(
                           child: KeyedSubtree(
                             key: ValueKey('plugin_${activePlugin.id}'),
-                            child: activePlugin.buildPluginWindow(context),
+                            child: SqaSafePluginBuilder(
+                              pluginId: activePlugin.id,
+                              pluginName: activePlugin.name,
+                              builder: (context) => activePlugin.buildPluginWindow(context),
+                            ),
                           ),
                         ),
                     ],

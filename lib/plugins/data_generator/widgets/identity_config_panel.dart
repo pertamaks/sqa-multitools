@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../providers/identity_provider.dart';
 import '../models/identity_state.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class IdentityConfigPanel extends ConsumerStatefulWidget {
   const IdentityConfigPanel({super.key});
@@ -43,7 +44,7 @@ class _IdentityConfigPanelState extends ConsumerState<IdentityConfigPanel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (state.selectedType == IdentityType.email) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           SqaField(
             label: 'Custom Domain (optional)',
             hintText: 'e.g. google.com',

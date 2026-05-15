@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'sqa_hover_icon_button.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaTimeSegment extends StatefulWidget {
   final int value;
@@ -77,11 +78,11 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
             // Up Arrow
             AnimatedOpacity(
               opacity: _isHovered && widget.isEnabled ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
+              duration: SqaTokens.durationFast,
               child: SqaHoverIconButton(
                 onPressed: widget.isEnabled ? _increment : () {},
                 icon: Icons.keyboard_arrow_up,
-                iconSize: 24,
+                iconSize: SqaTokens.spacingXXLarge,
                 padding: 0,
                 tooltip: 'Increment',
               ),
@@ -94,7 +95,7 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
                 vertical: 2.0,
               ),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: SqaTokens.borderRadiusMedium,
                 color: _isHovered && widget.isEnabled
                     ? theme.colorScheme.surfaceContainerHighest.withValues(
                         alpha: 0.5,
@@ -110,11 +111,11 @@ class _SqaTimeSegmentState extends State<SqaTimeSegment> {
             // Down Arrow
             AnimatedOpacity(
               opacity: _isHovered && widget.isEnabled ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
+              duration: SqaTokens.durationFast,
               child: SqaHoverIconButton(
                 onPressed: widget.isEnabled ? _decrement : () {},
                 icon: Icons.keyboard_arrow_down,
-                iconSize: 24,
+                iconSize: SqaTokens.spacingXXLarge,
                 padding: 0,
                 tooltip: 'Decrement',
               ),

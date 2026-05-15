@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 
 enum SqaButtonType { primary, tonal, outlined }
@@ -113,14 +114,14 @@ class SqaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) {
       return SizedBox(
-        height: 32,
+        height: SqaTokens.spacingXXLarge,
         width: isFullWidth ? double.infinity : width,
         child: FilledButton(
           onPressed: null,
           style: _getButtonStyle(context),
           child: const SizedBox(
-            width: 16,
-            height: 16,
+            width: SqaTokens.spacingLarge,
+            height: SqaTokens.spacingLarge,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               color: Colors.white,
@@ -147,7 +148,7 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                icon: Icon(icon, size: 18),
+                icon: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
                 label: child,
               )
             : FilledButton(
@@ -157,7 +158,7 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                child: isIconOnly ? Icon(icon, size: 18) : child,
+                child: isIconOnly ? Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall) : child,
               );
         break;
       case SqaButtonType.tonal:
@@ -174,7 +175,7 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                icon: Icon(icon, size: 18),
+                icon: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
                 label: child,
               )
             : FilledButton.tonal(
@@ -189,7 +190,7 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                child: isIconOnly ? Icon(icon, size: 18) : child,
+                child: isIconOnly ? Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall) : child,
               );
         break;
       case SqaButtonType.outlined:
@@ -206,7 +207,7 @@ class SqaButton extends StatelessWidget {
                         )
                       : null,
                 ),
-                icon: Icon(icon, size: 18),
+                icon: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
                 label: child,
               )
             : OutlinedButton(
@@ -221,13 +222,13 @@ class SqaButton extends StatelessWidget {
                         )
                       : null,
                 ),
-                child: isIconOnly ? Icon(icon, size: 18) : child,
+                child: isIconOnly ? Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall) : child,
               );
         break;
     }
 
     final result = SizedBox(
-      height: 32,
+      height: SqaTokens.spacingXXLarge,
       width: isFullWidth ? double.infinity : width,
       child: button,
     );
@@ -251,14 +252,14 @@ class SqaButton extends StatelessWidget {
 
   ButtonStyle _getButtonStyle(BuildContext context) {
     return ButtonStyle(
-      minimumSize: WidgetStateProperty.all(Size(width ?? 40, 32)),
+      minimumSize: WidgetStateProperty.all(Size(width ?? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall), SqaTokens.spacingXXLarge)),
       padding: WidgetStateProperty.all(
         label.isEmpty
             ? EdgeInsets.zero
-            : const EdgeInsets.symmetric(horizontal: SqaSpacing.medium, vertical: 0),
+            : const EdgeInsets.symmetric(horizontal: SqaTokens.spacingMedium, vertical: 0),
       ),
       shape: WidgetStateProperty.all(
-        RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
+        RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusLarge),
       ),
       mouseCursor: WidgetStateProperty.resolveWith<MouseCursor?>((states) {
         if (states.contains(WidgetState.disabled)) return SystemMouseCursors.basic;

@@ -14,6 +14,7 @@ import '../../ui/widgets/sqa_segmented_button.dart';
 import '../../ui/widgets/sqa_modal.dart';
 import '../../ui/widgets/sqa_field.dart';
 import '../../ui/widgets/sqa_toast.dart';
+import '../../ui/widgets/sqa_design_tokens.dart';
 import '../../core/providers/plugin_provider.dart';
 import 'providers/identity_provider.dart';
 import 'providers/text_provider.dart';
@@ -116,7 +117,7 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
               SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           SqaButton.primary(
             label: 'Close',
             onPressed: () => Navigator.of(context).pop(),
@@ -130,7 +131,7 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
           isMultiline: true,
           maxLines: null,
           expands: true,
-          fontSize: 12,
+          fontSize: SqaTokens.spacingMedium,
           showLineNumbers: true,
           showCopyButton: false,
           initialValue: result,
@@ -211,7 +212,7 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
                 ? '${LocaleNames.getDisplayName(identityState.locale.name)}, ${identityState.quantity} items'
                 : LocaleNames.getDisplayName(identityState.locale.name),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           SqaButton.primary(
             icon: Symbols.wand_stars,
             label: '',
@@ -221,10 +222,10 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
       ),
       secondaryHeader: _buildSecondaryHeader(),
       tabs: const [
-        Tab(icon: Icon(Symbols.person), text: 'Identity'),
-        Tab(icon: Icon(Symbols.notes), text: 'Lorem'),
-        Tab(icon: Icon(Symbols.glyphs), text: 'Glyphs'),
-        Tab(icon: Icon(Symbols.terminal), text: 'Dev'),
+        Tab(icon: Icon(Symbols.person, size: SqaTokens.spacingLarge), text: 'Identity'),
+        Tab(icon: Icon(Symbols.notes, size: SqaTokens.spacingLarge), text: 'Lorem'),
+        Tab(icon: Icon(Symbols.glyphs, size: SqaTokens.spacingLarge), text: 'Glyphs'),
+        Tab(icon: Icon(Symbols.terminal, size: SqaTokens.spacingLarge), text: 'Dev'),
       ],
       tabController: _tabController,
       child: TabBarView(
@@ -242,7 +243,10 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
 
   Widget _buildSecondaryHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingXLarge,
+        vertical: SqaTokens.spacingSmall,
+      ),
       child: Center(
         child: _buildActiveSegmentedButton(),
       ),
@@ -255,12 +259,12 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
         final state = ref.watch(identityProvider);
         return SqaSegmentedButton<IdentityType>(
           segments: const [
-            ButtonSegment(value: IdentityType.name, label: Text('Name'), icon: Icon(Symbols.person)),
-            ButtonSegment(value: IdentityType.email, label: Text('Email'), icon: Icon(Symbols.mail)),
-            ButtonSegment(value: IdentityType.address, label: Text('Address'), icon: Icon(Symbols.home)),
-            ButtonSegment(value: IdentityType.phone, label: Text('Phone'), icon: Icon(Symbols.call)),
-            ButtonSegment(value: IdentityType.internet, label: Text('Net'), icon: Icon(Symbols.language)),
-            ButtonSegment(value: IdentityType.company, label: Text('Work'), icon: Icon(Symbols.business)),
+            ButtonSegment(value: IdentityType.name, label: Text('Name'), icon: Icon(Symbols.person, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: IdentityType.email, label: Text('Email'), icon: Icon(Symbols.mail, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: IdentityType.address, label: Text('Address'), icon: Icon(Symbols.home, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: IdentityType.phone, label: Text('Phone'), icon: Icon(Symbols.call, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: IdentityType.internet, label: Text('Net'), icon: Icon(Symbols.language, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: IdentityType.company, label: Text('Work'), icon: Icon(Symbols.business, size: SqaTokens.spacingLarge)),
           ],
           selected: {state.selectedType},
           onSelectionChanged: (set) => ref.read(identityProvider.notifier).setType(set.first),
@@ -269,10 +273,10 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
         final state = ref.watch(textGeneratorProvider);
         return SqaSegmentedButton<TextType>(
           segments: const [
-            ButtonSegment(value: TextType.bytes, label: Text('Bytes'), icon: Icon(Symbols.abc)),
-            ButtonSegment(value: TextType.sentence, label: Text('Sentence'), icon: Icon(Symbols.short_text)),
-            ButtonSegment(value: TextType.paragraph, label: Text('Paragraph'), icon: Icon(Symbols.notes)),
-            ButtonSegment(value: TextType.chapter, label: Text('Chapter'), icon: Icon(Symbols.book)),
+            ButtonSegment(value: TextType.bytes, label: Text('Bytes'), icon: Icon(Symbols.abc, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: TextType.sentence, label: Text('Sentence'), icon: Icon(Symbols.short_text, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: TextType.paragraph, label: Text('Paragraph'), icon: Icon(Symbols.notes, size: SqaTokens.spacingLarge)),
+            ButtonSegment(value: TextType.chapter, label: Text('Chapter'), icon: Icon(Symbols.book, size: SqaTokens.spacingLarge)),
           ],
           selected: {state.selectedType},
           onSelectionChanged: (set) => ref.read(textGeneratorProvider.notifier).setType(set.first),
@@ -285,11 +289,11 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
             SqaSegmentedButton<GlyphsCategory>(
               hasChild: true,
               segments: const [
-                ButtonSegment(value: GlyphsCategory.specials, label: Text('Specials'), icon: Icon(Symbols.font_download)),
-                ButtonSegment(value: GlyphsCategory.japanese, label: Text('JA'), icon: Icon(Symbols.language_japanese_kana)),
-                ButtonSegment(value: GlyphsCategory.chinese, label: Text('ZH'), icon: Icon(Symbols.language_chinese_dayi)),
-                ButtonSegment(value: GlyphsCategory.arabic, label: Text('AR'), icon: Icon(Symbols.language_pinyin)),
-                ButtonSegment(value: GlyphsCategory.vietnamese, label: Text('VI'), icon: Icon(Symbols.language_korean_latin)),
+                ButtonSegment(value: GlyphsCategory.specials, label: Text('Specials'), icon: Icon(Symbols.font_download, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: GlyphsCategory.japanese, label: Text('JA'), icon: Icon(Symbols.language_japanese_kana, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: GlyphsCategory.chinese, label: Text('ZH'), icon: Icon(Symbols.language_chinese_dayi, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: GlyphsCategory.arabic, label: Text('AR'), icon: Icon(Symbols.language_pinyin, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: GlyphsCategory.vietnamese, label: Text('VI'), icon: Icon(Symbols.language_korean_latin, size: SqaTokens.spacingLarge)),
               ],
               selected: {state.selectedCategory},
               onSelectionChanged: (set) => ref.read(glyphsGeneratorProvider.notifier).setCategory(set.first),
@@ -297,10 +301,10 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
             SqaSegmentedButton<TextType>(
               isChild: true,
               segments: const [
-                ButtonSegment(value: TextType.bytes, label: Text('Bytes'), icon: Icon(Symbols.abc)),
-                ButtonSegment(value: TextType.sentence, label: Text('Sentence'), icon: Icon(Symbols.short_text)),
-                ButtonSegment(value: TextType.paragraph, label: Text('Paragraph'), icon: Icon(Symbols.notes)),
-                ButtonSegment(value: TextType.chapter, label: Text('Chapter'), icon: Icon(Symbols.book)),
+                ButtonSegment(value: TextType.bytes, label: Text('Bytes'), icon: Icon(Symbols.abc, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: TextType.sentence, label: Text('Sentence'), icon: Icon(Symbols.short_text, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: TextType.paragraph, label: Text('Paragraph'), icon: Icon(Symbols.notes, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: TextType.chapter, label: Text('Chapter'), icon: Icon(Symbols.book, size: SqaTokens.spacingLarge)),
               ],
               selected: {state.selectedType},
               onSelectionChanged: (set) => ref.read(glyphsGeneratorProvider.notifier).setType(set.first),
@@ -316,9 +320,9 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
               stretches: false,
               hasChild: state.selectedType == DevType.json || state.selectedType == DevType.date,
               segments: const [
-                ButtonSegment(value: DevType.uuid, label: Text('UUID'), icon: Icon(Symbols.fingerprint)),
-                ButtonSegment(value: DevType.json, label: Text('JSON'), icon: Icon(Symbols.code)),
-                ButtonSegment(value: DevType.date, label: Text('Date'), icon: Icon(Symbols.calendar_today)),
+                ButtonSegment(value: DevType.uuid, label: Text('UUID'), icon: Icon(Symbols.fingerprint, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: DevType.json, label: Text('JSON'), icon: Icon(Symbols.code, size: SqaTokens.spacingLarge)),
+                ButtonSegment(value: DevType.date, label: Text('Date'), icon: Icon(Symbols.calendar_today, size: SqaTokens.spacingLarge)),
               ],
               selected: {state.selectedType},
               onSelectionChanged: (set) => ref.read(devGeneratorProvider.notifier).setType(set.first),
@@ -328,9 +332,9 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
                 stretches: false,
                 isChild: true,
                 segments: const [
-                  ButtonSegment(value: JsonCategory.simple, label: Text('Simple'), icon: Icon(Symbols.token)),
-                  ButtonSegment(value: JsonCategory.medium, label: Text('Medium'), icon: Icon(Symbols.data_object)),
-                  ButtonSegment(value: JsonCategory.complex, label: Text('Complex'), icon: Icon(Symbols.account_tree)),
+                  ButtonSegment(value: JsonCategory.simple, label: Text('Simple'), icon: Icon(Symbols.token, size: SqaTokens.spacingLarge)),
+                  ButtonSegment(value: JsonCategory.medium, label: Text('Medium'), icon: Icon(Symbols.data_object, size: SqaTokens.spacingLarge)),
+                  ButtonSegment(value: JsonCategory.complex, label: Text('Complex'), icon: Icon(Symbols.account_tree, size: SqaTokens.spacingLarge)),
                 ],
                 selected: {state.selectedJsonCategory},
                 onSelectionChanged: (set) => ref.read(devGeneratorProvider.notifier).setJsonCategory(set.first),
@@ -340,8 +344,8 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView> with Sin
                 stretches: false,
                 isChild: true,
                 segments: const [
-                  ButtonSegment(value: DateCategory.past, label: Text('Past'), icon: Icon(Symbols.history)),
-                  ButtonSegment(value: DateCategory.future, label: Text('Future'), icon: Icon(Symbols.update)),
+                  ButtonSegment(value: DateCategory.past, label: Text('Past'), icon: Icon(Symbols.history, size: SqaTokens.spacingLarge)),
+                  ButtonSegment(value: DateCategory.future, label: Text('Future'), icon: Icon(Symbols.update, size: SqaTokens.spacingLarge)),
                 ],
                 selected: {state.selectedDateCategory},
                 onSelectionChanged: (set) => ref.read(devGeneratorProvider.notifier).setDateCategory(set.first),

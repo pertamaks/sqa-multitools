@@ -2,8 +2,10 @@
 
 ## 1. Development Principles
 * **Unit Tests Mandatory:** Automated unit tests MUST be generated for each newly developed feature or plugin logic before it is considered complete. Use `flutter_test` along with Mockito if necessary.
+* **Strict Dependency Pinning:** Never use `any` version constraints in `pubspec.yaml`. All dependencies MUST be pinned to specific version ranges (e.g., `^1.2.3`) based on verified stable versions to ensure supply chain security and build reproducibility.
 * **Zero Warnings:** All code must pass `dart analyze` and `dart format` flawlessly. Treat syntax hints and styling rules as strict errors.
-* **Build Validation:** Before declaring a feature "Done", verify that the project builds successfully (`flutter build windows` or equivalent). Never leave the codebase in a broken state.
+* **Centralized Logging:** Avoid raw `print` or `debugPrint`. Always use the `LoggingService` to capture structured events, warnings, and errors.
+* **Build Validation:** Before declaring a feature "Done", verify that the project builds successfully (`flutter build windows` or equivalent) and passes all CI quality gates. Never leave the codebase in a broken state.
 * **State Management:** Always use `flutter_riverpod` (specifically annotations from `riverpod_generator` when appropriate). State must be highly modular and isolated per plugin.
 * **Immutability:** Force all states to be immutable, utilizing `freezed` or raw immutable classes.
 * **Proper Framework Usage (No UI Hacks):** Avoid "hacky" UI workarounds. Always seek the correct Flutter framework property or configuration to modify behavior cleanly.
@@ -114,7 +116,6 @@ To ensure a premium, border-aware experience for floating toolbars (like in the 
 ## 14. Block Component Customization (AppFlowy Integration `assets\appflowy-editor-main`)
 To ensure the AppFlowy-based editor maintains SQA-level premium aesthetics and structural stability:
 * **Inheritance over Forking**: Never modify the underlying `appflowy_editor` package. Instead, inherit from its base builders (e.g., `TableBlockComponentBuilder`, `TableCellBlockComponentBuilder`) to inject custom logic.
-
 * **Themed Wrapper Pattern**: Always wrap custom builders in the `SqaBlockComponentWrapper`. This centralizes the handling of action handles, margins, and focused block decorations.
 * **Local Theme Injection**: Use local `Theme` widgets within the `build` method of custom builders to override specific icons and colors (e.g., `iconTheme`, `menuTheme`) without affecting the global app state.
 * **Post-Frame Stabilization**: Any structural document mutation (e.g., deleting a column, changing block type) MUST be wrapped in `WidgetsBinding.instance.addPostFrameCallback`. This prevents "Null check operator" crashes by ensuring the editor's internal re-indexing is complete before external listeners (like Markdown encoders) are triggered.
@@ -151,3 +152,33 @@ To ensure that documents rendered for viewing (Read-Only mode) maintain absolute
 * **Stable Anchor Mapping**: Maintain a `Map<String, GlobalKey>` for document anchors. Always use `putIfAbsent` during the visitation phase to ensure keys are stable across rebuilds, which is mandatory for reliable `Scrollable.ensureVisible` navigation.
 * **Semantic Admonition Stripping**: When rendering GFM callouts (`[!NOTE]`), the visitor MUST surgically strip the marker text from the content body to prevent visual redundancy, as the type is already represented in the container header.
 * **Recursive List Rendering**: When a list item contains block-level elements (tables, code blocks, nested lists), the viewer MUST utilize a sub-visitor to render the item content as a `Column` of widgets instead of a flattened `RichText`.
+
+## 19. Supply Chain Security (Strict Pinning)
+* **No `any` Constraints**: Every package in `pubspec.yaml` MUST have a version range. 
+* **Build Reproducibility**: If adding a new dependency, always check `pub.dev` for the latest stable version and use the caret syntax (e.g., `^1.0.0`) to allow safe patches while preventing major breaking changes during CI.
+
+## 20. Observability & Global Error Handling
+* **Logging Layer**: All critical services and providers MUST utilize `ref.read(loggingServiceProvider.notifier)` to log significant state transitions or external API failures.
+* **Error Reporting**: Severe errors caught at the service level should be logged as `logError`. This automatically triggers a global user-facing toast via the `PlatformDispatcher` error boundary.
+* **Navigator Safety**: Global error feedback (toasts) MUST use the `navigatorKey` to ensure a valid `BuildContext` is available even during asynchronous background operations.
+
+## 21. Plugin Safety & Isolation (Defensive Guarding)
+* **The Safety Wrapper**: Every call to a plugin's `buildPluginWindow` or `buildSettingsPanel` MUST be wrapped in the `SqaSafePluginBuilder`. This ensures that a UI crash in one plugin does not affect the main application or other active tools.
+* **Lifecycle Isolation**: Plugin `initialize()` and `dispose()` calls MUST be caught individually. Use the `LoggingService` to report initialization failures while allowing the rest of the application to continue booting.
+* **Recovery UI**: The safety builder MUST provide a clear "Error" state for the plugin area, allowing the user to understand which specific component failed and providing a way to retry or reload if possible.
+
+## 22. Design Token Discipline
+To ensure visual coherence and facilitate rapid branding updates:
+* **Single Source of Truth**: All UI components MUST consume `SqaTokens` for spacing, border radii, durations, and typography.
+* **No Magic Numbers**: Never hardcode values like `16.0` for padding or `12.0` for radius in component builds. Always use the semantic tokens (e.g., `SqaTokens.spacingLarge`).
+* **Animation Harmony**: Use `SqaTokens.durationNormal` and `SqaTokens.curveStandard` for all UI transitions to maintain a unified "physics" across the suite.
+
+## 23. Data Sovereignty & Secure Preferences
+* **Encryption by Default**: Sensitive user data (license codes, emails, API keys) MUST be stored via `flutter_secure_storage` through the `PreferencesService`.
+* **Async Awareness**: UI components consuming secure data MUST utilize `FutureProvider` or `AsyncValue` to handle the decryption latency gracefully.
+* **Migration Integrity**: Any change to preference keys or underlying storage mechanisms MUST be accompanied by a logic update in `PreferencesService.migrate()` to prevent data loss.
+
+## 24. Operational Stability & Diagnostics
+* **Shared Context**: Never create ad-hoc `ProviderContainer` instances. All global error handlers and background tasks must utilize the `globalProviderContainer` initialized in `main.dart`.
+* **Post-Mortem Readiness**: The application maintains a persistent `app.log` file on disk. When a feature fails in production, the first step is to instruct the user to provide this log via the "Diagnostic Logs" button in Settings.
+* **Atomic Integrity**: For plugins that persist user-generated content (like Todo or Text Editor), ensure data is saved atomically to prevent file corruption during unexpected application termination.

@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/services/coffee_shop_service.dart';
+import '../../../core/services/logging_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/providers/version_provider.dart';
 import '../../../ui/widgets/sqa_card.dart';
@@ -15,6 +17,7 @@ import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_hotkey_field.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_update_modal.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class GeneralSettingsView extends ConsumerWidget {
   const GeneralSettingsView({super.key});
@@ -26,10 +29,10 @@ class GeneralSettingsView extends ConsumerWidget {
     {'name': 'Wasabi', 'color': Color(0xFF96B85D)}, // 2026 Trend
     {'name': 'Jade', 'color': Color(0xFF00A86B)}, // 2026 Trend
     {'name': 'Coffee', 'color': Color(0xFF795548)},
-    {'name': 'Ruby', 'color': Color(0xFFE91E63)},
-    {'name': 'Amethyst', 'color': Color(0xFF673AB7)},
-    {'name': 'Emerald', 'color': Color(0xFF4CAF50)},
-    {'name': 'Sapphire', 'color': Color(0xFF2196F3)},
+    {'name': 'Ruby', 'color': Color(0xE91E63)},
+    {'name': 'Amethyst', 'color': Color(0x673AB7)},
+    {'name': 'Emerald', 'color': Color(0x4CAF50)},
+    {'name': 'Sapphire', 'color': Color(0x2196F3)},
   ];
 
   Widget _buildTierBadge(
@@ -56,7 +59,7 @@ class GeneralSettingsView extends ConsumerWidget {
 
     return Tooltip(
       message: label,
-      child: Icon(icon, size: 16, color: colorScheme.outlineVariant),
+      child: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny, color: colorScheme.outlineVariant),
     );
   }
 
@@ -69,23 +72,23 @@ class GeneralSettingsView extends ConsumerWidget {
     if (!show) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: SqaTokens.spacingLarge),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(SqaTokens.spacingMedium),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(SqaTokens.spacingMedium),
           border: Border.all(color: colorScheme.outlineVariant),
         ),
         child: Row(
           children: [
-            Icon(Symbols.info, size: 16, color: colorScheme.primary),
-            const SizedBox(width: 12),
+            Icon(Symbols.info, size: SqaTokens.spacingLarge, color: colorScheme.primary),
+            const SizedBox(width: SqaTokens.spacingMedium),
             Expanded(
               child: Text(
                 'This is a taster service. If you enjoy this blend, you can order it at the shop!',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: SqaTokens.fontSizeSmall,
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -108,7 +111,7 @@ class GeneralSettingsView extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
       ),
       child: Text(
         'PREVIEW',
@@ -134,15 +137,15 @@ class GeneralSettingsView extends ConsumerWidget {
         children: [
           // Appearance Section
           SqaCard(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(SqaTokens.spacingLarge),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Symbols.palette, size: 20),
-                    const SizedBox(width: 12),
+                    const Icon(Symbols.palette, size: SqaTokens.spacingXLarge),
+                    const SizedBox(width: SqaTokens.spacingMedium),
                     Text(
                       'Appearance',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -151,12 +154,12 @@ class GeneralSettingsView extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: SqaTokens.spacingLarge),
                 const Text(
                   'Theme Mode',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: SqaTokens.spacingMedium, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: SqaTokens.spacingSmall),
                 SqaSegmentedButton<int>(
                   segments: const [
                     ButtonSegment(
@@ -182,19 +185,19 @@ class GeneralSettingsView extends ConsumerWidget {
                         .setModeIndex(set.first);
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: SqaTokens.spacingXLarge),
                 // Premium Effects Group
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Symbols.coffee, size: 16, color: colorScheme.primary),
-                        const SizedBox(width: 8),
+                        Icon(Symbols.coffee, size: SqaTokens.spacingMedium, color: colorScheme.primary),
+                        const SizedBox(width: SqaTokens.spacingSmall),
                         Text(
                           'Coffee Shop Amenities',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: SqaTokens.fontSizeSmall,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                             color: colorScheme.primary,
@@ -202,7 +205,7 @@ class GeneralSettingsView extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: SqaTokens.spacingLarge),
 
                     // Accent Color Selection
                     Row(
@@ -211,17 +214,17 @@ class GeneralSettingsView extends ConsumerWidget {
                         const Text(
                           'Accent Color',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: SqaTokens.spacingMedium,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         _buildTierBadge(1, supporterTier, colorScheme),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: SqaTokens.spacingMedium),
                     Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
+                      spacing: SqaTokens.spacingMedium,
+                      runSpacing: SqaTokens.spacingMedium,
                       children: curatedColors.map((colorMap) {
                         final name = colorMap['name'] as String;
                         final color = colorMap['color'] as Color;
@@ -244,8 +247,8 @@ class GeneralSettingsView extends ConsumerWidget {
                           child: Tooltip(
                             message: isLocked ? '$name (Preview)' : name,
                             child: Container(
-                              width: 36,
-                              height: 36,
+                              width: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
+                              height: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
                               decoration: BoxDecoration(
                                 color: color,
                                 shape: BoxShape.circle,
@@ -268,13 +271,13 @@ class GeneralSettingsView extends ConsumerWidget {
                                   ? const Icon(
                                       Symbols.lock,
                                       color: Colors.white,
-                                      size: 14,
+                                      size: SqaTokens.spacingLarge - 2,
                                     )
                                   : (isSelected
                                         ? const Icon(
                                             Symbols.check,
                                             color: Colors.white,
-                                            size: 18,
+                                            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                                           )
                                         : null),
                             ),
@@ -283,7 +286,7 @@ class GeneralSettingsView extends ConsumerWidget {
                       }).toList(),
                     ),
                     
-                    const SizedBox(height: 24),
+                    const SizedBox(height: SqaTokens.spacingXLarge),
                     
                     // Dynamic Color Sync
                     GestureDetector(
@@ -304,19 +307,19 @@ class GeneralSettingsView extends ConsumerWidget {
                                     const Text(
                                       'Sync with Windows Accent',
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: SqaTokens.fontSizeSmall,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     if (supporterTier < 2 && themeSettings.useDynamicColor) ...[
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: SqaTokens.spacingSmall),
                                       _buildPreviewBadge(colorScheme),
                                     ],
                                   ],
                                 ),
                                 const Text(
                                   'Use your system colors as the app theme.',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                                  style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -335,7 +338,7 @@ class GeneralSettingsView extends ConsumerWidget {
                       ),
                     ),
                     
-                    const SizedBox(height: 24),
+                    const SizedBox(height: SqaTokens.spacingLarge),
 
                     // Transparency Mode
                     Column(
@@ -364,14 +367,14 @@ class GeneralSettingsView extends ConsumerWidget {
                                           ),
                                         ),
                                         if (supporterTier < 3 && themeSettings.isTransparencyModeEnabled) ...[
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: SqaTokens.spacingSmall),
                                           _buildPreviewBadge(colorScheme),
                                         ],
                                       ],
                                     ),
                                     const Text(
                                       'Enable premium transparency effects for a cleaner look.',
-                                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                                      style: TextStyle(fontSize: SqaTokens.spacingSmall + 3, color: Colors.grey),
                                     ),
                                   ],
                                 ),
@@ -390,7 +393,7 @@ class GeneralSettingsView extends ConsumerWidget {
                           ),
                         ),
                         if (themeSettings.isTransparencyModeEnabled && supporterTier >= 3) ...[
-                          const SizedBox(height: 20),
+                          const SizedBox(height: SqaTokens.spacingLarge),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -413,14 +416,14 @@ class GeneralSettingsView extends ConsumerWidget {
                               Text(
                                 '${(themeSettings.opacity * 100).toInt()}%',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: SqaTokens.fontSizeSmall,
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: SqaTokens.spacingSmall),
                           SliderTheme(
                             data: SliderTheme.of(context).copyWith(
                               trackHeight: 4,
@@ -462,10 +465,10 @@ class GeneralSettingsView extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           // Window Behavior Section
           SqaCard(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(SqaTokens.spacingLarge),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,16 +476,17 @@ class GeneralSettingsView extends ConsumerWidget {
                 Row(
                   children: [
                     const Icon(Symbols.desktop_windows, size: 20),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SqaTokens.spacingMedium),
                     Text(
                       'Window Behavior',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: SqaTokens.fontSizeSmall + 2,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: SqaTokens.spacingLarge),
                 Row(
                   children: [
                     const Expanded(
@@ -499,7 +503,7 @@ class GeneralSettingsView extends ConsumerWidget {
                           ),
                           Text(
                             'Keep the toolbar above all other windows.',
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                            style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -518,10 +522,10 @@ class GeneralSettingsView extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           // Hotkeys Section
           SqaCard(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(SqaTokens.spacingLarge),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,7 +533,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 Row(
                   children: [
                     const Icon(Symbols.keyboard, size: 20),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SqaTokens.spacingMedium),
                     Text(
                       'Hotkeys',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -538,7 +542,7 @@ class GeneralSettingsView extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: SqaTokens.spacingLarge),
                 SqaHotkeyField(
                   label: 'Universal Toolbar Shortcut',
                   value: ref.watch(hotkeySettingsProvider).showToolbar,
@@ -564,7 +568,7 @@ class GeneralSettingsView extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           // System & About Section
           const _SystemAboutSection(),
         ],
@@ -606,7 +610,7 @@ class _SystemAboutSection extends ConsumerWidget {
     });
 
     return SqaCard(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +618,7 @@ class _SystemAboutSection extends ConsumerWidget {
           Row(
             children: [
               const Icon(Symbols.info, size: 20),
-              const SizedBox(width: 12),
+              const SizedBox(width: SqaTokens.spacingMedium),
               Text(
                 'System Information',
                 style: Theme.of(
@@ -623,15 +627,15 @@ class _SystemAboutSection extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           Row(
             children: [
               const SqaIconContainer(
                 icon: Symbols.deployed_code,
-                size: 48,
-                iconSize: 24,
+                size: SqaTokens.spacingXXXLarge * 1.5,
+                iconSize: SqaTokens.spacingXXLarge,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: SqaTokens.spacingLarge),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +644,7 @@ class _SystemAboutSection extends ConsumerWidget {
                       'SQA-Multitools',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: SqaTokens.fontSizeSmall + 2,
                       ),
                     ),
                     versionAsync.when(
@@ -672,14 +676,46 @@ class _SystemAboutSection extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           const Divider(height: 1),
-          const SizedBox(height: 16),
-          SqaButton.outlined(
-            onPressed: () =>
-                launchUrl(Uri.parse('https://sqa-multitools.pages.dev')),
-            label: 'Visit Official Website',
-            icon: Symbols.open_in_new,
+          const SizedBox(height: SqaTokens.spacingLarge),
+          Row(
+            children: [
+              Expanded(
+                child: SqaButton.outlined(
+                  onPressed: () =>
+                      launchUrl(Uri.parse('https://sqa-multitools.pages.dev')),
+                  label: 'Visit Official Website',
+                  icon: Symbols.open_in_new,
+                ),
+              ),
+              const SizedBox(width: SqaTokens.spacingMedium),
+              Expanded(
+                child: SqaButton.tonal(
+                  onPressed: () async {
+                    final logPath = await ref
+                        .read(loggingServiceProvider.notifier)
+                        .getLogFilePath();
+                    if (logPath != null) {
+                      final file = File(logPath);
+                      if (await file.exists()) {
+                        await launchUrl(Uri.file(logPath));
+                      } else {
+                        if (context.mounted) {
+                          SqaToast.show(
+                            context,
+                            'Log file not found yet.',
+                            type: SqaToastType.info,
+                          );
+                        }
+                      }
+                    }
+                  },
+                  label: 'Diagnostic Logs',
+                  icon: Symbols.terminal,
+                ),
+              ),
+            ],
           ),
         ],
       ),

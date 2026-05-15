@@ -12,6 +12,7 @@ import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_styles.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
@@ -283,7 +284,14 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         padding: (node) => EdgeInsets.zero,
       ),
       textStyleBuilder: (level) {
-        final fontSizes = [24.0, 20.0, 18.0, 16.0, 14.0, 14.0];
+        final fontSizes = [
+          SqaTokens.fontSizeXXLarge,
+          SqaTokens.fontSizeXLarge,
+          SqaTokens.fontSizeLarge,
+          SqaTokens.spacingLarge, // 16px fallback
+          SqaTokens.fontSizeSmall + 2,
+          SqaTokens.fontSizeSmall + 2,
+        ];
         return GoogleFonts.inter(
           fontSize: fontSizes[level - 1],
           fontWeight: FontWeight.bold,
@@ -305,7 +313,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         borderHoverColor: theme.colorScheme.primary.withValues(alpha: 0.5),
         addIcon: Icon(
           Symbols.add,
-          size: 18,
+          size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
@@ -372,8 +380,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       onClose: onDismiss,
       builder: (context, controller, child) {
         return SizedBox(
-          width: 32,
-          height: 32,
+          width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+          height: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
           child: Center(
             child: Material(
               color: Colors.transparent,
@@ -387,8 +395,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 },
                 borderRadius: SqaStyles.radiusSmall,
                 child: Container(
-                  width: 24,
-                  height: 24,
+                  width: SqaTokens.spacingXXLarge,
+                  height: SqaTokens.spacingXXLarge,
                   decoration: BoxDecoration(
                     color: controller.isOpen
                         ? theme.colorScheme.primaryContainer
@@ -414,7 +422,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       angle: isCol ? 1.5708 : 0,
                       child: Icon(
                         Symbols.drag_indicator,
-                        size: 16,
+                        size: SqaTokens.spacingLarge,
                         color: controller.isOpen
                             ? theme.colorScheme.primary
                             : theme.colorScheme.onSurfaceVariant,
@@ -445,9 +453,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           onTap: () =>
               TableActions.add(node, position + 1, editorState, direction),
         ),
-        const Divider(height: 8, thickness: 0.5),
+        const Divider(height: SqaTokens.spacingSmall, thickness: 0.5),
         _buildTableMenuItem(
-          icon: const Icon(Symbols.content_copy, size: 18),
+          icon: const Icon(Symbols.content_copy, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
           label: isRow ? 'Duplicate Row' : 'Duplicate Column',
           onTap: () =>
               TableActions.duplicate(node, position, editorState, direction),
@@ -458,7 +466,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           onTap: () =>
               TableActions.clear(node, position, editorState, direction),
         ),
-        const Divider(height: 8, thickness: 0.5),
+        const Divider(height: SqaTokens.spacingSmall, thickness: 0.5),
         SubmenuButton(
           style: ButtonStyle(
             shape: WidgetStateProperty.all(
@@ -539,7 +547,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
             ),
           ],
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingMedium,
+              vertical: SqaTokens.spacingSmall,
+            ),
             child: Row(
               children: [
                 Icon(
@@ -547,12 +558,12 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                   size: 18,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: SqaTokens.spacingMedium),
                 Text(
                   'Background Color',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface,
-                    fontSize: 12,
+                    fontSize: SqaTokens.fontSizeSmall,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -561,9 +572,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
             ),
           ),
         ),
-        const Divider(height: 8, thickness: 0.5),
+        const Divider(height: SqaTokens.spacingSmall, thickness: 0.5),
         _buildTableMenuItem(
-          icon: Icon(Symbols.delete, size: 18, color: theme.colorScheme.error),
+          icon: Icon(Symbols.delete, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny, color: theme.colorScheme.error),
           label: isRow ? 'Delete Row' : 'Delete Column',
           color: theme.colorScheme.error,
           onTap: () =>
@@ -601,7 +612,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         direction,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingSmall,
+          vertical: SqaTokens.spacingXSmall,
+        ),
         child: Row(
           children: [
             Container(
@@ -628,12 +642,12 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                     )
                   : null,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: SqaTokens.spacingMedium),
             Text(
               name,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface,
-                fontSize: 12,
+                fontSize: SqaTokens.fontSizeSmall,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -678,7 +692,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
       surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
       elevation: WidgetStateProperty.all(8.0),
-      padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
+      padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(
           borderRadius: SqaStyles.radiusLarge,
@@ -869,7 +883,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
 
     return SqaPluginLayout(
       titleWidget: Padding(
-        padding: const EdgeInsets.only(top: 4.0),
+        padding: const EdgeInsets.only(top: SqaTokens.spacingXSmall),
         child: _isEditingTitle
             ? Align(
                 key: const ValueKey('editing'),
@@ -926,7 +940,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         children: [
           // 1. Status Indicator (Always visible, changes color)
           TextEditorSaveStatus(state: state),
-          const SizedBox(width: 4),
+          const SizedBox(width: SqaTokens.spacingXSmall),
           // 2. Manual Save Button
           SqaHoverIconButton(
             icon: Symbols.save,
@@ -1023,8 +1037,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       shrinkWrap: true,
                       editorStyle: EditorStyle.desktop(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 48.0,
-                          vertical: 12.0,
+                          horizontal: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
+                          vertical: SqaTokens.spacingMedium,
                         ),
                         maxWidth: 800.0,
                         textScaleFactor: 14.0 / 16.0,
@@ -1106,7 +1120,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
           child: MenuAnchor(
             key: const GlobalObjectKey('unified_link_menu_anchor'),
             controller: _linkMenuController,
-            alignmentOffset: const Offset(0, 8),
+            alignmentOffset: const Offset(0, SqaTokens.spacingSmall),
             style: _sqaMenuStyle(context),
             onOpen: () {
               keepEditorFocusNotifier.increase();

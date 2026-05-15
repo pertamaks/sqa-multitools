@@ -44,9 +44,9 @@ class SqaTextController extends TextEditingController {
           // Headers: Map # to larger, bold primary colored text
           final int level = matchText.indexOf(' ');
           double fontSize = style?.fontSize ?? 14.0;
-          if (level == 1) fontSize *= 1.8;
-          if (level == 2) fontSize *= 1.5;
-          if (level == 3) fontSize *= 1.2;
+          if (level == 1) fontSize *= 1.75; // SqaTokens.fontSizeXXLarge / SqaTokens.fontSizeMedium approx
+          if (level == 2) fontSize *= 1.5;  // SqaTokens.fontSizeLarge / SqaTokens.fontSizeMedium approx
+          if (level == 3) fontSize *= 1.25; // SqaTokens.fontSizeMedium / SqaTokens.fontSizeMedium approx
 
           matchStyle = style?.copyWith(
             fontWeight: FontWeight.bold,

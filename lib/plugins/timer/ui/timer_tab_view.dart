@@ -7,6 +7,7 @@ import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_styles.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 
 class TimerTabView extends ConsumerWidget {
@@ -47,7 +48,7 @@ class TimerTabView extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(height: SqaSpacing.medium),
+          const SizedBox(height: SqaTokens.spacingMedium),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -96,26 +97,26 @@ class TimerTabView extends ConsumerWidget {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: SqaSpacing.xLarge),
+                  const SizedBox(height: SqaTokens.spacingXLarge),
                   Padding(
-                    padding: const EdgeInsets.only(left: 4.0),
+                    padding: const EdgeInsets.only(left: SqaTokens.spacingXSmall),
                     child: Text(
                       '.${ms.toString().padLeft(3, '0')}',
                         style: SqaTextStyles.mono(
                           context,
-                          fontSize: 24,
+                          fontSize: SqaTokens.spacingXLarge,
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                         ).copyWith(
                           fontWeight: FontWeight.w400,
                         ),
                     ),
                   ),
-                  SizedBox(height: SqaSpacing.xLarge),
+                  const SizedBox(height: SqaTokens.spacingXLarge),
                 ],
               ),
             ],
           ),
-          SizedBox(height: SqaSpacing.xLarge),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -123,9 +124,9 @@ class TimerTabView extends ConsumerWidget {
                 onPressed: notifier.toggle,
                 icon: state.isRunning ? Symbols.pause : Symbols.play_arrow,
                 label: state.isRunning ? 'Pause' : 'Start',
-                width: 120,
+                width: SqaTokens.spacingXXXLarge * 2.5, // 120px standardized
               ),
-              SizedBox(width: SqaSpacing.medium),
+              const SizedBox(width: SqaTokens.spacingMedium),
               Builder(
                 builder: (context) {
                   final isAtInitial =
@@ -159,7 +160,7 @@ class TimerTabView extends ConsumerWidget {
                         ? Symbols.timer
                         : Symbols.restart_alt,
                     label: showStopwatchMode ? 'Stopwatch' : 'Reset',
-                    width: 120,
+                    width: SqaTokens.spacingXXXLarge * 2.5, // 120px standardized
                   );
                 },
               ),
@@ -174,12 +175,17 @@ class TimerTabView extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(height: SqaSpacing.xLarge),
+        const SizedBox(height: SqaTokens.spacingXLarge),
         Padding(
-          padding: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 4.0),
+          padding: const EdgeInsets.fromLTRB(
+            SqaTokens.spacingXSmall,
+            0,
+            SqaTokens.spacingXSmall,
+            SqaTokens.spacingXSmall,
+          ),
           child: Text(
             ':',
-            style: SqaTextStyles.mono(context, fontSize: 32).copyWith(
+            style: SqaTextStyles.mono(context, fontSize: SqaTokens.spacingXXLarge).copyWith(
               color: isRunning
                   ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                   : theme.colorScheme.onSurface,
@@ -187,7 +193,7 @@ class TimerTabView extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(height: SqaSpacing.xLarge),
+        const SizedBox(height: SqaTokens.spacingXLarge),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
 import 'sqa_hover_icon_button.dart';
@@ -31,7 +32,7 @@ class SqaField extends StatefulWidget {
     this.showLabel = true,
     this.undoController,
     this.onTapOutside,
-    this.fontSize = 13.0,
+    this.fontSize = SqaTokens.fontSizeMedium,
     this.lineHeight = 1.5,
     this.gutterFontSize,
     this.showSentenceCaseButton = false,
@@ -157,12 +158,12 @@ class _SqaFieldState extends State<SqaField> {
 
       final fieldTop = fieldOffsetInViewport.dy;
       final fieldHeight = containerBox.size.height;
-      const buttonHeight = 32.0;
+      const buttonHeight = SqaTokens.spacingXXLarge;
       const padding = 0.0;
       double nextStickyTop = padding;
 
       if (fieldTop < 0 && _isExpanded) {
-        final footerHeight = (isActuallyShowingFooter) ? 40.0 : 0.0;
+        final footerHeight = (isActuallyShowingFooter) ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : 0.0;
         nextStickyTop = (-fieldTop + padding).clamp(
           padding,
           fieldHeight - buttonHeight - padding - footerHeight,
@@ -280,7 +281,7 @@ class _SqaFieldState extends State<SqaField> {
 
     final fontSize = widget.fontSize;
     final fontHeight = widget.lineHeight;
-    const vPadding = 12.0 * 2;
+    final vPadding = SqaTokens.spacingMedium * 2;
     final singleLineHeight = fontSize * fontHeight;
 
     double? effectiveMaxHeight = widget.maxHeight;
@@ -315,7 +316,7 @@ class _SqaFieldState extends State<SqaField> {
                             alpha: 0.1,
                           )
                         : Colors.transparent)),
-            borderRadius: SqaStyles.radiusLarge,
+            borderRadius: SqaTokens.borderRadiusLarge,
             border: Border.all(
               color: widget.isTransparent
                   ? Colors.transparent
@@ -340,7 +341,7 @@ class _SqaFieldState extends State<SqaField> {
                 : [],
           ),
           child: ClipRRect(
-            borderRadius: SqaStyles.radiusLarge,
+            borderRadius: SqaTokens.borderRadiusLarge,
             child: Stack(
               children: [
                 if (widget.showLineNumbers)
@@ -348,7 +349,7 @@ class _SqaFieldState extends State<SqaField> {
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    width: 40,
+                    width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border(
@@ -366,11 +367,11 @@ class _SqaFieldState extends State<SqaField> {
                   ),
                 Padding(
                   padding: EdgeInsets.only(
-                    bottom: (showFooter && _isExpanded) ? 40 : 0,
+                    bottom: (showFooter && _isExpanded) ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : 0,
                     right: (widget.showCopyButton ||
                             widget.showSentenceCaseButton ||
                             widget.trailing != null)
-                        ? 44
+                        ? (SqaTokens.spacingXXLarge + SqaTokens.spacingMedium)
                         : 0,
                   ),
                   child: LayoutBuilder(
@@ -403,7 +404,7 @@ class _SqaFieldState extends State<SqaField> {
                     builder: (context, stickyTop, child) {
                       return Positioned(
                         top: stickyTop,
-                        right: 4,
+                        right: SqaTokens.spacingXSmall,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -462,8 +463,8 @@ class _SqaFieldState extends State<SqaField> {
               Row(
                 children: [
                   if (widget.icon != null) ...[
-                    Icon(widget.icon, size: 14, color: colorScheme.primary),
-                    const SizedBox(width: 6),
+                    Icon(widget.icon, size: SqaTokens.fontSizeSmall + 2, color: colorScheme.primary),
+                    const SizedBox(width: SqaTokens.spacingXSmall + 2),
                   ],
                   Text(
                     widget.label,
@@ -477,7 +478,7 @@ class _SqaFieldState extends State<SqaField> {
               if (widget.trailing != null) widget.trailing!,
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
         ],
         if (widget.expands) Expanded(child: content) else content,
       ],
@@ -531,8 +532,8 @@ class _SqaFieldState extends State<SqaField> {
         ),
         border: InputBorder.none,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: SqaSpacing.small,
+          horizontal: SqaTokens.spacingLarge,
+          vertical: SqaTokens.spacingSmall,
         ),
       ),
       undoController: widget.undoController,
@@ -548,7 +549,7 @@ class _SqaFieldState extends State<SqaField> {
       return Scrollbar(
         controller: hController,
         thumbVisibility: true,
-        thickness: 4.0,
+        thickness: SqaTokens.spacingXSmall,
         radius: const Radius.circular(2),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -589,7 +590,7 @@ class _SqaFieldState extends State<SqaField> {
               textDirection: TextDirection.ltr,
             );
             // Ensure maxWidth is never negative
-            tp.layout(maxWidth: ((totalWidth - 40) - 32).clamp(0, double.infinity));
+            tp.layout(maxWidth: ((totalWidth - (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall)) - (SqaTokens.spacingXXLarge)).clamp(0, double.infinity));
             final visualLines = tp.computeLineMetrics().length;
             final effectiveLines = visualLines < 1 ? 1 : visualLines;
             for (int j = 0; j < effectiveLines; j++) {
@@ -600,14 +601,14 @@ class _SqaFieldState extends State<SqaField> {
           }
         }
 
-        return Container(
-          width: 40,
+        return SizedBox(
+          width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
           child: InputDecorator(
             decoration: const InputDecoration(
               filled: false,
               isDense: false,
               contentPadding: EdgeInsets.symmetric(
-                vertical: SqaSpacing.small,
+                vertical: SqaTokens.spacingSmall,
               ),
               border: InputBorder.none,
             ),
@@ -626,7 +627,7 @@ class _SqaFieldState extends State<SqaField> {
                     child: Transform.translate(
                       offset: Offset(0, -offset),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
                         child: Text(
                           numbers,
                           style: SqaTextStyles.mono(context).copyWith(
@@ -664,17 +665,25 @@ class _SqaFieldState extends State<SqaField> {
           setState(() {
             _isExpanded = !_isExpanded;
             if (!_isExpanded) {
-              _stickyTopNotifier.value = 4.0;
+              _stickyTopNotifier.value = SqaTokens.spacingXSmall;
             }
           });
         },
         child: Container(
           width: double.infinity,
-          height: _isExpanded ? 40 : 60,
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          height: _isExpanded ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : (SqaTokens.spacingXXXLarge + SqaTokens.spacingMedium),
+          padding: const EdgeInsets.fromLTRB(
+            SqaTokens.spacingLarge,
+            0,
+            SqaTokens.spacingLarge,
+            SqaTokens.spacingSmall,
+          ),
           alignment: Alignment.bottomCenter,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingMedium,
+              vertical: SqaTokens.spacingXSmall + 2,
+            ),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(20),
@@ -698,7 +707,7 @@ class _SqaFieldState extends State<SqaField> {
                   size: 14,
                   color: theme.colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: SqaTokens.spacingSmall),
                 Text(
                   _isExpanded
                       ? 'Show Less'
@@ -707,7 +716,7 @@ class _SqaFieldState extends State<SqaField> {
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,
                     letterSpacing: 1.1,
-                    fontSize: 10,
+                    fontSize: SqaTokens.fontSizeSmall - 2,
                   ),
                 ),
               ],
@@ -716,18 +725,5 @@ class _SqaFieldState extends State<SqaField> {
         ),
       ),
     );
-  }
-}
-
-class _NoScrollbarBehavior extends MaterialScrollBehavior {
-  const _NoScrollbarBehavior();
-
-  @override
-  Widget buildScrollbar(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    return child;
   }
 }

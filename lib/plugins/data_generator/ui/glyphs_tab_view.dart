@@ -13,7 +13,7 @@ import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import 'widgets/history_tile.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
-import '../../../ui/widgets/sqa_styles.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../core/utils/locale_names.dart';
 import 'package:flutter/services.dart';
 
@@ -52,7 +52,7 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
               SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           SqaButton.primary(
             label: 'Close',
             onPressed: () => Navigator.of(context).pop(),
@@ -66,7 +66,7 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
           isMultiline: true,
           maxLines: null,
           expands: true,
-          fontSize: 12,
+          fontSize: SqaTokens.fontSizeSmall,
           showLineNumbers: true,
           showCopyButton: false,
           initialValue: text,
@@ -98,9 +98,9 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
               textAlign: TextAlign.center,
             ),
           ),
-          SizedBox(height: SqaSpacing.xLarge),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           const GlyphsConfigPanel(),
-          SizedBox(height: SqaSpacing.xLarge),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           
           if (history.isNotEmpty) ...[
             Row(
@@ -128,12 +128,12 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
                     }
                   },
                   tooltip: 'Clear All',
-                  iconSize: 18,
+                  iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                   color: theme.colorScheme.error.withValues(alpha: 0.7),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             SqaCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -157,7 +157,7 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
                       ],
                     ),
                     if (i < history.length - 1) 
-                      const Divider(height: 1, indent: 64),
+                      const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
                   ],
                 ],
               ),
@@ -165,15 +165,15 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
           ] else
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
+                padding: const EdgeInsets.symmetric(vertical: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
                 child: Column(
                   children: [
                     Icon(
                       Symbols.history,
-                      size: 48,
+                      size: SqaTokens.spacingXXXLarge * 1.5,
                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: SqaTokens.spacingLarge),
                     Text(
                       'No history yet',
                       style: theme.textTheme.bodyMedium?.copyWith(

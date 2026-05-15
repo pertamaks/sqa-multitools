@@ -16,6 +16,7 @@ import '../../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../../ui/widgets/sqa_button.dart';
 import '../../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../core/models/capture_mode.dart';
 import '../../../../core/providers/plugin_provider.dart';
 import '../../../../core/providers/ffmpeg_provider.dart';
@@ -107,8 +108,8 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
       searchHint: 'Filter recordings...',
       trailing: ffmpegStatus.isDownloading
           ? SizedBox(
-              width: 16,
-              height: 16,
+              width: SqaTokens.spacingLarge,
+              height: SqaTokens.spacingLarge,
               child: CircularProgressIndicator(
                 value:
                     ffmpegStatus.downloadProgress != null &&
@@ -126,7 +127,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
           children: [
             // Hub Header: Session Configuration Summary
             SqaCard(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
               backgroundColor: state.isOverlayVisible
                   ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
                   : null,
@@ -149,7 +150,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                 letterSpacing: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: SqaTokens.spacingMedium),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -166,7 +167,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                     CaptureMode.window => 'Select Window',
                                   },
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: SqaTokens.spacingSmall),
                                 ConfigSnippet(
                                   icon: state.microphoneEnabled
                                       ? Symbols.mic
@@ -175,7 +176,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                       ? (state.selectedAudioDevice ?? 'Mic On')
                                       : 'No Audio',
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: SqaTokens.spacingSmall),
                                 ConfigSnippet(
                                   icon: Symbols.photo_size_select_large,
                                   label:
@@ -196,12 +197,12 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                               );
                         },
                         tooltip: 'Recording Settings',
-                        iconSize: 18,
+                        iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                         color: theme.colorScheme.primary,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: SqaTokens.spacingXLarge),
                   Row(
                     children: [
                       Expanded(
@@ -222,7 +223,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                               : null,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: SqaTokens.spacingMedium),
                       SqaButton.tonal(
                         onPressed: () => notifier.openSaveDirectory(),
                         icon: Symbols.folder_open,
@@ -234,7 +235,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: SqaTokens.spacingXXLarge),
 
             // Capture Mode Selection
             Text(
@@ -244,22 +245,22 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             SqaSegmentedButton<CaptureMode>(
               segments: const [
                 ButtonSegment(
                   value: CaptureMode.fullScreen,
-                  icon: Icon(Symbols.fullscreen, size: 18),
+                  icon: Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                   label: Text('Full Screen'),
                 ),
                 ButtonSegment(
                   value: CaptureMode.area,
-                  icon: Icon(Symbols.crop_free, size: 18),
+                  icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                   label: Text('Area'),
                 ),
                 ButtonSegment(
                   value: CaptureMode.window,
-                  icon: Icon(Symbols.window, size: 18),
+                  icon: Icon(Symbols.window, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                   label: Text('Window'),
                 ),
               ],
@@ -267,7 +268,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
               onSelectionChanged: (Set<CaptureMode> set) =>
                   notifier.setCaptureMode(set.first),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SqaTokens.spacingSmall),
             Text(
               switch (state.captureMode) {
                 CaptureMode.fullScreen =>
@@ -284,7 +285,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: SqaTokens.spacingXXLarge),
 
             // Recent Recordings List
             if (state.recentRecordings.isNotEmpty) ...[
@@ -295,7 +296,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: SqaTokens.spacingMedium),
               SqaCard(
                 padding: EdgeInsets.zero,
                 child: Column(
@@ -340,14 +341,14 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                 onOpenFolder: () =>
                                     notifier.openSaveDirectory(),
                               ),
-                              if (!isLast) const Divider(height: 1, indent: 56),
+                              if (!isLast) const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
                             ],
                           );
                         }),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: SqaTokens.spacingXXLarge),
             ],
           ],
         ),

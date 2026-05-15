@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_button.dart';
 import 'sqa_settings_button.dart';
-import 'sqa_styles.dart';
 import 'sqa_hover_icon_button.dart';
+import 'sqa_design_tokens.dart';
 
 /// A standardized row of action buttons: [Clear] | [Primary Action] | [Settings].
 ///
@@ -43,12 +43,12 @@ class SqaActionButtonGroup extends StatelessWidget {
           icon: Symbols.delete,
           onPressed: onClear!,
           color: theme.colorScheme.outline,
-          padding: 8,
-          iconSize: 20,
+          padding: SqaTokens.spacingSmall,
+          iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
           tooltip: clearTooltip ?? 'Clear Results',
-          borderRadius: SqaStyles.radiusLarge,
+          borderRadius: SqaTokens.borderRadiusLarge,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
 
         // Primary Action
         SqaButton.primary(
@@ -57,7 +57,7 @@ class SqaActionButtonGroup extends StatelessWidget {
           onPressed: onAction,
           width: actionWidth,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
 
         // Settings Gear
         SqaSettingsButton(

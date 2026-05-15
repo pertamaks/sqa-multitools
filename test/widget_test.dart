@@ -8,6 +8,7 @@ import 'package:sqa_multitools/core/services/preferences_service.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MockPathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -25,6 +26,8 @@ class MockFfmpeg extends Ffmpeg {
 }
 
 void main() {
+  GoogleFonts.config.allowRuntimeFetching = false;
+  
   testWidgets('App smoke test', (WidgetTester tester) async {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),

@@ -62,7 +62,7 @@ void main() {
 
       notifier.generate();
       expect(
-        container.read(identityProvider).resultsMap[IdentityType.email]?.length,
+        container.read(identityProvider).resultsMap[IdentityType.email]?.first.length,
         5,
       );
     });
@@ -87,7 +87,7 @@ void main() {
         container
             .read(identityProvider)
             .resultsMap[IdentityType.address]
-            ?.length,
+            ?.first.length,
         1,
       );
     });
@@ -108,9 +108,9 @@ void main() {
 
       final results =
           container.read(identityProvider).resultsMap[IdentityType.phone] ??
-          <String>[];
+          <List<String>>[];
 
-      for (final String phone in results) {
+      for (final String phone in results.first) {
         expect(phone.contains('!'), isFalse, reason: 'Phone $phone contains !');
         expect(phone.contains('#'), isFalse, reason: 'Phone $phone contains #');
       }
@@ -133,9 +133,9 @@ void main() {
       notifier.generate();
       final results1 =
           container.read(identityProvider).resultsMap[IdentityType.phone] ??
-          <String>[];
+          <List<String>>[];
 
-      for (final String phone in results1) {
+      for (final String phone in results1.first) {
         expect(
           phone.contains(' x'),
           isFalse,
@@ -150,8 +150,8 @@ void main() {
 
       final results2 =
           container.read(identityProvider).resultsMap[IdentityType.phone] ??
-          <String>[];
-      final hasExtension = results2.any((String phone) => phone.contains(' x'));
+          <List<String>>[];
+      final hasExtension = results2.first.any((String phone) => phone.contains(' x'));
       expect(
         hasExtension,
         isTrue,

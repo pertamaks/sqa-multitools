@@ -1,29 +1,25 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'sqa_design_tokens.dart';
 
-/// Centralized UI styles and tokens for SQA-Multitools.
-///
-/// This class ensures design consistency across all plugins by providing
-/// standardized values for border radius, spacing, and interaction states.
 class SqaStyles {
   // --- Border Radius Tiers ---
 
-  /// Small radius (6.0) for compact controls like dropdowns and small switches.
-  static final radiusSmall = BorderRadius.circular(6.0);
+  /// Small radius for compact controls.
+  static final radiusSmall = SqaTokens.borderRadiusSmall;
 
-  /// Medium radius (8.0) for interactive elements like buttons and segmented controls.
-  static final radiusMedium = BorderRadius.circular(8.0);
+  /// Medium radius for interactive elements.
+  static final radiusMedium = SqaTokens.borderRadiusMedium;
 
-  /// Large radius (24.0) for major UI sections and windows.
-  static final radiusLarge = BorderRadius.circular(12.0);
+  /// Large radius for major UI sections.
+  static final radiusLarge = SqaTokens.borderRadiusLarge;
 
-  /// Extra large radius (32.0) for special containers.
-  static final radiusExtraLarge = BorderRadius.circular(32.0);
+  /// Extra large radius for special containers.
+  static final radiusExtraLarge = SqaTokens.borderRadiusExtraLarge;
 
-  /// Standard window radius (12.0).
-  static const double radiusWindow = 8.0;
-  static final borderRadiusWindow = BorderRadius.circular(radiusWindow);
+  /// Standard window radius.
+  static const double radiusWindow = SqaTokens.windowRadius;
+  static final borderRadiusWindow = SqaTokens.borderRadiusLarge;
 
   /// Margin around the window content (0.0 since shadow is removed).
   static const double shellMargin = 0.0;
@@ -75,69 +71,49 @@ class SqaStyles {
 /// Standardized spacing tokens for SQA-Multitools.
 class SqaSpacing {
   /// 4.0
-  static const double xSmall = 4.0;
+  static const double xSmall = SqaTokens.spacingXSmall;
 
   /// 8.0
-  static const double small = 8.0;
+  static const double small = SqaTokens.spacingSmall;
 
   /// 12.0
-  static const double medium = 12.0;
+  static const double medium = SqaTokens.spacingMedium;
 
   /// 16.0
-  static const double large = 16.0;
+  static const double large = SqaTokens.spacingLarge;
 
   /// 24.0
-  static const double xLarge = 24.0;
+  static const double xLarge = SqaTokens.spacingXLarge;
 
   /// 32.0
-  static const double xxLarge = 32.0;
+  static const double xxLarge = SqaTokens.spacingXXLarge;
 
   /// 48.0
-  static const double xxxLarge = 48.0;
+  static const double xxxLarge = SqaTokens.spacingXXXLarge;
 
   // --- Layout Constants ---
-  static const double horizontalPadding = 16.0;
-  static const double verticalPadding = 12.0;
+  static const double horizontalPadding = SqaTokens.contentPaddingHorizontal;
+  static const double verticalPadding = SqaTokens.contentPaddingVertical;
 }
 
 
 /// Centralized Typography system for SQA-Multitools.
 class SqaTextStyles {
-  /// Standard headline style (20px, Bold)
-  static TextStyle headline(BuildContext context) =>
-      GoogleFonts.dmSans(
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
-        color: Theme.of(context).colorScheme.onSurface,
-      );
+  /// Standard headline style
+  static TextStyle headline(BuildContext context) => SqaTokens.headline(context);
 
   /// Standard body style
-  static TextStyle body(BuildContext context) =>
-      GoogleFonts.dmSans(
-        fontSize: 14,
-        color: Theme.of(context).colorScheme.onSurface,
-      );
+  static TextStyle body(BuildContext context) => SqaTokens.body(context);
 
-  /// Secondary body style (faded/italic)
-  static TextStyle bodySecondary(BuildContext context) =>
-      GoogleFonts.dmSans(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        fontSize: 12,
-      );
+  /// Secondary body style
+  static TextStyle bodySecondary(BuildContext context) => SqaTokens.bodySecondary(context);
 
-  /// Standard label style (Bold, 12px)
-  static TextStyle labelBold(BuildContext context) =>
-      GoogleFonts.dmSans(
-        fontWeight: FontWeight.bold,
-        fontSize: 12,
-      );
+  /// Standard label style
+  static TextStyle labelBold(BuildContext context) => SqaTokens.labelBold(context);
 
-  /// Monospace style for codes/timers
+  /// Monospace style
   static TextStyle mono(BuildContext context, {double? fontSize, Color? color}) =>
-      GoogleFonts.jetBrainsMono(
-        fontSize: fontSize,
-        color: color,
-      );
+      SqaTokens.mono(context, fontSize: fontSize, color: color);
 }
 
 /// A custom scroll behavior that enables mouse dragging (click and drag) on desktop.

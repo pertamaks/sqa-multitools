@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:flutter/services.dart';
+
 import '../models/dev_state.dart';
 import '../providers/dev_provider.dart';
 import '../providers/identity_provider.dart';
 import '../widgets/dev_config_panel.dart';
+import 'widgets/history_tile.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_toast.dart';
-import 'widgets/history_tile.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
-import '../../../ui/widgets/sqa_styles.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../core/utils/locale_names.dart';
-import 'package:flutter/services.dart';
 
 class DevTabView extends ConsumerStatefulWidget {
   const DevTabView({super.key});
@@ -67,7 +68,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
               SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           SqaButton.primary(
             label: 'Close',
             onPressed: () => Navigator.of(context).pop(),
@@ -81,7 +82,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
           isMultiline: true,
           maxLines: null,
           expands: true,
-          fontSize: 12,
+          fontSize: SqaTokens.spacingMedium,
           showLineNumbers: true,
           showCopyButton: false,
           initialValue: text,
@@ -113,9 +114,9 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
               textAlign: TextAlign.center,
             ),
           ),
-          SizedBox(height: SqaSpacing.xLarge),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           const DevConfigPanel(),
-          SizedBox(height: SqaSpacing.xLarge),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           
           if (history.isNotEmpty) ...[
             Row(
@@ -143,12 +144,12 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
                     }
                   },
                   tooltip: 'Clear All',
-                  iconSize: 18,
+                  iconSize: SqaTokens.spacingLarge + 2,
                   color: theme.colorScheme.error.withValues(alpha: 0.7),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: SqaTokens.spacingMedium),
             SqaCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -179,7 +180,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
                       ],
                     ),
                     if (i < history.length - 1) 
-                      const Divider(height: 1, indent: 64),
+                      const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
                   ],
                 ],
               ),
@@ -187,15 +188,15 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
           ] else
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
+                padding: const EdgeInsets.symmetric(vertical: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge),
                 child: Column(
                   children: [
                     Icon(
                       Symbols.history,
-                      size: 48,
+                      size: SqaTokens.spacingXXXLarge * 1.5,
                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: SqaTokens.spacingLarge),
                     Text(
                       'No history yet',
                       style: theme.textTheme.bodyMedium?.copyWith(

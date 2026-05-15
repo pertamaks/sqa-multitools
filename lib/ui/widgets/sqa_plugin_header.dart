@@ -3,7 +3,6 @@ import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
 import 'sqa_hover_icon_button.dart';
-import 'sqa_styles.dart';
 
 class SqaPluginHeader extends StatelessWidget {
   final IconData? icon;

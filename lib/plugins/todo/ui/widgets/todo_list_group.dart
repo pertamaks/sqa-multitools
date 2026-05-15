@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import '../../models/todo_item.dart';
 import 'todo_list_item.dart';
 import '../../../../ui/widgets/sqa_styles.dart';

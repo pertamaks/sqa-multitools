@@ -15,7 +15,6 @@ import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_switch.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_modal.dart';
-import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../core/providers/plugin_provider.dart';

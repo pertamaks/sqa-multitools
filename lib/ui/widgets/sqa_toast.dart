@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_design_tokens.dart';
@@ -106,6 +107,7 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
   late AnimationController _controller;
   late Animation<double> _opacity;
   late Animation<Offset> _offset;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -132,16 +134,19 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
   }
 
   Future<void> _show() async {
+    if (!mounted) return;
     await _controller.forward();
-    await Future.delayed(widget.duration);
-    if (mounted) {
-      await _controller.reverse();
-      widget.onDismissed();
-    }
+    _timer = Timer(widget.duration, () async {
+      if (mounted) {
+        await _controller.reverse();
+        widget.onDismissed();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }

@@ -4,11 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
-import '../../models/todo_state.dart';
 import '../../models/todo_item.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import '../../../../ui/widgets/sqa_styles.dart';
 import 'todo_list_item.dart';
 
 class TodoHistoryView extends ConsumerStatefulWidget {

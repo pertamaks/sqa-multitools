@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
-import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class InteractiveTimeSegment extends StatefulWidget {
   final int value;

@@ -39,5 +39,8 @@ void main() {
 
     // Verify icon is present (success uses check_circle)
     expect(find.byType(Icon), findsOneWidget);
+
+    // Wait for the toast to dismiss to clear pending timers
+    await tester.pumpAndSettle();
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import '../../ui/widgets/sqa_styles.dart';
@@ -42,18 +44,24 @@ class SqaTheme {
       );
     }
 
-    // Base text theme using Inter
-    final baseTextTheme = GoogleFonts.dmSansTextTheme(
-      brightness == Brightness.dark
+    final isTest = kIsWeb || Platform.environment.containsKey('FLUTTER_TEST');
+
+    final textTheme = brightness == Brightness.dark
           ? ThemeData.dark().textTheme
-          : ThemeData.light().textTheme,
-    );
+          : ThemeData.light().textTheme;
+
+    // Use standard fonts in tests to avoid network/asset issues with GoogleFonts
+    final baseTextTheme = isTest
+        ? textTheme
+        : GoogleFonts.dmSansTextTheme(textTheme);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       brightness: brightness,
-      fontFamily: GoogleFonts.dmSans().fontFamily,
+      fontFamily: isTest
+          ? null
+          : GoogleFonts.dmSans().fontFamily,
       textTheme: baseTextTheme.apply(
         bodyColor: scheme.onSurface,
         displayColor: scheme.onSurface,
@@ -96,15 +104,19 @@ class SqaTheme {
           }
           return null;
         }),
-        headerHeadlineStyle: GoogleFonts.dmSans(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-        headerHelpStyle: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        dayStyle: GoogleFonts.inter(fontSize: 14),
+        headerHeadlineStyle: isTest
+            ? const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)
+            : GoogleFonts.dmSans(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+        headerHelpStyle: isTest
+            ? const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)
+            : GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+        dayStyle: isTest ? const TextStyle(fontSize: 14) : GoogleFonts.inter(fontSize: 14),
       ),
       timePickerTheme: TimePickerThemeData(
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
@@ -132,14 +144,18 @@ class SqaTheme {
           if (states.contains(WidgetState.selected)) return scheme.onPrimary;
           return scheme.onSurfaceVariant;
         }),
-        hourMinuteTextStyle: GoogleFonts.jetBrainsMono(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-        ),
-        dayPeriodTextStyle: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
+        hourMinuteTextStyle: isTest
+            ? const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)
+            : GoogleFonts.jetBrainsMono(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+        dayPeriodTextStyle: isTest
+            ? const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)
+            : GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
       ),
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),

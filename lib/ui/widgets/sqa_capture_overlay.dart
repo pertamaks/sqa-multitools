@@ -342,7 +342,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
   Offset _clampOffset(Offset offset, Size screenSize) {
     final double barWidth = _estimatedBarWidth + SqaTokens.spacingXXLarge; // Allow slight buffer
-    const double barHeight = 60.0;
     const double padding = SqaTokens.spacingMedium;
 
     return Offset(

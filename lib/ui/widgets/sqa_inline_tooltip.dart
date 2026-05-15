@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'sqa_design_tokens.dart';
-import 'sqa_styles.dart';
 
 /// A centralized state for the inline tooltip overlay.
 class _SqaInlineTooltipState extends InheritedWidget {

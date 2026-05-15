@@ -7,7 +7,6 @@ import 'package:html/dom.dart' as dom;
 import 'sqa_markdown_table.dart';
 import 'sqa_grid_table.dart';
 import 'sqa_field.dart';
-import 'sqa_styles.dart';
 import 'sqa_scroll_behavior.dart';
 
 /// A high-fidelity Markdown viewer that uses a custom AST visitor to render

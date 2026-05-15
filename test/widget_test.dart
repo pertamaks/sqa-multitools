@@ -16,6 +16,8 @@ class MockPathProvider extends PathProviderPlatform
   Future<String?> getApplicationDocumentsPath() async => './test_docs';
   @override
   Future<String?> getTemporaryPath() async => './test_temp';
+  @override
+  Future<String?> getApplicationSupportPath() async => './test_support';
 }
 
 class MockFfmpeg extends Ffmpeg {
@@ -92,7 +94,7 @@ void main() {
 
       // Dispose the ProviderScope to clean up any active timers from plugins
       await tester.pumpWidget(Container());
-      await tester.pump();
+      await tester.pumpAndSettle();
     });
   });
 }

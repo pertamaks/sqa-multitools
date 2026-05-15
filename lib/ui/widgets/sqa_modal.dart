@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'sqa_card.dart';
-import 'sqa_styles.dart';
 import 'sqa_fade_wrapper.dart';
 import 'sqa_hover_icon_button.dart';
 

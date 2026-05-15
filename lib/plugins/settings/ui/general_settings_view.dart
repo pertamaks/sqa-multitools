@@ -29,10 +29,10 @@ class GeneralSettingsView extends ConsumerWidget {
     {'name': 'Wasabi', 'color': Color(0xFF96B85D)}, // 2026 Trend
     {'name': 'Jade', 'color': Color(0xFF00A86B)}, // 2026 Trend
     {'name': 'Coffee', 'color': Color(0xFF795548)},
-    {'name': 'Ruby', 'color': Color(0xE91E63)},
-    {'name': 'Amethyst', 'color': Color(0x673AB7)},
-    {'name': 'Emerald', 'color': Color(0x4CAF50)},
-    {'name': 'Sapphire', 'color': Color(0x2196F3)},
+    {'name': 'Ruby', 'color': Color(0xFFE91E63)},
+    {'name': 'Amethyst', 'color': Color(0xFF673AB7)},
+    {'name': 'Emerald', 'color': Color(0xFF4CAF50)},
+    {'name': 'Sapphire', 'color': Color(0xFF2196F3)},
   ];
 
   Widget _buildTierBadge(

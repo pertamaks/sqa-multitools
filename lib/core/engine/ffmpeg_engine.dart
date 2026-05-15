@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:archive/archive_io.dart';
-import 'package:flutter/foundation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import '../models/capture_mode.dart';
 import 'ffmpeg_platform_config.dart';
@@ -75,7 +73,7 @@ class FfmpegEngine {
     void Function(double progress) onProgress,
   ) async {
     final dir = await getApplicationSupportDirectory();
-    final zipFile = File(p.join(dir.path, 'ffmpeg_temp.zip'));
+    final archiveFile = File(p.join(dir.path, _config.archiveTempName));
     final ffmpegDir = Directory(p.join(dir.path, 'ffmpeg'));
 
     try {
@@ -89,7 +87,7 @@ class FfmpegEngine {
 
       final contentLength = response.contentLength;
       int receivedBytes = 0;
-      final sink = zipFile.openWrite();
+      final sink = archiveFile.openWrite();
 
       await for (var chunk in response) {
         receivedBytes += chunk.length;
@@ -104,14 +102,13 @@ class FfmpegEngine {
         onProgress(1.0); // Assume done if length was unknown
       }
 
-      // Extract ZIP
+      // Extract archive (format handled by platform config)
       onProgress(-1); // Indeterminate state during extraction
 
-      // We run extraction in an isolate to avoid freezing the UI since the zip is large.
-      await compute(_extractZip, {
-        'zipPath': zipFile.path,
-        'destPath': ffmpegDir.path,
-      });
+      if (!await ffmpegDir.exists()) {
+        await ffmpegDir.create(recursive: true);
+      }
+      await _config.extractArchive(archiveFile.path, ffmpegDir.path);
 
       // We must optionally move the bin contents up, or just find ffmpeg binary.
       final extractedBins = await ffmpegDir
@@ -128,22 +125,16 @@ class FfmpegEngine {
         await actualExe.copy(targetExe.path);
         _resolvedExecutable = targetExe.path;
       } else {
-        throw Exception('ffmpeg.exe not found in downloaded archive.');
+        throw Exception('$_executableName not found in downloaded archive.');
       }
     } finally {
-      if (await zipFile.exists()) {
-        await zipFile.delete();
+      if (await archiveFile.exists()) {
+        await archiveFile.delete();
       }
     }
   }
 
-  static Future<void> _extractZip(Map<String, String> args) async {
-    final zipPath = args['zipPath']!;
-    final destPath = args['destPath']!;
-    extractFileToDisk(zipPath, destPath);
-  }
-
-  /// Lists available audio input devices using FFmpeg's dshow.
+  /// Lists available audio input devices using the platform's audio backend.
   static Future<List<String>> listAudioDevices() async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return [];
 

@@ -16,6 +16,9 @@ import 'window_native_api.dart';
 class WindowNativeApiWindows implements WindowNativeApi {
   int _cachedAppHwnd = 0;
 
+  @override
+  bool get supportsGlobalMousePolling => true;
+
   // ---------------------------------------------------------------------------
   // Window discovery
   // ---------------------------------------------------------------------------

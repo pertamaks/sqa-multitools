@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -131,7 +130,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
       _isPollingProcessing = true;
       try {
-        if (Platform.isWindows) {
+        if (WindowUtils.supportsGlobalMousePolling) {
           final leftDown = WindowUtils.isLeftMouseDown();
           final rightDown = WindowUtils.isRightMouseDown();
 

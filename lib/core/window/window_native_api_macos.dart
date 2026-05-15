@@ -5,6 +5,10 @@ import 'window_native_api.dart';
 /// Currently a shell to be implemented using AppKit/Swift bridging.
 class WindowNativeApiMacOS implements WindowNativeApi {
   @override
+  // TBD: Set to true once NSEvent.pressedMouseButtons is implemented.
+  bool get supportsGlobalMousePolling => false;
+
+  @override
   WindowInfo? getWindowInfoAt() {
     // TBD: Implement using CGWindowListCopyWindowInfo or similar
     return null;

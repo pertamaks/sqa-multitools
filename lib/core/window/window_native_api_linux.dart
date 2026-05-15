@@ -6,6 +6,10 @@ import 'window_native_api.dart';
 /// or portal APIs (Wayland).
 class WindowNativeApiLinux implements WindowNativeApi {
   @override
+  // TBD: Set to true once xinput/XQueryPointer is implemented.
+  bool get supportsGlobalMousePolling => false;
+
+  @override
   WindowInfo? getWindowInfoAt() {
     // TBD: Implement using xwininfo / xdotool getwindowfocus
     return null;

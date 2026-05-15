@@ -71,6 +71,8 @@ dependencies:
   path_provider: ^2.1.5
   screen_retriever: ^0.2.0
   file_selector: ^1.1.0
+  # win32 is only imported on Windows via conditional imports in
+  # window_native_api_loader.dart. Safe to keep as unconditional dep.
   win32: ^5.15.0
   markdown: ^7.3.1
   http: ^1.2.1

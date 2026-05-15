@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:archive/archive_io.dart';
+import 'package:flutter/foundation.dart';
 import 'ffmpeg_engine.dart';
 
 /// Strategy interface for platform-specific FFmpeg configurations.
@@ -8,6 +10,19 @@ abstract class FfmpegPlatformConfig {
 
   /// The name of the FFmpeg executable (e.g., 'ffmpeg.exe' or 'ffmpeg').
   String get executableName;
+
+  /// The temp filename for the downloaded archive (e.g., 'ffmpeg_temp.zip').
+  String get archiveTempName;
+
+  /// Extracts the downloaded archive to the given directory.
+  /// Override this for platforms that use non-ZIP formats (e.g., .tar.xz).
+  Future<void> extractArchive(String archivePath, String destPath) async {
+    // Default: ZIP extraction via the `archive` package in an isolate
+    await compute(_extractZipSync, {
+      'archivePath': archivePath,
+      'destPath': destPath,
+    });
+  }
 
   /// The input format for video capture (e.g., 'gdigrab', 'avfoundation', 'x11grab').
   String get videoInputFormat;
@@ -45,6 +60,11 @@ abstract class FfmpegPlatformConfig {
   }
 }
 
+/// ZIP extraction helper used by the default [FfmpegPlatformConfig.extractArchive].
+void _extractZipSync(Map<String, String> args) {
+  extractFileToDisk(args['archivePath']!, args['destPath']!);
+}
+
 /// Windows implementation using gdigrab and dshow.
 class WindowsFfmpegConfig implements FfmpegPlatformConfig {
   @override
@@ -53,6 +73,9 @@ class WindowsFfmpegConfig implements FfmpegPlatformConfig {
 
   @override
   String get executableName => 'ffmpeg.exe';
+
+  @override
+  String get archiveTempName => 'ffmpeg_temp.zip';
 
   @override
   String get videoInputFormat => 'gdigrab';
@@ -98,6 +121,14 @@ class WindowsFfmpegConfig implements FfmpegPlatformConfig {
 
   @override
   RegExp get audioDeviceRegex => RegExp(r'\[dshow @ .*\] "(.*)" \(audio\)');
+
+  @override
+  Future<void> extractArchive(String archivePath, String destPath) async {
+    await compute(_extractZipSync, {
+      'archivePath': archivePath,
+      'destPath': destPath,
+    });
+  }
 }
 
 /// macOS implementation shell (AVFoundation).
@@ -107,6 +138,9 @@ class MacOsFfmpegConfig implements FfmpegPlatformConfig {
 
   @override
   String get executableName => 'ffmpeg';
+
+  @override
+  String get archiveTempName => 'ffmpeg_temp.zip';
 
   @override
   String get videoInputFormat => 'avfoundation';
@@ -144,6 +178,14 @@ class MacOsFfmpegConfig implements FfmpegPlatformConfig {
 
   @override
   RegExp get audioDeviceRegex => RegExp(r'\[AVFoundation .*\] \[\d+\] (.*)');
+
+  @override
+  Future<void> extractArchive(String archivePath, String destPath) async {
+    await compute(_extractZipSync, {
+      'archivePath': archivePath,
+      'destPath': destPath,
+    });
+  }
 }
 
 /// Linux implementation shell (x11grab/pulse).
@@ -153,6 +195,19 @@ class LinuxFfmpegConfig implements FfmpegPlatformConfig {
 
   @override
   String get executableName => 'ffmpeg';
+
+  @override
+  String get archiveTempName => 'ffmpeg_temp.tar.xz';
+
+  @override
+  Future<void> extractArchive(String archivePath, String destPath) async {
+    // Linux archives are .tar.xz — use system tar for extraction
+    // since the `archive` package may not handle .xz natively.
+    final result = await Process.run('tar', ['-xf', archivePath, '-C', destPath]);
+    if (result.exitCode != 0) {
+      throw Exception('tar extraction failed: ${result.stderr}');
+    }
+  }
 
   @override
   String get videoInputFormat => 'x11grab';

@@ -7,6 +7,9 @@ class WindowNativeApiStub implements WindowNativeApi {
   const WindowNativeApiStub();
 
   @override
+  bool get supportsGlobalMousePolling => false;
+
+  @override
   WindowInfo? getWindowInfoAt() => null;
 
   @override

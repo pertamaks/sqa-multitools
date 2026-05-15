@@ -63,6 +63,11 @@ abstract class WindowNativeApi {
   // Input state
   // ---------------------------------------------------------------------------
 
+  /// Whether this platform supports polling global mouse button state.
+  /// When [false], the overlay should rely on Flutter's gesture system instead
+  /// of calling [isLeftMouseDown] / [isRightMouseDown].
+  bool get supportsGlobalMousePolling => false;
+
   /// Returns [true] if the left mouse button is currently held down.
   /// Returns [false] if unavailable or not supported.
   bool isLeftMouseDown();

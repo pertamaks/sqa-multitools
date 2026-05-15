@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/window/window_utils.dart';
-import 'core/window/window_native_api.dart';
-import 'core/window/window_native_api_windows.dart';
+import 'core/window/window_native_api_loader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -63,9 +61,7 @@ void main() async {
   };
 
   // Register the platform-specific native window API implementation.
-  if (Platform.isWindows) {
-    WindowNativeApi.register(WindowNativeApiWindows());
-  }
+  initializePlatformNativeApi();
 
   AudioService.instance.init();
 

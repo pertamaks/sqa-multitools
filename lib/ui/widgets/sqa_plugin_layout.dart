@@ -70,9 +70,9 @@ class SqaPluginLayout extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
+                        SqaTokens.spacingXLarge,
                         SqaTokens.spacingLarge,
-                        SqaTokens.spacingLarge,
-                        SqaTokens.spacingLarge,
+                        SqaTokens.spacingXLarge,
                         SqaTokens.spacingMedium,
                       ),
                       child: SqaPluginHeader(
@@ -101,9 +101,9 @@ class SqaPluginLayout extends StatelessWidget {
                       child: (isSquare && searchController != null)
                           ? Padding(
                               padding: const EdgeInsets.fromLTRB(
-                                SqaTokens.spacingLarge,
+                                SqaTokens.spacingXLarge,
                                 0,
-                                SqaTokens.spacingLarge,
+                                SqaTokens.spacingXLarge,
                                 SqaTokens.spacingMedium,
                               ),
                               child: SqaSearchFilterBar(

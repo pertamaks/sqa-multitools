@@ -44,7 +44,7 @@ class SqaTokens {
 
   // --- Layout ---
   static const double windowRadius = radiusLarge;
-  static const double contentPaddingHorizontal = spacingLarge;
+  static const double contentPaddingHorizontal = spacingXLarge;
   static const double contentPaddingVertical = spacingMedium;
   static const double toolbarHeight = 56.0;
 

@@ -16,7 +16,7 @@ class SqaPluginScrollableContent extends StatefulWidget {
   const SqaPluginScrollableContent({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(SqaTokens.spacingLarge),
+    this.padding = const EdgeInsets.all(SqaTokens.spacingXLarge),
     this.controller,
     this.center = true,
   });

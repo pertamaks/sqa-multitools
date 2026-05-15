@@ -84,15 +84,15 @@ class _RequestTabState extends ConsumerState<RequestTab> {
                   controller: widget.scrollController,
                   child: SingleChildScrollView(
                     controller: widget.scrollController,
-                    padding: const EdgeInsets.all(SqaTokens.spacingLarge),
+                    padding: const EdgeInsets.all(SqaTokens.contentPaddingHorizontal),
                     child: _buildUnifiedGridContent(context, ref),
                   ),
                 )
               : Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    SqaTokens.spacingLarge,
+                    SqaTokens.contentPaddingHorizontal,
                     SqaTokens.spacingMedium,
-                    SqaTokens.spacingLarge,
+                    SqaTokens.contentPaddingHorizontal,
                     SqaTokens.spacingLarge,
                   ),
                   child: _buildCommandDeckContent(context),
@@ -105,9 +105,9 @@ class _RequestTabState extends ConsumerState<RequestTab> {
   Widget _buildRequestHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(
-        SqaTokens.spacingLarge,
+        SqaTokens.contentPaddingHorizontal,
         SqaTokens.spacingMedium,
-        SqaTokens.spacingLarge,
+        SqaTokens.contentPaddingHorizontal,
         SqaTokens.spacingMedium,
       ),
       decoration: BoxDecoration(

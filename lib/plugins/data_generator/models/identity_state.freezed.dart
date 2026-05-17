@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$IdentityState {
 
- IdentityType get selectedType; int get quantity; String get customDomain; FakerLocaleType get locale; bool get includeFormatting; bool get includeExtension; Map<IdentityType, List<String>> get resultsMap;
+ IdentityType get selectedType; int get quantity; String get customDomain; FakerLocaleType get locale; bool get includeFormatting; bool get includeExtension; Map<IdentityType, List<List<String>>> get resultsMap;
 /// Create a copy of IdentityState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $IdentityStateCopyWith<$Res>  {
   factory $IdentityStateCopyWith(IdentityState value, $Res Function(IdentityState) _then) = _$IdentityStateCopyWithImpl;
 @useResult
 $Res call({
- IdentityType selectedType, int quantity, String customDomain, FakerLocaleType locale, bool includeFormatting, bool includeExtension, Map<IdentityType, List<String>> resultsMap
+ IdentityType selectedType, int quantity, String customDomain, FakerLocaleType locale, bool includeFormatting, bool includeExtension, Map<IdentityType, List<List<String>>> resultsMap
 });
 
 
@@ -71,7 +71,7 @@ as String,locale: null == locale ? _self.locale : locale // ignore: cast_nullabl
 as FakerLocaleType,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
 as bool,includeExtension: null == includeExtension ? _self.includeExtension : includeExtension // ignore: cast_nullable_to_non_nullable
 as bool,resultsMap: null == resultsMap ? _self.resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<IdentityType, List<String>>,
+as Map<IdentityType, List<List<String>>>,
   ));
 }
 
@@ -156,7 +156,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IdentityType selectedType,  int quantity,  String customDomain,  FakerLocaleType locale,  bool includeFormatting,  bool includeExtension,  Map<IdentityType, List<String>> resultsMap)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IdentityType selectedType,  int quantity,  String customDomain,  FakerLocaleType locale,  bool includeFormatting,  bool includeExtension,  Map<IdentityType, List<List<String>>> resultsMap)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _IdentityState() when $default != null:
 return $default(_that.selectedType,_that.quantity,_that.customDomain,_that.locale,_that.includeFormatting,_that.includeExtension,_that.resultsMap);case _:
@@ -177,7 +177,7 @@ return $default(_that.selectedType,_that.quantity,_that.customDomain,_that.local
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IdentityType selectedType,  int quantity,  String customDomain,  FakerLocaleType locale,  bool includeFormatting,  bool includeExtension,  Map<IdentityType, List<String>> resultsMap)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IdentityType selectedType,  int quantity,  String customDomain,  FakerLocaleType locale,  bool includeFormatting,  bool includeExtension,  Map<IdentityType, List<List<String>>> resultsMap)  $default,) {final _that = this;
 switch (_that) {
 case _IdentityState():
 return $default(_that.selectedType,_that.quantity,_that.customDomain,_that.locale,_that.includeFormatting,_that.includeExtension,_that.resultsMap);case _:
@@ -197,7 +197,7 @@ return $default(_that.selectedType,_that.quantity,_that.customDomain,_that.local
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IdentityType selectedType,  int quantity,  String customDomain,  FakerLocaleType locale,  bool includeFormatting,  bool includeExtension,  Map<IdentityType, List<String>> resultsMap)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IdentityType selectedType,  int quantity,  String customDomain,  FakerLocaleType locale,  bool includeFormatting,  bool includeExtension,  Map<IdentityType, List<List<String>>> resultsMap)?  $default,) {final _that = this;
 switch (_that) {
 case _IdentityState() when $default != null:
 return $default(_that.selectedType,_that.quantity,_that.customDomain,_that.locale,_that.includeFormatting,_that.includeExtension,_that.resultsMap);case _:
@@ -212,7 +212,7 @@ return $default(_that.selectedType,_that.quantity,_that.customDomain,_that.local
 
 
 class _IdentityState implements IdentityState {
-  const _IdentityState({this.selectedType = IdentityType.email, this.quantity = 1, this.customDomain = '', this.locale = FakerLocaleType.en_US, this.includeFormatting = true, this.includeExtension = false, final  Map<IdentityType, List<String>> resultsMap = const {}}): _resultsMap = resultsMap;
+  const _IdentityState({this.selectedType = IdentityType.email, this.quantity = 1, this.customDomain = '', this.locale = FakerLocaleType.en_US, this.includeFormatting = true, this.includeExtension = false, final  Map<IdentityType, List<List<String>>> resultsMap = const <IdentityType, List<List<String>>>{}}): _resultsMap = resultsMap;
   
 
 @override@JsonKey() final  IdentityType selectedType;
@@ -221,8 +221,8 @@ class _IdentityState implements IdentityState {
 @override@JsonKey() final  FakerLocaleType locale;
 @override@JsonKey() final  bool includeFormatting;
 @override@JsonKey() final  bool includeExtension;
- final  Map<IdentityType, List<String>> _resultsMap;
-@override@JsonKey() Map<IdentityType, List<String>> get resultsMap {
+ final  Map<IdentityType, List<List<String>>> _resultsMap;
+@override@JsonKey() Map<IdentityType, List<List<String>>> get resultsMap {
   if (_resultsMap is EqualUnmodifiableMapView) return _resultsMap;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_resultsMap);
@@ -259,7 +259,7 @@ abstract mixin class _$IdentityStateCopyWith<$Res> implements $IdentityStateCopy
   factory _$IdentityStateCopyWith(_IdentityState value, $Res Function(_IdentityState) _then) = __$IdentityStateCopyWithImpl;
 @override @useResult
 $Res call({
- IdentityType selectedType, int quantity, String customDomain, FakerLocaleType locale, bool includeFormatting, bool includeExtension, Map<IdentityType, List<String>> resultsMap
+ IdentityType selectedType, int quantity, String customDomain, FakerLocaleType locale, bool includeFormatting, bool includeExtension, Map<IdentityType, List<List<String>>> resultsMap
 });
 
 
@@ -285,7 +285,7 @@ as String,locale: null == locale ? _self.locale : locale // ignore: cast_nullabl
 as FakerLocaleType,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
 as bool,includeExtension: null == includeExtension ? _self.includeExtension : includeExtension // ignore: cast_nullable_to_non_nullable
 as bool,resultsMap: null == resultsMap ? _self._resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<IdentityType, List<String>>,
+as Map<IdentityType, List<List<String>>>,
   ));
 }
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaColorPicker extends StatelessWidget {
   final String? activeColor;
@@ -65,17 +65,20 @@ class SqaColorPicker extends StatelessWidget {
         elevation: WidgetStateProperty.all(8),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: SqaStyles.radiusMedium,
+            borderRadius: SqaTokens.borderRadiusMedium,
             side: BorderSide(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
           ),
         ),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(12)),
+        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingMedium)),
       ),
       menuChildren: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+          padding: const EdgeInsets.only(
+            bottom: SqaTokens.spacingSmall, 
+            left: SqaTokens.spacingXSmall,
+          ),
           child: Text(
             isBackground ? 'Highlight Color' : 'Text Color',
             style: theme.textTheme.labelSmall?.copyWith(
@@ -87,8 +90,8 @@ class SqaColorPicker extends StatelessWidget {
         SizedBox(
           width: 160, // 4 items per row
           child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: SqaTokens.spacingSmall,
+            runSpacing: SqaTokens.spacingSmall,
             children: colors.map((color) {
               final isSelected =
                   (color['hex'] == '' && activeColor == null) ||
@@ -98,18 +101,18 @@ class SqaColorPicker extends StatelessWidget {
                 onTap: () {
                   onColorSelected(color['hex'] == '' ? null : color['hex']);
                 },
-                borderRadius: SqaStyles.radiusSmall,
+                borderRadius: SqaTokens.borderRadiusSmall,
                 mouseCursor: SystemMouseCursors.click,
                 child: Container(
-                  width: 32,
-                  height: 32,
+                  width: SqaTokens.spacingXXLarge,
+                  height: SqaTokens.spacingXXLarge,
                   decoration: BoxDecoration(
                     color: color['hex'] == ''
                         ? Colors.transparent
                         : Color(
                             int.parse(color['hex']!.replaceFirst('#', '0xFF')),
                           ),
-                    borderRadius: SqaStyles.radiusSmall,
+                    borderRadius: SqaTokens.borderRadiusSmall,
                     border: Border.all(
                       color: isSelected
                           ? theme.colorScheme.primary
@@ -123,7 +126,7 @@ class SqaColorPicker extends StatelessWidget {
                       ? Center(
                           child: Icon(
                             Icons.block,
-                            size: 16,
+                            size: SqaTokens.spacingLarge,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         )

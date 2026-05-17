@@ -13,6 +13,7 @@ import '../services/curl_parser_service.dart';
 import 'tabs/request_tab.dart';
 import 'tabs/history_tab.dart';
 import 'modals/transaction_inspector_modal.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class CurlRequesterView extends ConsumerStatefulWidget {
   const CurlRequesterView({super.key});
@@ -174,12 +175,12 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                   icon: Symbols.delete_sweep,
                   onPressed: _handleClearHistory,
                   tooltip: 'Clear History',
-                  iconSize: 20,
+                  iconSize: SqaTokens.spacingXLarge,
                   color: Theme.of(context).colorScheme.error.withValues(alpha: 0.8),
                 ),
           tabs: const [
-            Tab(text: 'Request', icon: Icon(Symbols.send)),
-            Tab(text: 'History', icon: Icon(Symbols.history)),
+            Tab(text: 'Request', icon: Icon(Symbols.send, size: SqaTokens.spacingLarge)),
+            Tab(text: 'History', icon: Icon(Symbols.history, size: SqaTokens.spacingLarge)),
           ],
           child: TabBarView(
             controller: _tabController,

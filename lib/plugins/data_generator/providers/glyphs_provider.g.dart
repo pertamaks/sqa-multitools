@@ -41,7 +41,7 @@ final class GlyphsGeneratorProvider
   }
 }
 
-String _$glyphsGeneratorHash() => r'8ffcdf8cb12934d6d074f4a97a6bb0027252b333';
+String _$glyphsGeneratorHash() => r'c33ee88a2b34dfcb79a3c581adf8d44a41f94577';
 
 abstract class _$GlyphsGenerator extends $Notifier<GlyphsState> {
   GlyphsState build();

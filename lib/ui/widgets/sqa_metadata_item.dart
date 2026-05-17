@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaMetadataItem extends StatelessWidget {
   final IconData icon;
@@ -13,14 +14,14 @@ class SqaMetadataItem extends StatelessWidget {
       children: [
         Icon(
           icon,
-          size: 14,
+          size: SqaTokens.spacingLarge - SqaTokens.spacingXXSmall,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: SqaTokens.spacingTiny),
         Text(
           text,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: SqaTokens.fontSizeTiny,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),

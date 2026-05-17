@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/security_payloads_provider.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class SecurityDisclaimer extends ConsumerWidget {
   const SecurityDisclaimer({super.key});
@@ -13,9 +14,9 @@ class SecurityDisclaimer extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Positioned(
-      bottom: 24,
-      left: 24,
-      right: 24,
+      bottom: SqaTokens.spacingXXLarge,
+      left: SqaTokens.spacingXXLarge,
+      right: SqaTokens.spacingXXLarge,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
         duration: const Duration(milliseconds: 400),
@@ -27,28 +28,28 @@ class SecurityDisclaimer extends ConsumerWidget {
           );
         },
         child: SqaCard(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(SqaTokens.spacingLarge),
           backgroundColor: colorScheme.errorContainer,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  Icon(Symbols.warning, color: colorScheme.error, size: 20),
-                  const SizedBox(width: 12),
+                  Icon(Symbols.warning, color: colorScheme.error, size: SqaTokens.spacingXLarge),
+                  const SizedBox(width: SqaTokens.spacingMedium),
                   const Expanded(
                     child: Text(
                       'SAFETY WARNING',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: SqaTokens.fontSizeSmall,
                         letterSpacing: 1.2,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: SqaTokens.spacingSmall),
               Text(
                 'These payloads are for authorized security testing only. Using them on unauthorized targets is illegal and unethical.',
                 style: TextStyle(
@@ -57,11 +58,11 @@ class SecurityDisclaimer extends ConsumerWidget {
                   color: colorScheme.onErrorContainer,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingLarge),
               Align(
                 alignment: Alignment.centerRight,
                 child: SizedBox(
-                  height: 32,
+                  height: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
                   child: SqaButton.primary(
                     label: 'I UNDERSTAND',
                     onPressed: () => ref

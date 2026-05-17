@@ -7,6 +7,7 @@ import '../../../ui/widgets/sqa_markdown_viewer.dart';
 import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../models/cheatsheet_models.dart';
 import '../providers/cheatsheet_provider.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class QaCheatsheetView extends ConsumerStatefulWidget {
   const QaCheatsheetView({super.key});
@@ -84,8 +85,8 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
               .map(
                 (c) => Tab(
                   text: c.name,
-                  icon: Icon(c.icon, size: 18),
-                  iconMargin: const EdgeInsets.only(bottom: 4),
+                  icon: Icon(c.icon, size: SqaTokens.spacingLarge + 2),
+                  iconMargin: const EdgeInsets.only(bottom: SqaTokens.spacingXSmall),
                 ),
               )
               .toList(),
@@ -138,7 +139,11 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
       children: [
         if (filteredSections.length > 1)
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+            padding: const EdgeInsets.only(
+              left: SqaTokens.spacingXLarge,
+              right: SqaTokens.spacingXLarge,
+              top: SqaTokens.spacingMedium,
+            ),
             child: SqaSegmentedButton<String>(
               segments: filteredSections.map((s) {
                 return ButtonSegment<String>(
@@ -148,7 +153,7 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  icon: Icon(s.icon, size: 16),
+                  icon: Icon(s.icon, size: SqaTokens.spacingLarge),
                 );
               }).toList(),
               selected: {selectedId ?? ''},
@@ -166,7 +171,7 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
                 selectedSection.id,
               ), // Force rebuild when switching sections
               markdown: selectedSection.markdown,
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
               useScrollable: true,
             ),
           ),

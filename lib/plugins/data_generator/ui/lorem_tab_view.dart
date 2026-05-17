@@ -3,10 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../models/text_state.dart';
 import '../providers/text_provider.dart';
+import '../providers/identity_provider.dart';
 import '../widgets/text_config_panel.dart';
-import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
+import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_button.dart';
+import '../../../ui/widgets/sqa_card.dart';
+import '../../../ui/widgets/sqa_toast.dart';
+import 'widgets/history_tile.dart';
+import '../../../ui/widgets/sqa_history_list.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../core/utils/locale_names.dart';
+import 'package:flutter/services.dart';
 
 class LoremTabView extends ConsumerStatefulWidget {
   const LoremTabView({super.key});
@@ -24,66 +34,100 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
     super.dispose();
   }
 
+  void _showResult(List<String> session, String title) {
+    final text = session.join('\n');
+    
+    showDialog<void>(
+      context: context,
+      builder: (context) => SqaModal<void>.custom(
+        title: title,
+        scrollable: false,
+        confirmLabel: 'Close',
+        customActions: [
+          SqaButton.tonal(
+            label: 'Copy',
+            icon: Symbols.content_copy,
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: text));
+              SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+            },
+          ),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
+          SqaButton.primary(
+            label: 'Close',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+        child: SqaField(
+          label: 'Generated Data',
+          showLabel: false,
+          isMonospace: true,
+          readOnly: true,
+          isMultiline: true,
+          maxLines: null,
+          expands: true,
+          fontSize: SqaTokens.fontSizeSmall,
+          showLineNumbers: true,
+          showCopyButton: false,
+          initialValue: text,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(textGeneratorProvider);
+    final identityState = ref.watch(identityProvider);
     final notifier = ref.read(textGeneratorProvider.notifier);
+    final history = state.resultsMap[state.selectedType] ?? [];
+    final theme = Theme.of(context);
 
     return SqaPluginScrollableContent(
       controller: _scrollController,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SqaSegmentedButton<TextType>(
-            segments: const [
-              ButtonSegment(
-                value: TextType.bytes,
-                label: Text('Bytes'),
-                icon: Icon(Symbols.abc),
+          Center(
+            child: Text(
+              _getUsageDescription(state.selectedType),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
-              ButtonSegment(
-                value: TextType.sentence,
-                label: Text('Sentence'),
-                icon: Icon(Symbols.short_text),
-              ),
-              ButtonSegment(
-                value: TextType.paragraph,
-                label: Text('Paragraph'),
-                icon: Icon(Symbols.notes),
-              ),
-              ButtonSegment(
-                value: TextType.chapter,
-                label: Text('Chapter'),
-                icon: Icon(Symbols.book),
-              ),
-            ],
-            selected: {state.selectedType},
-            onSelectionChanged: (set) => notifier.setType(set.first),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _getUsageDescription(state.selectedType),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.6),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           const TextConfigPanel(),
-          if ((state.resultsMap[state.selectedType] ?? <String>[])
-              .isNotEmpty) ...[
-            const SizedBox(height: 24),
-            SqaField(
-              label: 'Result',
-              initialValue: (state.resultsMap[state.selectedType] ?? <String>[])
-                  .join('\n\n---\n\n'),
-              icon: Symbols.content_copy,
-              isMultiline: true,
-              collapsedMaxLines: 10,
-            ),
-          ],
+          const SizedBox(height: SqaTokens.spacingXLarge),
+          
+          SqaHistoryList<List<String>>(
+            items: history,
+            title: 'History',
+            onClearAll: () => notifier.clear(),
+            itemBuilder: (context, item, isLast) {
+              final index = history.indexOf(item);
+              final displayIndex = history.length - index;
+              return DataHistoryTile(
+                title: '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
+                subtitle: item.first,
+                icon: Symbols.notes,
+                onTap: () => _showResult(item, 'Lorem Result'),
+                onDelete: () => notifier.removeHistory(item),
+                customActions: [
+                  SqaHoverIconButton(
+                    icon: Symbols.content_copy,
+                    tooltip: 'Copy all',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: item.join('\n')));
+                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

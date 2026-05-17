@@ -7,6 +7,7 @@ import '../core/providers/plugin_provider.dart';
 import '../core/services/preferences_service.dart';
 import '../core/services/coffee_shop_service.dart';
 import 'widgets/sqa_styles.dart';
+import 'widgets/sqa_hover_icon_button.dart';
 import '../plugins/screenshot/ui/screenshot_overlay.dart';
 import '../plugins/screenshot/providers/screenshot_provider.dart';
 import '../plugins/screen_recorder/ui/screen_recorder_overlay.dart';
@@ -24,6 +25,7 @@ import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/window_provider.dart';
 import '../core/providers/ffmpeg_provider.dart';
+import 'widgets/sqa_safe_plugin_builder.dart';
 
 class MainToolbar extends ConsumerStatefulWidget {
   const MainToolbar({super.key});
@@ -282,13 +284,12 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                         // Close to Tray
                         SqaInlineTooltipTrigger(
                           tooltip: 'Close to Tray',
-                          child: IconButton(
-                            icon: const Icon(Symbols.close, size: 24),
+                          child: SqaHoverIconButton(
+                            icon: Symbols.close,
                             onPressed: () => WindowUtils.safeHide(),
-                            style: IconButton.styleFrom(
-                              minimumSize: const Size(36, 36),
-                              padding: const EdgeInsets.all(6.0),
-                            ),
+                            tooltip: null,
+                            iconSize: 24,
+                            padding: 6.0,
                           ),
                         ),
                       ],
@@ -380,8 +381,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final settingsPlugin = ref.watch(settingsPluginProvider);
     final supporterTier = ref.watch(supporterTierProvider);
     final hasTodoReminder = ref.watch(todoNotificationProvider);
-    final timerState = ref.watch(timerProvider);
-    final isTimerRunning = timerState.isRunning;
+    final timerState = ref.watch(timerProvider.select((s) => s.isRunning));
+    final isTimerRunning = timerState;
     final colorScheme = Theme.of(context).colorScheme;
 
     ref.listen(ffmpegProvider, (previous, next) {
@@ -484,7 +485,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                         Expanded(
                           child: KeyedSubtree(
                             key: ValueKey('plugin_${activePlugin.id}'),
-                            child: activePlugin.buildPluginWindow(context),
+                            child: SqaSafePluginBuilder(
+                              pluginId: activePlugin.id,
+                              pluginName: activePlugin.name,
+                              builder: (context) => activePlugin.buildPluginWindow(context),
+                            ),
                           ),
                         ),
                     ],
@@ -560,18 +565,15 @@ class ToolIcon extends ConsumerWidget {
 
     return SqaInlineTooltipTrigger(
       tooltip: tooltip,
-      child: IconButton(
+      child: SqaHoverIconButton(
         isSelected: isActive,
-        icon: iconWidget,
-        selectedIcon: iconWidget,
+        iconWidget: iconWidget,
         onPressed: onPressed,
-        style: IconButton.styleFrom(
-          foregroundColor: isActive ? activeColor : colorScheme.onSurface,
-          backgroundColor: isActive ? activeBg : Colors.transparent,
-          minimumSize: const Size(36, 36),
-          padding: const EdgeInsets.all(6.0),
-          shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-        ).copyWith(overlayColor: SqaStyles.buttonOverlay(context)),
+        tooltip: null,
+        backgroundColor: isActive ? activeBg : Colors.transparent,
+        color: isActive ? activeColor : colorScheme.onSurface,
+        borderRadius: SqaStyles.radiusLarge,
+        padding: 6.0,
       ),
     );
   }

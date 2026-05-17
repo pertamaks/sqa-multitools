@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/todo_item.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class TodoItemBadges extends StatelessWidget {
   final TodoItem item;
@@ -37,8 +38,8 @@ class TodoItemBadges extends StatelessWidget {
         !isTerminal && !isDeferred && createdAtDate.isBefore(today);
 
     return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
+      spacing: SqaTokens.spacingSmall,
+      runSpacing: SqaTokens.spacingXSmall,
       children: [
         if (isOverdueByDay && !isReadOnly)
           _buildBadge(
@@ -111,15 +112,18 @@ class TodoItemBadges extends StatelessWidget {
     Color textColor,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingSmall,
+        vertical: SqaTokens.spacingXXSmall,
+      ),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: SqaTokens.fontSizeSmall - 1,
           fontWeight: FontWeight.bold,
           color: textColor,
         ),

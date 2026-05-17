@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaCard extends StatelessWidget {
   final Widget child;
@@ -25,7 +25,7 @@ class SqaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveRadius = borderRadius ?? SqaStyles.radiusLarge;
+    final effectiveRadius = borderRadius ?? SqaTokens.borderRadiusLarge;
     final card = Container(
       margin: margin,
       decoration: BoxDecoration(
@@ -43,7 +43,7 @@ class SqaCard extends StatelessWidget {
           borderRadius: effectiveRadius,
           mouseCursor: onTap != null ? SystemMouseCursors.click : null,
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(16.0),
+            padding: padding ?? const EdgeInsets.all(SqaTokens.spacingLarge),
             child: child,
           ),
         ),

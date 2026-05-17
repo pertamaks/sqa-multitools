@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 /// A column-major grid table that supports vertical spanning (rowspan).
 class SqaGridTable extends StatelessWidget {
@@ -24,7 +25,7 @@ class SqaGridTable extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: SqaTokens.borderRadiusSmall,
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.2),
           width: 0.5,
@@ -53,8 +54,8 @@ class SqaGridTable extends StatelessWidget {
                       flex: (columnWidths[i] * 100).toInt(),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                          horizontal: SqaTokens.spacingMedium,
+                          vertical: SqaTokens.spacingSmall + 2,
                         ),
                         decoration: BoxDecoration(
                           border: i < headerRow.length - 1
@@ -108,8 +109,8 @@ class SqaGridTable extends StatelessWidget {
                           flex: cell.rowspan,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
+                              horizontal: SqaTokens.spacingMedium,
+                              vertical: SqaTokens.spacingSmall + 2,
                             ),
                             decoration: BoxDecoration(
                               border: cellIndex < colCells.length - 1

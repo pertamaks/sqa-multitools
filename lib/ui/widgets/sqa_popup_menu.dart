@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
+import 'sqa_hover_icon_button.dart';
 
 /// A centralized, premium popup menu for SQA-Multitools.
 ///
 /// Reuses the MenuStyle and animation logic from SqaDropdown to ensure
 /// visual consistency across the application.
 class SqaPopupMenu extends StatelessWidget {
-  final Widget icon;
+  final IconData icon;
   final List<Widget> children;
   final String? tooltip;
   final Offset alignmentOffset;
+  final Widget Function(BuildContext, MenuController, Widget?)? builder;
 
   const SqaPopupMenu({
     super.key,
     required this.icon,
     required this.children,
     this.tooltip,
-    this.alignmentOffset = const Offset(-8, 4),
+    this.alignmentOffset = const Offset(-SqaTokens.spacingSmall, SqaTokens.spacingTiny),
+    this.builder,
   });
 
   @override
@@ -28,11 +32,11 @@ class SqaPopupMenu extends StatelessWidget {
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-        elevation: WidgetStateProperty.all(8.0),
+        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
+        elevation: WidgetStateProperty.all(SqaTokens.spacingSmall),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: SqaStyles.radiusLarge,
+            borderRadius: SqaTokens.borderRadiusLarge,
             side: BorderSide(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
@@ -40,10 +44,10 @@ class SqaPopupMenu extends StatelessWidget {
         ),
       ),
       menuChildren: children,
-      builder: (context, controller, child) {
-        return IconButton(
+      builder: builder ?? (context, controller, child) {
+        return SqaHoverIconButton(
           icon: icon,
-          tooltip: tooltip,
+          tooltip: tooltip ?? 'Actions',
           onPressed: () {
             if (controller.isOpen) {
               controller.close();
@@ -51,11 +55,7 @@ class SqaPopupMenu extends StatelessWidget {
               controller.open();
             }
           },
-          style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-          ).copyWith(
-            overlayColor: SqaStyles.buttonOverlay(context),
-          ),
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         );
       },
     );
@@ -87,24 +87,29 @@ class SqaPopupMenuItem extends StatelessWidget {
     return MenuItemButton(
       onPressed: onPressed,
       style: MenuItemButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        minimumSize: const Size(120, 36),
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingSmall + 4,
+          vertical: 0,
+        ),
+        minimumSize: const Size(120, SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
+        shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconTheme(
-            data: IconThemeData(size: 18, color: color),
+            data: IconThemeData(
+              size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+              color: color,
+            ),
             child: icon,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: SqaTokens.spacingSmall + 4),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
+            style: SqaTextStyles.labelBold(context).copyWith(
               color: color,
+              fontSize: SqaTokens.fontSizeTiny,
             ),
           ),
         ],

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../core/providers/plugin_provider.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
+import 'sqa_hover_icon_button.dart';
 
 /// A reusable gear icon button that jumps to the Settings plugin
 /// and opens the 'Plugins' tab, while remembering where it came from.
@@ -18,20 +19,18 @@ class SqaSettingsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return IconButton(
-      icon: const Icon(Symbols.tune, size: 20),
+    return SqaHoverIconButton(
+      icon: Symbols.tune,
       onPressed: () {
         ref
             .read(navigationServiceProvider)
             .jumpToPluginSettings(sourcePluginId);
       },
-      style: IconButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.outline,
-        padding: const EdgeInsets.all(8),
-        minimumSize: const Size(40, 40),
-        shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-      ),
+      color: Theme.of(context).colorScheme.outline,
+      padding: SqaTokens.spacingSmall,
+      iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
       tooltip: tooltip ?? 'Plugin Settings',
+      borderRadius: SqaTokens.borderRadiusLarge,
     );
   }
 }

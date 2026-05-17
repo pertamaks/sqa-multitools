@@ -3,10 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:archive/archive_io.dart';
-import 'package:flutter/foundation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import '../models/capture_mode.dart';
+import 'ffmpeg_platform_config.dart';
 
 /// Configuration for a video recording session.
 /// Decoupled from plugin-specific states to allow core-level use.
@@ -31,10 +30,11 @@ class FfmpegVideoConfig {
 }
 
 class FfmpegEngine {
-  static const String _downloadUrl =
-      'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip';
+  static final FfmpegPlatformConfig _config = FfmpegPlatformConfig.current();
 
-  static String get _executableName => Platform.isWindows ? 'ffmpeg.exe' : 'ffmpeg';
+  static String get _downloadUrl => _config.downloadUrl;
+
+  static String get _executableName => _config.executableName;
 
   static Future<File> get _executableFile async {
     final dir = await getApplicationSupportDirectory();
@@ -73,7 +73,7 @@ class FfmpegEngine {
     void Function(double progress) onProgress,
   ) async {
     final dir = await getApplicationSupportDirectory();
-    final zipFile = File(p.join(dir.path, 'ffmpeg_temp.zip'));
+    final archiveFile = File(p.join(dir.path, _config.archiveTempName));
     final ffmpegDir = Directory(p.join(dir.path, 'ffmpeg'));
 
     try {
@@ -87,7 +87,7 @@ class FfmpegEngine {
 
       final contentLength = response.contentLength;
       int receivedBytes = 0;
-      final sink = zipFile.openWrite();
+      final sink = archiveFile.openWrite();
 
       await for (var chunk in response) {
         receivedBytes += chunk.length;
@@ -102,14 +102,13 @@ class FfmpegEngine {
         onProgress(1.0); // Assume done if length was unknown
       }
 
-      // Extract ZIP
+      // Extract archive (format handled by platform config)
       onProgress(-1); // Indeterminate state during extraction
 
-      // We run extraction in an isolate to avoid freezing the UI since the zip is large.
-      await compute(_extractZip, {
-        'zipPath': zipFile.path,
-        'destPath': ffmpegDir.path,
-      });
+      if (!await ffmpegDir.exists()) {
+        await ffmpegDir.create(recursive: true);
+      }
+      await _config.extractArchive(archiveFile.path, ffmpegDir.path);
 
       // We must optionally move the bin contents up, or just find ffmpeg binary.
       final extractedBins = await ffmpegDir
@@ -126,39 +125,26 @@ class FfmpegEngine {
         await actualExe.copy(targetExe.path);
         _resolvedExecutable = targetExe.path;
       } else {
-        throw Exception('ffmpeg.exe not found in downloaded archive.');
+        throw Exception('$_executableName not found in downloaded archive.');
       }
     } finally {
-      if (await zipFile.exists()) {
-        await zipFile.delete();
+      if (await archiveFile.exists()) {
+        await archiveFile.delete();
       }
     }
   }
 
-  static Future<void> _extractZip(Map<String, String> args) async {
-    final zipPath = args['zipPath']!;
-    final destPath = args['destPath']!;
-    extractFileToDisk(zipPath, destPath);
-  }
-
-  /// Lists available audio input devices using FFmpeg's dshow.
+  /// Lists available audio input devices using the platform's audio backend.
   static Future<List<String>> listAudioDevices() async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return [];
 
     try {
-      final result = await Process.run(_resolvedExecutable!, [
-        '-f',
-        'dshow',
-        '-list_devices',
-        'true',
-        '-i',
-        'dummy',
-      ]);
+      final result = await Process.run(_resolvedExecutable!, _config.buildListAudioDevicesArgs());
 
       final output = result.stderr as String;
       final lines = output.split('\n');
       final devices = <String>[];
-      final deviceRegex = RegExp(r'\[dshow @ .*\] "(.*)" \(audio\)');
+      final deviceRegex = _config.audioDeviceRegex;
 
       for (final line in lines) {
         final match = deviceRegex.firstMatch(line);
@@ -184,11 +170,11 @@ class FfmpegEngine {
   }) {
     final args = <String>[];
     args.addAll(['-y']);
-    args.addAll(['-f', 'gdigrab', '-framerate', '${config.framerate}']);
-
-    if (config.showCursor == false) {
-      args.addAll(['-draw_mouse', '0']);
-    }
+    
+    // Platform-specific input args
+    args.addAll(_config.buildVideoArgs(
+      config: config,
+    ));
 
     final filters = <String>[];
     if (config.captureMode == CaptureMode.window ||
@@ -257,10 +243,10 @@ class FfmpegEngine {
       filters.add('scale=-2:360');
     }
 
-    args.addAll(['-i', 'desktop']);
+    args.addAll(['-i', _config.videoInputName]);
 
     if (config.microphoneEnabled && config.selectedAudioDevice != null) {
-      args.addAll(['-f', 'dshow', '-i', 'audio=${config.selectedAudioDevice}']);
+      args.addAll(_config.buildAudioArgs(config.selectedAudioDevice!));
     }
 
     if (filters.isNotEmpty) {
@@ -368,18 +354,19 @@ class FfmpegEngine {
     if (h % 2 != 0) h -= 1;
 
     final args = [
-      '-f',
-      'gdigrab',
-      '-offset_x',
-      '$x',
-      '-offset_y',
-      '$y',
-      '-video_size',
-      '${w}x$h',
-      '-i',
-      'desktop',
-      '-frames:v',
-      '1',
+      ..._config.buildVideoArgs(
+        config: FfmpegVideoConfig(
+          framerate: 1,
+          showCursor: false,
+          captureMode: CaptureMode.area,
+        ),
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+      ),
+      '-i', _config.videoInputName,
+      '-frames:v', '1',
       '-vf',
       'scale=320:-2',
       '-y',
@@ -452,20 +439,19 @@ class FfmpegEngine {
     if (h % 2 != 0) h -= 1;
 
     final args = [
-      '-f',
-      'gdigrab',
-      '-offset_x',
-      '$x',
-      '-offset_y',
-      '$y',
-      '-video_size',
-      '${w}x$h',
-      '-draw_mouse',
-      '0',
-      '-i',
-      'desktop',
-      '-frames:v',
-      '1',
+      ..._config.buildVideoArgs(
+        config: FfmpegVideoConfig(
+          framerate: 1,
+          showCursor: false,
+          captureMode: CaptureMode.area,
+        ),
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+      ),
+      '-i', _config.videoInputName,
+      '-frames:v', '1',
       '-y',
       savePath,
     ];

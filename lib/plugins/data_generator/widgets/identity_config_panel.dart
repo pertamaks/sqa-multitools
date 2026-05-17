@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
-import '../../../core/utils/locale_names.dart';
 import '../../../ui/widgets/sqa_field.dart';
-import '../../../ui/widgets/sqa_action_button_group.dart';
-import '../../../ui/widgets/sqa_modal.dart';
 import '../providers/identity_provider.dart';
 import '../models/identity_state.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class IdentityConfigPanel extends ConsumerStatefulWidget {
   const IdentityConfigPanel({super.key});
@@ -46,28 +43,8 @@ class _IdentityConfigPanelState extends ConsumerState<IdentityConfigPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SqaActionButtonGroup(
-          onClear: () async {
-            if ((state.resultsMap[state.selectedType] ?? []).isNotEmpty) {
-              final confirmed = await SqaModal.showDanger(
-                context,
-                title: 'Clear Results',
-                message: 'Discard currently generated results?',
-                confirmLabel: 'Discard',
-              );
-              if (confirmed != true) return;
-            }
-            notifier.clear();
-          },
-          actionLabel: 'Generate',
-          actionIcon: Symbols.wand_stars,
-          onAction: () => notifier.generate(),
-          sourcePluginId: 'com.sqa.data_generator',
-          settingsTooltip:
-              '${LocaleNames.getDisplayName(state.locale.name)}, ${state.quantity} items',
-        ),
         if (state.selectedType == IdentityType.email) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           SqaField(
             label: 'Custom Domain (optional)',
             hintText: 'e.g. google.com',

@@ -7,6 +7,7 @@ import 'sqa_scroll_behavior.dart';
 import 'sqa_inline_tooltip.dart';
 import 'sqa_scroll_visibility.dart';
 import 'sqa_hover_icon_button.dart';
+import 'sqa_design_tokens.dart';
 
 /// A centralized floating action bar for overlays (Screenshot, Screen Recorder).
 ///
@@ -139,23 +140,23 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
+              blurRadius: SqaTokens.spacingLarge,
+              offset: const Offset(0, SqaTokens.spacingXSmall),
             ),
             if (_isHovered)
               BoxShadow(
                 color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                blurRadius: 8,
-                spreadRadius: 2,
+                blurRadius: SqaTokens.spacingSmall,
+                spreadRadius: SqaTokens.spacingTiny,
               ),
           ],
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            padding: const EdgeInsets.all(SqaTokens.spacingSmall),
             constraints: BoxConstraints(
               maxWidth: 800,
-              minWidth: _isExpanded ? 100 : 40,
+              minWidth: _isExpanded ? 100 : (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
             ),
             child: SqaFloatingBarScope(
               child: Row(
@@ -179,7 +180,7 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                               ? Padding(
                                   key: const ValueKey('tools'),
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0,
+                                    horizontal: SqaTokens.spacingSmall,
                                   ),
                                   child: SqaFadeWrapper(
                                     axis: Axis.horizontal,
@@ -200,11 +201,11 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                               : Padding(
                                   key: const ValueKey('more'),
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.0,
+                                    horizontal: SqaTokens.spacingMedium,
                                   ),
                                   child: Icon(
                                     Icons.more_horiz,
-                                    size: 18,
+                                    size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                                     color: theme.colorScheme.onSurfaceVariant
                                         .withValues(alpha: 0.5),
                                   ),
@@ -264,7 +265,7 @@ class SqaFloatingBarButton extends StatefulWidget {
     this.isPrimary = false,
     this.isLoading = false,
     this.color,
-    this.iconSize = 20.0,
+    this.iconSize = SqaTokens.spacingXLarge,
     this.secondaryActions,
   });
 
@@ -301,7 +302,7 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
     // Remove !_isHovered check so we can handle retraction deltas
     if (!mounted || !hasSecondary || !_expandToLeft) return;
 
-    final totalSecondaryWidth = widget.secondaryActions!.length * 40.0;
+    final totalSecondaryWidth = widget.secondaryActions!.length * (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
     final currentWidth = _expansionAnimation.value * totalSecondaryWidth;
     final scrollable = Scrollable.maybeOf(context);
 
@@ -335,7 +336,7 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
     final barBox = barState?.context.findRenderObject() as RenderBox?;
 
     if (barBox != null) {
-      final totalSecondaryWidth = (widget.secondaryActions?.length ?? 0) * 40.0;
+      final totalSecondaryWidth = (widget.secondaryActions?.length ?? 0) * (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
 
       // Calculate button position RELATIVE to the toolbar
       final localPos = renderBox.localToGlobal(Offset.zero, ancestor: barBox);
@@ -388,7 +389,7 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
     }).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingTiny),
       child: MouseRegion(
         hitTestBehavior: HitTestBehavior.opaque,
         onEnter: (_) {
@@ -425,14 +426,14 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
           child: AnimatedBuilder(
             animation: _expansionAnimation,
             builder: (context, child) {
-              final totalSecondaryWidth = secondaryActions.length * 40.0;
+              final totalSecondaryWidth = secondaryActions.length * (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
               final animatedWidth = hasSecondary
                   ? (_expansionAnimation.value * totalSecondaryWidth)
                   : 0.0;
 
               return Container(
-                width: 40.0 + animatedWidth,
-                height: 40.0,
+                width: (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) + animatedWidth,
+                height: (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
                 decoration: BoxDecoration(
                   color: widget.isSelected
                       ? colorScheme.primaryContainer
@@ -441,12 +442,12 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
                           alpha: 0.3,
                         )
                       : null,
-                  borderRadius: SqaStyles.radiusMedium,
+                  borderRadius: SqaTokens.borderRadiusMedium,
                 ),
                 child: ClipRect(
                   child: OverflowBox(
-                    maxWidth: 40.0 + totalSecondaryWidth,
-                    minWidth: 40.0,
+                    maxWidth: SqaTokens.spacingXXXLarge + totalSecondaryWidth,
+                    minWidth: SqaTokens.spacingXXXLarge,
                     alignment: _expandToLeft
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
@@ -486,11 +487,11 @@ class SqaFloatingBarDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall),
       child: Center(
         child: Container(
           width: 1,
-          height: 20,
+          height: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
           decoration: BoxDecoration(
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(1),
@@ -520,7 +521,7 @@ class SqaFloatingBarColorPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(size / 2 + 4),
@@ -529,7 +530,7 @@ class SqaFloatingBarColorPicker extends StatelessWidget {
         child: SqaInlineTooltipTrigger(
           tooltip: 'Select Color',
           child: Padding(
-            padding: const EdgeInsets.all(4.0),
+            padding: const EdgeInsets.all(SqaTokens.spacingXSmall),
             child: Container(
               width: size,
               height: size,
@@ -588,8 +589,11 @@ class _SqaFloatingBarDragHandleState extends State<SqaFloatingBarDragHandle> {
           onExit: (_) => setState(() => _isHovered = false),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.symmetric(horizontal: 2.0),
-            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+            margin: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingTiny),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingXSmall,
+              vertical: SqaTokens.spacingSmall,
+            ),
             decoration: BoxDecoration(
               color: _isHovered
                   ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
@@ -598,7 +602,7 @@ class _SqaFloatingBarDragHandleState extends State<SqaFloatingBarDragHandle> {
             ),
             child: Icon(
               Icons.drag_indicator,
-              size: 20,
+              size: SqaTokens.spacingXLarge,
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
           ),

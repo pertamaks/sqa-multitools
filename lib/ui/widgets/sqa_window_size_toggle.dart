@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'sqa_design_tokens.dart';
 import '../../core/providers/window_provider.dart';
 import 'sqa_hover_icon_button.dart';
 
@@ -46,7 +47,7 @@ class SqaWindowSizeToggle extends ConsumerWidget {
           ref.read(windowSizeModeProvider.notifier).toggle();
         },
         tooltip: tooltip,
-        iconSize: 18,
+        iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
         weight: 700,
         color: Theme.of(
           context,

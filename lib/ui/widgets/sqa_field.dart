@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
 import 'sqa_hover_icon_button.dart';
@@ -32,7 +32,7 @@ class SqaField extends StatefulWidget {
     this.showLabel = true,
     this.undoController,
     this.onTapOutside,
-    this.fontSize = 13.0,
+    this.fontSize = SqaTokens.fontSizeMedium,
     this.lineHeight = 1.5,
     this.gutterFontSize,
     this.showSentenceCaseButton = false,
@@ -42,6 +42,7 @@ class SqaField extends StatefulWidget {
     this.onSubmitted,
     this.focusNode,
     this.isSelectable = true,
+    this.expands = false,
   });
 
   final String label;
@@ -77,6 +78,7 @@ class SqaField extends StatefulWidget {
   final bool showSentenceCaseButton;
   final bool autofocus;
   final bool isSelectable;
+  final bool expands;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -84,12 +86,10 @@ class SqaField extends StatefulWidget {
   static String toSentenceCase(String text) {
     if (text.isEmpty) return text;
 
-    // Split by sentence boundaries (., !, ?) followed by whitespace or end of string
     final RegExp sentencePattern = RegExp(r'([^.!?]+[.!?]*\s*)');
     final matches = sentencePattern.allMatches(text);
 
     if (matches.isEmpty) {
-      // Just one sentence/word
       return text[0].toUpperCase() + text.substring(1).toLowerCase();
     }
 
@@ -101,7 +101,6 @@ class SqaField extends StatefulWidget {
         continue;
       }
 
-      // Find first letter
       int firstLetterIdx = -1;
       for (int i = 0; i < sentence.length; i++) {
         if (RegExp(r'[a-zA-Z]').hasMatch(sentence[i])) {
@@ -129,7 +128,6 @@ class _SqaFieldState extends State<SqaField> {
   final GlobalKey _containerKey = GlobalKey();
   final ValueNotifier<double> _stickyTopNotifier = ValueNotifier<double>(0.0);
   late ScrollController _verticalScrollController;
-  late ScrollController _gutterScrollController;
   late ScrollController _internalHorizontalScrollController;
   bool _isHovered = false;
   bool _isFocused = false;
@@ -149,7 +147,6 @@ class _SqaFieldState extends State<SqaField> {
       final viewportBox = scrollable.context.findRenderObject() as RenderBox?;
       if (viewportBox == null) return;
 
-      // Get position of field's top relative to viewport's top
       final fieldOffsetInViewport = containerBox.localToGlobal(
         Offset.zero,
         ancestor: viewportBox,
@@ -161,14 +158,12 @@ class _SqaFieldState extends State<SqaField> {
 
       final fieldTop = fieldOffsetInViewport.dy;
       final fieldHeight = containerBox.size.height;
-      const buttonHeight = 32.0;
+      const buttonHeight = SqaTokens.spacingXXLarge;
       const padding = 0.0;
       double nextStickyTop = padding;
 
       if (fieldTop < 0 && _isExpanded) {
-        // Field top is off-screen (above). Slide button down.
-        // But stay 4px above the bottom edge at most.
-        final footerHeight = (isActuallyShowingFooter) ? 40.0 : 0.0;
+        final footerHeight = (isActuallyShowingFooter) ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : 0.0;
         nextStickyTop = (-fieldTop + padding).clamp(
           padding,
           fieldHeight - buttonHeight - padding - footerHeight,
@@ -179,7 +174,6 @@ class _SqaFieldState extends State<SqaField> {
         _stickyTopNotifier.value = nextStickyTop;
       }
     } catch (_) {
-      // Scrollable not found or other coordinate error, fallback to top
       if (_stickyTopNotifier.value != 0.0) {
         _stickyTopNotifier.value = 0.0;
       }
@@ -194,7 +188,6 @@ class _SqaFieldState extends State<SqaField> {
     _lastLineCount = _internalController.text.split('\n').length;
     _internalController.addListener(_onControllerChanged);
     _verticalScrollController = ScrollController();
-    _gutterScrollController = ScrollController();
     _internalHorizontalScrollController = ScrollController();
 
     _focusNode = widget.focusNode ?? FocusNode();
@@ -202,17 +195,6 @@ class _SqaFieldState extends State<SqaField> {
       _focusNode.canRequestFocus = false;
     }
     _focusNode.addListener(_onFocusChanged);
-
-    _verticalScrollController.addListener(_syncGutterScroll);
-  }
-
-  void _syncGutterScroll() {
-    if (_gutterScrollController.hasClients &&
-        _verticalScrollController.hasClients) {
-      if (_gutterScrollController.offset != _verticalScrollController.offset) {
-        _gutterScrollController.jumpTo(_verticalScrollController.offset);
-      }
-    }
   }
 
   @override
@@ -226,9 +208,7 @@ class _SqaFieldState extends State<SqaField> {
     if (widget.controller == null) {
       _internalController.dispose();
     }
-    _verticalScrollController.removeListener(_syncGutterScroll);
     _verticalScrollController.dispose();
-    _gutterScrollController.dispose();
     _internalHorizontalScrollController.dispose();
     _stickyTopNotifier.dispose();
     super.dispose();
@@ -243,8 +223,6 @@ class _SqaFieldState extends State<SqaField> {
   void _onControllerChanged() {
     final currentLineCount = _lineCount;
     if (widget.collapsedMaxLines != null) {
-      // Auto-expand ONLY if the user is manually typing (adding 1 line at a time)
-      // If they paste a large block (delta > 1), we keep it collapsed for stability.
       final lineDelta = currentLineCount - _lastLineCount;
 
       if (_isFocused &&
@@ -293,8 +271,6 @@ class _SqaFieldState extends State<SqaField> {
     _scrollPosition?.removeListener(_updateStickyOffset);
     _scrollPosition = Scrollable.maybeOf(context)?.position;
     _scrollPosition?.addListener(_updateStickyOffset);
-
-    // Initial check after build
     WidgetsBinding.instance.addPostFrameCallback((_) => _updateStickyOffset());
   }
 
@@ -303,13 +279,11 @@ class _SqaFieldState extends State<SqaField> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Line height logic for height snapping
     final fontSize = widget.fontSize;
     final fontHeight = widget.lineHeight;
-    const vPadding = 12.0 * 2; // Total vertical padding of TextField
+    final vPadding = SqaTokens.spacingMedium * 2;
     final singleLineHeight = fontSize * fontHeight;
 
-    // Calculate maximum height for the container
     double? effectiveMaxHeight = widget.maxHeight;
     bool showFooter = false;
 
@@ -317,15 +291,170 @@ class _SqaFieldState extends State<SqaField> {
         _lineCount > widget.collapsedMaxLines!) {
       showFooter = true;
       if (!_isExpanded) {
-        // Force the container to snap to exactly the collapsed size
         effectiveMaxHeight =
             (widget.collapsedMaxLines! * singleLineHeight) + vPadding;
       }
     }
 
+    final content = MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        width: double.infinity,
+        constraints: effectiveMaxHeight != null
+            ? BoxConstraints(maxHeight: effectiveMaxHeight)
+            : null,
+        child: Container(
+          key: _containerKey,
+          decoration: BoxDecoration(
+            color: widget.isTransparent
+                ? Colors.transparent
+                : (!widget.readOnly && _isFocused
+                    ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                    : (!widget.readOnly && _isHovered
+                        ? colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.1,
+                          )
+                        : Colors.transparent)),
+            borderRadius: SqaTokens.borderRadiusLarge,
+            border: Border.all(
+              color: widget.isTransparent
+                  ? Colors.transparent
+                  : (!widget.readOnly && _isFocused
+                      ? colorScheme.primary.withValues(alpha: 0.3)
+                      : (!widget.readOnly && _isHovered
+                          ? colorScheme.outlineVariant.withValues(
+                              alpha: 0.3,
+                            )
+                          : colorScheme.outlineVariant.withValues(
+                              alpha: 0.0,
+                            ))),
+            ),
+            boxShadow: !widget.readOnly && _isFocused
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : [],
+          ),
+          child: ClipRRect(
+            borderRadius: SqaTokens.borderRadiusLarge,
+            child: Stack(
+              children: [
+                if (widget.showLineNumbers)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            color: _isFocused
+                                ? colorScheme.primary.withValues(alpha: 0.4)
+                                : colorScheme.outlineVariant.withValues(
+                                    alpha: 0.15,
+                                  ),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: (showFooter && _isExpanded) ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : 0,
+                    right: (widget.showCopyButton ||
+                            widget.showSentenceCaseButton ||
+                            widget.trailing != null)
+                        ? (SqaTokens.spacingXXLarge + SqaTokens.spacingMedium)
+                        : 0,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Row(
+                        crossAxisAlignment: widget.isMultiline
+                            ? CrossAxisAlignment.start
+                            : CrossAxisAlignment.center,
+                        children: [
+                          if (widget.showLineNumbers)
+                            _buildNativeGutter(theme, constraints.maxWidth),
+                          Expanded(
+                            child: _buildTextField(context, theme),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                if (showFooter)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _buildExpansionFooter(theme),
+                  ),
+                if (widget.showCopyButton || widget.showSentenceCaseButton)
+                  ValueListenableBuilder<double>(
+                    valueListenable: _stickyTopNotifier,
+                    builder: (context, stickyTop, child) {
+                      return Positioned(
+                        top: stickyTop,
+                        right: SqaTokens.spacingXSmall,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.showSentenceCaseButton)
+                              SqaHoverIconButton(
+                                icon: Symbols.text_fields,
+                                onPressed: () {
+                                  final text = _internalController.text;
+                                  if (text.isEmpty) return;
+                                  final converted = SqaField.toSentenceCase(
+                                    text,
+                                  );
+                                  _internalController.text = converted;
+                                  if (widget.onChanged != null) {
+                                    widget.onChanged!(converted);
+                                  }
+                                },
+                                tooltip: 'Convert to Sentence case',
+                              ),
+                            if (widget.showCopyButton)
+                              SqaHoverIconButton(
+                                icon: Symbols.content_copy,
+                                onPressed: () {
+                                  Clipboard.setData(
+                                    ClipboardData(
+                                      text: _internalController.text,
+                                    ),
+                                  );
+                                  SqaToast.show(
+                                    context,
+                                    'Copied to clipboard',
+                                  );
+                                },
+                                tooltip: 'Copy to clipboard',
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: widget.expands ? MainAxisSize.max : MainAxisSize.min,
       children: [
         if (widget.showLabel) ...[
           Row(
@@ -334,13 +463,12 @@ class _SqaFieldState extends State<SqaField> {
               Row(
                 children: [
                   if (widget.icon != null) ...[
-                    Icon(widget.icon, size: 14, color: colorScheme.primary),
-                    const SizedBox(width: 6),
+                    Icon(widget.icon, size: SqaTokens.fontSizeSmall + 2, color: colorScheme.primary),
+                    const SizedBox(width: SqaTokens.spacingXSmall + 2),
                   ],
                   Text(
                     widget.label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: SqaTextStyles.labelBold(context).copyWith(
                       letterSpacing: 1.1,
                       color: colorScheme.primary,
                     ),
@@ -350,294 +478,175 @@ class _SqaFieldState extends State<SqaField> {
               if (widget.trailing != null) widget.trailing!,
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
         ],
-        MouseRegion(
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          child: Container(
-            width: double.infinity,
-            constraints: effectiveMaxHeight != null
-                ? BoxConstraints(maxHeight: effectiveMaxHeight)
-                : null,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              key: _containerKey,
-              decoration: BoxDecoration(
-                color: widget.isTransparent
-                    ? Colors.transparent
-                    : (!widget.readOnly && _isFocused
-                          ? colorScheme.primaryContainer.withValues(alpha: 0.15)
-                          : (!widget.readOnly && _isHovered
-                                ? colorScheme.surfaceContainerHighest
-                                      .withValues(alpha: 0.1)
-                                : Colors.transparent)),
-                borderRadius: SqaStyles.radiusLarge,
-                border: Border.all(
-                  color: widget.isTransparent
-                      ? Colors.transparent
-                      : (!widget.readOnly && _isFocused
-                            ? colorScheme.primary.withValues(alpha: 0.3)
-                            : (!widget.readOnly && _isHovered
-                                  ? colorScheme.outlineVariant.withValues(
-                                      alpha: 0.3,
-                                    )
-                                  : colorScheme.outlineVariant.withValues(
-                                      alpha: 0.0,
-                                    ))),
-                ),
-                boxShadow: !widget.readOnly && _isFocused
-                    ? [
-                        BoxShadow(
-                          color: colorScheme.primary.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: ClipRRect(
-                borderRadius: SqaStyles.radiusLarge,
-                child: Stack(
-                  children: [
-                    // 1. Gutter Divider Line (Edge-to-Edge)
-                    if (widget.showLineNumbers)
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: 40,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              right: BorderSide(
-                                color: _isFocused
-                                    ? colorScheme.primary.withValues(alpha: 0.4)
-                                    : colorScheme.outlineVariant.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    // 2. Main Content (Numbers + Text)
-                    Padding(
-                      padding: EdgeInsets.only(
-                        bottom: (showFooter && _isExpanded) ? 40 : 0,
-                        right: (widget.showCopyButton || widget.showSentenceCaseButton || widget.trailing != null) ? 44 : 0,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        crossAxisAlignment: widget.isMultiline
-                            ? CrossAxisAlignment.start
-                            : CrossAxisAlignment.center,
-                        children: [
-                          if (widget.prefix != null) widget.prefix!,
-                          if (widget.showLineNumbers) _buildNativeGutter(theme),
-                          Expanded(
-                            child: Builder(
-                              builder: (context) {
-                                final textField = TextField(
-                                  controller: _internalController,
-                                  focusNode: _focusNode,
-                                  autofocus: widget.autofocus,
-                                  readOnly: widget.readOnly,
-                                  onChanged: widget.onChanged,
-                                  onSubmitted: widget.onSubmitted,
-                                  scrollPhysics:
-                                      (widget.collapsedMaxLines != null &&
-                                          !_isExpanded)
-                                      ? const NeverScrollableScrollPhysics()
-                                      : null,
-                                  maxLines:
-                                      (widget.collapsedMaxLines != null &&
-                                          !_isExpanded)
-                                      ? widget.collapsedMaxLines
-                                      : (widget.isMultiline
-                                            ? widget.maxLines
-                                            : 1),
-                                  minLines: widget.minLines ?? 1,
-                                  style:
-                                      (widget.isMonospace
-                                              ? GoogleFonts.jetBrainsMono()
-                                              : theme.textTheme.bodyMedium)
-                                          ?.copyWith(
-                                            fontSize: fontSize,
-                                            height: fontHeight,
-                                            color: widget.color ?? colorScheme.onSurface,
-                                            fontWeight: widget.fontWeight,
-                                          ),
-                                  strutStyle: StrutStyle(
-                                    fontSize: fontSize,
-                                    height: fontHeight,
-                                    leadingDistribution:
-                                        TextLeadingDistribution.even,
-                                  ),
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    hintText: widget.hintText,
-                                    hintStyle: TextStyle(
-                                      color: colorScheme.onSurface.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                    ),
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
-                                    ),
-                                  ),
-                                  scrollController: _verticalScrollController,
-                                  undoController: widget.undoController,
-                                  onTapOutside: widget.onTapOutside,
-                                  enableInteractiveSelection: widget.isSelectable,
-                                  textAlignVertical: TextAlignVertical.top,
-                                );
-
-                                final scrollConfiguration = ScrollConfiguration(
-                                  // Use custom behavior to hide scrollbars when collapsed
-                                  behavior:
-                                      (widget.collapsedMaxLines != null &&
-                                          !_isExpanded)
-                                      ? const _NoScrollbarBehavior()
-                                      : ScrollConfiguration.of(context),
-                                  child: textField,
-                                );
-
-                                if (!widget.wrap) {
-                                  final hController =
-                                      widget.horizontalScrollController ??
-                                      _internalHorizontalScrollController;
-
-                                  return Scrollbar(
-                                    controller: hController,
-                                    thumbVisibility: true,
-                                    thickness: 4.0,
-                                    radius: const Radius.circular(2),
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      controller: hController,
-                                      child: IntrinsicWidth(
-                                        child: scrollConfiguration,
-                                      ),
-                                    ),
-                                  );
-                                }
-                                return scrollConfiguration;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // 3. Expansion Footer (Sticky to bottom)
-                    if (showFooter)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: _buildExpansionFooter(theme),
-                      ),
-
-                    // 4. Sticky Action Buttons
-                    // 4. Sticky Action Buttons
-                    if (widget.showCopyButton || widget.showSentenceCaseButton)
-                      ValueListenableBuilder<double>(
-                        valueListenable: _stickyTopNotifier,
-                        builder: (context, stickyTop, child) {
-                          return Positioned(
-                            top: stickyTop,
-                            right: 4,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (widget.showSentenceCaseButton)
-                                  SqaHoverIconButton(
-                                    icon: Symbols.text_fields,
-                                    onPressed: () {
-                                      final text = _internalController.text;
-                                      if (text.isEmpty) return;
-                                      final converted = SqaField.toSentenceCase(
-                                        text,
-                                      );
-                                      _internalController.text = converted;
-                                      if (widget.onChanged != null) {
-                                        widget.onChanged!(converted);
-                                      }
-                                    },
-                                    tooltip: 'Convert to Sentence case',
-                                  ),
-                                if (widget.showCopyButton)
-                                  SqaHoverIconButton(
-                                    icon: Symbols.content_copy,
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                        ClipboardData(
-                                          text: _internalController.text,
-                                        ),
-                                      );
-                                      SqaToast.show(
-                                        context,
-                                        'Copied to clipboard',
-                                      );
-                                    },
-                                    tooltip: 'Copy to clipboard',
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+        if (widget.expands) Expanded(child: content) else content,
       ],
     );
   }
 
-  Widget _buildNativeGutter(ThemeData theme) {
+  Widget _buildTextField(BuildContext context, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final fontSize = widget.fontSize;
+    final fontHeight = widget.lineHeight;
+
+    final textField = TextField(
+      controller: _internalController,
+      focusNode: _focusNode,
+      autofocus: widget.autofocus,
+      readOnly: widget.readOnly,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      scrollController: _verticalScrollController,
+      scrollPhysics: (widget.collapsedMaxLines != null && !_isExpanded)
+          ? const NeverScrollableScrollPhysics()
+          : null,
+      maxLines: widget.expands
+          ? null
+          : ((widget.collapsedMaxLines != null && !_isExpanded)
+              ? widget.collapsedMaxLines
+              : (widget.isMultiline ? widget.maxLines : 1)),
+      minLines: widget.expands ? null : (widget.minLines ?? 1),
+      expands: widget.expands,
+      style: (widget.isMonospace
+              ? SqaTextStyles.mono(context)
+              : SqaTextStyles.body(context))
+          .copyWith(
+        fontSize: fontSize,
+        height: fontHeight,
+        color: widget.color ?? colorScheme.onSurface,
+        fontWeight: widget.fontWeight,
+      ),
+      strutStyle: StrutStyle(
+        fontSize: fontSize,
+        height: fontHeight,
+        forceStrutHeight: true,
+        leadingDistribution: TextLeadingDistribution.even,
+      ),
+      decoration: InputDecoration(
+        filled: false,
+        isDense: false,
+        hintText: widget.hintText,
+        hintStyle: TextStyle(
+          color: colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingLarge,
+          vertical: SqaTokens.spacingSmall,
+        ),
+      ),
+      undoController: widget.undoController,
+      onTapOutside: widget.onTapOutside,
+      enableInteractiveSelection: widget.isSelectable,
+      textAlignVertical: TextAlignVertical.top,
+    );
+
+    if (!widget.wrap) {
+      final hController = widget.horizontalScrollController ??
+          _internalHorizontalScrollController;
+
+      return Scrollbar(
+        controller: hController,
+        thumbVisibility: true,
+        thickness: SqaTokens.spacingXSmall,
+        radius: const Radius.circular(2),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          controller: hController,
+          child: IntrinsicWidth(
+            child: textField,
+          ),
+        ),
+      );
+    }
+    return textField;
+  }
+
+  Widget _buildNativeGutter(ThemeData theme, double totalWidth) {
     return ListenableBuilder(
       listenable: _internalController,
       builder: (context, _) {
-        final lineCount = '\n'.allMatches(_internalController.text).length + 1;
+        final text = _internalController.text;
+        final logicalLines = text.split('\n');
         final fontSize = widget.fontSize;
         final fontHeight = widget.lineHeight;
         final gFontSize = widget.gutterFontSize ?? (fontSize * 0.9);
-        final numbers = List.generate(lineCount, (i) => '${i + 1}').join('\n');
 
-        return Container(
-          width: 40,
-          padding: const EdgeInsets.only(top: 6.5),
-          child: ScrollConfiguration(
-            behavior: const _NoScrollbarBehavior(),
-            child: SingleChildScrollView(
-              controller: _gutterScrollController,
-              physics: const NeverScrollableScrollPhysics(), // Sync only
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Text(
-                  numbers,
-                  style: GoogleFonts.jetBrainsMono().copyWith(
-                    fontSize: gFontSize,
-                    height: (fontSize * fontHeight) / gFontSize,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                  ),
-                  strutStyle: StrutStyle(
-                    fontSize: fontSize,
-                    height: fontHeight,
-                    forceStrutHeight: true,
-                    leadingDistribution: TextLeadingDistribution.even,
-                  ),
-                  textAlign: TextAlign.right,
-                ),
+        final textStyle = (widget.isMonospace
+                ? SqaTextStyles.mono(context)
+                : SqaTextStyles.body(context))
+            .copyWith(
+          fontSize: fontSize,
+          height: fontHeight,
+        );
+
+        String numbers = '';
+        for (int i = 0; i < logicalLines.length; i++) {
+          numbers += '${i + 1}';
+          if (widget.wrap) {
+            final tp = TextPainter(
+              text: TextSpan(text: logicalLines[i], style: textStyle),
+              textDirection: TextDirection.ltr,
+            );
+            // Ensure maxWidth is never negative
+            tp.layout(maxWidth: ((totalWidth - (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall)) - (SqaTokens.spacingXXLarge)).clamp(0, double.infinity));
+            final visualLines = tp.computeLineMetrics().length;
+            final effectiveLines = visualLines < 1 ? 1 : visualLines;
+            for (int j = 0; j < effectiveLines; j++) {
+              numbers += '\n';
+            }
+          } else {
+            numbers += '\n';
+          }
+        }
+
+        return SizedBox(
+          width: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              filled: false,
+              isDense: false,
+              contentPadding: EdgeInsets.symmetric(
+                vertical: SqaTokens.spacingSmall,
+              ),
+              border: InputBorder.none,
+            ),
+            child: ClipRect(
+              child: ListenableBuilder(
+                listenable: _verticalScrollController,
+                builder: (context, child) {
+                  double offset = 0;
+                  if (_verticalScrollController.hasClients) {
+                    offset = _verticalScrollController.offset;
+                  }
+                  
+                  return OverflowBox(
+                    maxHeight: double.infinity,
+                    alignment: Alignment.topLeft,
+                    child: Transform.translate(
+                      offset: Offset(0, -offset),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
+                        child: Text(
+                          numbers,
+                          style: SqaTextStyles.mono(context).copyWith(
+                            fontSize: gFontSize,
+                            height: (fontSize * fontHeight) / gFontSize,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                          ),
+                          textAlign: TextAlign.right,
+                          strutStyle: StrutStyle(
+                            fontSize: fontSize,
+                            height: fontHeight,
+                            forceStrutHeight: true,
+                            leadingDistribution: TextLeadingDistribution.even,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -656,67 +665,65 @@ class _SqaFieldState extends State<SqaField> {
           setState(() {
             _isExpanded = !_isExpanded;
             if (!_isExpanded) {
-              _stickyTopNotifier.value = 4.0;
+              _stickyTopNotifier.value = SqaTokens.spacingXSmall;
             }
           });
         },
         child: Container(
-        width: double.infinity,
-        height: _isExpanded ? 40 : 60, // Taller when collapsed for gradient
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.colorScheme.surface.withValues(alpha: 0),
-              theme.colorScheme.surface.withValues(
-                alpha: _isExpanded ? 0.8 : 0.6,
+          width: double.infinity,
+          height: _isExpanded ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : (SqaTokens.spacingXXXLarge + SqaTokens.spacingMedium),
+          padding: const EdgeInsets.fromLTRB(
+            SqaTokens.spacingLarge,
+            0,
+            SqaTokens.spacingLarge,
+            SqaTokens.spacingSmall,
+          ),
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingMedium,
+              vertical: SqaTokens.spacingXSmall + 2,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
               ),
-              theme.colorScheme.surface,
-            ],
-            stops: const [0.0, 0.4, 1.0],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _isExpanded ? Symbols.expand_less : Symbols.expand_more,
+                  size: 14,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: SqaTokens.spacingSmall),
+                Text(
+                  _isExpanded
+                      ? 'Show Less'
+                      : '+ $hiddenLines More Lines... (Show All)',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                    letterSpacing: 1.1,
+                    fontSize: SqaTokens.fontSizeSmall - 2,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        alignment: Alignment.bottomCenter,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _isExpanded ? Symbols.expand_less : Symbols.expand_more,
-              size: 14,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _isExpanded
-                  ? 'Show Less'
-                  : '+ $hiddenLines More Lines... (Show All)',
-              style: theme.textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-                letterSpacing: 1.1,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
       ),
-    ),
-  );
-}
-}
-
-class _NoScrollbarBehavior extends MaterialScrollBehavior {
-  const _NoScrollbarBehavior();
-
-  @override
-  Widget buildScrollbar(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    // Return original child without wrapping in a scrollbar
-    return child;
+    );
   }
 }

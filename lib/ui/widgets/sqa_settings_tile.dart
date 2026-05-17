@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaSettingsTile extends StatelessWidget {
   final IconData? icon;
@@ -27,12 +27,12 @@ class SqaSettingsTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final Widget content = Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(SqaTokens.spacingSmall + 4),
       child: Row(
         children: [
           if (icon != null) ...[
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(SqaTokens.spacingSmall),
               decoration: BoxDecoration(
                 color: (iconColor ?? colorScheme.primary).withValues(
                   alpha: 0.1,
@@ -41,11 +41,11 @@ class SqaSettingsTile extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                size: 20,
+                size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
                 color: iconColor ?? colorScheme.primary,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: SqaTokens.spacingMedium),
           ],
           Expanded(
             child: Column(
@@ -63,7 +63,7 @@ class SqaSettingsTile extends StatelessWidget {
                         titleStyle ??
                         theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          fontSize: SqaTokens.fontSizeTiny,
                         ),
                   ),
                 ),
@@ -77,14 +77,14 @@ class SqaSettingsTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
-                        fontSize: 11,
+                        fontSize: SqaTokens.fontSizeTiny,
                       ),
                     ),
                   ),
               ],
             ),
           ),
-          if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+          if (trailing != null) ...[const SizedBox(width: SqaTokens.spacingSmall + 4), trailing!],
         ],
       ),
     );
@@ -93,7 +93,7 @@ class SqaSettingsTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: SqaStyles.radiusLarge,
+      borderRadius: SqaTokens.borderRadiusLarge,
       mouseCursor: SystemMouseCursors.click,
       child: content,
     );

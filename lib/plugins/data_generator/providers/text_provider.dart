@@ -12,7 +12,7 @@ class TextGenerator extends _$TextGenerator {
   @override
   TextState build() {
     _faker = Faker.instance;
-    return const TextState(resultsMap: <TextType, List<String>>{});
+    return const TextState(resultsMap: <TextType, List<List<String>>>{});
   }
 
   void setType(TextType type) {
@@ -40,29 +40,47 @@ class TextGenerator extends _$TextGenerator {
 
   void clear() {
     state = state.copyWith(
-      resultsMap: <TextType, List<String>>{
+      resultsMap: <TextType, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedType: <String>[],
+        state.selectedType: <List<String>>[],
       },
     );
   }
 
   void generate() {
     final identityState = ref.read(identityProvider);
-    final count = identityState.quantity;
+    const count = 1;
     final locale = identityState.locale;
 
     _faker.setLocale(locale);
 
-    final List<String> results = [];
+    final List<String> currentGeneration = [];
     for (int i = 0; i < count; i++) {
-      results.add(_generateSingle());
+      currentGeneration.add(_generateSingle());
+    }
+
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final newHistory = [currentGeneration, ...currentHistory];
+
+    if (newHistory.length > 10) {
+      newHistory.removeRange(10, newHistory.length);
     }
 
     state = state.copyWith(
-      resultsMap: <TextType, List<String>>{
+      resultsMap: <TextType, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedType: results,
+        state.selectedType: newHistory,
+      },
+    );
+  }
+
+  void removeHistory(List<String> session) {
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    currentHistory.remove(session);
+    state = state.copyWith(
+      resultsMap: <TextType, List<List<String>>>{
+        ...state.resultsMap,
+        state.selectedType: currentHistory,
       },
     );
   }

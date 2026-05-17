@@ -6,6 +6,7 @@ import 'interactive_date_segment.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_field.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class UnixTabView extends ConsumerStatefulWidget {
   const UnixTabView({super.key});
@@ -56,10 +57,10 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                 children: [
                   Icon(
                     Symbols.calendar_today,
-                    size: 16,
+                    size: SqaTokens.spacingLarge,
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: SqaTokens.spacingSmall),
                   Text(
                     'HUMAN READABLE',
                     style: theme.textTheme.labelSmall?.copyWith(
@@ -79,26 +80,26 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                   if (state.isLive)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: SqaTokens.spacingSmall,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(SqaTokens.spacingSmall),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Symbols.fiber_manual_record,
-                            size: 10,
+                            size: SqaTokens.spacingSmall,
                             color: theme.colorScheme.primary,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: SqaTokens.spacingXSmall),
                           Text(
                             'LIVE',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 9,
+                              fontSize: SqaTokens.fontSizeSmall - 2,
                               fontWeight: FontWeight.w900,
                               color: theme.colorScheme.onPrimaryContainer,
                             ),
@@ -108,10 +109,10 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: SqaTokens.spacingLarge),
               _buildDateTimeInput(dt, state.isLive, notifier),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: SqaTokens.spacingLarge + SqaTokens.spacingXSmall),
 
               // Conversion & Reset Actions
               Row(
@@ -127,7 +128,7 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                         : 'Sync Date Time',
                   ),
                   if (!state.isLive) ...[
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SqaTokens.spacingMedium),
                     SqaButton.tonal(
                       onPressed: notifier.resetToNow,
                       icon: Symbols.restore,
@@ -137,7 +138,7 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: SqaTokens.spacingLarge + SqaTokens.spacingXSmall),
 
               // Unix Section
               SqaField(
@@ -189,9 +190,9 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
             DateTime(dt.year, dt.month, v, dt.hour, dt.minute, dt.second),
           ),
         ),
-        const SizedBox(width: 8),
-        Container(width: 1, height: 24, color: Colors.grey.withAlpha(50)),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
+        Container(width: 1, height: SqaTokens.spacingXXLarge, color: Colors.grey.withAlpha(50)),
+        const SizedBox(width: SqaTokens.spacingSmall),
         InteractiveDateSegment(
           label: 'Hour',
           value: dt.hour,
@@ -230,7 +231,7 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
       padding: const EdgeInsets.symmetric(horizontal: 2.0),
       child: Text(
         '/',
-        style: TextStyle(color: Colors.grey.withAlpha(50), fontSize: 10),
+        style: TextStyle(color: Colors.grey.withAlpha(50), fontSize: SqaTokens.fontSizeSmall - 1),
       ),
     );
   }

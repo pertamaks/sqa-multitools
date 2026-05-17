@@ -10,6 +10,7 @@ import '../../../../ui/widgets/sqa_plugin_layout.dart';
 import '../../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../../ui/widgets/sqa_markdown_viewer.dart';
 import '../../../../ui/widgets/sqa_fade_wrapper.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class SecurityPayloadsView extends ConsumerStatefulWidget {
   const SecurityPayloadsView({super.key});
@@ -99,8 +100,8 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                   .map(
                     (c) => Tab(
                       text: c.name,
-                      icon: Icon(c.icon, size: 18),
-                      iconMargin: const EdgeInsets.only(bottom: 4),
+                      icon: Icon(c.icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      iconMargin: const EdgeInsets.only(bottom: SqaTokens.spacingXSmall),
                     ),
                   )
                   .toList(),
@@ -169,11 +170,23 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
         selectedSection.structuredPayloads != null &&
         selectedSection.structuredPayloads!.isNotEmpty;
 
+    final allPayloads = selectedSection.structuredPayloads ?? [];
+    final filteredPayloads = allPayloads.where((p) {
+      if (searchQuery.isEmpty) return true;
+      return p.name.toLowerCase().contains(searchQuery) ||
+          p.payload.toLowerCase().contains(searchQuery) ||
+          p.description.toLowerCase().contains(searchQuery);
+    }).toList();
+
     return Column(
       children: [
         if (filteredSections.length > 1)
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+            padding: const EdgeInsets.only(
+              left: SqaTokens.spacingXLarge,
+              right: SqaTokens.spacingXLarge,
+              top: SqaTokens.spacingMedium,
+            ),
             child: SqaSegmentedButton<String>(
               segments: filteredSections.map((s) {
                 return ButtonSegment<String>(
@@ -183,7 +196,7 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  icon: Icon(s.icon, size: 16),
+                  icon: Icon(s.icon, size: SqaTokens.spacingLarge),
                 );
               }).toList(),
               selected: {selectedId ?? ''},
@@ -199,33 +212,16 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
             child: hasStructuredData
                 ? ListView.builder(
                     key: ValueKey(selectedSection.id),
-                    padding: const EdgeInsets.all(24.0),
-                    itemCount: (selectedSection.structuredPayloads ?? []).where(
-                      (p) {
-                        if (state.searchQuery.isEmpty) return true;
-                        final query = state.searchQuery.toLowerCase();
-                        return p.name.toLowerCase().contains(query) ||
-                            p.payload.toLowerCase().contains(query) ||
-                            p.description.toLowerCase().contains(query);
-                      },
-                    ).length,
+                    padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
+                    itemCount: filteredPayloads.length,
                     itemBuilder: (context, index) {
-                      final filtered = selectedSection.structuredPayloads!
-                          .where((p) {
-                            if (state.searchQuery.isEmpty) return true;
-                            final query = state.searchQuery.toLowerCase();
-                            return p.name.toLowerCase().contains(query) ||
-                                p.payload.toLowerCase().contains(query) ||
-                                p.description.toLowerCase().contains(query);
-                          })
-                          .toList();
-                      return PayloadCard(payload: filtered[index]);
+                      return PayloadCard(payload: filteredPayloads[index]);
                     },
                   )
                 : SqaMarkdownViewer(
                     key: ValueKey(selectedSection.id),
                     markdown: selectedSection.markdown,
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
                     useScrollable: true,
                   ),
           ),

@@ -7,6 +7,7 @@ import '../../core/services/preferences_service.dart';
 import '../../core/services/coffee_shop_service.dart';
 import '../../plugins/settings/providers/settings_debug_provider.dart';
 import '../../core/providers/plugin_provider.dart';
+import '../widgets/sqa_design_tokens.dart';
 
 
 
@@ -52,14 +53,14 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
   static const double kInchMoveFraction = 0.7;
 
   // Reference to height from MainToolbar (56)
-  static const double kToolbarHeight = 56;
+  static const double kToolbarHeight = SqaTokens.toolbarHeight;
 
   // Sizing constants for alignment
-  static const double kBugSize = 32.0;
-  static const double kSplatSize = 32.0;
+  static const double kBugSize = SqaTokens.spacingXXLarge;
+  static const double kSplatSize = SqaTokens.spacingXXLarge;
 
   /// Off-screen buffer for spawn/despawn.
-  static const double kSpawnOffset = 50.0;
+  static const double kSpawnOffset = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
 
   void triggerBug(int side) {
     if (!mounted) return;
@@ -134,7 +135,7 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
         final bool isToolbar = !effectiveHasPlugin || isTopOrLeft;
         final isMovingRight = _random.nextBool();
         _moveDirection = isMovingRight ? 1 : -1;
-        _bugPositionY = isToolbar ? kToolbarHeight - 19 : height - 19;
+        _bugPositionY = isToolbar ? kToolbarHeight - (kBugSize / 2 + 3) : height - (kBugSize / 2 + 3);
         _bugPositionX = isMovingRight ? -kSpawnOffset : width + kSpawnOffset;
 
         // GIF default orientation: head-left (←), tail-right (→)
@@ -153,7 +154,7 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
         final isLeftBorder = isTopOrLeft;
         final isMovingDown = _random.nextBool();
         _moveDirection = isMovingDown ? 1 : -1;
-        _bugPositionX = isLeftBorder ? -13 : width - 19;
+        _bugPositionX = isLeftBorder ? -13 : width - (kBugSize / 2 + 3);
         _bugPositionY = isMovingDown ? -kSpawnOffset : height + kSpawnOffset;
 
         // Vertical orientation (preserve existing rotation logic)

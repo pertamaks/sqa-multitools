@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/sqa_plugin.dart';
 import '../../plugins/magic_8ball/magic_8ball_plugin.dart';
@@ -15,6 +14,7 @@ import '../../plugins/qa_cheatsheet/qa_cheatsheet_plugin.dart';
 import '../../plugins/curl_requester/curl_requester_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
+import '../services/logging_service.dart';
 
 final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
   final plugins = [
@@ -32,9 +32,10 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
   ];
 
   // Proactively initialize plugins for warm-up (Rule 6)
+  final logger = ref.read(loggingServiceProvider.notifier);
   for (final plugin in plugins) {
-    plugin.initialize().catchError((Object e) {
-      debugPrint('Error initializing plugin ${plugin.id}: $e');
+    plugin.initialize().catchError((Object e, StackTrace stack) {
+      logger.logError('Error initializing plugin ${plugin.id}: $e', 'PluginInit', e, stack);
     });
   }
 

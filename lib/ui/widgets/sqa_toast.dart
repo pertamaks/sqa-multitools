@@ -1,16 +1,33 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 
 enum SqaToastType { success, error, info, warning }
 
 class SqaToast {
+  static OverlayEntry? _currentEntry;
+  static DateTime? _lastShown;
+
   static void show(
     BuildContext context,
     String message, {
     SqaToastType type = SqaToastType.info,
-    Duration duration = const Duration(milliseconds: 1500),
+    Duration duration = const Duration(milliseconds: 2000),
   }) {
+    // Prevent rapid-fire duplicate toasts
+    final now = DateTime.now();
+    if (_lastShown != null && now.difference(_lastShown!) < const Duration(milliseconds: 300)) {
+      return;
+    }
+    _lastShown = now;
+
+    // Remove existing toast immediately if new one comes in
+    _currentEntry?.remove();
+    _currentEntry = null;
+
+    final overlay = Overlay.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -36,60 +53,154 @@ class SqaToast {
         break;
     }
 
-    // Use hideCurrentSnackBar instead of clearSnackBars for a smoother transition
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
+    final textStyle = SqaTextStyles.labelBold(context).copyWith(
+      color: colorScheme.onSurface,
+      fontSize: SqaTokens.fontSizeTiny,
+    );
 
-    // Adhere to GEMINI.md: Labels should be 11px labelSmall bold
-    final textStyle =
-        theme.textTheme.labelSmall?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.bold,
-          fontSize: 11,
-        ) ??
-        const TextStyle(fontSize: 11, fontWeight: FontWeight.bold);
-
-    final textPainter = TextPainter(
-      text: TextSpan(text: message, style: textStyle),
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    )..layout();
-
-    // Icon (16) + Gap (8) + Horizontal Padding (16*2) + TextWidth + small buffer
-    final calculatedWidth = textPainter.width + 16 + 8 + 32 + 8;
-    final maxWidth = MediaQuery.of(context).size.width - 48;
-    final finalWidth = calculatedWidth.clamp(120.0, maxWidth);
-
-    messenger.showSnackBar(
-      SnackBar(
-        width: finalWidth,
-        behavior: SnackBarBehavior.floating,
+    _currentEntry = OverlayEntry(
+      builder: (context) => _SqaToastWidget(
+        message: message,
+        icon: icon,
+        iconColor: iconColor,
+        style: textStyle,
+        backgroundColor: colorScheme.surfaceContainerHigh.withValues(alpha: 0.95),
+        borderColor: colorScheme.outlineVariant.withValues(alpha: 0.5),
         duration: duration,
-        // Translucent "Glassmorphism" background for less intrusion
-        backgroundColor: colorScheme.surfaceContainerHigh.withValues(
-          alpha: 0.9,
-        ),
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: SqaStyles.radiusLarge,
-          // Sophisticated border that matches the surface background in a darker state
-          side: BorderSide(color: colorScheme.surfaceContainerHighest),
-        ),
-        content: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: iconColor, size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                message,
-                style: textStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+        onDismissed: () {
+          _currentEntry?.remove();
+          _currentEntry = null;
+        },
+      ),
+    );
+
+    overlay.insert(_currentEntry!);
+  }
+}
+
+class _SqaToastWidget extends StatefulWidget {
+  final String message;
+  final IconData icon;
+  final Color iconColor;
+  final TextStyle style;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Duration duration;
+  final VoidCallback onDismissed;
+
+  const _SqaToastWidget({
+    required this.message,
+    required this.icon,
+    required this.iconColor,
+    required this.style,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.duration,
+    required this.onDismissed,
+  });
+
+  @override
+  State<_SqaToastWidget> createState() => _SqaToastWidgetState();
+}
+
+class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _offset;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: SqaTokens.durationSlow,
+    );
+
+    _opacity = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _offset = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    ));
+
+    _show();
+  }
+
+  Future<void> _show() async {
+    if (!mounted) return;
+    await _controller.forward();
+    _timer = Timer(widget.duration, () async {
+      if (mounted) {
+        await _controller.reverse();
+        widget.onDismissed();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: SqaTokens.spacingLarge,
+      left: 0,
+      right: 0,
+      child: Material(
+        color: Colors.transparent,
+        child: Center(
+          child: FadeTransition(
+            opacity: _opacity,
+            child: SlideTransition(
+              position: _offset,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SqaTokens.spacingMedium,
+                  vertical: SqaTokens.spacingSmall + 2,
+                ),
+                decoration: BoxDecoration(
+                  color: widget.backgroundColor,
+                  borderRadius: SqaStyles.radiusLarge,
+                  border: Border.all(color: widget.borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: SqaTokens.spacingSmall + 4,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(widget.icon,
+                        color: widget.iconColor,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                    const SizedBox(width: SqaTokens.spacingSmall + 2),
+                    Flexible(
+                      child: Text(
+                        widget.message,
+                        style: widget.style,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

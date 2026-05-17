@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import '../models/hotkey_info.dart';
 import 'coffee_shop_service.dart';
@@ -11,15 +12,26 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   );
 });
 
+final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  return const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    wOptions: WindowsOptions(),
+  );
+});
+
 class PreferencesService {
   final SharedPreferences _prefs;
+  final FlutterSecureStorage _secure;
 
-  PreferencesService(this._prefs);
+  PreferencesService(this._prefs, this._secure);
 
   SharedPreferences get rawPrefs => _prefs;
 
   static const String keyEnabledPlugins = 'enabled_plugins';
   static const String keyPluginOrder = 'plugin_order';
+  static const String keyAppVersion = 'app_version';
+  static const String keyPrefsVersion = 'prefs_version';
+  static const int currentPrefsVersion = 2; // Incremented for encryption migration
 
   static const String keyThemeMode = 'theme_mode';
   static const String keySeedColor = 'seed_color';
@@ -99,28 +111,28 @@ class PreferencesService {
     await _prefs.setInt(keySupporterTier, tier);
   }
 
-  String? getSupporterCode() {
-    return _prefs.getString(keySupporterCode);
+  Future<String?> getSupporterCode() async {
+    return _secure.read(key: keySupporterCode);
   }
 
   Future<void> setSupporterCode(String code) async {
-    await _prefs.setString(keySupporterCode, code);
+    await _secure.write(key: keySupporterCode, value: code);
   }
 
-  String? getSupporterEmail() {
-    return _prefs.getString(keySupporterEmail);
+  Future<String?> getSupporterEmail() async {
+    return _secure.read(key: keySupporterEmail);
   }
 
   Future<void> setSupporterEmail(String email) async {
-    await _prefs.setString(keySupporterEmail, email);
+    await _secure.write(key: keySupporterEmail, value: email);
   }
 
-  String? getSupporterSignature() {
-    return _prefs.getString(keySupporterSignature);
+  Future<String?> getSupporterSignature() async {
+    return _secure.read(key: keySupporterSignature);
   }
 
   Future<void> setSupporterSignature(String signature) async {
-    await _prefs.setString(keySupporterSignature, signature);
+    await _secure.write(key: keySupporterSignature, value: signature);
   }
 
   int getBugsSquashed() {
@@ -240,10 +252,42 @@ class PreferencesService {
   Future<void> setFakerLocale(String locale) async {
     await _prefs.setString(keyFakerLocale, locale);
   }
+
+  /// Migrates preferences from older versions to the current schema.
+  Future<void> migrate() async {
+    final int oldVersion = _prefs.getInt(keyPrefsVersion) ?? 0;
+    if (oldVersion >= currentPrefsVersion) return;
+
+    // Migration 1: Move supporter data to Secure Storage (Version 0 -> 1/2)
+    if (oldVersion < 2) {
+      final oldEmail = _prefs.getString(keySupporterEmail);
+      final oldCode = _prefs.getString(keySupporterCode);
+      final oldSig = _prefs.getString(keySupporterSignature);
+
+      if (oldEmail != null) {
+        await setSupporterEmail(oldEmail);
+        await _prefs.remove(keySupporterEmail);
+      }
+      if (oldCode != null) {
+        await setSupporterCode(oldCode);
+        await _prefs.remove(keySupporterCode);
+      }
+      if (oldSig != null) {
+        await setSupporterSignature(oldSig);
+        await _prefs.remove(keySupporterSignature);
+      }
+    }
+
+    // Update version after all migrations succeed
+    await _prefs.setInt(keyPrefsVersion, currentPrefsVersion);
+  }
 }
 
 final preferencesServiceProvider = Provider<PreferencesService>((ref) {
-  return PreferencesService(ref.watch(sharedPreferencesProvider));
+  return PreferencesService(
+    ref.watch(sharedPreferencesProvider),
+    ref.watch(secureStorageProvider),
+  );
 });
 
 class ThemeSettings {

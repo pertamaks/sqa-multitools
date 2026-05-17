@@ -58,6 +58,11 @@ class WindowUtils {
   static Future<List<String>> getFriendlyMonitorNames() =>
       WindowNativeApi.instance.getFriendlyMonitorNames();
 
+  /// Whether the current platform supports global mouse button state polling.
+  /// If [false], callers should use Flutter's gesture system instead.
+  static bool get supportsGlobalMousePolling =>
+      WindowNativeApi.instance.supportsGlobalMousePolling;
+
   /// Checks if the left mouse button is currently pressed.
   static bool isLeftMouseDown() => WindowNativeApi.instance.isLeftMouseDown();
 

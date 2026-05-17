@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 import 'sqa_fade_wrapper.dart';
 
@@ -113,18 +114,18 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
         fontWeight: FontWeight.normal,
       ),
       padding: EdgeInsets.zero,
-      indicatorWeight: 3,
+      indicatorWeight: SqaTokens.borderWidthThick + SqaTokens.borderWidthThin,
       tabs: tabs.map((tab) {
         return Tab(
           key: tab.key,
           icon: tab.icon != null
               ? IconTheme.merge(
-                  data: const IconThemeData(size: 18),
+                  data: IconThemeData(size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
                   child: tab.icon!,
                 )
               : null,
           text: tab.text,
-          iconMargin: const EdgeInsets.only(bottom: 4),
+          iconMargin: const EdgeInsets.only(bottom: SqaTokens.spacingXSmall),
           child: tab.child,
         );
       }).toList(),

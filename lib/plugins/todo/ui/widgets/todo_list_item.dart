@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/todo_item.dart';
 import '../../providers/todo_provider.dart';
 import '../../../../ui/widgets/sqa_card.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 import '../../../../ui/widgets/sqa_smart_text.dart';
 import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:intl/intl.dart';
 import 'todo_item_badges.dart';
@@ -185,13 +187,13 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
               child: Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
+                    padding: const EdgeInsets.only(left: SqaTokens.spacingLarge),
                     child: _buildActionIcons(context, ref),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: SqaTokens.spacingLarge),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: SqaTokens.spacingLarge),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -201,12 +203,12 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                               if (widget.item.recurringTodoId != null)
                                 Padding(
                                   padding: const EdgeInsets.only(
-                                    right: 6.0,
-                                    top: 2.0,
+                                    right: SqaTokens.spacingSmall,
+                                    top: SqaTokens.spacingXSmall,
                                   ),
                                   child: Icon(
                                     Symbols.sync,
-                                    size: 16,
+                                    size: SqaTokens.spacingLarge,
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
@@ -240,7 +242,7 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                               isDelegated ||
                               completionBadgeText != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
+                              padding: const EdgeInsets.only(top: SqaTokens.spacingSmall),
                               child: TodoItemBadges(
                                 item: widget.item,
                                 isReadOnly: widget.isReadOnly,
@@ -259,14 +261,10 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                   ),
                   if (widget.onDelete != null && !widget.isReadOnly)
                     Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
+                      padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
                       child: SqaPopupMenu(
-                        alignmentOffset: const Offset(-100, 4),
-                        icon: Icon(
-                          Symbols.more_vert,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                        alignmentOffset: Offset(-SqaTokens.spacingXXXLarge * 2, SqaTokens.spacingXSmall),
+                        icon: Symbols.more_vert,
                         children: [
                           if (widget.item.recurringTodoId == null) ...[
                             if (!isOverdueByDay)
@@ -314,19 +312,19 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                             icon: const Icon(Symbols.report_problem),
                             label: 'Mark as Exception',
                             onPressed: () => TodoItemDialogs.showException(
-                              context,
-                              ref,
-                              widget.item,
-                            ),
+                                context,
+                                ref,
+                                widget.item,
+                              ),
                           ),
                           SqaPopupMenuItem(
                             icon: const Icon(Symbols.cancel),
                             label: 'Cancel Focus',
                             onPressed: () => TodoItemDialogs.showCancel(
-                              context,
-                              ref,
-                              widget.item,
-                            ),
+                                context,
+                                ref,
+                                widget.item,
+                              ),
                           ),
                           Divider(
                             height: 1,
@@ -372,34 +370,31 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
         if (isDelegated)
           widget.isReadOnly
               ? Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(SqaTokens.spacingSmall),
                   child: Icon(
                     Symbols.person_add,
-                    size: 22,
+                    size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                     color: colorScheme.primary,
                   ),
                 )
-              : IconButton(
-                  icon: Icon(
-                    Symbols.person_add,
-                    size: 22,
-                    color: colorScheme.primary,
-                  ),
+              : SqaHoverIconButton(
+                  icon: Symbols.person_add,
+                  iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                  color: colorScheme.primary,
                   onPressed: () =>
                       TodoItemDialogs.showDelegate(context, ref, widget.item),
                   tooltip: 'Update Delegation',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  padding: 0,
                 ),
         if (!isDeferred && !isDelegated) ...[
           widget.isReadOnly
               ? Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(SqaTokens.spacingSmall),
                   child: Icon(
                     isTerminal
                         ? Symbols.check_box
                         : Symbols.check_box_outline_blank,
-                    size: 22,
+                    size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     fill: isTerminal ? 1 : 0,
                   ),
@@ -411,19 +406,17 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                           TodoItemDialogs.incrementHelpCount(ref);
                           TodoItemDialogs.showNotes(context, ref, widget.item);
                         },
-                  child: IconButton(
-                    icon: Icon(
-                      isTerminal
-                          ? Symbols.check_box
-                          : Symbols.check_box_outline_blank,
-                      size: 22,
-                      color: isTerminal
-                          ? colorScheme.primary
-                          : (widget.item.notes.isNotEmpty
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant),
-                      fill: isTerminal ? 1 : 0,
-                    ),
+                  child: SqaHoverIconButton(
+                    icon: isTerminal
+                        ? Symbols.check_box
+                        : Symbols.check_box_outline_blank,
+                    iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                    padding: 0,
+                    color: isTerminal
+                        ? colorScheme.primary
+                        : (widget.item.notes.isNotEmpty
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant),
                     onPressed: () {
                       TodoItemDialogs.incrementHelpCount(ref);
                       final isDoneNow = !isTerminal;
@@ -443,8 +436,6 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                         : (showHelp
                               ? 'Mark as Done (Long press to add notes)'
                               : 'Mark as Done'),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
                   ),
                 ),
         ],

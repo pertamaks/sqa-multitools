@@ -85,6 +85,10 @@ GEMINI.md
 # =============================================================================
 lib/plugins/text_editor_v2/
 assets/appflowy-editor-main/
+test_docsSQA_Recordings
+test_docsSQA_Screenshots
+test_support
+test_support\logs
 
 # Local Assets (Unused in Repo)
 assets/toolbar_new.png

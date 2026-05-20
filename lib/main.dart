@@ -110,9 +110,15 @@ void main() async {
 }
 
 void _showGlobalErrorToast(String message) {
-  final context = navigatorKey.currentContext;
+  // Use the overlay context if available to guarantee that an Overlay widget ancestor exists
+  final context = navigatorKey.currentState?.overlay?.context ?? navigatorKey.currentContext;
   if (context != null) {
-    SqaToast.show(context, message, type: SqaToastType.error);
+    try {
+      SqaToast.show(context, message, type: SqaToastType.error);
+    } catch (e) {
+      // Fallback: print to console if context search still fails
+      debugPrint('Failed to display error toast: $message (Error: $e)');
+    }
   }
 }
 

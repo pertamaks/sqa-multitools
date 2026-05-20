@@ -50,7 +50,7 @@ final class LoggingServiceProvider
   }
 }
 
-String _$loggingServiceHash() => r'112fa08eed81dc9c14331c830c926888aed82edf';
+String _$loggingServiceHash() => r'b089fa06fd04e1aaa2fa00b308b7337539a2356e';
 
 /// A centralized service for application-wide logging.
 /// This service captures structured logs and can eventually be configured

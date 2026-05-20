@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'widgets/text_editor_toolbar.dart';
 import 'widgets/text_editor_link_menu.dart';
-import 'widgets/text_editor_save_status.dart';
 import 'widgets/table_block_builder.dart';
 
 import 'package:flutter/material.dart';
@@ -15,7 +14,7 @@ import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../ui/widgets/sqa_smart_text.dart';
 
-import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_editor_state.dart';
 import 'package:flutter/services.dart';
@@ -455,7 +454,10 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         ),
         const Divider(height: SqaTokens.spacingSmall, thickness: 0.5),
         _buildTableMenuItem(
-          icon: const Icon(Symbols.content_copy, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+          icon: const Icon(
+            Symbols.content_copy,
+            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+          ),
           label: isRow ? 'Duplicate Row' : 'Duplicate Column',
           onTap: () =>
               TableActions.duplicate(node, position, editorState, direction),
@@ -574,7 +576,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
         ),
         const Divider(height: SqaTokens.spacingSmall, thickness: 0.5),
         _buildTableMenuItem(
-          icon: Icon(Symbols.delete, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny, color: theme.colorScheme.error),
+          icon: Icon(
+            Symbols.delete,
+            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+            color: theme.colorScheme.error,
+          ),
           label: isRow ? 'Delete Row' : 'Delete Column',
           color: theme.colorScheme.error,
           onTap: () =>
@@ -692,7 +698,9 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
       backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
       surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
       elevation: WidgetStateProperty.all(8.0),
-      padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.all(SqaTokens.spacingXSmall),
+      ),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(
           borderRadius: SqaStyles.radiusLarge,
@@ -859,109 +867,100 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
     final isViewer = state.viewMode == TextEditorViewMode.viewer;
 
     if (isViewer) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final barWidth = (screenWidth - (SqaTokens.spacingXXXLarge * 3)).clamp(
+        0.0,
+        150.0,
+      );
+
       return SqaPluginLayout(
         title: _nameController.text.isEmpty ? 'Document' : _nameController.text,
         onBack: _handleBack,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            SqaHoverIconButton(
-              icon: Symbols.edit,
-              onPressed: () => notifier.openEditor(state.activeDocument),
-              tooltip: 'Edit Document',
-              iconSize: 18,
+            Positioned.fill(
+              child: SqaFadeWrapper(
+                child: SqaMarkdownViewer(
+                  markdown: state.activeDocument?.content ?? '',
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: SqaTokens.spacingXLarge,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: barWidth),
+                  child: SqaFloatingBar(
+                    children: [
+                      SqaFloatingBarButton(
+                        icon: Symbols.edit,
+                        onPressed: () =>
+                            notifier.openEditor(state.activeDocument),
+                        tooltip: 'Edit Document',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
-        ),
-        child: SqaFadeWrapper(
-          child: SqaMarkdownViewer(
-            markdown: state.activeDocument?.content ?? '',
-          ),
         ),
       );
     }
 
     return SqaPluginLayout(
-      titleWidget: Padding(
-        padding: const EdgeInsets.only(top: SqaTokens.spacingXSmall),
-        child: _isEditingTitle
-            ? Align(
-                key: const ValueKey('editing'),
-                alignment: Alignment.centerLeft,
-                child: TextField(
-                  controller: _nameController,
-                  focusNode: _titleFocusNode,
-                  autofocus: true,
-                  style: titleStyle,
-                  decoration: InputDecoration(
-                    hintText: 'Document Title',
-                    hintStyle: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
+      titleWidget: _isEditingTitle
+          ? Align(
+              key: const ValueKey('editing'),
+              alignment: Alignment.centerLeft,
+              child: TextField(
+                controller: _nameController,
+                focusNode: _titleFocusNode,
+                autofocus: true,
+                style: titleStyle,
+                decoration: InputDecoration(
+                  hintText: 'Document Title',
+                  hintStyle: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                   ),
-                  onChanged: (val) => setState(() {}),
-                  onSubmitted: (_) => _submitTitle(),
-                  onTapOutside: (_) {
-                    _titleFocusNode.unfocus();
-                  },
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
                 ),
-              )
-            : Align(
-                key: const ValueKey('viewing'),
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: SqaSmartText(
-                    text: _nameController.text.isEmpty
-                        ? 'Document Title'
-                        : _nameController.text,
-                    style: _nameController.text.isEmpty
-                        ? titleStyle?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.2,
-                            ),
-                          )
-                        : titleStyle,
-                    onTap: () {
-                      setState(() => _isEditingTitle = true);
-                      _titleFocusNode.requestFocus();
-                    },
-                  ),
+                onChanged: (val) => setState(() {}),
+                onSubmitted: (_) => _submitTitle(),
+                onTapOutside: (_) {
+                  _titleFocusNode.unfocus();
+                },
+              ),
+            )
+          : Align(
+              key: const ValueKey('viewing'),
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: double.infinity,
+                child: SqaSmartText(
+                  text: _nameController.text.isEmpty
+                      ? 'Document Title'
+                      : _nameController.text,
+                  style: _nameController.text.isEmpty
+                      ? titleStyle?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.2,
+                          ),
+                        )
+                      : titleStyle,
+                  onTap: () {
+                    setState(() => _isEditingTitle = true);
+                    _titleFocusNode.requestFocus();
+                  },
                 ),
               ),
-      ),
+            ),
       onBack: _handleBack,
       useMask: false, // Disable global mask to keep toolbar opaque
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1. Status Indicator (Always visible, changes color)
-          TextEditorSaveStatus(state: state),
-          const SizedBox(width: SqaTokens.spacingXSmall),
-          // 2. Manual Save Button
-          SqaHoverIconButton(
-            icon: Symbols.save,
-            onPressed: state.isSaving
-                ? () {} // Disabled handled internally or by provider
-                : () async {
-                    await notifier.saveDocument();
-                    if (context.mounted) {
-                      SqaToast.show(
-                        context,
-                        'Document Saved',
-                        type: SqaToastType.success,
-                      );
-                    }
-                  },
-            tooltip: 'Save document',
-            iconSize: 20,
-            hoverColor: theme.colorScheme.primary,
-          ),
-        ],
-      ),
       child: Stack(
         children: [
           Positioned.fill(
@@ -1035,9 +1034,13 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       commandShortcutEvents: _buildCommandShortcuts(),
                       editorScrollController: _editorScrollController,
                       shrinkWrap: true,
+                      footer: const SizedBox(
+                        height: SqaTokens.scrollClearanceBottom,
+                      ),
                       editorStyle: EditorStyle.desktop(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
+                          horizontal:
+                              SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
                           vertical: SqaTokens.spacingMedium,
                         ),
                         maxWidth: 800.0,

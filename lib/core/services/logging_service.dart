@@ -46,6 +46,14 @@ class LoggingService extends _$LoggingService {
 
       // In debug mode, also print to console for easier visibility in some IDEs
       if (kDebugMode) {
+        final name = record.loggerName.toLowerCase();
+        // Skip highly verbose internal AppFlowy or editing framework logs to prevent terminal flooding
+        if (name.contains('appflowy') || name.contains('editor') || record.level < Level.INFO) {
+          if (record.level < Level.WARNING) {
+            return;
+          }
+        }
+
         // ignore: avoid_print
         print('${record.time} [${record.level.name}] ${record.loggerName}: ${record.message}');
         if (record.error != null) {

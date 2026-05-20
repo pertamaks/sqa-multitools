@@ -165,6 +165,9 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
             child: SlideTransition(
               position: _offset,
               child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: SqaTokens.spacingMedium,
                   vertical: SqaTokens.spacingSmall + 2,
@@ -183,17 +186,19 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(widget.icon,
-                        color: widget.iconColor,
-                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1.0),
+                      child: Icon(widget.icon,
+                          color: widget.iconColor,
+                          size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                    ),
                     const SizedBox(width: SqaTokens.spacingSmall + 2),
                     Flexible(
                       child: Text(
                         widget.message,
                         style: widget.style,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

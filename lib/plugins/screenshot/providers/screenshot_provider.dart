@@ -254,8 +254,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     // 5. Finally restore native attributes, reveal and focus
     // Move all attribute changes here to prevent DWM flushes on giant window
     await Future.wait([
-      windowManager.setHasShadow(true),
-      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAsFrameless(),
+      windowManager.setHasShadow(false),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
       windowManager.setIgnoreMouseEvents(false),
     ]);
@@ -497,8 +497,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       // 5. Finally restore attributes, reveal and focus
       // Move all attribute changes here to prevent DWM flushes on giant window
       await Future.wait([
-        windowManager.setHasShadow(true),
-        windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+        windowManager.setAsFrameless(),
+        windowManager.setHasShadow(false),
         windowManager.setAlwaysOnTop(theme.alwaysOnTop),
         windowManager.setIgnoreMouseEvents(false),
       ]);

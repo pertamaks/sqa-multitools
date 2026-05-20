@@ -36,7 +36,7 @@ class SqaPluginHeader extends StatelessWidget {
     final effectiveColor = color ?? colorScheme.primary;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (onBack != null) ...[
           SqaHoverIconButton(
@@ -50,7 +50,11 @@ class SqaPluginHeader extends StatelessWidget {
         ],
         if (icon != null) ...[
           MouseRegion(
-            cursor: iconMouseCursor ?? (onIconTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
+            cursor:
+                iconMouseCursor ??
+                (onIconTap != null
+                    ? SystemMouseCursors.click
+                    : SystemMouseCursors.basic),
             child: GestureDetector(
               onTap: onIconTap,
               behavior: HitTestBehavior.opaque,
@@ -72,14 +76,15 @@ class SqaPluginHeader extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.dmSans(
-                        fontSize: SqaTokens.fontSizeXLarge,
-                        color: effectiveColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Text(
+                    title,
+                    style: GoogleFonts.dmSans(
+                      fontSize: SqaTokens.fontSizeXLarge,
+                      color: effectiveColor,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  if (description.isNotEmpty)
                     Text(
                       description,
                       style: GoogleFonts.dmSans(
@@ -91,7 +96,10 @@ class SqaPluginHeader extends StatelessWidget {
                 ],
               ),
         ),
-        if (trailing != null) ...[const SizedBox(width: SqaTokens.spacingMedium), trailing!],
+        if (trailing != null) ...[
+          const SizedBox(width: SqaTokens.spacingMedium),
+          trailing!,
+        ],
       ],
     );
   }

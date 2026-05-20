@@ -554,8 +554,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 7. Finally restore attributes, reveal and focus
     // Move all attribute changes here to prevent DWM flushes on giant window
     await Future.wait([
-      windowManager.setHasShadow(true),
-      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAsFrameless(),
+      windowManager.setHasShadow(false),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
       setIgnoreMouseEvents(false),
     ]);

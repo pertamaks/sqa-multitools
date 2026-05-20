@@ -158,91 +158,91 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
           color: Colors.transparent,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
-              child: Container(
-                height: WindowConstants.kToolbarWindowHeight,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(SqaStyles.radiusWindow),
-                    topRight: const Radius.circular(SqaStyles.radiusWindow),
-                    bottomLeft: Radius.circular(
-                      activePlugin != null ? 0 : SqaStyles.radiusWindow,
-                    ),
-                    bottomRight: Radius.circular(
-                      activePlugin != null ? 0 : SqaStyles.radiusWindow,
-                    ),
+            child: Container(
+              height: WindowConstants.kToolbarWindowHeight,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(SqaStyles.radiusWindow),
+                  topRight: const Radius.circular(SqaStyles.radiusWindow),
+                  bottomLeft: Radius.circular(
+                    activePlugin != null ? 0 : SqaStyles.radiusWindow,
+                  ),
+                  bottomRight: Radius.circular(
+                    activePlugin != null ? 0 : SqaStyles.radiusWindow,
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                        Expanded(
-                          child: SqaInlineTooltip(
-                            scrollController: _scrollController,
-                            backgroundColor: colorScheme.surfaceContainerLow,
-                            child: SqaFadeWrapper(
-                              axis: Axis.horizontal,
-                              child: ClipRect(
-                                child: ScrollConfiguration(
-                                  behavior: const SqaMouseDragScrollBehavior(),
-                                  child: SingleChildScrollView(
-                                    key: const PageStorageKey(
-                                      'main_toolbar_scroll',
-                                    ),
-                                    controller: _scrollController,
-                                    scrollDirection: Axis.horizontal,
-                                    clipBehavior: Clip.none,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: enabledPlugins
-                                          .asMap()
-                                          .entries
-                                          .map((entry) {
-                                            final plugin = entry.value;
-                                            final isActive =
-                                                activePlugin?.id == plugin.id;
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 10.0,
-                                              ),
-                                              child: ToolIcon(
-                                                icon: plugin.icon,
-                                                tooltip: _formatTooltip(
-                                                  plugin,
-                                                  plugin.name,
-                                                ),
-                                                isActive: isActive,
-                                                badge: _buildBadgeIcon(
-                                                  plugin,
-                                                  hasTodoReminder,
-                                                  isTimerRunning,
-                                                ),
-                                                badgeColor: _getBadgeColor(
-                                                  plugin,
-                                                  hasTodoReminder,
-                                                  isTimerRunning,
-                                                  colorScheme,
-                                                ),
-                                                onPressed: () =>
-                                                    _togglePlugin(plugin),
-                                              ),
-                                            );
-                                          })
-                                          .toList(),
-                                    ),
-                                  ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: SqaInlineTooltip(
+                        scrollController: _scrollController,
+                        backgroundColor: colorScheme.surfaceContainerLow,
+                        child: SqaFadeWrapper(
+                          axis: Axis.horizontal,
+                          child: ClipRect(
+                            child: ScrollConfiguration(
+                              behavior: const SqaMouseDragScrollBehavior(),
+                              child: SingleChildScrollView(
+                                key: const PageStorageKey(
+                                  'main_toolbar_scroll',
+                                ),
+                                controller: _scrollController,
+                                scrollDirection: Axis.horizontal,
+                                clipBehavior: Clip.none,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: enabledPlugins.asMap().entries.map((
+                                    entry,
+                                  ) {
+                                    final plugin = entry.value;
+                                    final isActive =
+                                        activePlugin?.id == plugin.id;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 10.0,
+                                      ),
+                                      child: ToolIcon(
+                                        icon: plugin.icon,
+                                        tooltip: _formatTooltip(
+                                          plugin,
+                                          plugin.name,
+                                        ),
+                                        isActive: isActive,
+                                        badge: _buildBadgeIcon(
+                                          plugin,
+                                          hasTodoReminder,
+                                          isTimerRunning,
+                                        ),
+                                        badgeColor: _getBadgeColor(
+                                          plugin,
+                                          hasTodoReminder,
+                                          isTimerRunning,
+                                          colorScheme,
+                                        ),
+                                        onPressed: () => _togglePlugin(plugin),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                             ),
                           ),
                         ),
+                      ),
+                    ),
 
-                        // Drag Handle & Global Download Indicator
-                        Stack(
+                    // Drag Handle & Global Download Indicator
+                    SizedBox(
+                      width: 36,
+                      height: 48,
+                      child: Center(
+                        child: Stack(
                           alignment: Alignment.center,
                           children: [
                             Icon(
@@ -263,43 +263,45 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                               ),
                           ],
                         ),
-                        const SizedBox(width: 4),
-
-                        ToolIcon(
-                          icon: settingsPlugin.icon,
-                          tooltip: settingsPlugin.name,
-                          isActive: activePlugin?.id == settingsPlugin.id,
-                          badge: supporterTier >= 1
-                              ? const Icon(
-                                  Symbols.coffee,
-                                  size: 10,
-                                  color: Colors.white,
-                                  weight: 700,
-                                )
-                              : null,
-                          onPressed: () => _handleSettingsPress(settingsPlugin),
-                        ),
-                        const SizedBox(width: 4),
-
-                        // Close to Tray
-                        SqaInlineTooltipTrigger(
-                          tooltip: 'Close to Tray',
-                          child: SqaHoverIconButton(
-                            icon: Symbols.close,
-                            onPressed: () => WindowUtils.safeHide(),
-                            tooltip: null,
-                            iconSize: 24,
-                            padding: 6.0,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 4),
+
+                    ToolIcon(
+                      icon: settingsPlugin.icon,
+                      tooltip: settingsPlugin.name,
+                      isActive: activePlugin?.id == settingsPlugin.id,
+                      badge: supporterTier >= 1
+                          ? const Icon(
+                              Symbols.coffee,
+                              size: 10,
+                              color: Colors.white,
+                              weight: 700,
+                            )
+                          : null,
+                      onPressed: () => _handleSettingsPress(settingsPlugin),
+                    ),
+                    const SizedBox(width: 4),
+
+                    // Close to Tray
+                    SqaInlineTooltipTrigger(
+                      tooltip: 'Close to Tray',
+                      child: SqaHoverIconButton(
+                        icon: Symbols.close,
+                        onPressed: () => WindowUtils.safeHide(),
+                        tooltip: null,
+                        iconSize: 24,
+                        padding: 6.0,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 
   // --- Helper Methods ---
@@ -488,7 +490,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                             child: SqaSafePluginBuilder(
                               pluginId: activePlugin.id,
                               pluginName: activePlugin.name,
-                              builder: (context) => activePlugin.buildPluginWindow(context),
+                              builder: (context) =>
+                                  activePlugin.buildPluginWindow(context),
                             ),
                           ),
                         ),

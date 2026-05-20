@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
 
 import '../../../../ui/widgets/sqa_color_picker.dart';
+import 'text_editor_save_status.dart';
 
 class TextEditorToolbar extends ConsumerWidget {
   final EditorState editorState;
@@ -32,7 +33,10 @@ class TextEditorToolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final barWidth = (screenWidth - (SqaTokens.spacingXXXLarge * 3)).clamp(0.0, 800.0);
+    final barWidth = (screenWidth - (SqaTokens.spacingXXXLarge * 3)).clamp(
+      0.0,
+      800.0,
+    );
 
     return Positioned(
       bottom: SqaTokens.spacingXLarge,
@@ -47,7 +51,32 @@ class TextEditorToolbar extends ConsumerWidget {
               formattingNotifier,
             ]),
             builder: (context, _) {
+              final state = ref.watch(textEditorProvider);
+              final notifier = ref.read(textEditorProvider.notifier);
+
               return SqaFloatingBar(
+                trailing: [
+                  TextEditorSaveStatus(state: state),
+                  const SizedBox(width: SqaTokens.spacingXSmall),
+                  SqaFloatingBarButton(
+                    icon: Symbols.save,
+                    isLoading: state.isSaving,
+                    onPressed: state.isSaving
+                        ? null
+                        : () async {
+                            await notifier.saveDocument();
+                            if (context.mounted) {
+                              SqaToast.show(
+                                context,
+                                'Document Saved',
+                                type: SqaToastType.success,
+                              );
+                            }
+                          },
+                    tooltip: 'Save document',
+                  ),
+                  const SizedBox(width: SqaTokens.spacingSmall),
+                ],
                 children: [
                   // Group 1: History
                   SqaFloatingBarButton(

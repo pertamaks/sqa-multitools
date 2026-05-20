@@ -42,7 +42,7 @@ final class BeautifierNotifierProvider
 }
 
 String _$beautifierNotifierHash() =>
-    r'97e7bcd7b6b13dbd9080261af3a0b60154feb783';
+    r'cd1813a28dfe8202be86080bcef94f1654d790bf';
 
 abstract class _$BeautifierNotifier extends $Notifier<BeautifierState> {
   BeautifierState build();

@@ -13,7 +13,6 @@ import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_button.dart';
-import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';

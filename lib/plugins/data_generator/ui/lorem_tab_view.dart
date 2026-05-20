@@ -9,7 +9,6 @@ import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_button.dart';
-import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_toast.dart';
 import 'widgets/history_tile.dart';
 import '../../../ui/widgets/sqa_history_list.dart';

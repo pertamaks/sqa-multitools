@@ -9,6 +9,7 @@ import '../../plugins/settings/settings_plugin.dart';
 import '../../plugins/security_payloads/security_payloads_plugin.dart';
 import '../../plugins/beautifier/beautifier_plugin.dart';
 import '../../plugins/text_editor/text_editor_plugin.dart';
+import '../../plugins/requirement_obfuscator/requirement_obfuscator_plugin.dart';
 import '../../plugins/todo/todo_plugin.dart';
 import '../../plugins/qa_cheatsheet/qa_cheatsheet_plugin.dart';
 import '../../plugins/curl_requester/curl_requester_plugin.dart';
@@ -25,6 +26,7 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     SecurityPayloadsPlugin(),
     BeautifierPlugin(),
     TextEditorPlugin(),
+    RequirementObfuscatorPlugin(),
     TodoPlugin(),
     QaCheatsheetPlugin(),
     CurlRequesterPlugin(),

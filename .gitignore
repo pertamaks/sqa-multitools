@@ -71,6 +71,8 @@ app.*.map.json
 .gemini/
 GEMINI.md
 .env
+CLAUDE.md
+.claude/
 
 # =============================================================================
 # Scratch / Debug Output (catch-all for temp dumps)

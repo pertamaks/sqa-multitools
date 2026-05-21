@@ -97,6 +97,7 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
             child: Scrollbar(
               controller: _scrollController,
               child: ReorderableListView.builder(
+                // ignore: deprecated_member_use
                 onReorder: (oldIndex, newIndex) {
                   ref
                       .read(enabledPluginsProvider.notifier)

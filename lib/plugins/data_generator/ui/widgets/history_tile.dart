@@ -74,7 +74,7 @@ class DataHistoryTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (customActions != null) ...customActions!,
+            ...?customActions,
             SqaPopupMenu(
               icon: Symbols.more_vert,
               tooltip: 'Actions',

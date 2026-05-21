@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqa_multitools/core/providers/ffmpeg_provider.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,12 @@ class MockFfmpeg extends Ffmpeg {
 
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
+  
+  // Ensure test directories exist before running tests to prevent I/O errors
+  // from Ffmpeg or LoggingService when writing files
+  Directory('./test_temp').createSync(recursive: true);
+  Directory('./test_docs').createSync(recursive: true);
+  Directory('./test_support').createSync(recursive: true);
   
   testWidgets('App smoke test', (WidgetTester tester) async {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(

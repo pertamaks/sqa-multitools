@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqa_multitools/core/window/window_transition_coordinator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,6 +44,8 @@ class MockFfmpeg extends Ffmpeg {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  Directory('./test_temp').createSync(recursive: true);
+  Directory('./test_docs').createSync(recursive: true);
   group('ScreenRecorderNotifier Tests', () {
     late ProviderContainer container;
 

@@ -12,8 +12,20 @@ void main() {
   late String requirementText;
 
   setUpAll(() {
-    final file = File('assets/requirement_2.md');
-    requirementText = file.readAsStringSync();
+    requirementText = '''
+# 🚀 Notion Workspace
+
+## PulseVibe Project
+This epic EPIC-01 contains the specs. See FR-1.1 and AES-256-GCM specs.
+Processing is fast. Redis caches data. Use Redis for caching.
+The RedisClient connects to Redis for caching.
+We use PostgreSQL and GraphQL. We also integrate Stripe.
+Security uses OIDC and RBAC. Use MFA.
+Also REQ-101 and Espresso are used.
+| Requirement ID |
+| -------------- |
+| REQ-101        |
+''';
   });
 
   group('TermScanner', () {

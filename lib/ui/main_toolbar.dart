@@ -23,7 +23,6 @@ import '../plugins/timer/providers/timer_provider.dart';
 
 import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
-import '../core/providers/window_provider.dart';
 import '../core/providers/ffmpeg_provider.dart';
 import 'widgets/sqa_safe_plugin_builder.dart';
 

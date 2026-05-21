@@ -1,5 +1,4 @@
 // ignore_for_file: avoid_print
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqa_multitools/plugins/requirement_obfuscator/engine/term_scanner.dart';
 import 'package:sqa_multitools/plugins/requirement_obfuscator/engine/substitution_engine.dart';

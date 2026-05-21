@@ -81,62 +81,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   }
 
   void _togglePlugin(SqaPlugin plugin) async {
-    final current = ref.read(activePluginProvider);
-
-    // If we're leaving the settings plugin, revert any theme previews
-    if (current?.id == 'com.sqa.settings' && plugin.id != 'com.sqa.settings') {
-      ref.read(themeSettingsProvider.notifier).resetToSaved();
-    }
-
-    if (current?.id == plugin.id) {
-      ref.read(activePluginProvider.notifier).setPlugin(null);
-      // Clear history when closing
-      ref.read(navigationHistoryProvider.notifier).setHistory(null);
-      if (plugin.id == 'com.sqa.settings') {
-        ref.read(themeSettingsProvider.notifier).resetToSaved();
-      }
-      ref.read(windowSizeModeProvider.notifier).reset();
-      await windowManager.setMinimumSize(
-        const Size(
-          WindowConstants.kDefaultWindowWidth,
-          WindowConstants.kToolbarWindowHeight,
-        ),
-      );
-      await windowManager.setSize(
-        const Size(
-          WindowConstants.kDefaultWindowWidth,
-          WindowConstants.kToolbarWindowHeight,
-        ),
-      );
-    } else {
-      // HANDLE NAVIGATION HISTORY
-      if (plugin.id == 'com.sqa.settings') {
-        // Entering Settings: record where we came from if it's a real plugin
-        if (current != null && current.id != 'com.sqa.settings') {
-          ref.read(navigationHistoryProvider.notifier).setHistory(current.id);
-        }
-        // Default to 'General' tab (0) when accessed from the toolbar
-        ref.read(settingsTabProvider.notifier).setTab(0);
-      } else {
-        // Entering any other plugin: clear the back-navigation history
-        ref.read(navigationHistoryProvider.notifier).setHistory(null);
-      }
-
-      ref.read(windowSizeModeProvider.notifier).reset();
-      ref.read(activePluginProvider.notifier).setPlugin(plugin);
-      await windowManager.setMinimumSize(
-        const Size(
-          WindowConstants.kDefaultWindowWidth,
-          WindowConstants.kExpandedWindowHeight,
-        ),
-      );
-      await windowManager.setSize(
-        const Size(
-          WindowConstants.kDefaultWindowWidth,
-          WindowConstants.kExpandedWindowHeight,
-        ),
-      );
-    }
+    await ref.read(navigationServiceProvider).togglePlugin(plugin);
   }
 
   Widget _buildToolbarBar(

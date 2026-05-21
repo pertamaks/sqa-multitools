@@ -1,4 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart' show Size;
+import 'package:window_manager/window_manager.dart';
+import '../window/window_constants.dart';
+import 'window_provider.dart';
 import '../models/sqa_plugin.dart';
 import '../../plugins/magic_8ball/magic_8ball_plugin.dart';
 import '../../plugins/timer/timer_plugin.dart';
@@ -229,6 +233,67 @@ class NavigationService {
       _ref.read(navigationHistoryProvider.notifier).setHistory(null);
     } else {
       _ref.read(activePluginProvider.notifier).setPlugin(null);
+    }
+  }
+
+  /// Toggles a plugin's visibility, managing navigation history and window sizes.
+  /// If [forceOpen] is true, it will not close the plugin if it's already active.
+  Future<void> togglePlugin(SqaPlugin plugin, {bool forceOpen = false}) async {
+    final current = _ref.read(activePluginProvider);
+
+    // If we're leaving the settings plugin, revert any theme previews
+    if (current?.id == 'com.sqa.settings' && plugin.id != 'com.sqa.settings') {
+      _ref.read(themeSettingsProvider.notifier).resetToSaved();
+    }
+
+    if (current?.id == plugin.id && !forceOpen) {
+      _ref.read(activePluginProvider.notifier).setPlugin(null);
+      // Clear history when closing
+      _ref.read(navigationHistoryProvider.notifier).setHistory(null);
+      if (plugin.id == 'com.sqa.settings') {
+        _ref.read(themeSettingsProvider.notifier).resetToSaved();
+      }
+      _ref.read(windowSizeModeProvider.notifier).reset();
+      await windowManager.setMinimumSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kToolbarWindowHeight,
+        ),
+      );
+      await windowManager.setSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kToolbarWindowHeight,
+        ),
+      );
+    } else {
+      // HANDLE NAVIGATION HISTORY
+      if (plugin.id == 'com.sqa.settings') {
+        // Entering Settings: record where we came from if it's a real plugin
+        if (current != null && current.id != 'com.sqa.settings') {
+          _ref.read(navigationHistoryProvider.notifier).setHistory(current.id);
+        }
+        // Default to 'General' tab (0) when accessed from the toolbar
+        _ref.read(settingsTabProvider.notifier).setTab(0);
+      } else {
+        // Entering any other plugin: clear the back-navigation history
+        _ref.read(navigationHistoryProvider.notifier).setHistory(null);
+      }
+
+      _ref.read(windowSizeModeProvider.notifier).reset();
+      _ref.read(activePluginProvider.notifier).setPlugin(plugin);
+      await windowManager.setMinimumSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kExpandedWindowHeight,
+        ),
+      );
+      await windowManager.setSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kExpandedWindowHeight,
+        ),
+      );
     }
   }
 }

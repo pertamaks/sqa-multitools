@@ -99,7 +99,7 @@ void main() async {
     await windowManager.focus();
   });
 
-  await TrayManager.init();
+  await TrayManager.init(globalProviderContainer);
 
   runApp(
     UncontrolledProviderScope(

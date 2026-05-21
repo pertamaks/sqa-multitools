@@ -18,6 +18,8 @@ class MockPathProvider extends PathProviderPlatform
   Future<String?> getApplicationDocumentsPath() async => './test_docs';
   @override
   Future<String?> getTemporaryPath() async => './test_temp';
+  @override
+  Future<String?> getApplicationSupportPath() async => './test_support';
 }
 
 class MockWindowTransitionCoordinator extends WindowTransitionCoordinator {

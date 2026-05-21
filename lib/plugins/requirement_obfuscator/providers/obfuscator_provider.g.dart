@@ -139,7 +139,7 @@ final class ObfuscatorProvider
   }
 }
 
-String _$obfuscatorHash() => r'81d09905f0cffb73fe4cf858efed7451d926fde9';
+String _$obfuscatorHash() => r'65294967ec6916c25e5ffe320b576d70f3e92029';
 
 abstract class _$Obfuscator extends $Notifier<ObfuscatorState> {
   ObfuscatorState build();

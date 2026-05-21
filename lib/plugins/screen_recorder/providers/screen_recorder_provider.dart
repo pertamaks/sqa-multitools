@@ -342,7 +342,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         selectedAudioDevice: state.selectedAudioDevice,
       );
 
-      _ffmpegProcess = await FfmpegEngine().startRecording(
+      _ffmpegProcess = await ref.read(ffmpegEngineProvider).startRecording(
         config: config,
         savePath: savePath,
         displays: state.availableDisplays,

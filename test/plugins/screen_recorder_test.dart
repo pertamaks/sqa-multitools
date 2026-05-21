@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqa_multitools/core/window/window_transition_coordinator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqa_multitools/core/providers/ffmpeg_provider.dart';
+import 'package:sqa_multitools/core/engine/ffmpeg_engine.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import 'package:sqa_multitools/core/models/capture_mode.dart';
 import 'package:sqa_multitools/plugins/screen_recorder/providers/screen_recorder_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,6 +43,28 @@ class MockFfmpeg extends Ffmpeg {
   @override
   FfmpegStatus build() {
     return const FfmpegStatus(isReady: true);
+  }
+}
+
+class MockProcess extends Fake implements Process {
+  @override
+  Future<int> get exitCode async => 0;
+
+  @override
+  Stream<List<int>> get stderr => const Stream.empty();
+  
+  @override
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => true;
+}
+
+class MockFfmpegEngine extends FfmpegEngine {
+  @override
+  Future<Process> startRecording({
+    required FfmpegVideoConfig config,
+    required String savePath,
+    required List<Display> displays,
+  }) async {
+    return MockProcess();
   }
 }
 
@@ -100,6 +124,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           ffmpegProvider.overrideWith(() => MockFfmpeg()),
+          ffmpegEngineProvider.overrideWithValue(MockFfmpegEngine()),
           windowTransitionProvider.overrideWithValue(
             MockWindowTransitionCoordinator(),
           ),

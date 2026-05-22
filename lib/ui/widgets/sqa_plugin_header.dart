@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'sqa_design_tokens.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../ui/widgets/sqa_icon_container.dart';
 import 'sqa_hover_icon_button.dart';
-import 'sqa_styles.dart';
 
 class SqaPluginHeader extends StatelessWidget {
   final IconData? icon;
@@ -35,35 +36,39 @@ class SqaPluginHeader extends StatelessWidget {
     final effectiveColor = color ?? colorScheme.primary;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (onBack != null) ...[
           SqaHoverIconButton(
             icon: Symbols.arrow_back,
             onPressed: onBack!,
             tooltip: 'Back',
-            iconSize: 20,
-            padding: 8,
+            iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+            padding: SqaTokens.spacingSmall,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
         ],
         if (icon != null) ...[
           MouseRegion(
-            cursor: iconMouseCursor ?? (onIconTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
+            cursor:
+                iconMouseCursor ??
+                (onIconTap != null
+                    ? SystemMouseCursors.click
+                    : SystemMouseCursors.basic),
             child: GestureDetector(
               onTap: onIconTap,
               behavior: HitTestBehavior.opaque,
               child: SqaIconContainer(
                 icon: icon!,
                 color: effectiveColor,
-                size: 40,
-                iconSize: 24,
+                size: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+                iconSize: SqaTokens.spacingLarge + SqaTokens.spacingSmall,
                 isCircular: false,
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: SqaTokens.spacingLarge),
         ],
         Expanded(
           child:
@@ -73,24 +78,28 @@ class SqaPluginHeader extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                    style: GoogleFonts.dmSans(
+                      fontSize: SqaTokens.fontSizeXLarge,
                       color: effectiveColor,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                      color: colorScheme.onSurfaceVariant,
+                  if (description.isNotEmpty)
+                    Text(
+                      description,
+                      style: GoogleFonts.dmSans(
+                        fontSize: SqaTokens.fontSizeSmall,
+                        fontStyle: FontStyle.italic,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
                 ],
               ),
         ),
-        if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+        if (trailing != null) ...[
+          const SizedBox(width: SqaTokens.spacingMedium),
+          trailing!,
+        ],
       ],
     );
   }

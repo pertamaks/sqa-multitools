@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import '../widgets/sqa_styles.dart';
-import '../widgets/sqa_toast.dart';
+import 'sqa_design_tokens.dart';
+import 'sqa_toast.dart';
 import '../../core/models/hotkey_info.dart';
 
 class SqaHotkeyField extends StatefulWidget {
@@ -127,20 +127,20 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SqaTokens.spacingSmall),
           ],
           GestureDetector(
             onTap: _startRecording,
             child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              height: SqaTokens.spacingXXLarge,
+              padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall + 2),
               decoration: BoxDecoration(
                 color: _isRecording
                     ? colorScheme.primary.withValues(alpha: 0.1)
                     : colorScheme.surfaceContainerHighest.withValues(
                         alpha: 0.4,
                       ),
-                borderRadius: SqaStyles.radiusSmall,
+                borderRadius: SqaTokens.borderRadiusSmall,
                 border: Border.all(
                   color: _isRecording
                       ? colorScheme.primary
@@ -154,12 +154,12 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                     _isRecording
                         ? Symbols.keyboard
                         : Symbols.keyboard_command_key,
-                    size: 16,
+                    size: SqaTokens.spacingLarge,
                     color: _isRecording
                         ? colorScheme.primary
                         : colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: SqaTokens.spacingSmall),
                   Expanded(
                     child: Text(
                       _isRecording
@@ -168,7 +168,7 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                                 : _formatRecording())
                           : (widget.value?.toString() ?? 'NOT SET'),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
+                        fontSize: SqaTokens.fontSizeSmall - 1,
                         fontWeight: FontWeight.w600,
                         color: _isRecording
                             ? colorScheme.primary
@@ -185,7 +185,7 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
                     const Text(
                       'ESC',
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: SqaTokens.fontSizeSmall - 3,
                         fontWeight: FontWeight.bold,
                         color: Colors.grey,
                       ),

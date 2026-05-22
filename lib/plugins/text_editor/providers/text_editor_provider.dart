@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/services/preferences_service.dart';
 import '../models/text_document.dart';
 import '../models/text_editor_state.dart';
+import '../../../../core/utils/platform_utils.dart';
 import '../services/storage_service.dart';
 
 part 'text_editor_provider.g.dart';
@@ -296,10 +296,7 @@ class TextEditor extends _$TextEditor {
 
   Future<void> openSaveFolder() async {
     final dir = await _storage.storageDir;
-    final path = dir.path;
-    if (Platform.isWindows) {
-      await Process.run('explorer.exe', [path]);
-    }
+    await PlatformUtils.openPath(dir.path);
   }
 
   Future<String> saveImageAttachment(String originalPath) async {

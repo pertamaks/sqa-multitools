@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../core/models/screenshot_tool.dart';
 import 'sqa_floating_bar.dart';
 import 'sqa_switch.dart';
+import 'sqa_design_tokens.dart';
 
 /// A centralized toolbar for annotation tools and color selection.
 /// Used by both Screen Recorder and Screenshot plugins.
@@ -70,11 +71,11 @@ class SqaAnnotationToolbar extends StatelessWidget {
               currentTool == ScreenshotTool.text) {
             return [
               toolButton,
-              const SizedBox(width: 4),
+              const SizedBox(width: SqaTokens.spacingXSmall),
               // Smaller Icon for the switch
               Icon(
                 Symbols.format_color_fill,
-                size: 16,
+                size: SqaTokens.spacingLarge,
                 color: Theme.of(
                   context,
                 ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),

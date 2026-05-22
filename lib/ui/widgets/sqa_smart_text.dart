@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 /// A widget that intelligently handles text truncation.
 ///
@@ -53,16 +54,16 @@ class SqaSmartText extends StatelessWidget {
                 message: text,
                 waitDuration: const Duration(milliseconds: 500),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: SqaTokens.spacingSmall + 4,
+                  vertical: SqaTokens.spacingSmall,
                 ),
-                margin: const EdgeInsets.all(8),
+                margin: const EdgeInsets.all(SqaTokens.spacingSmall),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.inverseSurface,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: SqaTokens.borderRadiusSmall,
                 ),
                 textStyle: TextStyle(
-                  fontSize: 12,
+                  fontSize: SqaTokens.fontSizeSmall,
                   color: Theme.of(context).colorScheme.onInverseSurface,
                 ),
                 child: textWidget,

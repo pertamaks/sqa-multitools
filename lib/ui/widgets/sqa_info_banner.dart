@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import '../../ui/widgets/sqa_card.dart';
 
 class SqaInfoBanner extends StatelessWidget {
@@ -22,7 +23,7 @@ class SqaInfoBanner extends StatelessWidget {
     final effectiveColor = color ?? colorScheme.primary;
 
     return SqaCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(SqaTokens.spacingMedium),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -30,23 +31,23 @@ class SqaInfoBanner extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 16, color: effectiveColor),
-                  const SizedBox(width: 8),
+                  Icon(icon, size: SqaTokens.spacingLarge, color: effectiveColor),
+                  const SizedBox(width: SqaTokens.spacingSmall),
                 ],
                 if (title != null)
                   Text(
                     title!,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: SqaTokens.fontSizeSmall,
                       color: effectiveColor,
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: SqaTokens.spacingSmall),
           ],
-          Text(text, style: const TextStyle(fontSize: 13, height: 1.4)),
+          Text(text, style: const TextStyle(fontSize: SqaTokens.fontSizeSmall, height: 1.4)),
         ],
       ),
     );

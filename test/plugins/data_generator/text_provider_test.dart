@@ -37,8 +37,8 @@ void main() {
       notifier.generate();
 
       final state = container.read(textGeneratorProvider);
-      final results = state.resultsMap[TextType.bytes] ?? <String>[];
-      expect(results.first.length, inInclusiveRange(45, 55));
+      final results = state.resultsMap[TextType.bytes] ?? <List<String>>[];
+      expect(results.first.first.length, inInclusiveRange(45, 55));
     });
 
     test('generate chapter starts with CHAPTER', () {
@@ -54,8 +54,8 @@ void main() {
       notifier.generate();
 
       final state = container.read(textGeneratorProvider);
-      final results = state.resultsMap[TextType.chapter] ?? <String>[];
-      expect(results.first, startsWith('CHAPTER:'));
+      final results = state.resultsMap[TextType.chapter] ?? <List<String>>[];
+      expect(results.first.first, startsWith('CHAPTER:'));
     });
   });
 }

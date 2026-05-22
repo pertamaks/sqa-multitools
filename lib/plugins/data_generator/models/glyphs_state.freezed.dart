@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GlyphsState {
 
- GlyphsCategory get selectedCategory; TextType get selectedType; int get size; Map<GlyphsCategory, List<String>> get resultsMap;
+ GlyphsCategory get selectedCategory; TextType get selectedType; int get size; Map<GlyphsCategory, List<List<String>>> get resultsMap;
 /// Create a copy of GlyphsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $GlyphsStateCopyWith<$Res>  {
   factory $GlyphsStateCopyWith(GlyphsState value, $Res Function(GlyphsState) _then) = _$GlyphsStateCopyWithImpl;
 @useResult
 $Res call({
- GlyphsCategory selectedCategory, TextType selectedType, int size, Map<GlyphsCategory, List<String>> resultsMap
+ GlyphsCategory selectedCategory, TextType selectedType, int size, Map<GlyphsCategory, List<List<String>>> resultsMap
 });
 
 
@@ -68,7 +68,7 @@ selectedCategory: null == selectedCategory ? _self.selectedCategory : selectedCa
 as GlyphsCategory,selectedType: null == selectedType ? _self.selectedType : selectedType // ignore: cast_nullable_to_non_nullable
 as TextType,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,resultsMap: null == resultsMap ? _self.resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<GlyphsCategory, List<String>>,
+as Map<GlyphsCategory, List<List<String>>>,
   ));
 }
 
@@ -153,7 +153,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GlyphsCategory selectedCategory,  TextType selectedType,  int size,  Map<GlyphsCategory, List<String>> resultsMap)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GlyphsCategory selectedCategory,  TextType selectedType,  int size,  Map<GlyphsCategory, List<List<String>>> resultsMap)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GlyphsState() when $default != null:
 return $default(_that.selectedCategory,_that.selectedType,_that.size,_that.resultsMap);case _:
@@ -174,7 +174,7 @@ return $default(_that.selectedCategory,_that.selectedType,_that.size,_that.resul
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GlyphsCategory selectedCategory,  TextType selectedType,  int size,  Map<GlyphsCategory, List<String>> resultsMap)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GlyphsCategory selectedCategory,  TextType selectedType,  int size,  Map<GlyphsCategory, List<List<String>>> resultsMap)  $default,) {final _that = this;
 switch (_that) {
 case _GlyphsState():
 return $default(_that.selectedCategory,_that.selectedType,_that.size,_that.resultsMap);case _:
@@ -194,7 +194,7 @@ return $default(_that.selectedCategory,_that.selectedType,_that.size,_that.resul
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GlyphsCategory selectedCategory,  TextType selectedType,  int size,  Map<GlyphsCategory, List<String>> resultsMap)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GlyphsCategory selectedCategory,  TextType selectedType,  int size,  Map<GlyphsCategory, List<List<String>>> resultsMap)?  $default,) {final _that = this;
 switch (_that) {
 case _GlyphsState() when $default != null:
 return $default(_that.selectedCategory,_that.selectedType,_that.size,_that.resultsMap);case _:
@@ -209,14 +209,14 @@ return $default(_that.selectedCategory,_that.selectedType,_that.size,_that.resul
 
 
 class _GlyphsState implements GlyphsState {
-  const _GlyphsState({this.selectedCategory = GlyphsCategory.specials, this.selectedType = TextType.bytes, this.size = 100, final  Map<GlyphsCategory, List<String>> resultsMap = const {}}): _resultsMap = resultsMap;
+  const _GlyphsState({this.selectedCategory = GlyphsCategory.specials, this.selectedType = TextType.bytes, this.size = 100, final  Map<GlyphsCategory, List<List<String>>> resultsMap = const <GlyphsCategory, List<List<String>>>{}}): _resultsMap = resultsMap;
   
 
 @override@JsonKey() final  GlyphsCategory selectedCategory;
 @override@JsonKey() final  TextType selectedType;
 @override@JsonKey() final  int size;
- final  Map<GlyphsCategory, List<String>> _resultsMap;
-@override@JsonKey() Map<GlyphsCategory, List<String>> get resultsMap {
+ final  Map<GlyphsCategory, List<List<String>>> _resultsMap;
+@override@JsonKey() Map<GlyphsCategory, List<List<String>>> get resultsMap {
   if (_resultsMap is EqualUnmodifiableMapView) return _resultsMap;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_resultsMap);
@@ -253,7 +253,7 @@ abstract mixin class _$GlyphsStateCopyWith<$Res> implements $GlyphsStateCopyWith
   factory _$GlyphsStateCopyWith(_GlyphsState value, $Res Function(_GlyphsState) _then) = __$GlyphsStateCopyWithImpl;
 @override @useResult
 $Res call({
- GlyphsCategory selectedCategory, TextType selectedType, int size, Map<GlyphsCategory, List<String>> resultsMap
+ GlyphsCategory selectedCategory, TextType selectedType, int size, Map<GlyphsCategory, List<List<String>>> resultsMap
 });
 
 
@@ -276,7 +276,7 @@ selectedCategory: null == selectedCategory ? _self.selectedCategory : selectedCa
 as GlyphsCategory,selectedType: null == selectedType ? _self.selectedType : selectedType // ignore: cast_nullable_to_non_nullable
 as TextType,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int,resultsMap: null == resultsMap ? _self._resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<GlyphsCategory, List<String>>,
+as Map<GlyphsCategory, List<List<String>>>,
   ));
 }
 

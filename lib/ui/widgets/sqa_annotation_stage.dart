@@ -6,6 +6,7 @@ import '../../core/models/annotation.dart';
 import '../../core/models/screenshot_tool.dart';
 import '../../core/models/click_ripple.dart';
 import 'sqa_selection_painter.dart';
+import 'sqa_design_tokens.dart';
 
 /// Internal controller for high-performance drawing.
 /// Bypasses the widget rebuild cycle for real-time annotation feedback.
@@ -189,7 +190,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
   }
 
   Annotation? _findAnnotationAt(Offset position) {
-    const double hitRadius = 15.0;
+    const double hitRadius = SqaTokens.spacingMedium + 1;
 
     // Check in reverse order so we hit the top-most (most recent) annotation first
     final annotations = widget.annotations;
@@ -238,20 +239,22 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
           final textPainter = TextPainter(
             text: TextSpan(
               text: ann.text,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: SqaTokens.fontSizeLarge, fontWeight: FontWeight.bold),
             ),
             textDirection: TextDirection.ltr,
           );
           if (ann.points.length >= 2) {
             final maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
-            final safeWidth = (maxWidth - 18.0) > 0 ? (maxWidth - 18.0) : 0.0;
+            final safeWidth = (maxWidth - (SqaTokens.spacingLarge + SqaTokens.spacingXXSmall)) > 0 
+                ? (maxWidth - (SqaTokens.spacingLarge + SqaTokens.spacingXXSmall)) 
+                : 0.0;
             textPainter.layout(maxWidth: safeWidth);
           } else {
             textPainter.layout();
           }
           final textRect = Rect.fromLTWH(
-            ann.points.first.dx + 9.0,
-            ann.points.first.dy + 9.0,
+            ann.points.first.dx + SqaTokens.spacingSmall + 1,
+            ann.points.first.dy + SqaTokens.spacingSmall + 1,
             textPainter.width,
             textPainter.height,
           ).inflate(radius);
@@ -395,7 +398,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
         // Default to a 300px box if they just clicked without dragging
         Rect rect = Rect.fromPoints(start, end);
         if (rect.width < 50) {
-          rect = Rect.fromLTWH(start.dx, start.dy, 300, 100);
+          rect = Rect.fromLTWH(start.dx, start.dy, SqaTokens.spacingXXXLarge * 6, SqaTokens.spacingXXXLarge * 2);
         }
 
         setState(() {
@@ -415,7 +418,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
           pointTimestamps: List.from(_drawingController.timestamps),
           tool: widget.currentTool,
           color: widget.annotationColor,
-          strokeWidth: widget.currentTool == ScreenshotTool.marker ? 24.0 : 2.0,
+          strokeWidth: widget.currentTool == ScreenshotTool.marker ? SqaTokens.spacingXXLarge : SqaTokens.borderWidthThick,
         );
         widget.onAnnotationAdded(annotation);
         _drawingController.clear();
@@ -485,7 +488,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
               textInputAction: TextInputAction.newline,
               style: TextStyle(
                 color: widget.annotationColor,
-                fontSize: 16,
+                fontSize: SqaTokens.fontSizeLarge,
                 fontWeight: FontWeight.bold,
               ),
               decoration: InputDecoration(
@@ -507,7 +510,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
                     style: BorderStyle.solid,
                   ),
                 ),
-                contentPadding: const EdgeInsets.all(8),
+                contentPadding: const EdgeInsets.all(SqaTokens.spacingSmall),
                 fillColor: widget.textHasBackground
                     ? widget.annotationColor.withValues(alpha: 0.25)
                     : Colors.transparent,

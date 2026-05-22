@@ -10,6 +10,8 @@ import 'ui/text_editor_view.dart';
 import 'package:file_selector/file_selector.dart';
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
+import '../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../ui/widgets/sqa_design_tokens.dart';
 
 class TextEditorPlugin implements SqaPlugin {
   @override
@@ -81,12 +83,12 @@ class _TextEditorSettings extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: Text(
             'STORAGE CONFIGURATION',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 11,
+              fontSize: SqaTokens.fontSizeSmall,
               letterSpacing: 1.0,
               color: theme.colorScheme.primary,
             ),
@@ -94,15 +96,15 @@ class _TextEditorSettings extends ConsumerWidget {
         ),
         SqaCard(
           padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 24),
+          margin: const EdgeInsets.only(bottom: SqaTokens.spacingXXLarge),
           child: Column(
             children: [
               SqaSettingsTile(
                 icon: Symbols.folder,
                 title: 'Save Directory',
                 subtitle: state.savePath ?? 'Documents/SQA_Notes (Default)',
-                trailing: IconButton(
-                  icon: const Icon(Symbols.edit, size: 16),
+                trailing: SqaHoverIconButton(
+                  icon: Symbols.edit,
                   onPressed: () async {
                     final directoryPath = await getDirectoryPath(
                       initialDirectory: state.savePath,
@@ -113,6 +115,7 @@ class _TextEditorSettings extends ConsumerWidget {
                     }
                   },
                   tooltip: 'Change Save Directory',
+                  iconSize: SqaTokens.spacingLarge,
                 ),
               ),
             ],

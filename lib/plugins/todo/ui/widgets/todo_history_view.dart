@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../../ui/widgets/sqa_styles.dart';
 import '../../models/todo_item.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_plugin_scrollable_content.dart';
-import '../../../../ui/widgets/sqa_styles.dart';
 import 'todo_list_item.dart';
 
 class TodoHistoryView extends ConsumerStatefulWidget {
@@ -46,18 +47,18 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
       child: sortedDates.isEmpty
           ? Center(
               child: Padding(
-                padding: const EdgeInsets.all(32.0),
+                padding: const EdgeInsets.all(SqaTokens.spacingXXXLarge),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Symbols.history,
-                      size: 48,
+                      size: SqaTokens.spacingXXXLarge * 1.5,
                       color: colorScheme.onSurfaceVariant.withValues(
                         alpha: 0.5,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: SqaTokens.spacingLarge),
                     Text(
                       'No history found for this period.',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -93,17 +94,22 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                 final initiallyExpanded = false;
 
                 return SqaCard(
-                  margin: const EdgeInsets.only(bottom: 12.0),
+                  margin: const EdgeInsets.only(bottom: SqaTokens.spacingLarge),
                   padding: EdgeInsets.zero,
                   child: Theme(
                     data: theme.copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       initiallyExpanded: initiallyExpanded,
                       tilePadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 4.0,
+                        horizontal: SqaTokens.spacingLarge,
+                        vertical: SqaTokens.spacingXSmall,
                       ),
-                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      childrenPadding: const EdgeInsets.fromLTRB(
+                        SqaTokens.spacingLarge,
+                        0,
+                        SqaTokens.spacingLarge,
+                        SqaTokens.spacingLarge,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: SqaStyles.radiusLarge,
                         side: BorderSide.none,
@@ -116,10 +122,10 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                         children: [
                           Icon(
                             Symbols.calendar_today,
-                            size: 18,
+                            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                             color: colorScheme.primary,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: SqaTokens.spacingSmall),
                           Expanded(
                             child: Text(
                               date.isAtSameMomentAs(today)
@@ -135,17 +141,17 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: SqaTokens.spacingSmall),
                           Flexible(
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
+                                horizontal: SqaTokens.spacingSmall,
+                                vertical: SqaTokens.spacingXXSmall,
                               ),
                               decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                                  color: colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(SqaTokens.spacingSmall),
+                                ),
                               child: Text(
                                 lateCount > 0
                                     ? '${items.length} ${items.length == 1 ? 'task' : 'tasks'} · $lateCount late'
@@ -162,7 +168,7 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                       ),
                       children: items.map((item) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
+                          padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall),
                           child: TodoListItem(item: item, isReadOnly: true),
                         );
                       }).toList(),

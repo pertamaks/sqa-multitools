@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
-import '../../../core/utils/locale_names.dart';
 import '../../../ui/widgets/sqa_field.dart';
-import '../../../ui/widgets/sqa_action_button_group.dart';
-import '../../../ui/widgets/sqa_modal.dart';
 import '../providers/glyphs_provider.dart';
-import '../providers/identity_provider.dart';
 import '../models/text_state.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class GlyphsConfigPanel extends ConsumerStatefulWidget {
   const GlyphsConfigPanel({super.key});
@@ -37,8 +33,6 @@ class _GlyphsConfigPanelState extends ConsumerState<GlyphsConfigPanel> {
   Widget build(BuildContext context) {
     final state = ref.watch(glyphsGeneratorProvider);
     final notifier = ref.read(glyphsGeneratorProvider.notifier);
-    final identityState = ref.watch(identityProvider);
-
     // Sync controller if state changed from elsewhere
     if (_sizeController.text != state.size.toString()) {
       _sizeController.text = state.size.toString();
@@ -68,27 +62,7 @@ class _GlyphsConfigPanelState extends ConsumerState<GlyphsConfigPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SqaActionButtonGroup(
-          onClear: () async {
-            if ((state.resultsMap[state.selectedCategory] ?? []).isNotEmpty) {
-              final confirmed = await SqaModal.showDanger(
-                context,
-                title: 'Clear Results',
-                message: 'Discard currently generated results?',
-                confirmLabel: 'Discard',
-              );
-              if (confirmed != true) return;
-            }
-            notifier.clear();
-          },
-          actionLabel: 'Generate',
-          actionIcon: Symbols.wand_stars,
-          onAction: () => notifier.generate(),
-          sourcePluginId: 'com.sqa.data_generator',
-          settingsTooltip:
-              '${LocaleNames.getDisplayName(identityState.locale.name)}, ${identityState.quantity} items',
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: SqaTokens.spacingLarge),
         SqaField(
           label: labelText,
           hintText: hintText,

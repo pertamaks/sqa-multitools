@@ -1,0 +1,15 @@
+# Lefthook Configuration for SQA-Multitools
+# To install: 
+# 1. Install lefthook (e.g., `brew install lefthook` or `npm install -g lefthook`)
+# 2. Run `lefthook install` in this directory
+
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.dart"
+      run: dart format {staged_files}
+    analyze:
+      run: flutter analyze
+    test:
+      run: flutter test

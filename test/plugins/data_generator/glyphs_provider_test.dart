@@ -29,11 +29,11 @@ void main() {
       notifier.generate();
 
       final state = container.read(glyphsGeneratorProvider);
-      final results = state.resultsMap[GlyphsCategory.chinese] ?? <String>[];
+      final results = state.resultsMap[GlyphsCategory.chinese] ?? <List<String>>[];
       // Chinese characters should have high code units
-      expect(results.first.codeUnits.any((int u) => u > 0x4E00), isTrue);
+      expect(results.first.first.codeUnits.any((int u) => u > 0x4E00), isTrue);
       // Should NOT contain spaces for Chinese sentences
-      expect(results.first.contains(' '), isFalse);
+      expect(results.first.first.contains(' '), isFalse);
     });
 
     test('generate arabic returns Arabic characters', () {
@@ -50,13 +50,13 @@ void main() {
       notifier.generate();
 
       final state = container.read(glyphsGeneratorProvider);
-      final results = state.resultsMap[GlyphsCategory.arabic] ?? <String>[];
+      final results = state.resultsMap[GlyphsCategory.arabic] ?? <List<String>>[];
       // Arabic characters are in the 0x0600 range
       expect(
-        results.first.codeUnits.any((int u) => u >= 0x0600 && u <= 0x06FF),
+        results.first.first.codeUnits.any((int u) => u >= 0x0600 && u <= 0x06FF),
         isTrue,
       );
-      expect(results.first.contains(' '), isTrue);
+      expect(results.first.first.contains(' '), isTrue);
     });
 
     test('generate japanese still works (from faker)', () {
@@ -73,8 +73,8 @@ void main() {
       notifier.generate();
 
       final state = container.read(glyphsGeneratorProvider);
-      final results = state.resultsMap[GlyphsCategory.japanese] ?? <String>[];
-      expect(results.first.codeUnits.any((int u) => u > 127), isTrue);
+      final results = state.resultsMap[GlyphsCategory.japanese] ?? <List<String>>[];
+      expect(results.first.first.codeUnits.any((int u) => u > 127), isTrue);
     });
   });
 }

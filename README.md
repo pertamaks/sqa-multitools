@@ -12,6 +12,7 @@ A modular desktop utility suite built for QA Engineers and Developers. SQA-Multi
 
 | Tool | Description |
 |---|---|
+| **Document Obfuscator** | Anonymize and obfuscate sensitive PII in text instantly |
 | **Timer & Countdown** | Stopwatch, countdown timer, and Unix timestamp converter |
 | **Data Generator** | Generate mock UUIDs, emails, names, addresses, and glyphs on the fly |
 | **Code Beautifier** | Format and syntax-highlight JSON, XML, YAML, and Dart with line numbers |
@@ -45,6 +46,7 @@ lib/
     ├── data_generator/
     ├── magic_8ball/
     ├── qa_cheatsheet/
+    ├── requirement_obfuscator/
     ├── screen_recorder/
     ├── screenshot/
     ├── security_payloads/

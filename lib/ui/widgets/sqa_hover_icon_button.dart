@@ -1,32 +1,39 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 /// A premium, minimal icon button that features a luminescent glow effect on hover.
 ///
 /// Instead of a solid background shape, this button applies a [Shadow] directly to the
 /// icon glyph, creating a 'neon' or 'glow' effect.
 class SqaHoverIconButton extends StatefulWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final VoidCallback onPressed;
-  final String tooltip;
+  final String? tooltip;
   final double iconSize;
   final double padding;
   final Color? color;
   final Color? hoverColor;
+  final Color? backgroundColor;
   final double? weight;
   final bool isSelected;
+  final BorderRadius? borderRadius;
 
   const SqaHoverIconButton({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.onPressed,
-    required this.tooltip,
-    this.iconSize = 16,
-    this.padding = 8,
+    this.tooltip,
+    this.iconSize = SqaTokens.spacingLarge,
+    this.padding = SqaTokens.spacingSmall,
     this.color,
     this.hoverColor,
+    this.backgroundColor,
     this.weight,
     this.isSelected = false,
-  });
+    this.borderRadius,
+  }) : assert(icon != null || iconWidget != null, 'Either icon or iconWidget must be provided');
 
   @override
   State<SqaHoverIconButton> createState() => _SqaHoverIconButtonState();
@@ -57,32 +64,23 @@ class _SqaHoverIconButtonState extends State<SqaHoverIconButton> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutBack,
         child: IconButton(
-          icon: Icon(
-            widget.icon,
+          icon: widget.iconWidget ?? Icon(
+            widget.icon!,
             size: widget.iconSize,
             weight: widget.weight,
-            shadows: isEffectActive
-                ? [
-                    Shadow(
-                      color: activeColor.withValues(alpha: 0.6),
-                      blurRadius: 12,
-                    ),
-                    Shadow(
-                      color: activeColor.withValues(alpha: 0.4),
-                      blurRadius: 4,
-                    ),
-                  ]
-                : [],
           ),
           onPressed: widget.onPressed,
           tooltip: widget.tooltip,
           color: currentColor,
           style: IconButton.styleFrom(
             padding: EdgeInsets.all(widget.padding),
-            backgroundColor: Colors.transparent,
+            backgroundColor: widget.backgroundColor ?? Colors.transparent,
             hoverColor: Colors.transparent,
             highlightColor: Colors.transparent,
             splashFactory: NoSplash.splashFactory,
+            shape: widget.borderRadius != null 
+                ? RoundedRectangleBorder(borderRadius: widget.borderRadius!) 
+                : null,
           ),
         ),
       ),

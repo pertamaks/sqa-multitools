@@ -1,5 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart' show Size;
+import 'package:window_manager/window_manager.dart';
+import '../window/window_constants.dart';
+import 'window_provider.dart';
 import '../models/sqa_plugin.dart';
 import '../../plugins/magic_8ball/magic_8ball_plugin.dart';
 import '../../plugins/timer/timer_plugin.dart';
@@ -10,11 +13,13 @@ import '../../plugins/settings/settings_plugin.dart';
 import '../../plugins/security_payloads/security_payloads_plugin.dart';
 import '../../plugins/beautifier/beautifier_plugin.dart';
 import '../../plugins/text_editor/text_editor_plugin.dart';
+import '../../plugins/requirement_obfuscator/requirement_obfuscator_plugin.dart';
 import '../../plugins/todo/todo_plugin.dart';
 import '../../plugins/qa_cheatsheet/qa_cheatsheet_plugin.dart';
 import '../../plugins/curl_requester/curl_requester_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
+import '../services/logging_service.dart';
 
 final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
   final plugins = [
@@ -25,6 +30,7 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     SecurityPayloadsPlugin(),
     BeautifierPlugin(),
     TextEditorPlugin(),
+    RequirementObfuscatorPlugin(),
     TodoPlugin(),
     QaCheatsheetPlugin(),
     CurlRequesterPlugin(),
@@ -32,9 +38,10 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
   ];
 
   // Proactively initialize plugins for warm-up (Rule 6)
+  final logger = ref.read(loggingServiceProvider.notifier);
   for (final plugin in plugins) {
-    plugin.initialize().catchError((Object e) {
-      debugPrint('Error initializing plugin ${plugin.id}: $e');
+    plugin.initialize().catchError((Object e, StackTrace stack) {
+      logger.logError('Error initializing plugin ${plugin.id}: $e', 'PluginInit', e, stack);
     });
   }
 
@@ -226,6 +233,67 @@ class NavigationService {
       _ref.read(navigationHistoryProvider.notifier).setHistory(null);
     } else {
       _ref.read(activePluginProvider.notifier).setPlugin(null);
+    }
+  }
+
+  /// Toggles a plugin's visibility, managing navigation history and window sizes.
+  /// If [forceOpen] is true, it will not close the plugin if it's already active.
+  Future<void> togglePlugin(SqaPlugin plugin, {bool forceOpen = false}) async {
+    final current = _ref.read(activePluginProvider);
+
+    // If we're leaving the settings plugin, revert any theme previews
+    if (current?.id == 'com.sqa.settings' && plugin.id != 'com.sqa.settings') {
+      _ref.read(themeSettingsProvider.notifier).resetToSaved();
+    }
+
+    if (current?.id == plugin.id && !forceOpen) {
+      _ref.read(activePluginProvider.notifier).setPlugin(null);
+      // Clear history when closing
+      _ref.read(navigationHistoryProvider.notifier).setHistory(null);
+      if (plugin.id == 'com.sqa.settings') {
+        _ref.read(themeSettingsProvider.notifier).resetToSaved();
+      }
+      _ref.read(windowSizeModeProvider.notifier).reset();
+      await windowManager.setMinimumSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kToolbarWindowHeight,
+        ),
+      );
+      await windowManager.setSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kToolbarWindowHeight,
+        ),
+      );
+    } else {
+      // HANDLE NAVIGATION HISTORY
+      if (plugin.id == 'com.sqa.settings') {
+        // Entering Settings: record where we came from if it's a real plugin
+        if (current != null && current.id != 'com.sqa.settings') {
+          _ref.read(navigationHistoryProvider.notifier).setHistory(current.id);
+        }
+        // Default to 'General' tab (0) when accessed from the toolbar
+        _ref.read(settingsTabProvider.notifier).setTab(0);
+      } else {
+        // Entering any other plugin: clear the back-navigation history
+        _ref.read(navigationHistoryProvider.notifier).setHistory(null);
+      }
+
+      _ref.read(windowSizeModeProvider.notifier).reset();
+      _ref.read(activePluginProvider.notifier).setPlugin(plugin);
+      await windowManager.setMinimumSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kExpandedWindowHeight,
+        ),
+      );
+      await windowManager.setSize(
+        const Size(
+          WindowConstants.kDefaultWindowWidth,
+          WindowConstants.kExpandedWindowHeight,
+        ),
+      );
     }
   }
 }

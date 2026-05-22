@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_styles.dart';
 import 'sqa_fade_wrapper.dart';
 import 'sqa_scroll_behavior.dart';
@@ -29,7 +30,7 @@ class SqaSegmentedButton<T> extends StatefulWidget {
     this.isChild = false,
     this.hasChild = false,
     this.stretches = true,
-    this.fontSize = 12,
+    this.fontSize = SqaTokens.fontSizeSmall,
     this.visualDensity,
     this.storageKey,
     this.scrollController,
@@ -126,7 +127,7 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
           fontSize: widget.fontSize,
           fontWeight: FontWeight.w600,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall + 4),
         backgroundColor: colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.5,
         ),
@@ -142,10 +143,10 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
     final effectivePadding =
         widget.padding ??
         EdgeInsets.only(
-          top: widget.isChild ? 2 : 4,
-          bottom: widget.hasChild ? 2 : 4,
-          left: widget.isChild ? 16 : 0,
-          right: widget.isChild ? 16 : 0,
+          top: widget.isChild ? SqaTokens.spacingXXSmall : SqaTokens.spacingXSmall,
+          bottom: widget.hasChild ? SqaTokens.spacingXXSmall : SqaTokens.spacingXSmall,
+          left: widget.isChild ? SqaTokens.spacingMedium : 0,
+          right: widget.isChild ? SqaTokens.spacingMedium : 0,
         );
 
     Widget result;
@@ -182,9 +183,9 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       return Align(
         alignment: Alignment.centerRight,
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: 32.0 * widget.minScale),
+          constraints: BoxConstraints(minHeight: SqaTokens.spacingXXLarge * widget.minScale),
           child: SizedBox(
-            height: 32.0 * widget.scale,
+            height: SqaTokens.spacingXXLarge * widget.scale,
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerRight,

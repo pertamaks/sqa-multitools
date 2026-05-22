@@ -7,6 +7,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import '../../../core/utils/platform_utils.dart';
 import '../models/screen_recorder_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
@@ -320,14 +322,14 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       captureRect: finalRect,
     );
     // Construct save path
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final filename =
         'SQA_REC_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}_${DateTime.now().hour.toString().padLeft(2, '0')}${DateTime.now().minute.toString().padLeft(2, '0')}${DateTime.now().second.toString().padLeft(2, '0')}.${state.format.toLowerCase()}';
-    final savePath = '${saveDir.path}/$filename';
+    final savePath = p.join(saveDir.path, filename);
 
     try {
       final config = FfmpegVideoConfig(
@@ -340,7 +342,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         selectedAudioDevice: state.selectedAudioDevice,
       );
 
-      _ffmpegProcess = await FfmpegEngine().startRecording(
+      _ffmpegProcess = await ref.read(ffmpegEngineProvider).startRecording(
         config: config,
         savePath: savePath,
         displays: state.availableDisplays,
@@ -397,10 +399,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Future<void> refreshRecentRecordings() async {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
-    if (!ref.mounted) return;
     final dir = state.saveDirectory ?? documentsDir.path;
     if (!ref.mounted) return;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
       state = state.copyWith(recentRecordings: []);
@@ -475,10 +476,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   String? validateNewName(String name, RecordingInfo currentInfo) {
     if (name.trim().isEmpty) return 'Name cannot be empty';
 
-    // Windows prohibited characters: < > : " / \ | ? *
-    final prohibited = RegExp(r'[<>:"/\\|?*]');
-    if (prohibited.hasMatch(name)) {
-      return 'Contains invalid characters: < > : " / \\ | ? *';
+    if (!PlatformUtils.isValidFilename(name)) {
+      return 'Contains invalid characters for your platform';
     }
 
     // Check for duplicates
@@ -500,15 +499,15 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   Future<void> openSaveDirectory() async {
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Recordings');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
 
     // fallback to root dir if subfolder doesn't exist yet
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      await Process.start('explorer.exe', [targetDir.path]);
+      await PlatformUtils.openPath(targetDir.path);
     }
   }
 
@@ -555,8 +554,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 7. Finally restore attributes, reveal and focus
     // Move all attribute changes here to prevent DWM flushes on giant window
     await Future.wait([
-      windowManager.setHasShadow(true),
-      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAsFrameless(),
+      windowManager.setHasShadow(false),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
       setIgnoreMouseEvents(false),
     ]);

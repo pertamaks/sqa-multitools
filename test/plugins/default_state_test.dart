@@ -10,6 +10,7 @@ import 'default_state_test.mocks.dart';
 
 @GenerateMocks([SharedPreferences])
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late MockSharedPreferences mockPrefs;
 
   setUp(() {

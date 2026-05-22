@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/todo_item.dart';
 import 'todo_list_item.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class TodoListSectionHeader extends StatelessWidget {
   final IconData icon;
@@ -25,11 +26,11 @@ class TodoListSectionHeader extends StatelessWidget {
         : theme.colorScheme.onSurfaceVariant;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 12),
+          Icon(icon, size: SqaTokens.spacingXLarge, color: color),
+          const SizedBox(width: SqaTokens.spacingMedium + 2),
           Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
@@ -39,12 +40,12 @@ class TodoListSectionHeader extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(SqaTokens.radiusSmall),
             ),
             child: Text(
               '$count',
@@ -90,15 +91,15 @@ class TodoExpansionGroup extends StatelessWidget {
     final subtleColor = color ?? theme.colorScheme.onSurfaceVariant;
 
     return ListTileTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
       shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
       child: Theme(
         data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           title: Row(
             children: [
-              Icon(icon, size: 20, color: subtleColor),
-              const SizedBox(width: 12),
+              Icon(icon, size: SqaTokens.spacingXLarge, color: subtleColor),
+              const SizedBox(width: SqaTokens.spacingMedium),
               Text(
                 title,
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -106,12 +107,12 @@ class TodoExpansionGroup extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: SqaTokens.spacingSmall),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall, vertical: SqaTokens.spacingXSmall / 2),
                 decoration: BoxDecoration(
                   color: subtleColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(SqaTokens.radiusSmall),
                 ),
                 child: Text(
                   '${items.length}',
@@ -123,7 +124,7 @@ class TodoExpansionGroup extends StatelessWidget {
               ),
             ],
           ),
-          childrenPadding: const EdgeInsets.only(top: 12),
+          childrenPadding: const EdgeInsets.only(top: SqaTokens.spacingMedium),
           initiallyExpanded: initiallyExpanded,
           shape: RoundedRectangleBorder(
             borderRadius: SqaStyles.radiusLarge,
@@ -136,7 +137,7 @@ class TodoExpansionGroup extends StatelessWidget {
           children: items
               .map(
                 (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
+                  padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
                   child: Opacity(
                     opacity: opacity,
                     child: TodoListItem(

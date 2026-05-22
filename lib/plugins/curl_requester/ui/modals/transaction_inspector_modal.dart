@@ -7,6 +7,8 @@ import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_status_badge.dart';
 import '../../../../ui/widgets/sqa_metadata_item.dart';
 import '../../../../ui/widgets/sqa_segmented_button.dart';
+import '../../../../ui/widgets/sqa_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 enum ModalTab { request, response }
 
@@ -58,6 +60,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
 
     return SqaModal<bool>.custom(
       title: widget.isHistory ? 'Transaction Inspector' : 'Response',
+      scrollable: false,
       leading: SqaStatusBadge(
         text: transaction != null 
             ? (transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}') 
@@ -66,18 +69,18 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       ),
       confirmLabel: 'Done',
       customActions: [
-        TextButton.icon(
-          icon: const Icon(Symbols.send, size: 18),
+        SqaButton.tonal(
+          icon: Symbols.send,
           onPressed: () {
             Navigator.of(context).pop(false);
             widget.onSendAgain?.call();
           },
-          label: Text(widget.transaction == null ? 'Send' : 'Send Again'),
+          label: widget.transaction == null ? 'Send' : 'Send Again',
         ),
-        const SizedBox(width: 8),
-        FilledButton(
+        const SizedBox(width: SqaTokens.spacingXXSmall),
+        SqaButton.primary(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Done'),
+          label: 'Done',
         ),
       ],
       topBar: Row(
@@ -95,7 +98,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
                         ? '${transaction.latency.inMilliseconds} ms'
                         : '0 ms',
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: SqaTokens.spacingMedium),
                   SqaMetadataItem(
                     icon: Symbols.database,
                     text: transaction != null
@@ -107,7 +110,7 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
             ),
           ),
           if (widget.isHistory) ...[
-            const SizedBox(width: 16),
+            const SizedBox(width: SqaTokens.spacingLarge),
             SqaSegmentedButton<ModalTab>(
               stretches: false,
               minScale: 0.8,
@@ -115,12 +118,12 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
                 ButtonSegment(
                   value: ModalTab.request,
                   label: Text('REQ'),
-                  icon: Icon(Symbols.send, size: 14),
+                  icon: Icon(Symbols.send, size: SqaTokens.spacingLarge),
                 ),
                 ButtonSegment(
                   value: ModalTab.response,
                   label: Text('RES'),
-                  icon: Icon(Symbols.data_object, size: 14),
+                  icon: Icon(Symbols.data_object, size: SqaTokens.spacingLarge),
                 ),
               ],
               selected: {_modalTab},
@@ -131,18 +134,9 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
           ],
         ],
       ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-          minWidth: MediaQuery.of(context).size.width * 0.85 > 800
-              ? 800
-              : MediaQuery.of(context).size.width * 0.85,
-          maxWidth: 800,
-        ),
-        child: _modalTab == ModalTab.request
-            ? _buildRequestModalContent(context, transaction)
-            : _buildResponseContent(context, transaction),
-      ),
+      child: _modalTab == ModalTab.request
+          ? _buildRequestModalContent(context, transaction)
+          : _buildResponseContent(context, transaction),
     );
   }
 
@@ -153,10 +147,11 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       isMonospace: true,
       readOnly: true,
       isMultiline: true,
-      maxLines: 40,
-      maxHeight: MediaQuery.of(context).size.height * 0.6,
-      fontSize: 12,
+      maxLines: null,
+      expands: true,
+      fontSize: SqaTokens.fontSizeSmall,
       showCopyButton: false,
+      showLineNumbers: true,
       initialValue: transaction != null
           ? CurlParserService.stringify(transaction.resolvedRequest ?? transaction.request)
           : 'No request data available',
@@ -170,10 +165,11 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       isMonospace: true,
       readOnly: true,
       isMultiline: true,
-      maxLines: 40,
-      maxHeight: MediaQuery.of(context).size.height * 0.6,
-      fontSize: 12,
+      maxLines: null,
+      expands: true,
+      fontSize: SqaTokens.fontSizeSmall,
       showCopyButton: false,
+      showLineNumbers: true,
       initialValue: transaction?.responseBody ?? 'No response data available',
     );
   }

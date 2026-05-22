@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
+import 'sqa_hover_icon_button.dart';
 
 class SqaSearchFilterBar extends StatefulWidget {
   final String hintText;
@@ -58,13 +59,17 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
+        constraints: const BoxConstraints(
+          minHeight: 40,
+          maxHeight: 40,
+        ),
         decoration: BoxDecoration(
           color: _isFocused
               ? colorScheme.primaryContainer.withValues(alpha: 0.15)
               : (_isHovered
                     ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
                     : colorScheme.surfaceContainerLow.withValues(alpha: 0.2)),
-          borderRadius: SqaStyles.radiusLarge,
+          borderRadius: SqaTokens.borderRadiusLarge,
           border: Border.all(
             color: _isFocused
                 ? colorScheme.primary.withValues(alpha: 0.3)
@@ -109,10 +114,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       key: const ValueKey('search_mode'),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+          padding: const EdgeInsets.only(left: SqaTokens.spacingMedium, right: SqaTokens.spacingSmall),
           child: Icon(
             Symbols.search,
-            size: 18,
+            size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
             color: _isFocused
                 ? colorScheme.primary
                 : colorScheme.onSurfaceVariant,
@@ -127,10 +132,9 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 widget.onChanged?.call(val);
                 setState(() {});
               },
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium,
               decoration: InputDecoration(
+                filled: false,
                 isDense: true,
                 hintText: widget.hintText,
                 hintStyle: TextStyle(
@@ -138,7 +142,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  vertical: 14,
+                  vertical: 0,
                   horizontal: 0,
                 ),
               ),
@@ -148,35 +152,33 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
         if (_effectiveController.text.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(
-              right: widget.filterOptions != null ? 8.0 : 16.0,
+              right: widget.filterOptions != null ? SqaTokens.spacingXSmall : SqaTokens.spacingSmall,
             ),
-            child: IconButton(
-              icon: const Icon(Symbols.close, size: 16),
+            child: SqaHoverIconButton(
+              icon: Symbols.close,
+              iconSize: SqaTokens.spacingLarge,
               onPressed: () {
                 _effectiveController.clear();
                 widget.onChanged?.call('');
                 setState(() {});
               },
               color: colorScheme.onSurfaceVariant,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              padding: 0,
+              tooltip: 'Clear Search',
             ),
           ),
         if (widget.filterOptions != null)
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: Icon(
-                Symbols.tune,
-                size: 18,
-                color: widget.isFilterActive
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
+            padding: const EdgeInsets.only(right: SqaTokens.spacingSmall + 2),
+            child: SqaHoverIconButton(
+              icon: Symbols.tune,
+              iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+              color: widget.isFilterActive
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
               onPressed: () => setState(() => _isFilterMode = true),
               tooltip: 'Show Filters',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+              padding: 0,
             ),
           ),
       ],
@@ -188,31 +190,26 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       key: const ValueKey('filter_mode'),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12.0, right: 8.0),
-          child: IconButton(
-            icon: Icon(
-              Symbols.search,
-              size: 18,
-              color: colorScheme.onSurfaceVariant,
-            ),
+          padding: const EdgeInsets.only(left: SqaTokens.spacingSmall + 4, right: SqaTokens.spacingSmall),
+          child: SqaHoverIconButton(
+            icon: Symbols.search,
+            iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+            color: colorScheme.onSurfaceVariant,
             onPressed: () => setState(() => _isFilterMode = false),
             tooltip: 'Back to Search',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+            padding: 0,
           ),
         ),
         Container(
-          height: 20,
+          height: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
           width: 1,
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          margin: const EdgeInsets.only(right: 4.0),
+          margin: const EdgeInsets.only(right: SqaTokens.spacingXSmall),
         ),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: widget.filterOptions!,
-          ),
+          child: widget.filterOptions!,
         ),
+        const SizedBox(width: SqaTokens.spacingSmall),
       ],
     );
   }

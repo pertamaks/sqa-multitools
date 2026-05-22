@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/text_document.dart';
+import '../../../core/utils/platform_utils.dart';
 
 class TextEditorStorageService {
   static const String _folderName = 'SQA_Notes';
@@ -267,7 +268,7 @@ class TextEditorStorageService {
     // Remove or replace OS-prohibited characters
     return name
         .trim()
-        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+        .replaceAll(PlatformUtils.prohibitedFilenameRegex, '_')
         .replaceAll(RegExp(r'\s+'), ' ');
   }
 }

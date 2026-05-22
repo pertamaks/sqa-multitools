@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'sqa_plugin_header.dart';
 import 'sqa_tab_bar.dart';
 import 'sqa_window_size_toggle.dart';
@@ -68,7 +69,12 @@ class SqaPluginLayout extends StatelessWidget {
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                      padding: const EdgeInsets.fromLTRB(
+                        SqaTokens.spacingXLarge,
+                        SqaTokens.spacingLarge,
+                        SqaTokens.spacingXLarge,
+                        SqaTokens.spacingMedium,
+                      ),
                       child: SqaPluginHeader(
                         icon: icon,
                         title: title,
@@ -94,7 +100,12 @@ class SqaPluginLayout extends StatelessWidget {
                       },
                       child: (isSquare && searchController != null)
                           ? Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                              padding: const EdgeInsets.fromLTRB(
+                                SqaTokens.spacingXLarge,
+                                0,
+                                SqaTokens.spacingXLarge,
+                                SqaTokens.spacingMedium,
+                              ),
                               child: SqaSearchFilterBar(
                                 controller: searchController!,
                                 hintText: searchHint,
@@ -118,7 +129,7 @@ class SqaPluginLayout extends StatelessWidget {
                                 controller: tabController,
                                 isScrollable: isTabScrollable,
                               ),
-                              ?secondaryHeader,
+                               ?secondaryHeader,
                               Expanded(child: this.child),
                             ],
                           ),
@@ -138,8 +149,8 @@ class SqaPluginLayout extends StatelessWidget {
               ),
             ),
             Positioned(
-              bottom: 4,
-              right: 4,
+              bottom: SqaTokens.spacingTiny,
+              right: SqaTokens.spacingTiny,
               child: ListenableBuilder(
                 listenable: searchController ?? TextEditingController(),
                 builder: (context, _) {

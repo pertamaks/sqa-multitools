@@ -98,7 +98,7 @@ final class SettingsDebugActionsProvider
 }
 
 String _$settingsDebugActionsHash() =>
-    r'ccf5b65856adae60eff0a4a7f2f211e0bb3f63fe';
+    r'b38d1a261e623f15c13d9ab25145a47b7dd9b9eb';
 
 abstract class _$SettingsDebugActions extends $Notifier<void> {
   void build();

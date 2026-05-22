@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqa_multitools/core/providers/ffmpeg_provider.dart';
@@ -17,6 +18,8 @@ class MockPathProvider extends PathProviderPlatform
   Future<String?> getApplicationDocumentsPath() async => './test_docs';
   @override
   Future<String?> getTemporaryPath() async => './test_temp';
+  @override
+  Future<String?> getApplicationSupportPath() async => './test_support';
 }
 
 class MockWindowTransitionCoordinator extends WindowTransitionCoordinator {
@@ -42,6 +45,8 @@ class MockFfmpeg extends Ffmpeg {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  Directory('./test_temp').createSync(recursive: true);
+  Directory('./test_docs').createSync(recursive: true);
   group('ScreenshotNotifier Tests', () {
     late ProviderContainer container;
 

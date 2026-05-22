@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqa_multitools/core/providers/ffmpeg_provider.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:sqa_multitools/core/services/preferences_service.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MockPathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -15,6 +17,8 @@ class MockPathProvider extends PathProviderPlatform
   Future<String?> getApplicationDocumentsPath() async => './test_docs';
   @override
   Future<String?> getTemporaryPath() async => './test_temp';
+  @override
+  Future<String?> getApplicationSupportPath() async => './test_support';
 }
 
 class MockFfmpeg extends Ffmpeg {
@@ -25,6 +29,14 @@ class MockFfmpeg extends Ffmpeg {
 }
 
 void main() {
+  GoogleFonts.config.allowRuntimeFetching = false;
+  
+  // Ensure test directories exist before running tests to prevent I/O errors
+  // from Ffmpeg or LoggingService when writing files
+  Directory('./test_temp').createSync(recursive: true);
+  Directory('./test_docs').createSync(recursive: true);
+  Directory('./test_support').createSync(recursive: true);
+  
   testWidgets('App smoke test', (WidgetTester tester) async {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),
@@ -89,7 +101,7 @@ void main() {
 
       // Dispose the ProviderScope to clean up any active timers from plugins
       await tester.pumpWidget(Container());
-      await tester.pump();
+      await tester.pumpAndSettle();
     });
   });
 }

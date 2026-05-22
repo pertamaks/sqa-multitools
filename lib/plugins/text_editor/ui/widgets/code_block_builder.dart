@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:markdown/markdown.dart' as md;
 import '../../../../ui/widgets/sqa_styles.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 
 /// A custom SQA-standard Code Block builder.
 class SqaCodeBlockComponentBuilder extends BlockComponentBuilder {
@@ -128,13 +129,10 @@ class _SqaCodeBlockComponentWidgetState
                   ),
                   const Spacer(),
                   if (_isHovered)
-                    IconButton(
-                      icon: const Icon(Icons.copy_rounded, size: 14),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 24,
-                        minHeight: 24,
-                      ),
+                    SqaHoverIconButton(
+                      icon: Icons.copy_rounded,
+                      iconSize: 14,
+                      padding: 4,
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: code));
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -144,6 +142,7 @@ class _SqaCodeBlockComponentWidgetState
                         );
                       },
                       color: theme.colorScheme.onSurfaceVariant,
+                      tooltip: 'Copy code',
                     ),
                 ],
               ),

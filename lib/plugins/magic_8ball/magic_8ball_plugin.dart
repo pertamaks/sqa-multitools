@@ -9,6 +9,8 @@ import '../../ui/widgets/sqa_toast.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_dropdown.dart';
 import '../../ui/widgets/sqa_card.dart';
+import '../../ui/widgets/sqa_design_tokens.dart';
+import '../../ui/widgets/sqa_plugin_layout.dart';
 import 'providers/magic_8ball_provider.dart';
 
 class QaOraclePlugin implements SqaPlugin {
@@ -145,51 +147,60 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: _shake,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final offset = sin(_controller.value * pi * 4) * 8;
-                return Transform.translate(
-                  offset: Offset(offset, 0),
-                  child: child,
-                );
-              },
-              child: Image.asset('assets/8ball.png', width: 120, height: 120),
-            ),
-          ),
-          const SizedBox(height: 32),
-          GestureDetector(
-            onTap: _copyToClipboard,
-            child: Tooltip(
-              message: 'Click to copy advice',
-              child: Text(
-                _currentResponse,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.primary,
+    return SqaPluginLayout(
+      icon: Symbols.casino,
+      title: 'QA Oracle',
+      description: 'Get randomized, sarcastic but honest answers to your toughest QA questions.',
+      child: Container(
+        padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: _shake,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final offset = sin(_controller.value * pi * 4) * SqaTokens.spacingSmall;
+                  return Transform.translate(
+                    offset: Offset(offset, 0),
+                    child: child,
+                  );
+                },
+                child: Image.asset(
+                  'assets/8ball.png',
+                  width: SqaTokens.spacingXXXLarge * 4,
+                  height: SqaTokens.spacingXXXLarge * 4,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Tap the 8-Ball to consult or text to copy',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            const SizedBox(height: SqaTokens.spacingXXLarge),
+            GestureDetector(
+              onTap: _copyToClipboard,
+              child: Tooltip(
+                message: 'Click to copy advice',
+                child: Text(
+                  _currentResponse,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: SqaTokens.spacingLarge),
+            Text(
+              'Tap the 8-Ball to consult or text to copy',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }

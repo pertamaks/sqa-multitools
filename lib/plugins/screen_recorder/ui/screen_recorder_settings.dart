@@ -13,6 +13,8 @@ import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../core/providers/ffmpeg_provider.dart';
 import '../../../../core/providers/hotkey_provider.dart';
 import '../../../../core/services/preferences_service.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class ScreenRecorderSettings extends ConsumerWidget {
   const ScreenRecorderSettings({super.key});
@@ -32,7 +34,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
         _buildSectionHeader(theme, 'AUDIO CONFIGURATION'),
         SqaCard(
           padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 24),
+          margin: const EdgeInsets.only(bottom: SqaTokens.spacingXXLarge),
           child: Column(
             children: [
               SqaSettingsTile(
@@ -46,7 +48,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
               ),
               if (ref.watch(ffmpegProvider).isReady &&
                   state.microphoneEnabled) ...[
-                const Divider(height: 1, indent: 56),
+              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
                 SqaSettingsTile(
                   icon: Symbols.settings_input_component,
                   title: 'Microphone Device',
@@ -95,7 +97,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                   onChanged: (bool v) => notifier.setShowCursor(v),
                 ),
               ),
-              const Divider(height: 1, indent: 56),
+              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
               // Left Click Color
               SqaSettingsTile(
                 icon: Symbols.left_click,
@@ -108,7 +110,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                   items: _buildColorItems(),
                 ),
               ),
-              const Divider(height: 1, indent: 56),
+              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
               // Right Click Color
               SqaSettingsTile(
                 icon: Symbols.right_click,
@@ -144,7 +146,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                       .toList(),
                 ),
               ),
-              const Divider(height: 1, indent: 56),
+              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
               SqaSettingsTile(
                 icon: Symbols.speed,
                 title: 'Framerate',
@@ -160,7 +162,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                       .toList(),
                 ),
               ),
-              const Divider(height: 1, indent: 56),
+              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
               SqaSettingsTile(
                 icon: Symbols.schedule,
                 title: 'Start Delay',
@@ -175,7 +177,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                       .toList(),
                 ),
               ),
-              const Divider(height: 1, indent: 56),
+              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
               SqaSettingsTile(
                 icon: Symbols.movie_filter,
                 title: 'Export Format',
@@ -202,8 +204,8 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 icon: Symbols.folder,
                 title: 'Save Directory',
                 subtitle: state.saveDirectory ?? 'Default Videos Directory',
-                trailing: IconButton(
-                  icon: const Icon(Symbols.edit, size: 16),
+                trailing: SqaHoverIconButton(
+                  icon: Symbols.edit,
                   onPressed: () async {
                     final directoryPath = await getDirectoryPath(
                       initialDirectory: state.saveDirectory,
@@ -214,6 +216,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                     }
                   },
                   tooltip: 'Change Save Directory',
+                  iconSize: SqaTokens.spacingLarge,
                 ),
               ),
             ],
@@ -227,14 +230,14 @@ class ScreenRecorderSettings extends ConsumerWidget {
             'HOTKEYS',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 11,
-              letterSpacing: 1.0,
-              color: theme.colorScheme.primary,
+          fontSize: SqaTokens.fontSizeSmall,
+          letterSpacing: 1.0,
+          color: theme.colorScheme.primary,
             ),
           ),
         ),
         SqaCard(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
           child: Column(
             children: [
               SqaHotkeyField(
@@ -294,7 +297,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
         title,
         style: theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.bold,
-          fontSize: 11,
+          fontSize: SqaTokens.fontSizeSmall,
           letterSpacing: 1.0,
           color: theme.colorScheme.primary,
         ),
@@ -317,8 +320,8 @@ class ScreenRecorderSettings extends ConsumerWidget {
             child: Row(
               children: [
                 Container(
-                  width: 12,
-                  height: 12,
+                  width: SqaTokens.spacingMedium,
+                  height: SqaTokens.spacingMedium,
                   decoration: BoxDecoration(
                     color: e.$1,
                     shape: BoxShape.circle,
@@ -327,7 +330,7 @@ class ScreenRecorderSettings extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: SqaTokens.spacingSmall),
                 Flexible(child: Text(e.$2, overflow: TextOverflow.ellipsis)),
               ],
             ),

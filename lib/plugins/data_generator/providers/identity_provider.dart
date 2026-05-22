@@ -18,7 +18,7 @@ class Identity extends _$Identity {
     _faker.setLocale(globalLocale);
 
     return IdentityState(
-      resultsMap: <IdentityType, List<String>>{},
+      resultsMap: <IdentityType, List<List<String>>>{},
       locale: globalLocale,
     );
   }
@@ -49,25 +49,35 @@ class Identity extends _$Identity {
 
   void clear() {
     state = state.copyWith(
-      resultsMap: <IdentityType, List<String>>{
+      resultsMap: <IdentityType, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedType: <String>[],
+        state.selectedType: <List<String>>[],
       },
     );
   }
 
   void generate() {
-    final List<String> results = [];
+    final List<String> currentGeneration = [];
     final int count = state.quantity;
 
     for (int i = 0; i < count; i++) {
-      results.add(_generateSingle());
+      currentGeneration.add(_generateSingle());
+    }
+
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    
+    // Add to top of history (FIFO)
+    final newHistory = [currentGeneration, ...currentHistory];
+    
+    // Truncate to 10
+    if (newHistory.length > 10) {
+      newHistory.removeRange(10, newHistory.length);
     }
 
     state = state.copyWith(
-      resultsMap: <IdentityType, List<String>>{
+      resultsMap: <IdentityType, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedType: results,
+        state.selectedType: newHistory,
       },
     );
   }
@@ -109,5 +119,15 @@ class Identity extends _$Identity {
     }
 
     return FakerFix.fix(result, includeExtension: state.includeExtension);
+  }
+  void removeHistory(List<String> session) {
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    currentHistory.remove(session);
+    state = state.copyWith(
+      resultsMap: <IdentityType, List<List<String>>>{
+        ...state.resultsMap,
+        state.selectedType: currentHistory,
+      },
+    );
   }
 }

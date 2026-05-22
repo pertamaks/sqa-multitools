@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_button.dart';
 import 'sqa_settings_button.dart';
-import 'sqa_styles.dart';
+import 'sqa_hover_icon_button.dart';
+import 'sqa_design_tokens.dart';
 
 /// A standardized row of action buttons: [Clear] | [Primary Action] | [Settings].
 ///
@@ -38,18 +39,16 @@ class SqaActionButtonGroup extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Clear Button
-        IconButton(
-          icon: const Icon(Symbols.delete, size: 20),
-          onPressed: onClear,
-          style: IconButton.styleFrom(
-            foregroundColor: theme.colorScheme.outline,
-            padding: const EdgeInsets.all(8),
-            minimumSize: const Size(40, 40),
-            shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-          ),
-          tooltip: clearTooltip,
+        SqaHoverIconButton(
+          icon: Symbols.delete,
+          onPressed: onClear!,
+          color: theme.colorScheme.outline,
+          padding: SqaTokens.spacingSmall,
+          iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+          tooltip: clearTooltip ?? 'Clear Results',
+          borderRadius: SqaTokens.borderRadiusLarge,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
 
         // Primary Action
         SqaButton.primary(
@@ -58,7 +57,7 @@ class SqaActionButtonGroup extends StatelessWidget {
           onPressed: onAction,
           width: actionWidth,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: SqaTokens.spacingSmall),
 
         // Settings Gear
         SqaSettingsButton(

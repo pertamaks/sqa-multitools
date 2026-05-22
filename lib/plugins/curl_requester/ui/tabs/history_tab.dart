@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../providers/curl_requester_provider.dart';
 import '../../models/curl_transaction.dart';
 import '../../services/curl_parser_service.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_status_badge.dart';
 
@@ -29,8 +30,8 @@ class HistoryTab extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Symbols.history, size: 64, color: Colors.grey.withValues(alpha: 0.2)),
-            const SizedBox(height: 16),
+            Icon(Symbols.history, size: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge, color: Colors.grey.withValues(alpha: 0.2)),
+            const SizedBox(height: SqaTokens.spacingLarge),
             const Text(
               'No request history yet',
               style: TextStyle(color: Colors.grey),
@@ -44,9 +45,10 @@ class HistoryTab extends ConsumerWidget {
       controller: scrollController,
       child: ListView.separated(
         controller: scrollController,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         itemCount: history.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: SqaTokens.spacingMedium),
         itemBuilder: (context, index) {
           final transaction = history[index];
           final displayRequest = transaction.resolvedRequest ?? transaction.request;
@@ -76,7 +78,7 @@ class HistoryTab extends ConsumerWidget {
             onTap: () {
               showTransactionModal(transaction);
             },
-            padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(SqaTokens.spacingMedium),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -86,7 +88,7 @@ class HistoryTab extends ConsumerWidget {
                       text: transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}',
                       color: statusColor,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SqaTokens.spacingMedium),
                     Expanded(
                       child: Text(
                         '${displayRequest.method} $displayPath',
@@ -94,37 +96,37 @@ class HistoryTab extends ConsumerWidget {
                         maxLines: 1,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: SqaTokens.fontSizeSmall,
                             ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: SqaTokens.spacingMedium),
                     Text(
                       _formatRelativeTime(transaction.timestamp),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: Colors.grey,
-                            fontSize: 10,
+                      fontSize: SqaTokens.fontSizeSmall,
                           ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: SqaTokens.spacingMedium),
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(SqaTokens.spacingSmall),
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
                         .surfaceContainerHighest
                         .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
                   ),
                   child: Text(
                     CurlParserService.stringify(displayRequest),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.jetBrainsMono(
-                      fontSize: 10,
+                      fontSize: SqaTokens.fontSizeSmall,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),

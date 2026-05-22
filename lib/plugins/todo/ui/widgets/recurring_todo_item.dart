@@ -7,6 +7,7 @@ import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import 'recurring_todo_editor_dialog.dart';
 
 class RecurringTodoItem extends ConsumerWidget {
@@ -28,14 +29,12 @@ class RecurringTodoItem extends ConsumerWidget {
         child: Row(
           children: [
             // Status Icon / Toggle
-            IconButton(
-              icon: Icon(
-                item.isActive ? Symbols.check_circle : Symbols.circle,
-                color: item.isActive
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-                size: 20,
-              ),
+            SqaHoverIconButton(
+              icon: item.isActive ? Symbols.check_circle : Symbols.circle,
+              color: item.isActive
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
+              iconSize: 20,
               onPressed: () {
                 ref
                     .read(todoProvider.notifier)
@@ -47,6 +46,8 @@ class RecurringTodoItem extends ConsumerWidget {
                   item.isActive ? 'Focus paused' : 'Focus resumed',
                 );
               },
+              tooltip: item.isActive ? 'Pause Focus' : 'Resume Focus',
+              padding: 8,
             ),
             const SizedBox(width: 8),
 
@@ -87,11 +88,7 @@ class RecurringTodoItem extends ConsumerWidget {
 
             // Actions
             SqaPopupMenu(
-              icon: Icon(
-                Symbols.more_vert,
-                size: 20,
-                color: theme.colorScheme.outline,
-              ),
+              icon: Symbols.more_vert,
               children: [
                 SqaPopupMenuItem(
                   label: 'Edit',

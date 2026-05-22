@@ -83,6 +83,9 @@ class BeautifierNotifier extends _$BeautifierNotifier {
       return;
     }
 
+    // Clear output first to ensure listeners trigger even if the result is identical
+    state = state.copyWith(output: '');
+
     String formatted = '';
     String? error;
 

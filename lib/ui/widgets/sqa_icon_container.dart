@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaIconContainer extends StatelessWidget {
   final IconData icon;
@@ -16,8 +16,8 @@ class SqaIconContainer extends StatelessWidget {
     required this.icon,
     this.color,
     this.backgroundColor,
-    this.size = 32,
-    this.iconSize = 18,
+    this.size = SqaTokens.spacingXXLarge,
+    this.iconSize = SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
     this.borderRadius,
     this.isCircular = true,
     this.onTap,
@@ -35,7 +35,7 @@ class SqaIconContainer extends StatelessWidget {
         color: backgroundColor ?? effectiveColor.withValues(alpha: 0.1),
         borderRadius: isCircular
             ? null
-            : (borderRadius ?? SqaStyles.radiusMedium),
+            : (borderRadius ?? SqaTokens.borderRadiusMedium),
         shape: isCircular ? BoxShape.circle : BoxShape.rectangle,
       ),
       child: Center(
@@ -49,7 +49,7 @@ class SqaIconContainer extends StatelessWidget {
         customBorder: isCircular ? const CircleBorder() : null,
         borderRadius: isCircular
             ? null
-            : (borderRadius ?? SqaStyles.radiusMedium),
+            : (borderRadius ?? SqaTokens.borderRadiusMedium),
         mouseCursor: SystemMouseCursors.click,
         child: content,
       );

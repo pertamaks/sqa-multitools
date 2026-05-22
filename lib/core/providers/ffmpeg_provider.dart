@@ -1,7 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../engine/ffmpeg_engine.dart';
 
 part 'ffmpeg_provider.g.dart';
+
+final ffmpegEngineProvider = Provider<FfmpegEngine>((ref) => FfmpegEngine());
 
 class FfmpegStatus {
   final bool isReady;

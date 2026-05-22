@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sqa_styles.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaDatePicker {
   /// Shows a premium, SQA-styled single date picker.
@@ -27,7 +27,7 @@ class SqaDatePicker {
             dialogTheme: DialogThemeData(
               backgroundColor: colorScheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
                 side: BorderSide(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.2),
                 ),
@@ -38,11 +38,11 @@ class SqaDatePicker {
               filled: true,
               fillColor: colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
-                borderRadius: SqaStyles.radiusMedium,
+                borderRadius: SqaTokens.borderRadiusMedium,
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: SqaStyles.radiusMedium,
+                borderRadius: SqaTokens.borderRadiusMedium,
                 borderSide: BorderSide(color: colorScheme.primary),
               ),
               labelStyle: theme.textTheme.labelSmall?.copyWith(
@@ -52,15 +52,15 @@ class SqaDatePicker {
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
+                horizontal: SqaTokens.spacingMedium,
+                vertical: SqaTokens.spacingMedium,
               ),
             ),
             datePickerTheme: DatePickerThemeData(
               backgroundColor: colorScheme.surfaceContainerHigh,
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
                 side: BorderSide(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.2),
                 ),
@@ -74,14 +74,14 @@ class SqaDatePicker {
                 letterSpacing: 0,
               ),
               dayShape: WidgetStateProperty.all(
-                RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+                RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
               ),
               headerHelpStyle: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
               headerHeadlineStyle: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 24,
+                fontSize: SqaTokens.fontSizeXXLarge,
               ),
             ),
           ),
@@ -116,7 +116,7 @@ class SqaDatePicker {
             dialogTheme: DialogThemeData(
               backgroundColor: colorScheme.surfaceContainerHigh,
               shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
                 side: BorderSide(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.2),
                 ),
@@ -127,11 +127,11 @@ class SqaDatePicker {
               filled: true,
               fillColor: colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
-                borderRadius: SqaStyles.radiusMedium,
+                borderRadius: SqaTokens.borderRadiusMedium,
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: SqaStyles.radiusMedium,
+                borderRadius: SqaTokens.borderRadiusMedium,
                 borderSide: BorderSide(color: colorScheme.primary),
               ),
               labelStyle: theme.textTheme.labelSmall?.copyWith(
@@ -141,21 +141,21 @@ class SqaDatePicker {
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
+                horizontal: SqaTokens.spacingMedium,
+                vertical: SqaTokens.spacingMedium,
               ),
             ),
             datePickerTheme: DatePickerThemeData(
               backgroundColor: colorScheme.surfaceContainerHigh,
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
                 side: BorderSide(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.2),
                 ),
               ),
               rangePickerShape: RoundedRectangleBorder(
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
                 side: BorderSide(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.2),
                 ),
@@ -169,13 +169,13 @@ class SqaDatePicker {
                 letterSpacing: 0,
               ),
               dayShape: WidgetStateProperty.all(
-                RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+                RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
               ),
               rangePickerHeaderHelpStyle: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
               rangePickerHeaderHeadlineStyle: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
+                  ?.copyWith(fontWeight: FontWeight.bold, fontSize: SqaTokens.fontSizeXXLarge),
             ),
           ),
           child: Center(
@@ -185,7 +185,7 @@ class SqaDatePicker {
                 maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
               child: ClipRRect(
-                borderRadius: SqaStyles.radiusLarge,
+                borderRadius: SqaTokens.borderRadiusLarge,
                 child: child!,
               ),
             ),

@@ -13,7 +13,7 @@ class CoffeeShopService {
   CoffeeShopService(this._prefs, this._license);
 
   int get supporterTier => _prefs.getSupporterTier();
-  String? get supporterEmail => _prefs.rawPrefs.getString('supporter_email');
+  Future<String?> get supporterEmail => _prefs.getSupporterEmail();
 
   Future<int?> redeemCode(String email, String code) async {
     final tier = await _license.verifyWithServer(email, code);
@@ -23,8 +23,8 @@ class CoffeeShopService {
   Future<void> resetSupporter() async {
     await _prefs.setSupporterTier(0);
     await _prefs.setSupporterCode('');
-    await _prefs.rawPrefs.remove('supporter_email');
-    await _prefs.rawPrefs.remove('supporter_signature');
+    await _prefs.setSupporterEmail('');
+    await _prefs.setSupporterSignature('');
   }
 
   /// Performs a cold-start validation of the stored license.
@@ -79,4 +79,8 @@ class SupporterTierNotifier extends Notifier<int> {
 
 final supporterTierProvider = NotifierProvider<SupporterTierNotifier, int>(() {
   return SupporterTierNotifier();
+});
+
+final supporterEmailProvider = FutureProvider<String?>((ref) {
+  return ref.watch(coffeeShopServiceProvider).supporterEmail;
 });

@@ -18,6 +18,7 @@ analyzer:
     - "license-worker/**"
     - "web-landing/**"
     - "brain/**"
+    - "build/**"
   language:
     strict-casts: true
     strict-inference: true

@@ -11,6 +11,7 @@ import '../../../../ui/widgets/sqa_field.dart';
 import '../../../../ui/widgets/sqa_toast.dart';
 import '../../../../ui/widgets/sqa_date_picker.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
+import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class TodoItemDialogs {
   static void showHistorySummary(
@@ -140,7 +141,7 @@ class TodoItemDialogs {
             onPressed: () => Navigator.pop(context, false),
             type: SqaButtonType.tonal,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
           SqaButton(
             label: 'Complete with Notes',
             onPressed: () => Navigator.pop(context, true),
@@ -206,7 +207,7 @@ class TodoItemDialogs {
             onPressed: () => Navigator.pop(context, false),
             type: SqaButtonType.tonal,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
           SqaButton(
             label: 'Confirm Delegate',
             onPressed: () => Navigator.pop(context, true),
@@ -267,7 +268,7 @@ class TodoItemDialogs {
             onPressed: () => Navigator.pop(context, false),
             type: SqaButtonType.tonal,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
           SqaButton(
             label: 'Confirm Exception',
             onPressed: () => Navigator.pop(context, true),

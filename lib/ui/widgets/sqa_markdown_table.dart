@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 
 /// A premium, high-fidelity table widget for Markdown content.
 /// Supports dynamic column counts and striped rows.
@@ -11,7 +12,7 @@ class SqaMarkdownTable extends StatelessWidget {
     super.key,
     this.headers,
     required this.rows,
-    this.padding = const EdgeInsets.only(bottom: 16.0),
+    this.padding = const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
   });
 
   @override
@@ -29,12 +30,12 @@ class SqaMarkdownTable extends StatelessWidget {
     return Padding(
       padding: padding,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
               color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-              width: 0.5,
+              width: SqaTokens.borderWidthThin / 2,
             ),
           ),
           child: Table(
@@ -94,7 +95,10 @@ class SqaMarkdownTable extends StatelessWidget {
     bool isHeader = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingSmall + 4,
+        vertical: SqaTokens.spacingSmall + 2,
+      ),
       child: child,
     );
   }

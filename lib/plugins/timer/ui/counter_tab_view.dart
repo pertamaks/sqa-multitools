@@ -5,6 +5,7 @@ import '../providers/counter_provider.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class CounterTabView extends ConsumerWidget {
   const CounterTabView({super.key});
@@ -27,9 +28,9 @@ class CounterTabView extends ConsumerWidget {
                 onPressed: notifier.decrement,
                 icon: Symbols.remove,
                 label: '',
-                width: 56,
+                width: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
               ),
-              const SizedBox(width: 32),
+              const SizedBox(width: SqaTokens.spacingXXLarge),
               SizedBox(
                 width: 100,
                 child: Center(
@@ -43,16 +44,16 @@ class CounterTabView extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 32),
+              const SizedBox(width: SqaTokens.spacingXXLarge),
               SqaButton.primary(
                 onPressed: notifier.increment,
                 icon: Symbols.add,
                 label: '',
-                width: 56,
+                width: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: SqaTokens.spacingXXLarge),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: count != 0
@@ -72,9 +73,9 @@ class CounterTabView extends ConsumerWidget {
                     },
                     icon: Symbols.restart_alt,
                     label: 'Reset',
-                    width: 120,
+                    width: SqaTokens.spacingXXXLarge * 2.5,
                   )
-                : const SizedBox(height: 32, key: ValueKey('empty')),
+                : const SizedBox(height: SqaTokens.spacingXXLarge, key: ValueKey('empty')),
           ),
         ],
       ),

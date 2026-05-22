@@ -41,7 +41,7 @@ final class TextGeneratorProvider
   }
 }
 
-String _$textGeneratorHash() => r'd73e8c767c50885f027fcfa4e1b7a68645f8969e';
+String _$textGeneratorHash() => r'b9a58f8d9ca6b92c19615f11c877e21047684576';
 
 abstract class _$TextGenerator extends $Notifier<TextState> {
   TextState build();

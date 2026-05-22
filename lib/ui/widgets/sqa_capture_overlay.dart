@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +13,7 @@ import '../../core/window/window_utils.dart';
 import 'sqa_floating_bar.dart';
 import '../../core/providers/capture_key_provider.dart';
 import 'sqa_annotation_stage.dart';
+import 'sqa_design_tokens.dart';
 
 class SqaCaptureOverlay extends ConsumerStatefulWidget {
   final CaptureOverlayDelegate delegate;
@@ -63,7 +63,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: SqaTokens.durationSlow * 2,
     )..repeat(reverse: true);
     _startMousePolling();
 
@@ -130,7 +130,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
       _isPollingProcessing = true;
       try {
-        if (Platform.isWindows) {
+        if (WindowUtils.supportsGlobalMousePolling) {
           final leftDown = WindowUtils.isLeftMouseDown();
           final rightDown = WindowUtils.isRightMouseDown();
 
@@ -318,7 +318,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
 
     final width = _estimatedBarWidth;
-    const double height = 60.0;
+    const double height = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
     final currentOffset = _barOffsetNotifier.value ?? Offset.zero;
     final barRect = Rect.fromLTWH(
       windowPos.dx + currentOffset.dx,
@@ -340,9 +340,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   Offset _clampOffset(Offset offset, Size screenSize) {
-    final double barWidth = _estimatedBarWidth + 30.0; // Allow slight buffer
-    const double barHeight = 60.0;
-    const double padding = 12.0;
+    final double barWidth = _estimatedBarWidth + SqaTokens.spacingXXLarge; // Allow slight buffer
+    const double padding = SqaTokens.spacingMedium;
 
     return Offset(
       offset.dx.clamp(
@@ -351,7 +350,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       ),
       offset.dy.clamp(
         padding,
-        math.max(padding, screenSize.height - barHeight - padding),
+        math.max(padding, screenSize.height - (SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall) - padding),
       ),
     );
   }
@@ -387,8 +386,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       final dPos = activeDisplay.visiblePosition ?? Offset.zero;
 
       final double barWidth = _estimatedBarWidth;
-      const double barHeight = 60.0;
-      const double paddingBottom = 60.0;
+      const double barHeight = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
+      const double paddingBottom = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
 
       // Calculate global target position for the bar
       final globalTargetX =
@@ -635,14 +634,14 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     final colorScheme = theme.colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingMedium),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (delegate.isRecording && !delegate.isPaused)
             Container(
-              width: 8,
-              height: 8,
+              width: SqaTokens.spacingSmall,
+              height: SqaTokens.spacingSmall,
               decoration: const BoxDecoration(
                 color: Colors.red,
                 shape: BoxShape.circle,
@@ -650,20 +649,20 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             ),
           if (delegate.countdownSeconds > 0)
             Container(
-              width: 8,
-              height: 8,
+              width: SqaTokens.spacingSmall,
+              height: SqaTokens.spacingSmall,
               decoration: BoxDecoration(
                 color: Colors.orange,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.orange.withValues(alpha: 0.5),
-                    blurRadius: 6,
+                    blurRadius: SqaTokens.spacingSmall + 2,
                   ),
                 ],
               ),
             ),
-          const SizedBox(width: 8),
+          const SizedBox(width: SqaTokens.spacingSmall),
           Text(
             delegate.countdownSeconds > 0
                 ? '${delegate.countdownSeconds}'
@@ -671,7 +670,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontFamily: 'monospace',
-              fontSize: 14,
+              fontSize: SqaTokens.fontSizeMedium,
               color: delegate.countdownSeconds > 0
                   ? Colors.orangeAccent
                   : colorScheme.onSurface,
@@ -746,23 +745,23 @@ class _DefaultInstruction extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 64, color: Colors.white.withValues(alpha: 0.8)),
-        const SizedBox(height: 16),
+        Icon(icon, size: SqaTokens.spacingXXXLarge * 2, color: Colors.white.withValues(alpha: 0.8)),
+        const SizedBox(height: SqaTokens.spacingLarge),
         Text(
           text,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: SqaTokens.fontSizeXXLarge,
             fontWeight: FontWeight.w500,
             shadows: [Shadow(blurRadius: 12, color: Colors.black54)],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: SqaTokens.spacingSmall),
         Text(
           'Esc to cancel',
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 14,
+            fontSize: SqaTokens.fontSizeSmall,
           ),
         ),
       ],

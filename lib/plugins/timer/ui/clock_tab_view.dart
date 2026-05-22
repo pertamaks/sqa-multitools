@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../ui/widgets/sqa_icon_container.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class ClockTabView extends StatefulWidget {
   const ClockTabView({super.key});
@@ -57,7 +58,7 @@ class _ClockTabViewState extends State<ClockTabView> {
               icon: Symbols.location_on,
               color: theme.colorScheme.primary,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: SqaTokens.spacingXLarge),
             TimeDisplay(
               label: 'UTC+0 TIME',
               time: _formatTime(_now.toUtc()),
@@ -90,18 +91,26 @@ class TimeDisplay extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(
+        vertical: SqaTokens.spacingSmall,
+        horizontal: SqaTokens.spacingLarge,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SqaIconContainer(icon: icon, color: color, size: 36, iconSize: 20),
-          const SizedBox(width: 16),
+          SqaIconContainer(
+            icon: icon,
+            color: color,
+            size: SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+            iconSize: SqaTokens.spacingXLarge,
+          ),
+          const SizedBox(width: SqaTokens.spacingLarge),
           Container(
             width: 1,
-            height: 28,
+            height: SqaTokens.spacingXXLarge + SqaTokens.spacingTiny,
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: SqaTokens.spacingLarge),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,6 +121,7 @@ class TimeDisplay extends StatelessWidget {
                   color: color,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
+                  fontSize: SqaTokens.fontSizeSmall,
                 ),
               ),
               _buildClockTime(theme, time),

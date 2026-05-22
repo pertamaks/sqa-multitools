@@ -95,9 +95,9 @@ class LicenseService {
     final tier = _prefs.getSupporterTier();
     if (tier == 0) return 0;
 
-    final email = _prefs.getSupporterEmail();
-    final code = _prefs.getSupporterCode();
-    final signature = _prefs.getSupporterSignature();
+    final email = await _prefs.getSupporterEmail();
+    final code = await _prefs.getSupporterCode();
+    final signature = await _prefs.getSupporterSignature();
 
     if (email == null || code == null || signature == null) return 0;
 

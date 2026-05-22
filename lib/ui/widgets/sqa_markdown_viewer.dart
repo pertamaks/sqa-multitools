@@ -1,12 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'sqa_design_tokens.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:html/parser.dart' as html;
 import 'package:html/dom.dart' as dom;
 import 'sqa_markdown_table.dart';
 import 'sqa_grid_table.dart';
 import 'sqa_field.dart';
-import 'sqa_styles.dart';
 import 'sqa_scroll_behavior.dart';
 
 /// A high-fidelity Markdown viewer that uses a custom AST visitor to render
@@ -20,7 +20,7 @@ class SqaMarkdownViewer extends StatefulWidget {
   const SqaMarkdownViewer({
     super.key,
     required this.markdown,
-    this.padding = const EdgeInsets.all(24.0),
+    this.padding = const EdgeInsets.all(SqaTokens.spacingLarge),
     this.useScrollable = true,
     this.selectable = false,
   });
@@ -43,7 +43,7 @@ class _SqaMarkdownViewerState extends State<SqaMarkdownViewer> {
     if (anchorId == 'top-of-page' || anchorId == 'top') {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 500),
+        duration: SqaTokens.durationSlow,
         curve: Curves.easeInOut,
       );
       return;
@@ -52,7 +52,7 @@ class _SqaMarkdownViewerState extends State<SqaMarkdownViewer> {
     if (key != null && key.currentContext != null) {
       Scrollable.ensureVisible(
         key.currentContext!,
-        duration: const Duration(milliseconds: 500),
+        duration: SqaTokens.durationSlow,
         alignment: 0.1, // Align near the top
         curve: Curves.easeInOut,
       );
@@ -167,7 +167,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
         _addTable(element);
         return false;
       case 'hr':
-        widgets.add(const Divider(height: 32));
+        widgets.add(const Divider(height: SqaTokens.spacingXXLarge));
         return false;
       case 'blockquote':
         _addBlockquote(element);
@@ -201,7 +201,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     if (_tagStack.isEmpty) {
       widgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: _renderNodesAsRichText([text]),
         ),
       );
@@ -241,10 +241,10 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
 
   void _addFootnoteSection(md.Element element) {
     final theme = Theme.of(context);
-    widgets.add(const Divider(height: 48, thickness: 1));
+    widgets.add(const Divider(height: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge, thickness: 1));
     widgets.add(
       Padding(
-        padding: const EdgeInsets.only(bottom: 12.0),
+        padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall + 4),
         child: Text(
           'FOOTNOTES',
           style: theme.textTheme.labelSmall?.copyWith(
@@ -264,7 +264,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     );
     // Use a smaller base style for footnotes
     final footnoteStyle = theme.textTheme.bodySmall?.copyWith(
-      fontSize: 12,
+      fontSize: SqaTokens.fontSizeSmall,
       color: theme.colorScheme.onSurfaceVariant,
     );
 
@@ -293,8 +293,8 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     final key = anchorKeys.putIfAbsent(anchorId, () => GlobalKey());
 
     TextStyle? style;
-    double topPadding = 24.0;
-    double bottomPadding = 8.0;
+    double topPadding = SqaTokens.spacingLarge;
+    double bottomPadding = SqaTokens.spacingSmall;
 
     if (level == 1) {
       style = theme.textTheme.headlineSmall?.copyWith(
@@ -308,7 +308,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
       );
     } else {
       style = theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold);
-      topPadding = 16.0;
+      topPadding = SqaTokens.spacingMedium;
     }
 
     widgets.add(
@@ -322,13 +322,13 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
             children: [
               _renderNodesAsRichText(element.children, baseStyle: style),
               if (level <= 2) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: SqaTokens.spacingTiny),
                 Container(
-                  width: level == 1 ? 48 : 32,
-                  height: 2,
+                  width: level == 1 ? (SqaTokens.spacingXXLarge + SqaTokens.spacingMedium) : SqaTokens.spacingXXLarge,
+                  height: SqaTokens.borderWidthThick,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(1),
+                    borderRadius: SqaTokens.borderRadiusSmall,
                   ),
                 ),
               ],
@@ -344,7 +344,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
       _wrapWithAnchor(
         element.attributes['id'],
         Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: _renderNodesAsRichText(element.children),
         ),
       ),
@@ -382,7 +382,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
 
     widgets.add(
       Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
+        padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
         child: SqaField(
           label: lang?.toUpperCase() ?? 'CODE',
           initialValue: cleanedCode,
@@ -393,7 +393,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
           isMonospace: true,
           showLabel: lang != null,
           isTransparent: false,
-          fontSize: 12,
+          fontSize: SqaTokens.fontSizeSmall,
         ),
       ),
     );
@@ -427,12 +427,12 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
         _wrapWithAnchor(
           itemId,
           Padding(
-            padding: const EdgeInsets.only(bottom: 8.0, left: 8.0),
+            padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall, left: SqaTokens.spacingSmall),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 24,
+                  width: SqaTokens.spacingMedium,
                   child: Text(
                     isOrdered ? '${i + 1}.' : '•',
                     style: TextStyle(
@@ -459,7 +459,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
         ),
       );
     }
-    widgets.add(const SizedBox(height: 8));
+    widgets.add(const SizedBox(height: SqaTokens.spacingSmall));
   }
 
   List<Widget> _renderListItemContent(md.Element item) {
@@ -487,7 +487,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
         .where((e) => e.tag == 'tbody')
         .firstOrNull;
 
-    final cellStyle = theme.textTheme.bodySmall?.copyWith(fontSize: 11);
+    final cellStyle = theme.textTheme.bodySmall?.copyWith(fontSize: SqaTokens.fontSizeSmall - 1);
     final headerStyle = cellStyle?.copyWith(
       fontWeight: FontWeight.bold,
       color: theme.colorScheme.primary,
@@ -557,7 +557,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     final table = fragment.querySelector('table');
     if (table == null) return;
 
-    final cellStyle = theme.textTheme.bodySmall?.copyWith(fontSize: 11);
+    final cellStyle = theme.textTheme.bodySmall?.copyWith(fontSize: SqaTokens.fontSizeSmall - 1);
     final headerStyle = cellStyle?.copyWith(
       fontWeight: FontWeight.bold,
       color: theme.colorScheme.primary,
@@ -633,7 +633,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
 
     widgets.add(
       Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
+        padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
         child: SqaGridTable(
           columns: columns,
           columnWidths: List.generate(maxCols, (_) => 1.0 / maxCols),
@@ -726,19 +726,19 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
 
       widgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(SqaTokens.spacingMedium),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: SqaStyles.radiusMedium,
+              borderRadius: SqaTokens.borderRadiusMedium,
               border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, size: 18, color: color),
-                const SizedBox(width: 12),
+                Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall, color: color),
+                const SizedBox(width: SqaTokens.spacingSmall + 4),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -751,7 +751,7 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
                           letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: SqaTokens.spacingTiny),
                       _renderNodesAsRichText(
                         _getCleanedAdmonitionChildren(element),
                       ),
@@ -766,18 +766,18 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     } else {
       widgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
           child: IntrinsicHeight(
             child: Row(
               children: [
                 Container(
-                  width: 4,
+                  width: SqaTokens.spacingXSmall,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: SqaTokens.borderRadiusSmall,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: SqaTokens.spacingMedium),
                 Expanded(
                   child: _renderNodesAsRichText(
                     element.children,
@@ -857,7 +857,7 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
         if (id != null) {
           final uniqueId = idGenerator(id);
           final key = anchorKeys.putIfAbsent(uniqueId, () => GlobalKey());
-          spans.add(WidgetSpan(child: SizedBox(key: key, width: 2, height: 2)));
+          spans.add(WidgetSpan(child: SizedBox(key: key, width: SqaTokens.borderWidthThick, height: SqaTokens.borderWidthThick)));
         }
 
         if (href != null && href.startsWith('#')) {

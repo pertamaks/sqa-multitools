@@ -4,9 +4,17 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../models/identity_state.dart';
 import '../providers/identity_provider.dart';
 import '../widgets/identity_config_panel.dart';
-import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_field.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
+import '../../../ui/widgets/sqa_modal.dart';
+import '../../../ui/widgets/sqa_button.dart';
+import '../../../ui/widgets/sqa_toast.dart';
+import 'widgets/history_tile.dart';
+import '../../../ui/widgets/sqa_history_list.dart';
+import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../core/utils/locale_names.dart';
+import 'package:flutter/services.dart';
 
 class IdentityTabView extends ConsumerStatefulWidget {
   const IdentityTabView({super.key});
@@ -24,81 +32,105 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
     super.dispose();
   }
 
+  void _showResult(List<String> session, String title) {
+    final state = ref.read(identityProvider);
+    final text = state.includeFormatting 
+        ? session.map((e) => '• $e').join('\n') 
+        : session.join('\n');
+    
+    showDialog<void>(
+      context: context,
+      builder: (context) => SqaModal<void>.custom(
+        title: title,
+        scrollable: false,
+        confirmLabel: 'Close',
+        customActions: [
+          SqaButton.tonal(
+            label: 'Copy',
+            icon: Symbols.content_copy,
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: text));
+              SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+            },
+          ),
+          const SizedBox(width: SqaTokens.spacingXXSmall),
+          SqaButton.primary(
+            label: 'Close',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+        child: SqaField(
+          label: 'Generated Data',
+          showLabel: false,
+          isMonospace: true,
+          readOnly: true,
+          isMultiline: true,
+          maxLines: null,
+          expands: true,
+          fontSize: SqaTokens.fontSizeSmall,
+          showLineNumbers: true,
+          showCopyButton: false,
+          initialValue: text,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(identityProvider);
     final notifier = ref.read(identityProvider.notifier);
+    final history = state.resultsMap[state.selectedType] ?? [];
+    final theme = Theme.of(context);
 
     return SqaPluginScrollableContent(
       controller: _scrollController,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SqaSegmentedButton<IdentityType>(
-            segments: const [
-              ButtonSegment(
-                value: IdentityType.name,
-                label: Text('Name'),
-                icon: Icon(Symbols.person),
+          Center(
+            child: Text(
+              _getUsageDescription(state.selectedType),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
-              ButtonSegment(
-                value: IdentityType.email,
-                label: Text('Email'),
-                icon: Icon(Symbols.mail),
-              ),
-              ButtonSegment(
-                value: IdentityType.address,
-                label: Text('Address'),
-                icon: Icon(Symbols.home),
-              ),
-              ButtonSegment(
-                value: IdentityType.phone,
-                label: Text('Phone'),
-                icon: Icon(Symbols.call),
-              ),
-              ButtonSegment(
-                value: IdentityType.internet,
-                label: Text('Net'),
-                icon: Icon(Symbols.language),
-              ),
-              ButtonSegment(
-                value: IdentityType.company,
-                label: Text('Work'),
-                icon: Icon(Symbols.business),
-              ),
-            ],
-            selected: {state.selectedType},
-            onSelectionChanged: (set) => notifier.setType(set.first),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _getUsageDescription(state.selectedType),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.6),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: SqaTokens.spacingXLarge),
           const IdentityConfigPanel(),
-          if ((state.resultsMap[state.selectedType] ?? <String>[])
-              .isNotEmpty) ...[
-            const SizedBox(height: 24),
-            SqaField(
-              label: 'Result',
-              initialValue: state.includeFormatting
-                  ? (state.resultsMap[state.selectedType] ?? <String>[])
-                        .map((String e) => '• $e')
-                        .join('\n')
-                  : (state.resultsMap[state.selectedType] ?? <String>[]).join(
-                      '\n',
-                    ),
-              icon: Symbols.content_copy,
-              isMultiline: true,
-              collapsedMaxLines: 10,
-            ),
-          ],
+          const SizedBox(height: SqaTokens.spacingXLarge),
+          
+          SqaHistoryList<List<String>>(
+            items: history,
+            title: 'History',
+            onClearAll: () => notifier.clear(),
+            itemBuilder: (context, item, isLast) {
+              final index = history.indexOf(item);
+              final displayIndex = history.length - index;
+              return DataHistoryTile(
+                title: '${state.selectedType.label} • ${LocaleNames.getDisplayName(state.locale.name)} • ${state.quantity} items ($displayIndex)',
+                subtitle: item.join(', '),
+                icon: Symbols.person,
+                onTap: () => _showResult(item, 'Identity Result'),
+                onDelete: () => notifier.removeHistory(item),
+                customActions: [
+                  SqaHoverIconButton(
+                    icon: Symbols.content_copy,
+                    tooltip: 'Copy all',
+                    onPressed: () {
+                      final text = state.includeFormatting 
+                          ? item.map((e) => '• $e').join('\n') 
+                          : item.join('\n');
+                      Clipboard.setData(ClipboardData(text: text));
+                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

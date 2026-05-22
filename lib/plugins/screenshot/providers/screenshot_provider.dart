@@ -6,10 +6,13 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:super_clipboard/super_clipboard.dart';
+import '../../../core/utils/platform_utils.dart';
 
 import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
@@ -23,6 +26,17 @@ import '../../../core/window/window_transition_coordinator.dart';
 import '../../../core/providers/capture_key_provider.dart';
 
 part 'screenshot_provider.g.dart';
+
+class IsScreenshotProcessingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool value) => state = value;
+}
+
+final isScreenshotProcessingProvider =
+    NotifierProvider<IsScreenshotProcessingNotifier, bool>(
+      IsScreenshotProcessingNotifier.new,
+    );
 
 @riverpod
 class ScreenshotNotifier extends _$ScreenshotNotifier {
@@ -222,38 +236,40 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final coordinator = ref.read(windowTransitionProvider);
 
     // 1. Ghost the window instantly as the absolute FIRST step
-    // Use 0.01 to keep the layered window context active during transformation
     await windowManager.setOpacity(0.01);
     await coordinator.waitForSync(resize: false, move: false);
 
     // 2. Physically restore window bounds BEFORE switching UI state
     await _restoreWindowInternal();
+    final targetSize = state.previousWindowSize ?? const Size(450, 500);
+    final targetPos = state.previousWindowPos ?? const Offset(100, 100);
     await coordinator.waitForSync(
       resize: true,
       move: true,
       frame: false,
-      targetSize: state.previousWindowSize,
-      targetOffset: state.previousWindowPos,
+      targetSize: targetSize,
+      targetOffset: targetPos,
     );
 
     // 3. NOW switch UI to Toolbar mode
     state = state.copyWith(
+      isCapturing: false,
       isOverlayVisible: false,
       selectionRect: null,
       targetedWindowRect: null,
       lockedDisplay: null,
       annotations: [],
     );
+    ref.read(isScreenshotProcessingProvider.notifier).set(false);
 
-    // 4. Wait for Flutter render to commit the Toolbar frame
+    // Wait for Flutter render to commit the Toolbar frame
     await coordinator.waitForSync(resize: false, move: false, frame: true);
     final theme = ref.read(themeSettingsProvider);
 
-    // 5. Finally restore native attributes, reveal and focus
-    // Move all attribute changes here to prevent DWM flushes on giant window
+    // 4. Finally restore native attributes, reveal and focus
     await Future.wait([
-      windowManager.setHasShadow(true),
-      windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+      windowManager.setAsFrameless(),
+      windowManager.setHasShadow(false),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
       windowManager.setIgnoreMouseEvents(false),
     ]);
@@ -346,9 +362,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     // Construct save path
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Screenshots');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final timestamp = DateTime.now()
@@ -356,7 +372,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         .replaceAll(RegExp(r'[:.-]'), '')
         .replaceAll(' ', '_');
     final filename = 'SQA_SS_$timestamp.${state.format.toLowerCase()}';
-    final savePath = '${saveDir.path}\\$filename';
+    final savePath = p.join(saveDir.path, filename);
 
     try {
       // 1. Capture Annotations (Foreground) - High DPI Aware
@@ -382,11 +398,22 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         debugPrint('[Screenshot] Annotation capture failed: $e');
       }
 
+      // 2. UNMOUNT the heavy RepaintBoundary UI!
+      // This is the true fix for the UI corruption: by returning SizedBox.shrink()
+      // before we shrink the OS window, we prevent the Flutter graphics pipeline
+      // from crashing when trying to resize a massive multi-monitor texture!
+      ref.read(isScreenshotProcessingProvider.notifier).set(true);
+      await coordinator.waitForSync(resize: false, move: false, frame: true);
+
       final tempDir = await getTemporaryDirectory();
-      final fgPath =
-          '${tempDir.path}\\sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png';
-      final bgPath =
-          '${tempDir.path}\\sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fgPath = p.join(
+        tempDir.path,
+        'sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      final bgPath = p.join(
+        tempDir.path,
+        'sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
 
       if (annotationBytes != null) {
         await File(fgPath).writeAsBytes(annotationBytes);
@@ -444,10 +471,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       }
 
       if (await File(savePath).exists() && shouldCopy) {
-        await Process.run('powershell', [
-          '-Command',
-          'Set-Clipboard -Path "$savePath"',
-        ]);
+        final clipboard = SystemClipboard.instance;
+        if (clipboard != null) {
+          final item = DataWriterItem();
+          item.add(
+            Formats.png(
+              await File(savePath).readAsBytes(),
+            ), // Note: works for jpg/webp too as raw bytes
+          );
+          await clipboard.write([item]);
+        }
       }
 
       // Cleanup temp bits
@@ -477,22 +510,32 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         lockedDisplay: null,
         annotations: [],
       );
+      ref.read(isScreenshotProcessingProvider.notifier).set(false);
 
       // 4. Wait for Flutter to commit the Toolbar frame
       await coordinator.waitForSync(resize: false, move: false, frame: true);
       final theme = ref.read(themeSettingsProvider);
 
       // 5. Finally restore attributes, reveal and focus
-      // Move all attribute changes here to prevent DWM flushes on giant window
       await Future.wait([
-        windowManager.setHasShadow(true),
-        windowManager.setTitleBarStyle(TitleBarStyle.hidden),
+        windowManager.setAsFrameless(),
+        windowManager.setHasShadow(false),
         windowManager.setAlwaysOnTop(theme.alwaysOnTop),
         windowManager.setIgnoreMouseEvents(false),
       ]);
 
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
+
+      // 6. Force a full DWM/Flutter swapchain invalidate!
+      // This solves the UI corruption issue perfectly. Because the window was
+      // ghosted during heavy CPU/GPU processing, DWM/Flutter can fail to 
+      // properly paint the new swapchain after resize. A 1-pixel resize 
+      // guarantees a complete OS-level and Engine-level invalidate/redraw.
+      final size = await windowManager.getSize();
+      await windowManager.setSize(Size(size.width, size.height + 1));
+      await Future<void>.delayed(const Duration(milliseconds: 32));
+      await windowManager.setSize(size);
 
       refreshRecentCaptures();
     }
@@ -503,13 +546,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> openSaveDirectory() async {
-    final dir =
-        state.saveDirectory ?? (await getApplicationDocumentsDirectory()).path;
-    final saveDir = Directory('$dir\\SQA_Screenshots');
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
     final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
 
     if (await targetDir.exists()) {
-      await Process.start('explorer.exe', [targetDir.path]);
+      await PlatformUtils.openPath(targetDir.path);
     }
   }
 
@@ -542,10 +585,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   String? validateNewName(String name, CaptureInfo currentInfo) {
     if (name.trim().isEmpty) return 'Name cannot be empty';
 
-    // Windows prohibited characters: < > : " / \ | ? *
-    final prohibited = RegExp(r'[<>:"/\\|?*]');
-    if (prohibited.hasMatch(name)) {
-      return 'Contains invalid characters: < > : " / \\ | ? *';
+    if (!PlatformUtils.isValidFilename(name)) {
+      return 'Contains invalid characters for your platform';
     }
 
     // Check for duplicates

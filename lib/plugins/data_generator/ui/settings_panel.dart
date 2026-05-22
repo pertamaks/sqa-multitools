@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/identity_provider.dart';
+import '../providers/dev_provider.dart';
 import 'widgets/count_dropdown.dart';
 import '../../../ui/widgets/sqa_settings_tile.dart';
 import '../../../ui/widgets/sqa_faker_locale_picker.dart';
 import '../../../ui/widgets/sqa_switch.dart';
+import '../../../ui/widgets/sqa_design_tokens.dart';
 
 class DataGeneratorSettingsPanel extends ConsumerWidget {
   const DataGeneratorSettingsPanel({super.key});
@@ -26,9 +28,9 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
             letterSpacing: 1.2,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         const SqaFakerLocalePicker(),
-        const SizedBox(height: 12),
+        const SizedBox(height: SqaTokens.spacingMedium),
         Row(
           children: [
             Expanded(
@@ -42,7 +44,7 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: SqaTokens.spacingXSmall),
                   CountDropdown(
                     value: state.quantity,
                     onChanged: (val) {
@@ -54,13 +56,22 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: SqaTokens.spacingLarge),
         SqaSettingsTile(
-          title: 'INCLUDE FORMATTING',
-          subtitle: 'Prefix each result with a bullet point (•)',
+          title: 'IDENTITY BULLETS',
+          subtitle: 'Prefix identity results with a bullet point (•)',
           trailing: SqaSwitch(
             value: state.includeFormatting,
             onChanged: (val) => notifier.setIncludeFormatting(val),
+          ),
+        ),
+        const SizedBox(height: SqaTokens.spacingSmall),
+        SqaSettingsTile(
+          title: 'DEV BULLETS',
+          subtitle: 'Prefix UUID results with a bullet point (•)',
+          trailing: SqaSwitch(
+            value: ref.watch(devGeneratorProvider).includeFormatting,
+            onChanged: (val) => ref.read(devGeneratorProvider.notifier).setIncludeFormatting(val),
           ),
         ),
         SqaSettingsTile(

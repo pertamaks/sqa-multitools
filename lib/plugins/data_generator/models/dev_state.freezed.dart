@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DevState {
 
- DevType get selectedType; JsonCategory get selectedJsonCategory; DateCategory get selectedDateCategory; Map<DevType, List<String>> get resultsMap; List<String> get uuidHistory; int get quantity;
+ DevType get selectedType; JsonCategory get selectedJsonCategory; DateCategory get selectedDateCategory; Map<DevType, List<List<String>>> get resultsMap; List<String> get uuidHistory; int get quantity; bool get includeFormatting;
 /// Create a copy of DevState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $DevStateCopyWith<DevState> get copyWith => _$DevStateCopyWithImpl<DevState>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DevState&&(identical(other.selectedType, selectedType) || other.selectedType == selectedType)&&(identical(other.selectedJsonCategory, selectedJsonCategory) || other.selectedJsonCategory == selectedJsonCategory)&&(identical(other.selectedDateCategory, selectedDateCategory) || other.selectedDateCategory == selectedDateCategory)&&const DeepCollectionEquality().equals(other.resultsMap, resultsMap)&&const DeepCollectionEquality().equals(other.uuidHistory, uuidHistory)&&(identical(other.quantity, quantity) || other.quantity == quantity));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DevState&&(identical(other.selectedType, selectedType) || other.selectedType == selectedType)&&(identical(other.selectedJsonCategory, selectedJsonCategory) || other.selectedJsonCategory == selectedJsonCategory)&&(identical(other.selectedDateCategory, selectedDateCategory) || other.selectedDateCategory == selectedDateCategory)&&const DeepCollectionEquality().equals(other.resultsMap, resultsMap)&&const DeepCollectionEquality().equals(other.uuidHistory, uuidHistory)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.includeFormatting, includeFormatting) || other.includeFormatting == includeFormatting));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,selectedType,selectedJsonCategory,selectedDateCategory,const DeepCollectionEquality().hash(resultsMap),const DeepCollectionEquality().hash(uuidHistory),quantity);
+int get hashCode => Object.hash(runtimeType,selectedType,selectedJsonCategory,selectedDateCategory,const DeepCollectionEquality().hash(resultsMap),const DeepCollectionEquality().hash(uuidHistory),quantity,includeFormatting);
 
 @override
 String toString() {
-  return 'DevState(selectedType: $selectedType, selectedJsonCategory: $selectedJsonCategory, selectedDateCategory: $selectedDateCategory, resultsMap: $resultsMap, uuidHistory: $uuidHistory, quantity: $quantity)';
+  return 'DevState(selectedType: $selectedType, selectedJsonCategory: $selectedJsonCategory, selectedDateCategory: $selectedDateCategory, resultsMap: $resultsMap, uuidHistory: $uuidHistory, quantity: $quantity, includeFormatting: $includeFormatting)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $DevStateCopyWith<$Res>  {
   factory $DevStateCopyWith(DevState value, $Res Function(DevState) _then) = _$DevStateCopyWithImpl;
 @useResult
 $Res call({
- DevType selectedType, JsonCategory selectedJsonCategory, DateCategory selectedDateCategory, Map<DevType, List<String>> resultsMap, List<String> uuidHistory, int quantity
+ DevType selectedType, JsonCategory selectedJsonCategory, DateCategory selectedDateCategory, Map<DevType, List<List<String>>> resultsMap, List<String> uuidHistory, int quantity, bool includeFormatting
 });
 
 
@@ -62,15 +62,16 @@ class _$DevStateCopyWithImpl<$Res>
 
 /// Create a copy of DevState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? selectedType = null,Object? selectedJsonCategory = null,Object? selectedDateCategory = null,Object? resultsMap = null,Object? uuidHistory = null,Object? quantity = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? selectedType = null,Object? selectedJsonCategory = null,Object? selectedDateCategory = null,Object? resultsMap = null,Object? uuidHistory = null,Object? quantity = null,Object? includeFormatting = null,}) {
   return _then(_self.copyWith(
 selectedType: null == selectedType ? _self.selectedType : selectedType // ignore: cast_nullable_to_non_nullable
 as DevType,selectedJsonCategory: null == selectedJsonCategory ? _self.selectedJsonCategory : selectedJsonCategory // ignore: cast_nullable_to_non_nullable
 as JsonCategory,selectedDateCategory: null == selectedDateCategory ? _self.selectedDateCategory : selectedDateCategory // ignore: cast_nullable_to_non_nullable
 as DateCategory,resultsMap: null == resultsMap ? _self.resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<DevType, List<String>>,uuidHistory: null == uuidHistory ? _self.uuidHistory : uuidHistory // ignore: cast_nullable_to_non_nullable
+as Map<DevType, List<List<String>>>,uuidHistory: null == uuidHistory ? _self.uuidHistory : uuidHistory // ignore: cast_nullable_to_non_nullable
 as List<String>,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
-as int,
+as int,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DevType selectedType,  JsonCategory selectedJsonCategory,  DateCategory selectedDateCategory,  Map<DevType, List<String>> resultsMap,  List<String> uuidHistory,  int quantity)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DevType selectedType,  JsonCategory selectedJsonCategory,  DateCategory selectedDateCategory,  Map<DevType, List<List<String>>> resultsMap,  List<String> uuidHistory,  int quantity,  bool includeFormatting)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DevState() when $default != null:
-return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDateCategory,_that.resultsMap,_that.uuidHistory,_that.quantity);case _:
+return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDateCategory,_that.resultsMap,_that.uuidHistory,_that.quantity,_that.includeFormatting);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDate
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DevType selectedType,  JsonCategory selectedJsonCategory,  DateCategory selectedDateCategory,  Map<DevType, List<String>> resultsMap,  List<String> uuidHistory,  int quantity)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DevType selectedType,  JsonCategory selectedJsonCategory,  DateCategory selectedDateCategory,  Map<DevType, List<List<String>>> resultsMap,  List<String> uuidHistory,  int quantity,  bool includeFormatting)  $default,) {final _that = this;
 switch (_that) {
 case _DevState():
-return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDateCategory,_that.resultsMap,_that.uuidHistory,_that.quantity);case _:
+return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDateCategory,_that.resultsMap,_that.uuidHistory,_that.quantity,_that.includeFormatting);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDate
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DevType selectedType,  JsonCategory selectedJsonCategory,  DateCategory selectedDateCategory,  Map<DevType, List<String>> resultsMap,  List<String> uuidHistory,  int quantity)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DevType selectedType,  JsonCategory selectedJsonCategory,  DateCategory selectedDateCategory,  Map<DevType, List<List<String>>> resultsMap,  List<String> uuidHistory,  int quantity,  bool includeFormatting)?  $default,) {final _that = this;
 switch (_that) {
 case _DevState() when $default != null:
-return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDateCategory,_that.resultsMap,_that.uuidHistory,_that.quantity);case _:
+return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDateCategory,_that.resultsMap,_that.uuidHistory,_that.quantity,_that.includeFormatting);case _:
   return null;
 
 }
@@ -211,14 +212,14 @@ return $default(_that.selectedType,_that.selectedJsonCategory,_that.selectedDate
 
 
 class _DevState implements DevState {
-  const _DevState({this.selectedType = DevType.uuid, this.selectedJsonCategory = JsonCategory.simple, this.selectedDateCategory = DateCategory.past, final  Map<DevType, List<String>> resultsMap = const {}, final  List<String> uuidHistory = const [], this.quantity = 1}): _resultsMap = resultsMap,_uuidHistory = uuidHistory;
+  const _DevState({this.selectedType = DevType.uuid, this.selectedJsonCategory = JsonCategory.simple, this.selectedDateCategory = DateCategory.past, final  Map<DevType, List<List<String>>> resultsMap = const <DevType, List<List<String>>>{}, final  List<String> uuidHistory = const [], this.quantity = 1, this.includeFormatting = true}): _resultsMap = resultsMap,_uuidHistory = uuidHistory;
   
 
 @override@JsonKey() final  DevType selectedType;
 @override@JsonKey() final  JsonCategory selectedJsonCategory;
 @override@JsonKey() final  DateCategory selectedDateCategory;
- final  Map<DevType, List<String>> _resultsMap;
-@override@JsonKey() Map<DevType, List<String>> get resultsMap {
+ final  Map<DevType, List<List<String>>> _resultsMap;
+@override@JsonKey() Map<DevType, List<List<String>>> get resultsMap {
   if (_resultsMap is EqualUnmodifiableMapView) return _resultsMap;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_resultsMap);
@@ -232,6 +233,7 @@ class _DevState implements DevState {
 }
 
 @override@JsonKey() final  int quantity;
+@override@JsonKey() final  bool includeFormatting;
 
 /// Create a copy of DevState
 /// with the given fields replaced by the non-null parameter values.
@@ -243,16 +245,16 @@ _$DevStateCopyWith<_DevState> get copyWith => __$DevStateCopyWithImpl<_DevState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DevState&&(identical(other.selectedType, selectedType) || other.selectedType == selectedType)&&(identical(other.selectedJsonCategory, selectedJsonCategory) || other.selectedJsonCategory == selectedJsonCategory)&&(identical(other.selectedDateCategory, selectedDateCategory) || other.selectedDateCategory == selectedDateCategory)&&const DeepCollectionEquality().equals(other._resultsMap, _resultsMap)&&const DeepCollectionEquality().equals(other._uuidHistory, _uuidHistory)&&(identical(other.quantity, quantity) || other.quantity == quantity));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DevState&&(identical(other.selectedType, selectedType) || other.selectedType == selectedType)&&(identical(other.selectedJsonCategory, selectedJsonCategory) || other.selectedJsonCategory == selectedJsonCategory)&&(identical(other.selectedDateCategory, selectedDateCategory) || other.selectedDateCategory == selectedDateCategory)&&const DeepCollectionEquality().equals(other._resultsMap, _resultsMap)&&const DeepCollectionEquality().equals(other._uuidHistory, _uuidHistory)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.includeFormatting, includeFormatting) || other.includeFormatting == includeFormatting));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,selectedType,selectedJsonCategory,selectedDateCategory,const DeepCollectionEquality().hash(_resultsMap),const DeepCollectionEquality().hash(_uuidHistory),quantity);
+int get hashCode => Object.hash(runtimeType,selectedType,selectedJsonCategory,selectedDateCategory,const DeepCollectionEquality().hash(_resultsMap),const DeepCollectionEquality().hash(_uuidHistory),quantity,includeFormatting);
 
 @override
 String toString() {
-  return 'DevState(selectedType: $selectedType, selectedJsonCategory: $selectedJsonCategory, selectedDateCategory: $selectedDateCategory, resultsMap: $resultsMap, uuidHistory: $uuidHistory, quantity: $quantity)';
+  return 'DevState(selectedType: $selectedType, selectedJsonCategory: $selectedJsonCategory, selectedDateCategory: $selectedDateCategory, resultsMap: $resultsMap, uuidHistory: $uuidHistory, quantity: $quantity, includeFormatting: $includeFormatting)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$DevStateCopyWith<$Res> implements $DevStateCopyWith<$Res>
   factory _$DevStateCopyWith(_DevState value, $Res Function(_DevState) _then) = __$DevStateCopyWithImpl;
 @override @useResult
 $Res call({
- DevType selectedType, JsonCategory selectedJsonCategory, DateCategory selectedDateCategory, Map<DevType, List<String>> resultsMap, List<String> uuidHistory, int quantity
+ DevType selectedType, JsonCategory selectedJsonCategory, DateCategory selectedDateCategory, Map<DevType, List<List<String>>> resultsMap, List<String> uuidHistory, int quantity, bool includeFormatting
 });
 
 
@@ -280,15 +282,16 @@ class __$DevStateCopyWithImpl<$Res>
 
 /// Create a copy of DevState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? selectedType = null,Object? selectedJsonCategory = null,Object? selectedDateCategory = null,Object? resultsMap = null,Object? uuidHistory = null,Object? quantity = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? selectedType = null,Object? selectedJsonCategory = null,Object? selectedDateCategory = null,Object? resultsMap = null,Object? uuidHistory = null,Object? quantity = null,Object? includeFormatting = null,}) {
   return _then(_DevState(
 selectedType: null == selectedType ? _self.selectedType : selectedType // ignore: cast_nullable_to_non_nullable
 as DevType,selectedJsonCategory: null == selectedJsonCategory ? _self.selectedJsonCategory : selectedJsonCategory // ignore: cast_nullable_to_non_nullable
 as JsonCategory,selectedDateCategory: null == selectedDateCategory ? _self.selectedDateCategory : selectedDateCategory // ignore: cast_nullable_to_non_nullable
 as DateCategory,resultsMap: null == resultsMap ? _self._resultsMap : resultsMap // ignore: cast_nullable_to_non_nullable
-as Map<DevType, List<String>>,uuidHistory: null == uuidHistory ? _self._uuidHistory : uuidHistory // ignore: cast_nullable_to_non_nullable
+as Map<DevType, List<List<String>>>,uuidHistory: null == uuidHistory ? _self._uuidHistory : uuidHistory // ignore: cast_nullable_to_non_nullable
 as List<String>,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
-as int,
+as int,includeFormatting: null == includeFormatting ? _self.includeFormatting : includeFormatting // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

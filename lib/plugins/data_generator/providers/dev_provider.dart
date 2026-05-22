@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:faker_dart/faker_dart.dart';
 import 'package:intl/intl.dart';
 import '../models/dev_state.dart';
+import '../providers/identity_provider.dart';
 
 part 'dev_provider.g.dart';
 
@@ -13,7 +14,7 @@ class DevGenerator extends _$DevGenerator {
   DevState build() {
     _faker = Faker.instance;
     return const DevState(
-      resultsMap: <DevType, List<String>>{},
+      resultsMap: <DevType, List<List<String>>>{},
       uuidHistory: <String>[],
     );
   }
@@ -34,40 +35,55 @@ class DevGenerator extends _$DevGenerator {
     state = state.copyWith(quantity: quantity);
   }
 
+  void setIncludeFormatting(bool value) {
+    state = state.copyWith(includeFormatting: value);
+  }
+
   void clear() {
     state = state.copyWith(
-      resultsMap: <DevType, List<String>>{
+      resultsMap: <DevType, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedType: <String>[],
+        state.selectedType: <List<String>>[],
       },
-      uuidHistory: state.selectedType == DevType.uuid
-          ? <String>[]
-          : state.uuidHistory,
     );
   }
 
   void generate() {
-    final List<String> results = [];
+    final List<String> currentGeneration = [];
+    final identityState = ref.read(identityProvider);
+    final count = state.selectedType == DevType.uuid ? identityState.quantity : 1;
 
-    // For Dev tab, we currently only generate one set of items (count=1)
-    // per user feedback: "count is only for identity generator for now"
     if (state.selectedType == DevType.date) {
-      results.addAll(_generateDateFormats());
+      currentGeneration.addAll(_generateDateFormats());
     } else {
-      results.add(_generateSingle());
+      for (int i = 0; i < count; i++) {
+        currentGeneration.add(_generateSingle());
+      }
     }
 
-    var history = state.uuidHistory;
-    if (state.selectedType == DevType.uuid) {
-      history = [...results, ...history].take(10).toList();
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final newHistory = [currentGeneration, ...currentHistory];
+
+    if (newHistory.length > 10) {
+      newHistory.removeRange(10, newHistory.length);
     }
 
     state = state.copyWith(
-      resultsMap: <DevType, List<String>>{
+      resultsMap: <DevType, List<List<String>>>{
         ...state.resultsMap,
-        state.selectedType: results,
+        state.selectedType: newHistory,
       },
-      uuidHistory: history,
+    );
+  }
+
+  void removeHistory(List<String> session) {
+    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    currentHistory.remove(session);
+    state = state.copyWith(
+      resultsMap: <DevType, List<List<String>>>{
+        ...state.resultsMap,
+        state.selectedType: currentHistory,
+      },
     );
   }
 

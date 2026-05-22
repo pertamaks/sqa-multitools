@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'sqa_card.dart';
 import 'sqa_button.dart';
+import 'sqa_design_tokens.dart';
 import '../../core/providers/ffmpeg_provider.dart';
 
 class SqaDependencyCard extends ConsumerWidget {
@@ -21,8 +22,8 @@ class SqaDependencyCard extends ConsumerWidget {
     }
 
     return SqaCard(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: SqaTokens.spacingXLarge),
+      padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       backgroundColor: theme.colorScheme.errorContainer.withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,9 +33,9 @@ class SqaDependencyCard extends ConsumerWidget {
               Icon(
                 status.error != null ? Symbols.error : Symbols.warning,
                 color: theme.colorScheme.error,
-                size: 20,
+                size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: SqaTokens.spacingSmall),
               Text(
                 status.error != null
                     ? 'Download Failed'
@@ -46,13 +47,13 @@ class SqaDependencyCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: SqaTokens.spacingSmall),
           Text(
             status.error ??
                 'The $pluginName requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.',
             style: theme.textTheme.bodySmall,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: SqaTokens.spacingLarge),
           if (status.isDownloading)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +66,7 @@ class SqaDependencyCard extends ConsumerWidget {
                       : null,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: SqaTokens.spacingXSmall),
                 Text(
                   status.downloadProgress != null &&
                           status.downloadProgress! >= 0

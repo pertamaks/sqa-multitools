@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -25,6 +26,17 @@ import '../../../core/window/window_transition_coordinator.dart';
 import '../../../core/providers/capture_key_provider.dart';
 
 part 'screenshot_provider.g.dart';
+
+class IsScreenshotProcessingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool value) => state = value;
+}
+
+final isScreenshotProcessingProvider =
+    NotifierProvider<IsScreenshotProcessingNotifier, bool>(
+      IsScreenshotProcessingNotifier.new,
+    );
 
 @riverpod
 class ScreenshotNotifier extends _$ScreenshotNotifier {
@@ -224,35 +236,37 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final coordinator = ref.read(windowTransitionProvider);
 
     // 1. Ghost the window instantly as the absolute FIRST step
-    // Use 0.01 to keep the layered window context active during transformation
     await windowManager.setOpacity(0.01);
     await coordinator.waitForSync(resize: false, move: false);
 
     // 2. Physically restore window bounds BEFORE switching UI state
     await _restoreWindowInternal();
+    final targetSize = state.previousWindowSize ?? const Size(450, 500);
+    final targetPos = state.previousWindowPos ?? const Offset(100, 100);
     await coordinator.waitForSync(
       resize: true,
       move: true,
       frame: false,
-      targetSize: state.previousWindowSize,
-      targetOffset: state.previousWindowPos,
+      targetSize: targetSize,
+      targetOffset: targetPos,
     );
 
     // 3. NOW switch UI to Toolbar mode
     state = state.copyWith(
+      isCapturing: false,
       isOverlayVisible: false,
       selectionRect: null,
       targetedWindowRect: null,
       lockedDisplay: null,
       annotations: [],
     );
+    ref.read(isScreenshotProcessingProvider.notifier).set(false);
 
-    // 4. Wait for Flutter render to commit the Toolbar frame
+    // Wait for Flutter render to commit the Toolbar frame
     await coordinator.waitForSync(resize: false, move: false, frame: true);
     final theme = ref.read(themeSettingsProvider);
 
-    // 5. Finally restore native attributes, reveal and focus
-    // Move all attribute changes here to prevent DWM flushes on giant window
+    // 4. Finally restore native attributes, reveal and focus
     await Future.wait([
       windowManager.setAsFrameless(),
       windowManager.setHasShadow(false),
@@ -384,6 +398,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         debugPrint('[Screenshot] Annotation capture failed: $e');
       }
 
+      // 2. UNMOUNT the heavy RepaintBoundary UI!
+      // This is the true fix for the UI corruption: by returning SizedBox.shrink()
+      // before we shrink the OS window, we prevent the Flutter graphics pipeline
+      // from crashing when trying to resize a massive multi-monitor texture!
+      ref.read(isScreenshotProcessingProvider.notifier).set(true);
+      await coordinator.waitForSync(resize: false, move: false, frame: true);
+
       final tempDir = await getTemporaryDirectory();
       final fgPath = p.join(
         tempDir.path,
@@ -489,13 +510,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         lockedDisplay: null,
         annotations: [],
       );
+      ref.read(isScreenshotProcessingProvider.notifier).set(false);
 
       // 4. Wait for Flutter to commit the Toolbar frame
       await coordinator.waitForSync(resize: false, move: false, frame: true);
       final theme = ref.read(themeSettingsProvider);
 
       // 5. Finally restore attributes, reveal and focus
-      // Move all attribute changes here to prevent DWM flushes on giant window
       await Future.wait([
         windowManager.setAsFrameless(),
         windowManager.setHasShadow(false),
@@ -505,6 +526,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
+
+      // 6. Force a full DWM/Flutter swapchain invalidate!
+      // This solves the UI corruption issue perfectly. Because the window was
+      // ghosted during heavy CPU/GPU processing, DWM/Flutter can fail to 
+      // properly paint the new swapchain after resize. A 1-pixel resize 
+      // guarantees a complete OS-level and Engine-level invalidate/redraw.
+      final size = await windowManager.getSize();
+      await windowManager.setSize(Size(size.width, size.height + 1));
+      await Future<void>.delayed(const Duration(milliseconds: 32));
+      await windowManager.setSize(size);
 
       refreshRecentCaptures();
     }

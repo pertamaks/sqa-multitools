@@ -39,6 +39,9 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
     );
     if (!isVisible) return const SizedBox.shrink();
 
+    final isProcessing = ref.watch(isScreenshotProcessingProvider);
+    if (isProcessing) return const SizedBox.shrink();
+
     ref.watch(screenshotProvider.select((s) => s.currentTool));
     ref.watch(screenshotProvider.select((s) => s.annotationColor));
     final isCapturing = ref.watch(

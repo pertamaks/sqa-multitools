@@ -143,6 +143,7 @@ All plugins consume a shared widget library in `lib/ui/widgets/`. This ensures a
 | **`SqaPluginHeader`** | Title/description with vertical fade |
 | **`SqaPluginScrollableContent`** | Centering wrapper with overflow scrolling |
 | **`SqaSearchFilterBar`** | Unified search field and category filter pills |
+| **`SqaHistoryList`** | Centralized history list management for plugins |
 | **`SqaGridTable`** | Complex data table with row/colspan support |
 | **`SqaSettingsButton`** | Gear icon for plugin settings |
 | **`SqaSettingsTile`** | Configuration rows |

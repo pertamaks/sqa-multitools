@@ -288,10 +288,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       targeting = false;
     }
 
+    // Only save previous bounds if we aren't already in the overlay state
+    // (startMonitorSelection already saved the true app bounds before spanning)
+    final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
+    final savedPos = state.isOverlayVisible ? state.previousWindowPos : currentPos;
+
     // 3. Update state early so Flutter starts building the transparent overlay UI
     state = state.copyWith(
-      previousWindowSize: currentSize,
-      previousWindowPos: currentPos,
+      previousWindowSize: savedSize,
+      previousWindowPos: savedPos,
       isOverlayVisible: true,
       annotations: [],
       selectionRect: initialSelection,
@@ -370,6 +375,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     ]);
 
     await windowManager.setOpacity(1.0);
+    
+    // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
+    // when returning from frameless mode on Windows.
+    final s = await windowManager.getSize();
+    await windowManager.setSize(Size(s.width + 1, s.height));
+    await coordinator.waitForSync(resize: true, move: false, frame: false);
+    await windowManager.setSize(s);
+    await coordinator.waitForSync(resize: true, move: false, frame: true);
+
     await windowManager.focus();
   }
 
@@ -602,7 +616,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
       
-      // Note: 1-pixel resize hack removed as DWM corruption was caused by FFmpeg blocking
+      // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
+      // when returning from frameless mode on Windows.
+      final s = await windowManager.getSize();
+      await windowManager.setSize(Size(s.width + 1, s.height));
+      await coordinator.waitForSync(resize: true, move: false, frame: false);
+      await windowManager.setSize(s);
+      await coordinator.waitForSync(resize: true, move: false, frame: true);
 
       refreshRecentCaptures();
     }

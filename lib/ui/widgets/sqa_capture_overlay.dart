@@ -58,6 +58,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   bool _isPollingProcessing = false;
   final FocusNode _focusNode = FocusNode();
 
+  Rect? _hoveredMonitorRect;
+  Display? _hoveredDisplay;
+
   @override
   void initState() {
     super.initState();
@@ -153,19 +156,18 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
             // Handle Target Confirmation Click
             final bool isSelectingMonitor = widget.delegate.isSelectingMonitor;
-            if ((widget.delegate.isTargetingWindow ||
-                    isSelectingMonitor ||
+            if ((isSelectingMonitor ||
                     (widget.delegate.captureMode == CaptureMode.fullScreen &&
                         widget.delegate.selectionRect == null)) &&
                 leftDown &&
                 !_leftMouseDownLast &&
-                widget.delegate.targetedWindowRect != null) {
-              final targetRect = widget.delegate.targetedWindowRect!;
-              _teleportBarToRect(targetRect);
-              widget.delegate.confirmTargetWindow(
-                targetRect,
-                widget.delegate.targetWindowName ?? 'Selection',
-              );
+                _hoveredMonitorRect != null &&
+                _hoveredDisplay != null) {
+                
+                widget.delegate.setSelection(_hoveredMonitorRect!, _hoveredDisplay!);
+                // Call cancel to trigger the capture process on the delegate (Screenshot overrides this to take a shot, Recorder ignores or handles separately if it had monitor selection)
+                // Actually, wait, Screenshot needs to know which monitor was selected to restart the overlay!
+                // Let's add `confirmMonitorSelection` to delegate.
             }
 
             if (widget.delegate.enableClickFeedback) {
@@ -198,32 +200,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
           _leftMouseDownLast = leftDown;
           _rightMouseDownLast = rightDown;
 
-          // 2. Window/Monitor Targeting Discovery (Reduced Frequency: 150ms)
-          // We use the millisecond timestamp to gate this logic
           final nowMs = DateTime.now().millisecondsSinceEpoch;
           if (nowMs % 150 < 50) {
-            if (widget.delegate.isTargetingWindow) {
-              final winInfo = WindowUtils.getWindowInfoAt();
-              if (winInfo != null) {
-                final windowPos = WindowUtils.getAppWindowPosition();
-                if (!mounted || !widget.delegate.isOverlayVisible) return;
-                final localRect = Rect.fromLTWH(
-                  winInfo.rect.left - windowPos.dx,
-                  winInfo.rect.top - windowPos.dy,
-                  winInfo.rect.width,
-                  winInfo.rect.height,
-                );
-                if (widget.delegate.targetedWindowRect != localRect) {
-                  widget.delegate.updateTargetedWindow(
-                    localRect,
-                    winInfo.title,
-                    winInfo.hwnd,
-                  );
-                }
-              } else if (widget.delegate.targetedWindowRect != null) {
-                widget.delegate.updateTargetedWindow(null, null);
-              }
-            } else if ((widget.delegate.captureMode == CaptureMode.fullScreen || widget.delegate.isSelectingMonitor) &&
+            if ((widget.delegate.captureMode == CaptureMode.fullScreen || widget.delegate.isSelectingMonitor) &&
                 widget.delegate.selectionRect == null) {
               final cursor = await screenRetriever.getCursorScreenPoint();
               if (!mounted || !widget.delegate.isOverlayVisible) return;
@@ -252,19 +231,24 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                   targetDisplay.size.width,
                   targetDisplay.size.height,
                 );
-                if (widget.delegate.targetedWindowRect != localRect) {
-                  final index = displays.indexOf(targetDisplay);
-                  widget.delegate.updateTargetedWindow(
-                    localRect,
-                    'Display ${index + 1}',
-                  );
+                if (_hoveredMonitorRect != localRect) {
+                  setState(() {
+                    _hoveredMonitorRect = localRect;
+                    _hoveredDisplay = targetDisplay;
+                  });
                 }
-              } else if (widget.delegate.targetedWindowRect != null) {
-                widget.delegate.updateTargetedWindow(null, null);
+              } else if (_hoveredMonitorRect != null) {
+                setState(() {
+                  _hoveredMonitorRect = null;
+                  _hoveredDisplay = null;
+                });
               }
             } else {
-              if (widget.delegate.targetedWindowRect != null) {
-                widget.delegate.updateTargetedWindow(null, null);
+              if (_hoveredMonitorRect != null) {
+                setState(() {
+                  _hoveredMonitorRect = null;
+                  _hoveredDisplay = null;
+                });
               }
             }
           }
@@ -297,8 +281,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     final delegate = widget.delegate;
     if (!delegate.isRecording ||
         !delegate.isOverlayVisible ||
-        !mounted ||
-        delegate.isTargetingWindow) {
+        !mounted) {
       if (_isIgnoring) {
         _isIgnoring = false;
         await delegate.setIgnoreMouseEvents(false);
@@ -551,7 +534,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
               onAnnotationAdded: delegate.addAnnotation,
               onAnnotationRemoved: delegate.removeAnnotation,
               selectionRect: selectionRect,
-              targetedWindowRect: delegate.targetedWindowRect,
+              hoveredRect: _hoveredMonitorRect,
               isRecording: delegate.isRecording,
               isCapturing: delegate.isCapturing,
               animationValue: _animationController.value,
@@ -731,7 +714,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 widget.instructionBuilder?.call(context, delegate.captureMode) ??
                 _DefaultInstruction(
                   mode: delegate.captureMode,
-                  targeting: delegate.isTargetingWindow,
                   isSelectingMonitor: delegate.isSelectingMonitor,
                 ),
           ),
@@ -743,12 +725,10 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
 class _DefaultInstruction extends StatelessWidget {
   final CaptureMode mode;
-  final bool targeting;
   final bool isSelectingMonitor;
 
   const _DefaultInstruction({
     required this.mode, 
-    required this.targeting,
     this.isSelectingMonitor = false,
   });
 
@@ -759,7 +739,6 @@ class _DefaultInstruction extends StatelessWidget {
         : switch (mode) {
             CaptureMode.fullScreen => Symbols.fullscreen,
             CaptureMode.area => Symbols.crop_free,
-            CaptureMode.window => Symbols.window,
           };
           
     final text = isSelectingMonitor
@@ -767,7 +746,6 @@ class _DefaultInstruction extends StatelessWidget {
         : switch (mode) {
             CaptureMode.fullScreen => 'Click a monitor to capture',
             CaptureMode.area => 'Drag to select capture area',
-            CaptureMode.window => 'Click a window to capture',
           };
 
     return Column(

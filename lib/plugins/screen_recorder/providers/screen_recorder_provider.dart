@@ -207,9 +207,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       isOverlayVisible: true,
       selectionRect: null,
       captureRect: captureRect,
-      availableDisplays: displays,
       lockedDisplay: null,
-      isTargetingWindow: state.captureMode == CaptureMode.window,
     );
 
     // Wait for Flutter to commit the first frame of the overlay
@@ -284,8 +282,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       finalRect = state.selectionRect!.shift(
         Offset(windowPos.dx, windowPos.dy),
       );
-    } else if ((state.captureMode == CaptureMode.window ||
-            state.captureMode == CaptureMode.fullScreen) &&
+    } else if (state.captureMode == CaptureMode.fullScreen &&
         state.selectionRect != null) {
       // Use the spatially confirmed region (from shaded window or monitor selection)
       finalRect = state.selectionRect!.shift(
@@ -538,7 +535,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     state = state.copyWith(
       isOverlayVisible: false,
       selectionRect: null,
-      targetedWindowRect: null,
       lockedDisplay: null,
       isRecording: false,
       isPaused: false,
@@ -593,14 +589,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   void setResolution(String value) => state = state.copyWith(resolution: value);
   void setFormat(String value) => state = state.copyWith(format: value);
   void setDelay(int value) => state = state.copyWith(delaySeconds: value);
-  void setTargetWindow(String name) =>
-      state = state.copyWith(targetWindowName: name);
   void setFramerate(int hz) => state = state.copyWith(framerate: hz);
   void setSaveDirectory(String path) {
     state = state.copyWith(saveDirectory: path);
     refreshRecentRecordings();
   }
-
   void setCaptureMode(CaptureMode mode) =>
       state = state.copyWith(captureMode: mode);
 
@@ -710,35 +703,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   void setTextHasBackground(bool value) =>
       state = state.copyWith(textHasBackground: value);
 
-  // Window Targeting
-  void setTargetingWindow(bool value) {
-    state = state.copyWith(isTargetingWindow: value);
-  }
-
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) {
-    state = state.copyWith(
-      targetedWindowRect: rect,
-      targetWindowName: name ?? 'Active Window',
-      targetedWindowHwnd: hwnd,
-    );
-  }
-
-  Future<void> confirmTargetWindow(Rect rect, String title) async {
-    final hwnd = state.targetedWindowHwnd;
-
-    state = state.copyWith(
-      isTargetingWindow: false,
-      selectionRect: rect,
-      targetWindowName: title,
-    );
-
-    await _lockToMonitor(rect);
-
-    // Bring the window to front
-    if (hwnd != null && hwnd != 0) {
-      WindowUtils.focusWindow(hwnd);
-    }
-  }
 
   void startAreaSelection() {
     startOverlay().catchError((e) {
@@ -808,11 +772,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // We must shift local coordinates to stay spatially consistent after the window moves.
     final windowPos = WindowUtils.getAppWindowPosition();
     final globalSelection = state.selectionRect?.shift(windowPos);
-    final globalTargeted = state.targetedWindowRect?.shift(windowPos);
-
     final newWindowPos = targetDisplayRect.topLeft;
     final newLocalSelection = globalSelection?.shift(-newWindowPos);
-    final newLocalTargeted = globalTargeted?.shift(-newWindowPos);
 
     // 4. Physical Move
     await windowManager.setBounds(targetDisplayRect);
@@ -828,7 +789,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 6. Update State
     state = state.copyWith(
       selectionRect: newLocalSelection,
-      targetedWindowRect: newLocalTargeted,
       lockedDisplay: targetDisplay,
     );
 

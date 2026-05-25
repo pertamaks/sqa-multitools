@@ -58,7 +58,6 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
     ref.watch(screenRecorderProvider.select((s) => s.durationSeconds));
     ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
     ref.watch(screenRecorderProvider.select((s) => s.selectionRect));
-    ref.watch(screenRecorderProvider.select((s) => s.targetedWindowRect));
     ref.watch(screenRecorderProvider.select((s) => s.captureMode));
     ref.watch(screenRecorderProvider.select((s) => s.availableDisplays));
     ref.watch(screenRecorderProvider.select((s) => s.annotations));
@@ -180,15 +179,9 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override
   bool get isOverlayVisible => _state.isOverlayVisible;
   @override
-  bool get isTargetingWindow => _state.isTargetingWindow;
-  @override
   CaptureMode get captureMode => _state.captureMode;
   @override
   Rect? get selectionRect => _state.selectionRect;
-  @override
-  Rect? get targetedWindowRect => _state.targetedWindowRect;
-  @override
-  String? get targetWindowName => _state.targetWindowName;
   @override
   List<Annotation> get annotations => _annotationsNotifier.value;
   @override
@@ -245,12 +238,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override
   void setTextHasBackground(bool value) =>
       _notifier.setTextHasBackground(value);
-  @override
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) =>
-      _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override
-  void confirmTargetWindow(Rect rect, String title) =>
-      _notifier.confirmTargetWindow(rect, title);
+
 
   @override
   Future<void> setIgnoreMouseEvents(bool ignore) =>

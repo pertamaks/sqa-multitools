@@ -85,9 +85,6 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
       return;
     }
 
-    if (state.captureMode == CaptureMode.window) {
-      notifier.setTargetingWindow(true);
-    }
     notifier.startOverlay();
   }
 
@@ -159,12 +156,10 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                     CaptureMode.fullScreen =>
                                       Symbols.fullscreen,
                                     CaptureMode.area => Symbols.crop_free,
-                                    CaptureMode.window => Symbols.window,
                                   },
                                   label: switch (state.captureMode) {
                                     CaptureMode.fullScreen => 'Full Screen',
                                     CaptureMode.area => 'Select Area',
-                                    CaptureMode.window => 'Select Window',
                                   },
                                 ),
                                 const SizedBox(height: SqaTokens.spacingSmall),
@@ -258,11 +253,6 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                   label: Text('Area'),
                 ),
-                ButtonSegment(
-                  value: CaptureMode.window,
-                  icon: Icon(Symbols.window, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Window'),
-                ),
               ],
               selected: {state.captureMode},
               onSelectionChanged: (Set<CaptureMode> set) =>
@@ -275,8 +265,6 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   'Captures the entire primary monitor including taskbars.',
                 CaptureMode.area =>
                   'Allows you to draw a custom rectangle on the screen for selective capture.',
-                CaptureMode.window =>
-                  'Automatically locks onto a specific application window.',
               },
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(

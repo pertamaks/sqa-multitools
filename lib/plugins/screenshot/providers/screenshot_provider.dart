@@ -195,8 +195,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       previousWindowPos: currentPos,
       isOverlayVisible: true,
       selectionRect: null,
-      targetedWindowRect: null,
-      targetWindowName: null,
       availableDisplays: displays,
       lockedDisplay: null, // this will make it span all monitors
       frozenBackgroundBytes: null, // no background = transparent
@@ -279,13 +277,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setBackgroundColor(Colors.transparent);
 
     Rect? initialSelection;
-    String? targetName;
-    bool targeting = state.captureMode == CaptureMode.window;
-
     if (state.captureMode == CaptureMode.fullScreen && frozenBytes != null) {
       initialSelection = Rect.fromLTWH(0, 0, activeDisplay.size.width, activeDisplay.size.height);
-      targetName = 'Full Screen';
-      targeting = false;
     }
 
     // Only save previous bounds if we aren't already in the overlay state
@@ -300,11 +293,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isOverlayVisible: true,
       annotations: [],
       selectionRect: initialSelection,
-      targetedWindowRect: null,
-      targetWindowName: targetName,
       availableDisplays: displays,
-      lockedDisplay: null,
-      isTargetingWindow: targeting,
       frozenBackgroundBytes: frozenBytes,
     );
 
@@ -356,7 +345,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isCapturing: false,
       isOverlayVisible: false,
       selectionRect: null,
-      targetedWindowRect: null,
       lockedDisplay: null,
       annotations: [],
     );
@@ -403,6 +391,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     state = state.copyWith(selectionRect: rect);
+
+    if (state.frozenBackgroundBytes == null && display != null) {
+      _restartOverlayForMonitor(display);
+    }
   }
 
   void addAnnotation(Annotation annotation) {
@@ -597,7 +589,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         isCapturing: false,
         isOverlayVisible: false,
         selectionRect: null,
-        targetedWindowRect: null,
         lockedDisplay: null,
         annotations: [],
       );
@@ -695,17 +686,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   // Window Targeting
-  void setTargetingWindow(bool value) {
-    state = state.copyWith(isTargetingWindow: value);
-  }
+  void setTargetingWindow(bool value) {}
 
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) {
-    state = state.copyWith(
-      targetedWindowRect: rect,
-      targetWindowName: name ?? 'Active Window',
-      targetedWindowHwnd: hwnd,
-    );
-  }
+  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) {}
 
   void confirmTargetWindow(Rect rect, String title) {
     if (state.frozenBackgroundBytes == null && title.startsWith('Display ')) {
@@ -721,14 +704,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     state = state.copyWith(
-      isTargetingWindow: false,
       selectionRect: rect,
-      targetWindowName: title,
     );
-
-    if (state.targetedWindowHwnd != null && state.targetedWindowHwnd != 0) {
-      WindowUtils.focusWindow(state.targetedWindowHwnd!);
-    }
   }
 
   Future<void> _restartOverlayForMonitor(Display display) async {

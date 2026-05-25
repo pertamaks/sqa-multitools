@@ -10,20 +10,8 @@ class WindowNativeApiLinux implements WindowNativeApi {
   bool get supportsGlobalMousePolling => false;
 
   @override
-  WindowInfo? getWindowInfoAt() {
-    // TBD: Implement using xwininfo / xdotool getwindowfocus
-    return null;
-  }
-
-  @override
   Offset getAppWindowPosition() {
     return Offset.zero;
-  }
-
-  @override
-  Future<List<String>> getActiveWindowTitles() async {
-    // TBD: Implement using wmctrl -l
-    return [];
   }
 
   @override

@@ -101,15 +101,12 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                 children: [
                                   ConfigSnippet(
                                     icon: switch (state.captureMode) {
-                                      CaptureMode.fullScreen =>
-                                        Symbols.fullscreen,
+                                      CaptureMode.fullScreen => Symbols.desktop_windows,
                                       CaptureMode.area => Symbols.crop_free,
-                                      CaptureMode.window => Symbols.window,
                                     },
                                     label: switch (state.captureMode) {
                                       CaptureMode.fullScreen => 'Full Screen',
-                                      CaptureMode.area => 'Select Area',
-                                      CaptureMode.window => 'Select Window',
+                                      CaptureMode.area => 'Area Selection',
                                     },
                                   ),
                                   const SizedBox(height: SqaTokens.spacingSmall),
@@ -189,11 +186,6 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                     label: Text('Area'),
                   ),
-                  ButtonSegment(
-                    value: CaptureMode.window,
-                    icon: Icon(Symbols.window, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Window'),
-                  ),
                 ],
                 selected: {state.captureMode},
                 onSelectionChanged: (Set<CaptureMode> set) =>
@@ -206,8 +198,6 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     'Captures the entire primary monitor including taskbars.',
                   CaptureMode.area =>
                     'Allows you to draw a custom rectangle on the screen for selective capture.',
-                  CaptureMode.window =>
-                    'Automatically locks onto a specific application window.',
                 },
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant.withValues(

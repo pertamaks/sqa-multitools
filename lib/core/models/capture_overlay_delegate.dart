@@ -8,11 +8,8 @@ import 'package:screen_retriever/screen_retriever.dart';
 abstract class CaptureOverlayDelegate {
   // --- Shared State Reads ---
   bool get isOverlayVisible;
-  bool get isTargetingWindow;
   CaptureMode get captureMode;
   Rect? get selectionRect;
-  Rect? get targetedWindowRect;
-  String? get targetWindowName;
   List<Annotation> get annotations;
   Listenable? get annotationsChanged;
   Color get annotationColor;
@@ -43,8 +40,6 @@ abstract class CaptureOverlayDelegate {
   void updateLastAnnotation(Annotation annotation);
   void removeAnnotation(Annotation annotation);
   void setTextHasBackground(bool value);
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]);
-  void confirmTargetWindow(Rect rect, String title);
 
   // --- Recording Mutations (no-op defaults for Screenshot) ---
   Future<void> setIgnoreMouseEvents(bool ignore) async {}

@@ -177,8 +177,7 @@ class FfmpegEngine {
     ));
 
     final filters = <String>[];
-    if (config.captureMode == CaptureMode.window ||
-        config.captureRect != null) {
+    if (config.captureRect != null) {
       final rect = config.captureRect!;
 
       // 1. Calculate Virtual Desktop logical bounds

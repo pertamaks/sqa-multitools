@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'screenshot_tool.dart';
 import 'annotation.dart';
@@ -18,6 +19,7 @@ abstract class CaptureOverlayDelegate {
   ScreenshotTool get currentTool;
   bool get textHasBackground;
   List<Display> get availableDisplays;
+  Uint8List? get frozenBackgroundBytes => null;
 
   // --- Recording State Reads (defaults for non-recording plugins) ---
   bool get isRecording => false;

@@ -68,6 +68,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     _startMousePolling();
 
     _focusNode.requestFocus();
+    
+    // Teleport bar initially if selection is already set
+    if (widget.delegate.selectionRect != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _teleportBarToRect(widget.delegate.selectionRect!);
+        }
+      });
+    }
   }
 
   @override
@@ -93,14 +102,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       });
     }
 
-    // Handle Bar Re-teleport when selectionRect changes (including coordinate remap)
-    // _lockToMonitor physically moves the window and remaps selectionRect twice:
-    //   1. null → spanning-window rect (initial setSelection)
-    //   2. spanning-window rect → remapped local rect (after physical move)
-    // Both transitions must trigger a re-teleport.
+    // Handle Bar Re-teleport when selectionRect changes
     if (oldWidget.delegate.selectionRect != widget.delegate.selectionRect &&
-        widget.delegate.selectionRect != null &&
-        widget.delegate.lockedDisplay != null) {
+        widget.delegate.selectionRect != null) {
       _teleportBarToRect(widget.delegate.selectionRect!);
     }
 
@@ -149,6 +153,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
             // Handle Target Confirmation Click
             if ((widget.delegate.isTargetingWindow ||
+                    widget.delegate.frozenBackgroundBytes == null ||
                     (widget.delegate.captureMode == CaptureMode.fullScreen &&
                         widget.delegate.selectionRect == null)) &&
                 leftDown &&
@@ -217,7 +222,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
               } else if (widget.delegate.targetedWindowRect != null) {
                 widget.delegate.updateTargetedWindow(null, null);
               }
-            } else if (widget.delegate.captureMode == CaptureMode.fullScreen &&
+            } else if ((widget.delegate.captureMode == CaptureMode.fullScreen || widget.delegate.frozenBackgroundBytes == null) &&
                 widget.delegate.selectionRect == null) {
               final cursor = await screenRetriever.getCursorScreenPoint();
               if (!mounted || !widget.delegate.isOverlayVisible) return;
@@ -408,7 +413,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragStart(DragStartDetails details) {
-    if (widget.delegate.captureMode == CaptureMode.area) {
+    if (widget.delegate.captureMode == CaptureMode.area && widget.delegate.frozenBackgroundBytes != null) {
       final startPos = details.localPosition;
       final windowPos = WindowUtils.getAppWindowPosition();
       final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
@@ -439,7 +444,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragUpdate(DragUpdateDetails details) {
-    if (widget.delegate.captureMode == CaptureMode.area) {
+    if (widget.delegate.captureMode == CaptureMode.area && widget.delegate.frozenBackgroundBytes != null) {
       var currentPos = details.localPosition;
 
       // Logical Clamping Constraint
@@ -472,7 +477,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   void _onAreaDragEnd(DragEndDetails details) {
     if (widget.delegate.selectionRect == null &&
         _startPos != null &&
-        _currentPos != null) {
+        _currentPos != null &&
+        widget.delegate.frozenBackgroundBytes != null) {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
         _teleportBarToRect(rect);
@@ -522,6 +528,16 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         },
         child: Stack(
           children: [
+            // Frozen Background Layer (Replaces live transparent desktop)
+            if (delegate.frozenBackgroundBytes != null)
+              Positioned.fill(
+                child: Image.memory(
+                  delegate.frozenBackgroundBytes!,
+                  fit: BoxFit.fill, // Stretches perfectly across the spanning virtual desktop window
+                  gaplessPlayback: true,
+                ),
+              ),
+
             // Annotation Layer
             SqaAnnotationStage(
               canDraw:
@@ -715,6 +731,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 _DefaultInstruction(
                   mode: delegate.captureMode,
                   targeting: delegate.isTargetingWindow,
+                  isSelectingMonitor: delegate.frozenBackgroundBytes == null,
                 ),
           ),
         ),
@@ -726,21 +743,31 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 class _DefaultInstruction extends StatelessWidget {
   final CaptureMode mode;
   final bool targeting;
+  final bool isSelectingMonitor;
 
-  const _DefaultInstruction({required this.mode, required this.targeting});
+  const _DefaultInstruction({
+    required this.mode, 
+    required this.targeting,
+    this.isSelectingMonitor = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final icon = switch (mode) {
-      CaptureMode.fullScreen => Symbols.fullscreen,
-      CaptureMode.area => Symbols.crop_free,
-      CaptureMode.window => Symbols.window,
-    };
-    final text = switch (mode) {
-      CaptureMode.fullScreen => 'Click a monitor to capture',
-      CaptureMode.area => 'Drag to select capture area',
-      CaptureMode.window => 'Click a window to capture',
-    };
+    final icon = isSelectingMonitor 
+        ? Symbols.monitor
+        : switch (mode) {
+            CaptureMode.fullScreen => Symbols.fullscreen,
+            CaptureMode.area => Symbols.crop_free,
+            CaptureMode.window => Symbols.window,
+          };
+          
+    final text = isSelectingMonitor
+        ? 'Click a monitor to select'
+        : switch (mode) {
+            CaptureMode.fullScreen => 'Click a monitor to capture',
+            CaptureMode.area => 'Drag to select capture area',
+            CaptureMode.window => 'Click a window to capture',
+          };
 
     return Column(
       mainAxisSize: MainAxisSize.min,

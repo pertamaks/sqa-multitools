@@ -46,7 +46,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
 
   void _handleStart() {
     final notifier = ref.read(screenshotProvider.notifier);
-    notifier.capture();
+    notifier.startMonitorSelection();
   }
 
   @override

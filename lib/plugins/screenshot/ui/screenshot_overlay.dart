@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -185,6 +186,8 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   Display? get lockedDisplay => _state.lockedDisplay;
   @override
   List<Display> get availableDisplays => _state.availableDisplays;
+  @override
+  Uint8List? get frozenBackgroundBytes => _state.frozenBackgroundBytes;
   @override
   bool get isCapturing => _state.isCapturing;
   @override

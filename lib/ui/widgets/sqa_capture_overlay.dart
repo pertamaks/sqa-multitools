@@ -152,8 +152,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             );
 
             // Handle Target Confirmation Click
+            final bool isSelectingMonitor = widget.delegate.isSelectingMonitor;
             if ((widget.delegate.isTargetingWindow ||
-                    widget.delegate.frozenBackgroundBytes == null ||
+                    isSelectingMonitor ||
                     (widget.delegate.captureMode == CaptureMode.fullScreen &&
                         widget.delegate.selectionRect == null)) &&
                 leftDown &&
@@ -222,7 +223,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
               } else if (widget.delegate.targetedWindowRect != null) {
                 widget.delegate.updateTargetedWindow(null, null);
               }
-            } else if ((widget.delegate.captureMode == CaptureMode.fullScreen || widget.delegate.frozenBackgroundBytes == null) &&
+            } else if ((widget.delegate.captureMode == CaptureMode.fullScreen || widget.delegate.isSelectingMonitor) &&
                 widget.delegate.selectionRect == null) {
               final cursor = await screenRetriever.getCursorScreenPoint();
               if (!mounted || !widget.delegate.isOverlayVisible) return;
@@ -413,7 +414,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragStart(DragStartDetails details) {
-    if (widget.delegate.captureMode == CaptureMode.area && widget.delegate.frozenBackgroundBytes != null) {
+    if (widget.delegate.captureMode == CaptureMode.area && !widget.delegate.isSelectingMonitor) {
       final startPos = details.localPosition;
       final windowPos = WindowUtils.getAppWindowPosition();
       final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
@@ -444,7 +445,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragUpdate(DragUpdateDetails details) {
-    if (widget.delegate.captureMode == CaptureMode.area && widget.delegate.frozenBackgroundBytes != null) {
+    if (widget.delegate.captureMode == CaptureMode.area && !widget.delegate.isSelectingMonitor) {
       var currentPos = details.localPosition;
 
       // Logical Clamping Constraint
@@ -478,7 +479,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if (widget.delegate.selectionRect == null &&
         _startPos != null &&
         _currentPos != null &&
-        widget.delegate.frozenBackgroundBytes != null) {
+        !widget.delegate.isSelectingMonitor) {
       final rect = Rect.fromPoints(_startPos!, _currentPos!);
       if (rect.width > 5 && rect.height > 5) {
         _teleportBarToRect(rect);
@@ -731,7 +732,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 _DefaultInstruction(
                   mode: delegate.captureMode,
                   targeting: delegate.isTargetingWindow,
-                  isSelectingMonitor: delegate.frozenBackgroundBytes == null,
+                  isSelectingMonitor: delegate.isSelectingMonitor,
                 ),
           ),
         ),

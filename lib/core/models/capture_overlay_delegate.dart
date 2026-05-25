@@ -20,6 +20,7 @@ abstract class CaptureOverlayDelegate {
   bool get textHasBackground;
   List<Display> get availableDisplays;
   Uint8List? get frozenBackgroundBytes => null;
+  bool get isSelectingMonitor => false;
 
   // --- Recording State Reads (defaults for non-recording plugins) ---
   bool get isRecording => false;

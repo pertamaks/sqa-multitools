@@ -189,6 +189,10 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override
   Uint8List? get frozenBackgroundBytes => _state.frozenBackgroundBytes;
   @override
+  bool get isSelectingMonitor =>
+      _state.frozenBackgroundBytes == null &&
+      _state.captureMode != CaptureMode.window;
+  @override
   bool get isCapturing => _state.isCapturing;
   @override
   bool get isCompactLayout => false; // Screenshots always use full toolbar

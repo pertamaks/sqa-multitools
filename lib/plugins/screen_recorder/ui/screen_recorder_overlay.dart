@@ -205,6 +205,8 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   List<Display> get availableDisplays => _state.availableDisplays;
   @override
   Uint8List? get frozenBackgroundBytes => null;
+  @override
+  bool get isSelectingMonitor => false;
 
   @override
   void setSelection(Rect? rect, [Display? display]) =>

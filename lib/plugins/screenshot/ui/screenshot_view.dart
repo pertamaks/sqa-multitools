@@ -16,6 +16,7 @@ import '../../../core/utils/platform_utils.dart';
 import '../providers/screenshot_provider.dart';
 import '../models/screenshot_state.dart';
 import '../screenshot_plugin.dart';
+import '../../screen_recorder/providers/screen_recorder_provider.dart';
 import 'widgets/config_snippet.dart';
 import 'widgets/capture_tile.dart';
 import '../../../ui/widgets/sqa_history_list.dart';
@@ -45,8 +46,13 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
   }
 
   void _handleStart() {
-    final notifier = ref.read(screenshotProvider.notifier);
-    notifier.startMonitorSelection();
+    final state = ref.read(screenshotProvider);
+    if (state.captureMode == CaptureMode.scrolling) {
+      ref.read(screenRecorderProvider.notifier).startLongScreenshotSession();
+    } else {
+      final notifier = ref.read(screenshotProvider.notifier);
+      notifier.startMonitorSelection();
+    }
   }
 
   @override
@@ -103,10 +109,12 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                     icon: switch (state.captureMode) {
                                       CaptureMode.fullScreen => Symbols.desktop_windows,
                                       CaptureMode.area => Symbols.crop_free,
+                                      CaptureMode.scrolling => Symbols.swipe_down,
                                     },
                                     label: switch (state.captureMode) {
                                       CaptureMode.fullScreen => 'Full Screen',
                                       CaptureMode.area => 'Area Selection',
+                                      CaptureMode.scrolling => 'Long SS',
                                     },
                                   ),
                                   const SizedBox(height: SqaTokens.spacingSmall),
@@ -186,6 +194,11 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                     label: Text('Area'),
                   ),
+                  ButtonSegment(
+                    value: CaptureMode.scrolling,
+                    icon: Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: Text('Long SS'),
+                  ),
                 ],
                 selected: {state.captureMode},
                 onSelectionChanged: (Set<CaptureMode> set) =>
@@ -198,6 +211,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     'Captures the entire primary monitor including taskbars.',
                   CaptureMode.area =>
                     'Allows you to draw a custom rectangle on the screen for selective capture.',
+                  CaptureMode.scrolling =>
+                    'Record a scrollable area to stitch into a single long screenshot.',
                 },
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant.withValues(

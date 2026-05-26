@@ -1,1 +1,1 @@
-enum CaptureMode { fullScreen, area }
+enum CaptureMode { fullScreen, area, scrolling }

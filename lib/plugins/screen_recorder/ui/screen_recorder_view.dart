@@ -46,7 +46,6 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
   }
 
   void _handleStart(BuildContext context) async {
-    final state = ref.read(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
     final engineStatus = ref.read(ffmpegProvider);
 
@@ -154,12 +153,14 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                 ConfigSnippet(
                                   icon: switch (state.captureMode) {
                                     CaptureMode.fullScreen =>
-                                      Symbols.fullscreen,
+                                      Symbols.desktop_windows,
                                     CaptureMode.area => Symbols.crop_free,
+                                    CaptureMode.scrolling => Symbols.swipe_down,
                                   },
                                   label: switch (state.captureMode) {
                                     CaptureMode.fullScreen => 'Full Screen',
                                     CaptureMode.area => 'Select Area',
+                                    CaptureMode.scrolling => 'Scrolling Area',
                                   },
                                 ),
                                 const SizedBox(height: SqaTokens.spacingSmall),
@@ -245,16 +246,16 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
               segments: const [
                 ButtonSegment(
                   value: CaptureMode.fullScreen,
-                  icon: Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                  icon: Icon(Symbols.desktop_windows, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
                   label: Text('Full Screen'),
                 ),
                 ButtonSegment(
                   value: CaptureMode.area,
                   icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Area'),
+                  label: Text('Select Area'),
                 ),
               ],
-              selected: {state.captureMode},
+              selected: {state.captureMode == CaptureMode.scrolling ? CaptureMode.area : state.captureMode},
               onSelectionChanged: (Set<CaptureMode> set) =>
                   notifier.setCaptureMode(set.first),
             ),
@@ -265,6 +266,8 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   'Captures the entire primary monitor including taskbars.',
                 CaptureMode.area =>
                   'Allows you to draw a custom rectangle on the screen for selective capture.',
+                CaptureMode.scrolling =>
+                  'Record a scrollable area to stitch into a single long screenshot.',
               },
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(

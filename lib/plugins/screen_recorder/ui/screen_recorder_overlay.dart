@@ -85,86 +85,127 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
 
     return SqaCaptureOverlay(
       delegate: _RecorderDelegate(state, notifier, _annotationsNotifier),
-      leadingActionsBuilder: (context) => [
-        // Record/Stop button
-        SqaFloatingBarButton(
-          icon: isRecording ? Symbols.stop_circle : Symbols.play_arrow,
-          tooltip: isRecording ? 'Stop & Save' : 'Start',
-          onPressed: () {
-            notifier.toggleRecording();
-          },
-          isPrimary: !isRecording,
-          color: isRecording ? Colors.red : null,
-        ),
+      leadingActionsBuilder: (context) {
+        if (state.isLongScreenshotSession) {
+          return [
+            if (!isRecording) ...[
+              SqaFloatingBarButton(
+                icon: Symbols.play_arrow,
+                tooltip: 'Start Scrolling Capture',
+                onPressed: () => notifier.toggleRecording(),
+                isPrimary: true,
+              ),
+              SqaFloatingBarButton(
+                icon: Symbols.close,
+                tooltip: 'Cancel',
+                onPressed: () => notifier.cancelOverlay(),
+                color: Colors.red,
+              ),
+            ] else ...[
+              SqaFloatingBarButton(
+                icon: Symbols.check,
+                tooltip: 'Finish & Stitch',
+                onPressed: () => notifier.toggleRecording(),
+                isPrimary: true,
+                color: Colors.green,
+              ),
+              SqaFloatingBarButton(
+                icon: Symbols.close,
+                tooltip: 'Cancel Capture',
+                onPressed: () => notifier.cancelOverlay(),
+                color: Colors.red,
+              ),
+            ],
+          ];
+        }
 
-        if (!isRecording)
+        return [
+          // Original Record/Stop button
           SqaFloatingBarButton(
-            icon: Symbols.close,
-            tooltip: countdownSeconds > 0
-                ? 'Cancel Countdown'
-                : 'Cancel Overlay',
+            icon: isRecording ? Symbols.stop_circle : Symbols.play_arrow,
+            tooltip: isRecording ? 'Stop & Save' : 'Start',
             onPressed: () {
-              if (countdownSeconds > 0) {
-                notifier.cancelCountdown();
-              } else {
-                notifier.cancelOverlay();
-              }
+              notifier.toggleRecording();
             },
-            color: Colors.red,
+            isPrimary: !isRecording,
+            color: isRecording ? Colors.red : null,
           ),
-      ],
-      toolbarBuilder: (context) => [
-        // Mic Toggle
-        SqaFloatingBarButton(
-          icon: microphoneEnabled ? Symbols.mic : Symbols.mic_off,
-          tooltip: 'Toggle Microphone',
-          onPressed: isRecording ? null : () => notifier.toggleMicrophone(),
-          isSelected: microphoneEnabled,
-        ),
 
-        // Delay selector (only before recording)
-        if (!isRecording) ...[
-          const SqaFloatingBarDivider(),
-          SqaDropdown<int>(
-            value: delaySeconds,
-            onChanged: (val) {
-              if (val != null) notifier.setDelay(val);
-            },
-            items: [0, 2, 5, 10]
-                .map((e) => DropdownMenuItem(value: e, child: Text('${e}s')))
-                .toList(),
+          if (!isRecording)
+            SqaFloatingBarButton(
+              icon: Symbols.close,
+              tooltip: countdownSeconds > 0
+                  ? 'Cancel Countdown'
+                  : 'Cancel Overlay',
+              onPressed: () {
+                if (countdownSeconds > 0) {
+                  notifier.cancelCountdown();
+                } else {
+                  notifier.cancelOverlay();
+                }
+              },
+              color: Colors.red,
+            ),
+        ];
+      },
+      toolbarBuilder: (context) {
+        if (state.isLongScreenshotSession) {
+          return []; // Hide all extra tools for scrolling mode
+        }
+
+        return [
+          // Mic Toggle
+          SqaFloatingBarButton(
+            icon: microphoneEnabled ? Symbols.mic : Symbols.mic_off,
+            tooltip: 'Toggle Microphone',
+            onPressed: isRecording ? null : () => notifier.toggleMicrophone(),
+            isSelected: microphoneEnabled,
           ),
-        ],
 
-        if (isRecording) ...[
-          const SqaFloatingBarDivider(),
+          // Delay selector (only before recording)
+          if (!isRecording) ...[
+            const SqaFloatingBarDivider(),
+            SqaDropdown<int>(
+              value: delaySeconds,
+              onChanged: (val) {
+                if (val != null) notifier.setDelay(val);
+              },
+              items: [0, 2, 5, 10]
+                  .map((e) => DropdownMenuItem(value: e, child: Text('${e}s')))
+                  .toList(),
+            ),
+          ],
 
-          // Annotation Tools & Colors
-          Consumer(
-            builder: (context, ref, child) {
-              final state = ref.watch(screenRecorderProvider);
-              return SqaAnnotationToolbar(
-                enabledTools: const [
-                  ScreenshotTool.pointer,
-                  ScreenshotTool.pen,
-                  ScreenshotTool.marker,
-                  ScreenshotTool.eraser,
-                  ScreenshotTool.arrow,
-                  ScreenshotTool.rectangle,
-                  ScreenshotTool.laser,
-                ],
-                currentTool: state.currentTool,
-                onToolSelected: notifier.setTool,
-                currentColor: state.annotationColor,
-                onColorSelected: notifier.setColor,
-                textHasBackground: state.textHasBackground,
-                onTextBackgroundToggled: notifier.setTextHasBackground,
-                onClear: notifier.clearAnnotations,
-              );
-            },
-          ),
-        ],
-      ],
+          if (isRecording) ...[
+            const SqaFloatingBarDivider(),
+
+            // Annotation Tools & Colors
+            Consumer(
+              builder: (context, ref, child) {
+                final state = ref.watch(screenRecorderProvider);
+                return SqaAnnotationToolbar(
+                  enabledTools: const [
+                    ScreenshotTool.pointer,
+                    ScreenshotTool.pen,
+                    ScreenshotTool.marker,
+                    ScreenshotTool.eraser,
+                    ScreenshotTool.arrow,
+                    ScreenshotTool.rectangle,
+                    ScreenshotTool.laser,
+                  ],
+                  currentTool: state.currentTool,
+                  onToolSelected: notifier.setTool,
+                  currentColor: state.annotationColor,
+                  onColorSelected: notifier.setColor,
+                  textHasBackground: state.textHasBackground,
+                  onTextBackgroundToggled: notifier.setTextHasBackground,
+                  onClear: notifier.clearAnnotations,
+                );
+              },
+            ),
+          ],
+        ];
+      },
     );
   }
 }

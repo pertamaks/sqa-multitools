@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
@@ -18,7 +17,6 @@ import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/screenshot_tool.dart';
 import '../../../core/models/annotation.dart';
-import '../../../core/engine/ffmpeg_engine.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/window/window_utils.dart';
@@ -26,8 +24,7 @@ import '../../../core/window/window_transition_coordinator.dart';
 import '../../../core/providers/capture_key_provider.dart';
 import '../../../core/services/logging_service.dart';
 import '../../../core/engine/silent_frozen_canvas.dart';
-import '../../screen_recorder/models/screen_recorder_state.dart';
-import 'package:screen_capturer/screen_capturer.dart' as sc;
+import '../../../core/engine/ffmpeg_engine.dart';
 
 part 'screenshot_provider.g.dart';
 
@@ -75,8 +72,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
     if (!ref.mounted) return;
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
 
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
@@ -217,6 +214,57 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
     await windowManager.setBounds(Rect.fromLTRB(minX, minY, maxX, maxY));
     await windowManager.setAlwaysOnTop(true);
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
+  }
+
+  Future<void> startOverlayWithBytes(Uint8List bytes) async {
+    final currentSize = await windowManager.getSize();
+    final currentPos = await windowManager.getPosition();
+    final displays = await screenRetriever.getAllDisplays();
+
+    Display activeDisplay = await screenRetriever.getPrimaryDisplay();
+    
+    final overlayRect = Rect.fromLTWH(
+      activeDisplay.visiblePosition?.dx ?? 0,
+      activeDisplay.visiblePosition?.dy ?? 0,
+      activeDisplay.size.width,
+      activeDisplay.size.height,
+    );
+
+    final coordinator = ref.read(windowTransitionProvider);
+    await WindowUtils.safeShow();
+    await windowManager.setOpacity(0.0);
+    await coordinator.waitForSync(resize: false, move: false);
+    await windowManager.setAsFrameless();
+    await windowManager.setHasShadow(false);
+    await windowManager.setBackgroundColor(Colors.transparent);
+
+    final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
+    final savedPos = state.isOverlayVisible ? state.previousWindowPos : currentPos;
+
+    state = state.copyWith(
+      previousWindowSize: savedSize,
+      previousWindowPos: savedPos,
+      isOverlayVisible: true,
+      annotations: [],
+      selectionRect: Rect.fromLTWH(0, 0, activeDisplay.size.width, activeDisplay.size.height), // Provide full area for annotation
+      availableDisplays: displays,
+      frozenBackgroundBytes: bytes,
+      captureMode: CaptureMode.area,
+    );
+
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
+    await windowManager.setBounds(overlayRect);
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setIgnoreMouseEvents(false);
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: overlayRect.size,
+      targetOffset: overlayRect.topLeft,
+    );
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
@@ -456,8 +504,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final timestamp = DateTime.now()
@@ -560,7 +608,28 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         
         if (byteData != null) {
           final pngBytes = byteData.buffer.asUint8List();
-          await File(savePath).writeAsBytes(pngBytes);
+          
+          if (state.format.toLowerCase() == 'png') {
+            await File(savePath).writeAsBytes(pngBytes);
+          } else {
+            final tempDir = await getTemporaryDirectory();
+            final tempFile = File(p.join(tempDir.path, 'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png'));
+            await tempFile.writeAsBytes(pngBytes);
+            
+            final success = await FfmpegEngine.convertImage(
+              inputPath: tempFile.path,
+              outputPath: savePath,
+            );
+            
+            if (await tempFile.exists()) await tempFile.delete();
+            
+            if (!success) {
+              // Fallback to saving as PNG if conversion fails
+              final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+              await File(fallbackPath).writeAsBytes(pngBytes);
+              logger.logWarning('[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.', 'ScreenshotProvider');
+            }
+          }
 
           if (shouldCopy) {
             final clipboard = SystemClipboard.instance;
@@ -625,12 +694,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   Future<void> openSaveDirectory() async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
-    final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
 
-    if (await targetDir.exists()) {
-      await PlatformUtils.openPath(targetDir.path);
+    if (await saveDir.exists()) {
+      await PlatformUtils.openPath(saveDir.path);
+    } else {
+      await PlatformUtils.openPath(documentsDir.path);
     }
   }
 

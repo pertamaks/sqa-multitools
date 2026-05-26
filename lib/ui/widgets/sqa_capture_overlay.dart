@@ -397,7 +397,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragStart(DragStartDetails details) {
-    if (widget.delegate.captureMode == CaptureMode.area && !widget.delegate.isSelectingMonitor) {
+    if ((widget.delegate.captureMode == CaptureMode.area || widget.delegate.captureMode == CaptureMode.scrolling) && !widget.delegate.isSelectingMonitor) {
       final startPos = details.localPosition;
       final windowPos = WindowUtils.getAppWindowPosition();
       final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
@@ -428,7 +428,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragUpdate(DragUpdateDetails details) {
-    if (widget.delegate.captureMode == CaptureMode.area && !widget.delegate.isSelectingMonitor) {
+    if ((widget.delegate.captureMode == CaptureMode.area || widget.delegate.captureMode == CaptureMode.scrolling) && !widget.delegate.isSelectingMonitor) {
       var currentPos = details.localPosition;
 
       // Logical Clamping Constraint
@@ -590,6 +590,32 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                               details.globalPosition - _dragGrabOffset,
                               size,
                             );
+                            Row(
+                              children: [
+                                Icon(
+                                  switch (delegate.captureMode) {
+                                    CaptureMode.fullScreen => Symbols.desktop_windows,
+                                    CaptureMode.area => Symbols.crop_free,
+                                    CaptureMode.scrolling => Symbols.swipe_down,
+                                  },
+                                  color: Colors.white70,
+                                  size: SqaTokens.spacingLarge,
+                                ),
+                                const SizedBox(width: SqaTokens.spacingSmall),
+                                Text(
+                                  switch (delegate.captureMode) {
+                                    CaptureMode.fullScreen => 'Full Screen',
+                                    CaptureMode.area => 'Area Selection',
+                                    CaptureMode.scrolling => 'Long SS',
+                                  },
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: SqaTokens.fontSizeSmall,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            );
                             widget.onBarOffsetChanged?.call(
                               _barOffsetNotifier.value,
                             );
@@ -600,13 +626,11 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                         ),
 
                         // Timer & Status (if recording or countdown)
-                        if (delegate.isRecording ||
-                            delegate.countdownSeconds > 0)
+                        if ((delegate.isRecording || delegate.countdownSeconds > 0) &&
+                            delegate.captureMode != CaptureMode.scrolling) ...[
                           _buildTimerDisplay(delegate),
-
-                        if (delegate.isRecording ||
-                            delegate.countdownSeconds > 0)
                           const SqaFloatingBarDivider(),
+                        ],
 
                         if (widget.leadingActionsBuilder != null)
                           ...widget.leadingActionsBuilder!(context),
@@ -739,6 +763,7 @@ class _DefaultInstruction extends StatelessWidget {
         : switch (mode) {
             CaptureMode.fullScreen => Symbols.fullscreen,
             CaptureMode.area => Symbols.crop_free,
+            CaptureMode.scrolling => Symbols.swipe_down,
           };
           
     final text = isSelectingMonitor
@@ -746,6 +771,7 @@ class _DefaultInstruction extends StatelessWidget {
         : switch (mode) {
             CaptureMode.fullScreen => 'Click a monitor to capture',
             CaptureMode.area => 'Drag to select capture area',
+            CaptureMode.scrolling => 'Drag to select scrollable area',
           };
 
     return Column(

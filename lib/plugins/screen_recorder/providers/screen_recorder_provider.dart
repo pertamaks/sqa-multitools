@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
@@ -10,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../core/utils/platform_utils.dart';
 import '../models/screen_recorder_state.dart';
+import '../engine/long_screenshot_stitcher.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
@@ -20,6 +23,7 @@ import '../../../core/providers/hotkey_provider.dart';
 
 import '../../../core/window/window_utils.dart';
 import '../../../core/window/window_transition_coordinator.dart';
+import '../../screenshot/providers/screenshot_provider.dart';
 
 part 'screen_recorder_provider.g.dart';
 
@@ -29,6 +33,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Process? _ffmpegProcess;
   bool _isStopping = false;
   Timer? _laserTimer;
+  String? _currentSavePath;
 
   @override
   ScreenRecorderState build() {
@@ -145,6 +150,17 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   }
 
   /// Called when the user presses start from the main UI
+  Future<void> startLongScreenshotSession() async {
+    state = state.copyWith(
+      captureMode: CaptureMode.scrolling,
+      isLongScreenshotSession: true,
+      microphoneEnabled: false,
+      systemAudioEnabled: false,
+      framerate: 10,
+    );
+    await startOverlay();
+  }
+
   Future<void> startOverlay([Rect? targetBounds]) async {
     final engineReady = ref.read(ffmpegProvider).isReady;
     if (!engineReady) {
@@ -276,7 +292,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     Rect? finalRect;
     final windowPos = await windowManager.getPosition();
 
-    if (state.captureMode == CaptureMode.area && state.selectionRect != null) {
+    if ((state.captureMode == CaptureMode.area || state.captureMode == CaptureMode.scrolling) && state.selectionRect != null) {
       // selectionRect is in LOCAL overlay coordinates.
       // Shift by the window's actual position to get global logical coords.
       finalRect = state.selectionRect!.shift(
@@ -319,14 +335,22 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       captureRect: finalRect,
     );
     // Construct save path
-    final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
-    if (!await saveDir.exists()) await saveDir.create(recursive: true);
+    final String savePath;
+    if (state.isLongScreenshotSession) {
+      // Long screenshot video is a temporary intermediate artifact — use temp dir
+      final tempDir = await Directory.systemTemp.createTemp('sqa_long_ss_');
+      savePath = p.join(tempDir.path, 'capture.${state.format.toLowerCase()}');
+    } else {
+      final documentsDir = await getApplicationDocumentsDirectory();
+      final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+      final saveDir = Directory(saveDirPath);
+      if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
-    final filename =
-        'SQA_REC_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}_${DateTime.now().hour.toString().padLeft(2, '0')}${DateTime.now().minute.toString().padLeft(2, '0')}${DateTime.now().second.toString().padLeft(2, '0')}.${state.format.toLowerCase()}';
-    final savePath = p.join(saveDir.path, filename);
+      final filename =
+          'SQA_REC_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}_${DateTime.now().hour.toString().padLeft(2, '0')}${DateTime.now().minute.toString().padLeft(2, '0')}${DateTime.now().second.toString().padLeft(2, '0')}.${state.format.toLowerCase()}';
+      savePath = p.join(saveDir.path, filename);
+    }
+    _currentSavePath = savePath;
 
     try {
       final config = FfmpegVideoConfig(
@@ -387,18 +411,27 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       }
     } finally {
       _isStopping = false;
+      
+      final wasLongScreenshot = state.isLongScreenshotSession;
+      final videoPath = _currentSavePath;
+      
       // Use the hardened Ghost-First sequence for a clean transition back to toolbar
       await cancelOverlay();
-      refreshRecentRecordings();
+      
+      if (wasLongScreenshot && videoPath != null) {
+        _processLongScreenshot(videoPath);
+      } else {
+        refreshRecentRecordings();
+      }
     }
   }
 
   Future<void> refreshRecentRecordings() async {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     if (!ref.mounted) return;
-    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
+    final saveDir = Directory(saveDirPath);
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
       state = state.copyWith(recentRecordings: []);
@@ -497,18 +530,40 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   Future<void> openSaveDirectory() async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Recordings'));
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+    final saveDir = Directory(saveDirPath);
 
-    // fallback to root dir if subfolder doesn't exist yet
-    final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
-
-    if (await targetDir.exists()) {
-      await PlatformUtils.openPath(targetDir.path);
+    if (await saveDir.exists()) {
+      await PlatformUtils.openPath(saveDir.path);
+    } else {
+      await PlatformUtils.openPath(documentsDir.path);
     }
   }
 
   Future<void> cancelOverlay() async {
+    // If a recording was actively running when the overlay was cancelled, abort it
+    if (_ffmpegProcess != null) {
+      _timer?.cancel();
+      _timer = null;
+      _ffmpegProcess?.kill();
+      _ffmpegProcess = null;
+
+      // Cleanup the aborted video file
+      if (_currentSavePath != null) {
+        try {
+          final file = File(_currentSavePath!);
+          if (await file.exists()) {
+            await file.delete();
+            // If it was a long screenshot, clean up the temp directory
+            if (state.isLongScreenshotSession && await file.parent.exists()) {
+              await file.parent.delete(recursive: true);
+            }
+          }
+        } catch (_) {}
+        _currentSavePath = null;
+      }
+    }
+
     final coordinator = ref.read(windowTransitionProvider);
 
     // 1. Ghost the window instantly as the absolute FIRST step
@@ -541,6 +596,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       durationSeconds: 0,
       annotations: [],
       currentTool: ScreenshotTool.pointer,
+      isLongScreenshotSession: false,
     );
 
     // 6. Wait for Flutter to commit the first frame of the Small UI
@@ -795,4 +851,81 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 7. Reveal
     await windowManager.setOpacity(1.0);
   }
+
+  Future<void> _processLongScreenshot(String videoPath) async {
+    // We are back to the main UI. Show a "Stitching..." dialog.
+    debugPrint('Long Screenshot: Started stitching video $videoPath');
+    
+    // We can show a toast or a global loading overlay here.
+    // For now, it just runs in the background isolate.
+
+    try {
+      final Uint8List? finalImage = await LongScreenshotStitcher.stitch(videoPath);
+      
+      if (finalImage != null) {
+        debugPrint('Long Screenshot: Stitching complete! Saving to disk...');
+        
+        final documentsDir = await getApplicationDocumentsDirectory();
+        final dir = ref.read(preferencesServiceProvider).rawPrefs.getString(PreferencesService.keyScreenshotSaveDir);
+        final saveDirPath = dir ?? p.join(documentsDir.path, 'SQA_Screenshots');
+        final saveDir = Directory(saveDirPath);
+        if (!await saveDir.exists()) {
+          await saveDir.create(recursive: true);
+        }
+
+        final format = ref.read(preferencesServiceProvider).rawPrefs.getString(PreferencesService.keyScreenshotFormat) ?? 'PNG';
+        
+        final timestamp = DateTime.now()
+            .toString()
+            .replaceAll(RegExp(r'[:.-]'), '')
+            .replaceAll(' ', '_');
+        final filename = 'SQA_LONG_SS_$timestamp.${format.toLowerCase()}';
+        final savePath = p.join(saveDir.path, filename);
+        
+        if (format.toLowerCase() == 'png') {
+          await File(savePath).writeAsBytes(finalImage);
+          debugPrint('Long Screenshot: Saved to $savePath');
+        } else {
+          final tempDir = await getTemporaryDirectory();
+          final tempFile = File(p.join(tempDir.path, 'sqa_long_ss_temp_$timestamp.png'));
+          await tempFile.writeAsBytes(finalImage);
+          
+          final success = await FfmpegEngine.convertImage(
+            inputPath: tempFile.path,
+            outputPath: savePath,
+          );
+          
+          if (await tempFile.exists()) await tempFile.delete();
+          
+          if (success) {
+            debugPrint('Long Screenshot: Converted and saved to $savePath');
+          } else {
+            final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+            await File(fallbackPath).writeAsBytes(finalImage);
+            debugPrint('Long Screenshot: Conversion to $format failed. Saved as PNG instead: $fallbackPath');
+          }
+        }
+        
+        // We don't hand off to the overlay since a long screenshot is usually much taller
+        // than the screen and would be distorted. Just refresh the recordings/screenshots view.
+        ref.read(screenshotProvider.notifier).refreshRecentCaptures();
+        // Alternatively, you can open the folder or show a toast here.
+      } else {
+        debugPrint('Long Screenshot: Stitching failed or no output.');
+      }
+    } finally {
+      // Clean up the temporary video file — it's no longer needed
+      try {
+        final videoFile = File(videoPath);
+        if (await videoFile.exists()) {
+          // Delete the parent temp directory (contains only the capture file)
+          await videoFile.parent.delete(recursive: true);
+          debugPrint('Long Screenshot: Cleaned up temp video at $videoPath');
+        }
+      } catch (e) {
+        debugPrint('Long Screenshot: Failed to clean up temp video: $e');
+      }
+    }
+  }
 }
+

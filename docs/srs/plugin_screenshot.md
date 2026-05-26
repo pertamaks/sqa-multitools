@@ -18,8 +18,9 @@ The tool is called **Screenshot**. It captures image data from the screen. It wi
 This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` interface.
 
 ### Product Functions
-- **Capture Window:** Single window screen capture.
+- **Capture Full Screen:** Capture any selected monitor in its entirety.
 - **Capture Selection:** Interactive region selection.
+- **Long Screenshot:** Capture scrollable areas and stitch frames into a single long image. Supports both vertical and horizontal scroll directions.
 - **Realtime Annotation:** Draw on the screen or capture preview using various tools (Pen, Line, Arrow, Marker, Rectangle, Text).
 - **Color Selection:** Change the color of annotations.
 
@@ -35,9 +36,9 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 
 ## 3. System Features (Functional Requirements)
 ### Take Screenshot
-- **Description:** Capture a high-quality image of the desktop or active application.
-- **Inputs:** User clicks the "Crop" icon or uses a hotkey.
-- **Processing:** Encodes frame data into an image format (PNG/JPG).
+- **Description:** Capture a high-quality image of the desktop or selected region using native FFI-based extraction (`silent_frozen_canvas.dart`) for zero-distortion multi-monitor capture.
+- **Inputs:** User clicks the "Crop" icon or uses a global hotkey (area capture toggle, fullscreen capture).
+- **Processing:** DirectX/GDI background extraction encodes frame data into an image format (PNG/JPG/WebP). No longer depends on FFmpeg for capture.
 - **Outputs:** An image file saved or copied to the clipboard.
 
 ### Annotate Capture
@@ -67,11 +68,11 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 - **Not implemented**.
 
 ### Software Interfaces
-- **API:** Platform-specific Windows capture APIs and the centralized `FfmpegEngine` service for high-fidelity screenshot encoding.
+- **API:** Platform-specific Windows capture APIs via native FFI (`silent_frozen_canvas.dart`) for high-fidelity, zero-distortion screenshot encoding. FFmpeg is no longer required for screenshots.
 
 ## 5. Non-Functional Requirements (Quality Attributes)
 ### Dependency Guarding
-- **FFmpeg Integration**: The settings panel utilizes the core `SqaDependencyCard` to ensure the FFmpeg engine is available for screenshot encoding and coordinate mapping.
+- **FFmpeg Independence**: Screenshot capture no longer depends on FFmpeg. The native FFI pipeline eliminates the engine requirement, reducing the download burden for screenshot-only users. Long screenshots use FFmpeg for intermediate video capture and frame extraction.
 
 ### Communication Interfaces
 - **Not implemented**.

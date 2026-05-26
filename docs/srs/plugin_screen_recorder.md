@@ -38,11 +38,11 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 ### Capture Modes
 - **Full Screen**: Capture any selected monitor in its entirety.
 - **Selected Area**: User-defined rectangular region of the desktop.
-- **Selected Window**: Specific application window, captured via spatial coordinate mapping (highly stable).
+- **Scrolling Capture (Long Screenshot)**: Record a scrollable area and stitch frames into a single long screenshot. Supports both vertical and horizontal scroll directions with manual toggle.
 
 ### Recording Controls
 - **Description**: Standard Start, Stop, and Pause controls. Use of a Draggable Floating Bar during active recording.
-- **Inputs**: User interaction via primary action button or floating bar.
+- **Inputs**: User interaction via primary action button or floating bar. Global hotkeys are supported for start/stop, area recording toggle, and fullscreen recording.
 - **Processing**: Real-time encoding of screen frames via FFmpeg.
 - **Outputs**: MP4 or MKV local video file using the `SQA_REC_YYYYMMDD_HHMMSS` naming convention.
 
@@ -61,7 +61,7 @@ Settings are organized into logical groups within the dedicated settings panel:
 - **Visual Feedback**: Toggle visibility of the mouse cursor and independent customization of **Left-Click** and **Right-Click** ripple colors.
 - **Recording Setup**: Quality selection (1080p, 720p), Framerate (60fps, 30fps), and initial **Start Delay** (Countdown).
 - **System & Files**: Custom directory selection utilizing native Windows folder picker and export format selection (MP4, MKV).
-- **Dependency Guarding**: Settings panel utilizes `SqaDependencyCard` to track if FFmpeg (required for audio discovery and recording) is missing and provides a unified download UI. Technical settings are hidden until resolved.
+- **Dependency Guarding**: Settings panel utilizes `SqaDependencyCard` to track if FFmpeg (required for audio discovery and recording) is missing and provides a unified download UI. Technical settings are hidden until resolved. The download prompt dynamically fetches the actual archive size from the server and validates ZIP integrity before extraction.
 
 ## 4. Architecture
 The plugin follows a modular structure for maintainability and consistency:

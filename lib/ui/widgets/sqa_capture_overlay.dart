@@ -419,6 +419,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragStart(DragStartDetails details) {
+    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) return;
     if ((widget.delegate.captureMode == CaptureMode.area || widget.delegate.captureMode == CaptureMode.scrolling) && !widget.delegate.isSelectingMonitor) {
       final startPos = details.localPosition;
       final windowPos = WindowUtils.getAppWindowPosition();
@@ -450,6 +451,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragUpdate(DragUpdateDetails details) {
+    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) return;
     if ((widget.delegate.captureMode == CaptureMode.area || widget.delegate.captureMode == CaptureMode.scrolling) && !widget.delegate.isSelectingMonitor) {
       var currentPos = details.localPosition;
 
@@ -481,6 +483,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragEnd(DragEndDetails details) {
+    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) return;
     if (widget.delegate.selectionRect == null &&
         _startPos != null &&
         _currentPos != null &&

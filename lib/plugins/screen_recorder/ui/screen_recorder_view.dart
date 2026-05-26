@@ -30,6 +30,8 @@ class ScreenRecorderView extends ConsumerStatefulWidget {
 
 class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
   late TextEditingController _searchController;
+  late ScrollController _scrollController;
+  final GlobalKey _historyListKey = GlobalKey();
 
   @override
   void initState() {
@@ -37,11 +39,13 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     _searchController = TextEditingController(
       text: ref.read(screenRecorderProvider).searchQuery,
     );
+    _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -94,6 +98,26 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     final ffmpegStatus = ref.watch(ffmpegProvider);
     final theme = Theme.of(context);
 
+    // Auto-scroll to newly added recordings
+    ref.listen(screenRecorderProvider.select((s) => s.recentRecordings), (previous, next) {
+      if (previous != null && next.isNotEmpty) {
+        if (previous.isEmpty || next.first.file.path != previous.first.file.path) {
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (!mounted) return;
+            final contextToScroll = _historyListKey.currentContext;
+            if (contextToScroll != null) {
+              Scrollable.ensureVisible(
+                contextToScroll,
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                alignment: 0.0,
+              );
+            }
+          });
+        }
+      }
+    });
+
     return SqaPluginLayout(
       icon: Symbols.videocam,
       title: 'Screen Recorder',
@@ -117,6 +141,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             )
           : null,
       child: SqaPluginScrollableContent(
+        controller: _scrollController,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,6 +304,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             const SizedBox(height: SqaTokens.spacingXXLarge),
 
             SqaHistoryList<RecordingInfo>(
+              key: _historyListKey,
               items: state.recentRecordings.where((info) {
                 if (state.searchQuery.isEmpty) return true;
                 final query = state.searchQuery.toLowerCase();

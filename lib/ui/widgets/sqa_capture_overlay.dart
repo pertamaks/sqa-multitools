@@ -307,7 +307,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
 
     final width = _estimatedBarWidth;
-    const double height = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
+    const double height = SqaTokens.floatingBarHeight;
     final currentOffset = _barOffsetNotifier.value ?? Offset.zero;
     final barRect = Rect.fromLTWH(
       windowPos.dx + currentOffset.dx,
@@ -339,7 +339,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       ),
       offset.dy.clamp(
         padding,
-        math.max(padding, screenSize.height - (SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall) - padding),
+        math.max(padding, screenSize.height - SqaTokens.floatingBarHeight - padding),
       ),
     );
   }
@@ -373,22 +373,44 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
     if (activeDisplay != null) {
       final dPos = activeDisplay.visiblePosition ?? Offset.zero;
-
       final double barWidth = _estimatedBarWidth;
-      const double barHeight = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
-      const double paddingBottom = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
+      const double barHeight = SqaTokens.floatingBarHeight;
+      const double gap = SqaTokens.spacingSmall;
 
-      // Calculate global target position for the bar
-      final globalTargetX =
-          dPos.dx + (activeDisplay.size.width / 2) - (barWidth / 2);
-      final globalTargetY =
-          dPos.dy + activeDisplay.size.height - barHeight - paddingBottom;
+      // Display bounds in local window coordinates
+      final localDisplayLeft = dPos.dx - windowPos.dx;
+      final localDisplayTop = dPos.dy - windowPos.dy;
+      final localDisplayBottom = localDisplayTop + activeDisplay.size.height;
 
-      // Transform to local coordinates relative to the CURRENT window position
-      final targetOffset = Offset(
-        globalTargetX - windowPos.dx,
-        globalTargetY - windowPos.dy,
-      );
+      double targetX, targetY;
+
+      final mode = widget.delegate.captureMode;
+      if (mode == CaptureMode.area || mode == CaptureMode.scrolling) {
+        // Position relative to the selection rect
+        targetX = targetRect.center.dx - barWidth / 2;
+
+        final belowY = targetRect.bottom + gap;
+        final aboveY = targetRect.top - gap - barHeight;
+
+        if (belowY + barHeight <= localDisplayBottom) {
+          targetY = belowY;
+        } else if (aboveY >= localDisplayTop) {
+          targetY = aboveY;
+        } else {
+          // Neither fits perfectly, prefer the side with more space
+          final spaceBelow = localDisplayBottom - targetRect.bottom;
+          final spaceAbove = targetRect.top - localDisplayTop;
+          targetY = spaceBelow >= spaceAbove
+              ? (localDisplayBottom - barHeight).clamp(localDisplayTop, localDisplayBottom)
+              : localDisplayTop;
+        }
+      } else {
+        // Fullscreen: anchor to bottom-center of the display
+        targetX = localDisplayLeft + (activeDisplay.size.width / 2) - (barWidth / 2);
+        targetY = localDisplayBottom - barHeight - SqaTokens.spacingXXXLarge;
+      }
+
+      final targetOffset = Offset(targetX, targetY);
 
       final size = MediaQuery.of(context).size;
       _barOffsetNotifier.value = _clampOffset(targetOffset, size);

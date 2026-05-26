@@ -356,7 +356,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       final config = FfmpegVideoConfig(
         framerate: state.framerate,
         resolution: state.resolution,
-        showCursor: state.showCursor,
+        showCursor: state.isLongScreenshotSession ? false : state.showCursor,
         captureMode: state.captureMode,
         captureRect: state.captureRect,
         microphoneEnabled: state.microphoneEnabled,
@@ -856,8 +856,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // We are back to the main UI. Show a "Stitching..." dialog.
     debugPrint('Long Screenshot: Started stitching video $videoPath');
     
-    // We can show a toast or a global loading overlay here.
-    // For now, it just runs in the background isolate.
+    state = state.copyWith(isStitching: true);
 
     try {
       final Uint8List? finalImage = await LongScreenshotStitcher.stitch(videoPath);
@@ -914,6 +913,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         debugPrint('Long Screenshot: Stitching failed or no output.');
       }
     } finally {
+      state = state.copyWith(isStitching: false);
       // Clean up the temporary video file — it's no longer needed
       try {
         final videoFile = File(videoPath);
@@ -928,4 +928,3 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     }
   }
 }
-

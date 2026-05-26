@@ -46,6 +46,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     Display? lockedDisplay,
     @Default(false) bool textHasBackground,
     @Default(false) bool isLongScreenshotSession,
+    @Default(false) bool isStitching,
     @Default('') String searchQuery,
     @JsonKey(includeFromJson: false, includeToJson: false)
     HotKey? registeredHotKey,

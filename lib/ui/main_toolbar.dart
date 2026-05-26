@@ -350,9 +350,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     });
 
     final isScreenshotVisible = ref.watch(screenshotProvider).isOverlayVisible;
-    final isRecorderVisible = ref
-        .watch(screenRecorderProvider)
-        .isOverlayVisible;
+    final recorderState = ref.watch(screenRecorderProvider);
+    final isRecorderVisible = recorderState.isOverlayVisible;
+    final isStitching = recorderState.isStitching;
     final isOverlayActive = isScreenshotVisible || isRecorderVisible;
     final hasPlugin = activePlugin != null;
 
@@ -455,6 +455,28 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 if (isRecorderVisible)
                   const Positioned.fill(
                     child: ExcludeSemantics(child: ScreenRecorderOverlay()),
+                  ),
+                if (isStitching)
+                  Positioned.fill(
+                    child: Container(
+                      color: colorScheme.surfaceContainerLow.withValues(alpha: 0.8),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Stitching Long Screenshot...',
+                              style: TextStyle(
+                                color: colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
               ],
             );

@@ -30,6 +30,8 @@ class ScreenshotView extends ConsumerStatefulWidget {
 
 class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
   late TextEditingController _searchController;
+  late ScrollController _scrollController;
+  final GlobalKey _historyListKey = GlobalKey();
 
   @override
   void initState() {
@@ -37,11 +39,13 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
     _searchController = TextEditingController(
       text: ref.read(screenshotProvider).searchQuery,
     );
+    _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -61,6 +65,28 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
     final notifier = ref.read(screenshotProvider.notifier);
     final theme = Theme.of(context);
 
+    // Auto-scroll to newly added captures
+    ref.listen(screenshotProvider.select((s) => s.recentCaptures), (previous, next) {
+      if (previous != null && next.isNotEmpty) {
+        // If a new capture was added (either length increased or newest item changed)
+        if (previous.isEmpty || next.first.file.path != previous.first.file.path) {
+          // Give the UI a brief moment to layout the new item
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (!mounted) return;
+            final contextToScroll = _historyListKey.currentContext;
+            if (contextToScroll != null) {
+              Scrollable.ensureVisible(
+                contextToScroll,
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                alignment: 0.0, // align top of the widget to top of the viewport
+              );
+            }
+          });
+        }
+      }
+    });
+
     return SqaPluginLayout(
       icon: Symbols.crop,
       title: 'Screenshot',
@@ -72,6 +98,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
       searchHint: 'Filter captures...',
       child: SqaFadeWrapper(
         child: SqaPluginScrollableContent(
+          controller: _scrollController,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +250,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
 
               const SizedBox(height: SqaTokens.spacingXXLarge),
 
-                SqaHistoryList<CaptureInfo>(
+              SqaHistoryList<CaptureInfo>(
+                key: _historyListKey,
                   items: state.recentCaptures.where((info) {
                     if (state.searchQuery.isEmpty) return true;
                     final query = state.searchQuery.toLowerCase();

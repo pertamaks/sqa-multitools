@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-05-26
+
+### Added
+- **Long Screenshot:** Capture scrollable areas and stitch frames into a single long screenshot. Supports both vertical and horizontal scroll directions with manual toggle.
+- **Hotkey Support:** Global hotkeys for recorder (start/stop, area recording, fullscreen recording) and screenshot modes (area capture toggle, fullscreen capture).
+- **Zero-Distortion Screenshot Capture:** New native FFI-based background extraction (`silent_frozen_canvas.dart`) replaces FFmpeg for screenshots, eliminating DPI scaling artifacts on multi-monitor setups.
+
+### Changed
+- **Screenshot Engine:** Moved screenshot capture away from FFmpeg dependency to native DirectX/GDI extraction, improving capture speed and removing the engine requirement for screenshots.
+- **Capture Overlay:** Replaced the modal display picker with a transparent spanning overlay for click-to-select monitor targeting across all capture modes.
+- **UI:** Unified recording tile layout with full date in history. Enhanced long screenshot UX with capture history auto-scrolling.
+- **Window Mode:** Removed window capture mode entirely from both screen recorder and screenshot plugins.
+
+### Fixed
+- **FFmpeg Download:** Resolved a critical bug where `_extractZipSync` called archive v4's async `extractFileToDisk` without `await`, causing extraction to return immediately and every download to fail with "ffmpeg.exe not found."
+- **Download Validation:** Added HTTP timeouts, received-bytes-vs-Content-Length checks, and ZIP header/EOCD integrity verification. The archive is now retained on failure and reused on retry.
+- **Dynamic Size Display:** The download prompt now fetches the actual remote file size instead of showing a hardcoded "~30MB" estimate.
+- **Capture Pathing:** Fixed an issue where save directories were forcibly appended to custom user-selected paths. Long screenshot intermediate videos now use temp storage.
+- **Format Conversion:** Fixed normal and long screenshots writing raw PNG data with incorrect file extensions by routing through FFmpeg transcoding.
+
 ## [0.2.0] - 2026-05-22
 
 ### Added

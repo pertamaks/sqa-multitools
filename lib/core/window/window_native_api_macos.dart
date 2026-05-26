@@ -9,21 +9,9 @@ class WindowNativeApiMacOS implements WindowNativeApi {
   bool get supportsGlobalMousePolling => false;
 
   @override
-  WindowInfo? getWindowInfoAt() {
-    // TBD: Implement using CGWindowListCopyWindowInfo or similar
-    return null;
-  }
-
-  @override
   Offset getAppWindowPosition() {
     // Handled via window_manager usually, but can be refined here
     return Offset.zero;
-  }
-
-  @override
-  Future<List<String>> getActiveWindowTitles() async {
-    // TBD: Implement using NSWorkspace.shared.runningApplications
-    return [];
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'screenshot_tool.dart';
 import 'annotation.dart';
@@ -7,17 +8,16 @@ import 'package:screen_retriever/screen_retriever.dart';
 abstract class CaptureOverlayDelegate {
   // --- Shared State Reads ---
   bool get isOverlayVisible;
-  bool get isTargetingWindow;
   CaptureMode get captureMode;
   Rect? get selectionRect;
-  Rect? get targetedWindowRect;
-  String? get targetWindowName;
   List<Annotation> get annotations;
   Listenable? get annotationsChanged;
   Color get annotationColor;
   ScreenshotTool get currentTool;
   bool get textHasBackground;
   List<Display> get availableDisplays;
+  Uint8List? get frozenBackgroundBytes => null;
+  bool get isSelectingMonitor => false;
 
   // --- Recording State Reads (defaults for non-recording plugins) ---
   bool get isRecording => false;
@@ -40,8 +40,6 @@ abstract class CaptureOverlayDelegate {
   void updateLastAnnotation(Annotation annotation);
   void removeAnnotation(Annotation annotation);
   void setTextHasBackground(bool value);
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]);
-  void confirmTargetWindow(Rect rect, String title);
 
   // --- Recording Mutations (no-op defaults for Screenshot) ---
   Future<void> setIgnoreMouseEvents(bool ignore) async {}

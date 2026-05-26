@@ -11,11 +11,13 @@ import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../core/models/capture_mode.dart';
+import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/providers/plugin_provider.dart';
 import '../../../core/utils/platform_utils.dart';
 import '../providers/screenshot_provider.dart';
 import '../models/screenshot_state.dart';
 import '../screenshot_plugin.dart';
+import '../../screen_recorder/providers/screen_recorder_provider.dart';
 import 'widgets/config_snippet.dart';
 import 'widgets/capture_tile.dart';
 import '../../../ui/widgets/sqa_history_list.dart';
@@ -29,6 +31,8 @@ class ScreenshotView extends ConsumerStatefulWidget {
 
 class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
   late TextEditingController _searchController;
+  late ScrollController _scrollController;
+  final GlobalKey _historyListKey = GlobalKey();
 
   @override
   void initState() {
@@ -36,24 +40,54 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
     _searchController = TextEditingController(
       text: ref.read(screenshotProvider).searchQuery,
     );
+    _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _handleStart() {
-    final notifier = ref.read(screenshotProvider.notifier);
-    notifier.capture();
+    final state = ref.read(screenshotProvider);
+    if (state.captureMode == CaptureMode.scrolling) {
+      ref.read(screenRecorderProvider.notifier).startLongScreenshotSession();
+    } else {
+      final notifier = ref.read(screenshotProvider.notifier);
+      notifier.startMonitorSelection();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(screenshotProvider);
     final notifier = ref.read(screenshotProvider.notifier);
+    final hotkeys = ref.watch(hotkeySettingsProvider);
     final theme = Theme.of(context);
+
+    // Auto-scroll to newly added captures
+    ref.listen(screenshotProvider.select((s) => s.recentCaptures), (previous, next) {
+      if (previous != null && next.isNotEmpty) {
+        // If a new capture was added (either length increased or newest item changed)
+        if (previous.isEmpty || next.first.file.path != previous.first.file.path) {
+          // Give the UI a brief moment to layout the new item
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (!mounted) return;
+            final contextToScroll = _historyListKey.currentContext;
+            if (contextToScroll != null && contextToScroll.mounted) {
+              Scrollable.ensureVisible(
+                contextToScroll,
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                alignment: 0.0, // align top of the widget to top of the viewport
+              );
+            }
+          });
+        }
+      }
+    });
 
     return SqaPluginLayout(
       icon: Symbols.crop,
@@ -66,6 +100,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
       searchHint: 'Filter captures...',
       child: SqaFadeWrapper(
         child: SqaPluginScrollableContent(
+          controller: _scrollController,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,15 +136,14 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                 children: [
                                   ConfigSnippet(
                                     icon: switch (state.captureMode) {
-                                      CaptureMode.fullScreen =>
-                                        Symbols.fullscreen,
+                                      CaptureMode.fullScreen => Symbols.desktop_windows,
                                       CaptureMode.area => Symbols.crop_free,
-                                      CaptureMode.window => Symbols.window,
+                                      CaptureMode.scrolling => Symbols.swipe_down,
                                     },
                                     label: switch (state.captureMode) {
                                       CaptureMode.fullScreen => 'Full Screen',
-                                      CaptureMode.area => 'Select Area',
-                                      CaptureMode.window => 'Select Window',
+                                      CaptureMode.area => 'Area Selection',
+                                      CaptureMode.scrolling => 'Long SS',
                                     },
                                   ),
                                   const SizedBox(height: SqaTokens.spacingSmall),
@@ -178,21 +212,30 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
               ),
               const SizedBox(height: SqaTokens.spacingMedium),
               SqaSegmentedButton<CaptureMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: CaptureMode.fullScreen,
-                    icon: Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Full Screen'),
+                    icon: const Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: const Text('Full Screen'),
+                    tooltip: hotkeys.ssFullscreen != null
+                        ? 'Full Screen (${hotkeys.ssFullscreen})'
+                        : 'Full Screen — no hotkey assigned',
                   ),
                   ButtonSegment(
                     value: CaptureMode.area,
-                    icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Area'),
+                    icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: const Text('Area'),
+                    tooltip: hotkeys.ssArea != null
+                        ? 'Area (${hotkeys.ssArea})'
+                        : 'Area — no hotkey assigned',
                   ),
                   ButtonSegment(
-                    value: CaptureMode.window,
-                    icon: Icon(Symbols.window, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Window'),
+                    value: CaptureMode.scrolling,
+                    icon: const Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: const Text('Long SS'),
+                    tooltip: hotkeys.ssLong != null
+                        ? 'Long Screenshot (${hotkeys.ssLong})'
+                        : 'Long Screenshot — no hotkey assigned',
                   ),
                 ],
                 selected: {state.captureMode},
@@ -206,8 +249,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     'Captures the entire primary monitor including taskbars.',
                   CaptureMode.area =>
                     'Allows you to draw a custom rectangle on the screen for selective capture.',
-                  CaptureMode.window =>
-                    'Automatically locks onto a specific application window.',
+                  CaptureMode.scrolling =>
+                    'Record a scrollable area to stitch into a single long screenshot.',
                 },
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant.withValues(
@@ -218,7 +261,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
 
               const SizedBox(height: SqaTokens.spacingXXLarge),
 
-                SqaHistoryList<CaptureInfo>(
+              SqaHistoryList<CaptureInfo>(
+                key: _historyListKey,
                   items: state.recentCaptures.where((info) {
                     if (state.searchQuery.isEmpty) return true;
                     final query = state.searchQuery.toLowerCase();

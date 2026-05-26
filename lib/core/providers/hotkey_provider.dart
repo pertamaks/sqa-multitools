@@ -9,12 +9,20 @@ class HotkeySettings {
   final HotkeyInfo? recordToggle;
   final HotkeyInfo? screenshotToggle;
   final HotkeyInfo? areaRecordToggle;
+  final HotkeyInfo? ssFullscreen;
+  final HotkeyInfo? ssArea;
+  final HotkeyInfo? ssLong;
+  final HotkeyInfo? recFullscreen;
 
   const HotkeySettings({
     this.showToolbar,
     this.recordToggle,
     this.screenshotToggle,
     this.areaRecordToggle,
+    this.ssFullscreen,
+    this.ssArea,
+    this.ssLong,
+    this.recFullscreen,
   });
 
   HotkeySettings copyWith({
@@ -22,14 +30,51 @@ class HotkeySettings {
     HotkeyInfo? recordToggle,
     HotkeyInfo? screenshotToggle,
     HotkeyInfo? areaRecordToggle,
+    HotkeyInfo? ssFullscreen,
+    HotkeyInfo? ssArea,
+    HotkeyInfo? ssLong,
+    HotkeyInfo? recFullscreen,
+    bool clearSsFullscreen = false,
+    bool clearSsArea = false,
+    bool clearSsLong = false,
+    bool clearRecFullscreen = false,
+    bool clearShowToolbar = false,
+    bool clearRecordToggle = false,
+    bool clearScreenshotToggle = false,
+    bool clearAreaRecordToggle = false,
   }) {
     return HotkeySettings(
-      showToolbar: showToolbar ?? this.showToolbar,
-      recordToggle: recordToggle ?? this.recordToggle,
-      screenshotToggle: screenshotToggle ?? this.screenshotToggle,
-      areaRecordToggle: areaRecordToggle ?? this.areaRecordToggle,
+      showToolbar:
+          clearShowToolbar ? null : (showToolbar ?? this.showToolbar),
+      recordToggle:
+          clearRecordToggle ? null : (recordToggle ?? this.recordToggle),
+      screenshotToggle: clearScreenshotToggle
+          ? null
+          : (screenshotToggle ?? this.screenshotToggle),
+      areaRecordToggle: clearAreaRecordToggle
+          ? null
+          : (areaRecordToggle ?? this.areaRecordToggle),
+      ssFullscreen:
+          clearSsFullscreen ? null : (ssFullscreen ?? this.ssFullscreen),
+      ssArea: clearSsArea ? null : (ssArea ?? this.ssArea),
+      ssLong: clearSsLong ? null : (ssLong ?? this.ssLong),
+      recFullscreen: clearRecFullscreen
+          ? null
+          : (recFullscreen ?? this.recFullscreen),
     );
   }
+
+  /// All hotkey entries as (prefKey, hotkeyInfo) pairs for iteration.
+  List<(String, HotkeyInfo?)> get entries => [
+        (PreferencesService.keyHotkeyShowToolbar, showToolbar),
+        (PreferencesService.keyHotkeyRecordToggle, recordToggle),
+        (PreferencesService.keyHotkeyScreenshotToggle, screenshotToggle),
+        (PreferencesService.keyHotkeyAreaRecord, areaRecordToggle),
+        (PreferencesService.keyHotkeySsFullscreen, ssFullscreen),
+        (PreferencesService.keyHotkeySsArea, ssArea),
+        (PreferencesService.keyHotkeySsLong, ssLong),
+        (PreferencesService.keyHotkeyRecFullscreen, recFullscreen),
+      ];
 }
 
 class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
@@ -37,133 +82,126 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
   VoidCallback? _onAreaRecordToggle;
   VoidCallback? _onRecordToggle;
   VoidCallback? _onScreenshotToggle;
+  VoidCallback? _onSsFullscreen;
+  VoidCallback? _onSsArea;
+  VoidCallback? _onSsLong;
+  VoidCallback? _onRecFullscreen;
 
   @override
   HotkeySettings build() {
     final prefs = ref.watch(preferencesServiceProvider);
 
-    final toolbar = prefs.getHotkey(PreferencesService.keyHotkeyShowToolbar);
-    final recorder = prefs.getHotkey(PreferencesService.keyHotkeyRecordToggle);
-    final screenshot = prefs.getHotkey(
-      PreferencesService.keyHotkeyScreenshotToggle,
-    );
-    final areaRecord = prefs.getHotkey(PreferencesService.keyHotkeyAreaRecord);
-
     final settings = HotkeySettings(
-      showToolbar: toolbar,
-      recordToggle: recorder,
-      screenshotToggle: screenshot,
-      areaRecordToggle: areaRecord,
+      showToolbar: prefs.getHotkey(PreferencesService.keyHotkeyShowToolbar),
+      recordToggle:
+          prefs.getHotkey(PreferencesService.keyHotkeyRecordToggle),
+      screenshotToggle:
+          prefs.getHotkey(PreferencesService.keyHotkeyScreenshotToggle),
+      areaRecordToggle:
+          prefs.getHotkey(PreferencesService.keyHotkeyAreaRecord),
+      ssFullscreen:
+          prefs.getHotkey(PreferencesService.keyHotkeySsFullscreen),
+      ssArea: prefs.getHotkey(PreferencesService.keyHotkeySsArea),
+      ssLong: prefs.getHotkey(PreferencesService.keyHotkeySsLong),
+      recFullscreen:
+          prefs.getHotkey(PreferencesService.keyHotkeyRecFullscreen),
     );
 
-    // Initial registration after building
     Future.microtask(() => _registerAll(settings));
-
     return settings;
   }
 
-  /// Sets the callback to be executed when the toolbar hotkey is pressed.
   void setToolbarCallback(VoidCallback callback) {
     _onToolbarToggle = callback;
-    _registerAll(state); // Re-register to apply the new callback
+    _registerAll(state);
   }
 
-  /// Sets the callback to be executed when the Quick Area Record hotkey is pressed.
   void setAreaRecordCallback(VoidCallback callback) {
     _onAreaRecordToggle = callback;
     _registerAll(state);
   }
 
-  /// Sets the callback to be executed when the Record Toggle hotkey is pressed.
   void setRecordToggleCallback(VoidCallback callback) {
     _onRecordToggle = callback;
     _registerAll(state);
   }
 
-  /// Sets the callback to be executed when the Screenshot Toggle hotkey is pressed.
   void setScreenshotToggleCallback(VoidCallback callback) {
     _onScreenshotToggle = callback;
+    _registerAll(state);
+  }
+
+  void setSsFullscreenCallback(VoidCallback callback) {
+    _onSsFullscreen = callback;
+    _registerAll(state);
+  }
+
+  void setSsAreaCallback(VoidCallback callback) {
+    _onSsArea = callback;
+    _registerAll(state);
+  }
+
+  void setSsLongCallback(VoidCallback callback) {
+    _onSsLong = callback;
+    _registerAll(state);
+  }
+
+  void setRecFullscreenCallback(VoidCallback callback) {
+    _onRecFullscreen = callback;
     _registerAll(state);
   }
 
   Future<void> _registerAll(HotkeySettings settings) async {
     await hotKeyManager.unregisterAll();
 
-    // Register Toolbar
-    if (settings.showToolbar != null) {
-      await hotKeyManager.register(
-        settings.showToolbar!.toHotKey(identifier: 'show_toolbar'),
-        keyDownHandler: (_) {
-          if (_onToolbarToggle != null) {
-            _onToolbarToggle!();
-          }
-        },
-      );
-    }
+    final registrations = [
+      (settings.showToolbar, 'show_toolbar', _onToolbarToggle),
+      (settings.recordToggle, 'record_toggle', _onRecordToggle),
+      (settings.screenshotToggle, 'screenshot_toggle', _onScreenshotToggle),
+      (settings.areaRecordToggle, 'area_record', _onAreaRecordToggle),
+      (settings.ssFullscreen, 'ss_fullscreen', _onSsFullscreen),
+      (settings.ssArea, 'ss_area', _onSsArea),
+      (settings.ssLong, 'ss_long', _onSsLong),
+      (settings.recFullscreen, 'rec_fullscreen', _onRecFullscreen),
+    ];
 
-    // Register Quick Area Record
-    if (settings.areaRecordToggle != null) {
-      await hotKeyManager.register(
-        settings.areaRecordToggle!.toHotKey(identifier: 'area_record'),
-        keyDownHandler: (_) {
-          if (_onAreaRecordToggle != null) {
-            _onAreaRecordToggle!();
-          }
-        },
-      );
+    for (final (hotkey, id, callback) in registrations) {
+      if (hotkey != null && callback != null) {
+        await hotKeyManager.register(
+          hotkey.toHotKey(identifier: id),
+          keyDownHandler: (_) => callback(),
+        );
+      }
     }
-
-    // Register Record Toggle
-    if (settings.recordToggle != null) {
-      await hotKeyManager.register(
-        settings.recordToggle!.toHotKey(identifier: 'record_toggle'),
-        keyDownHandler: (_) {
-          if (_onRecordToggle != null) {
-            _onRecordToggle!();
-          }
-        },
-      );
-    }
-
-    // Register Screenshot Toggle
-    if (settings.screenshotToggle != null) {
-      await hotKeyManager.register(
-        settings.screenshotToggle!.toHotKey(identifier: 'screenshot_toggle'),
-        keyDownHandler: (_) {
-          if (_onScreenshotToggle != null) {
-            _onScreenshotToggle!();
-          }
-        },
-      );
-    }
-
-    // Recorder registration is typically managed by ScreenRecorderNotifier
-    // to avoid conflicts with its internal state machine, but we store the preference here.
   }
 
-  /// Updates a hotkey if no conflicts are found and modifiers are present.
-  /// Returns null on success, or an error message on failure.
   String? updateHotkey(String key, HotkeyInfo info) {
-    // ... validation logic ...
     final error = _validate(key, info);
     if (error != null) return error;
 
-    // 3. Persist and Update State
     final prefs = ref.read(preferencesServiceProvider);
     prefs.setHotkey(key, info);
 
-    if (key == PreferencesService.keyHotkeyShowToolbar) {
-      state = state.copyWith(showToolbar: info);
-    } else if (key == PreferencesService.keyHotkeyRecordToggle) {
-      state = state.copyWith(recordToggle: info);
-    } else if (key == PreferencesService.keyHotkeyScreenshotToggle) {
-      state = state.copyWith(screenshotToggle: info);
-    } else if (key == PreferencesService.keyHotkeyAreaRecord) {
-      state = state.copyWith(areaRecordToggle: info);
+    switch (key) {
+      case PreferencesService.keyHotkeyShowToolbar:
+        state = state.copyWith(showToolbar: info);
+      case PreferencesService.keyHotkeyRecordToggle:
+        state = state.copyWith(recordToggle: info);
+      case PreferencesService.keyHotkeyScreenshotToggle:
+        state = state.copyWith(screenshotToggle: info);
+      case PreferencesService.keyHotkeyAreaRecord:
+        state = state.copyWith(areaRecordToggle: info);
+      case PreferencesService.keyHotkeySsFullscreen:
+        state = state.copyWith(ssFullscreen: info);
+      case PreferencesService.keyHotkeySsArea:
+        state = state.copyWith(ssArea: info);
+      case PreferencesService.keyHotkeySsLong:
+        state = state.copyWith(ssLong: info);
+      case PreferencesService.keyHotkeyRecFullscreen:
+        state = state.copyWith(recFullscreen: info);
     }
 
     _registerAll(state);
-
     return null;
   }
 
@@ -172,39 +210,37 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
       return 'Safety Check: Global hotkeys MUST include at least one modifier (Alt, Ctrl, or Shift).';
     }
 
-    if (key == PreferencesService.keyHotkeyShowToolbar) {
-      if (state.recordToggle != null && info == state.recordToggle) {
-        return 'Conflict: Shortcut already assigned to Screen Recorder.';
-      }
-      if (state.screenshotToggle != null && info == state.screenshotToggle) {
-        return 'Conflict: Shortcut already assigned to Screenshot.';
-      }
-    } else if (key == PreferencesService.keyHotkeyRecordToggle) {
-      if (state.showToolbar != null && info == state.showToolbar) {
-        return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      }
-      if (state.screenshotToggle != null && info == state.screenshotToggle) {
-        return 'Conflict: Shortcut already assigned to Screenshot.';
-      }
-    } else if (key == PreferencesService.keyHotkeyScreenshotToggle) {
-      if (state.showToolbar != null && info == state.showToolbar) {
-        return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      }
-      if (state.recordToggle != null && info == state.recordToggle) {
-        return 'Conflict: Shortcut already assigned to Screen Recorder.';
-      }
-    } else if (key == PreferencesService.keyHotkeyAreaRecord) {
-      if (state.showToolbar != null && info == state.showToolbar) {
-        return 'Conflict: Shortcut already assigned to Show Toolbar.';
-      }
-      if (state.recordToggle != null && info == state.recordToggle) {
-        return 'Conflict: Shortcut already assigned to Screen Recorder.';
-      }
-      if (state.screenshotToggle != null && info == state.screenshotToggle) {
-        return 'Conflict: Shortcut already assigned to Screenshot.';
+    for (final (existingKey, existingInfo) in state.entries) {
+      if (existingKey != key && existingInfo != null && existingInfo == info) {
+        final label = _hotkeyLabel(existingKey);
+        return 'Conflict: Shortcut already assigned to $label.';
       }
     }
+
     return null;
+  }
+
+  String _hotkeyLabel(String key) {
+    switch (key) {
+      case PreferencesService.keyHotkeyShowToolbar:
+        return 'Show Toolbar';
+      case PreferencesService.keyHotkeyRecordToggle:
+        return 'Start/Stop Recording';
+      case PreferencesService.keyHotkeyScreenshotToggle:
+        return 'Start Capture';
+      case PreferencesService.keyHotkeyAreaRecord:
+        return 'Quick Area Record';
+      case PreferencesService.keyHotkeySsFullscreen:
+        return 'Screenshot: Full Screen';
+      case PreferencesService.keyHotkeySsArea:
+        return 'Screenshot: Area';
+      case PreferencesService.keyHotkeySsLong:
+        return 'Screenshot: Long SS';
+      case PreferencesService.keyHotkeyRecFullscreen:
+        return 'Recorder: Full Screen';
+      default:
+        return key;
+    }
   }
 }
 

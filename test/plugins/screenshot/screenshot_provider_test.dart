@@ -74,6 +74,9 @@ void main() {
               ],
             };
           }
+          if (call.method == 'getCursorScreenPoint') {
+            return {'dx': 0.0, 'dy': 0.0};
+          }
           return null;
         },
       );

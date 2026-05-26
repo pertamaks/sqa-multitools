@@ -80,7 +80,7 @@ class CaptureTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${_formatSize(info.size)} • ${info.modified.hour}:${info.modified.minute.toString().padLeft(2, '0')}',
+                    '${_formatSize(info.size)} • ${info.modified.day.toString().padLeft(2, '0')}/${info.modified.month.toString().padLeft(2, '0')}/${info.modified.year} ${info.modified.hour.toString().padLeft(2, '0')}:${info.modified.minute.toString().padLeft(2, '0')}',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                     ),

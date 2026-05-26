@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
@@ -18,12 +17,15 @@ import '../models/screenshot_state.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/screenshot_tool.dart';
 import '../../../core/models/annotation.dart';
-import '../../../core/engine/ffmpeg_engine.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/window/window_utils.dart';
 import '../../../core/window/window_transition_coordinator.dart';
 import '../../../core/providers/capture_key_provider.dart';
+import '../../../core/services/logging_service.dart';
+import '../../../core/engine/silent_frozen_canvas.dart';
+import '../../../core/engine/ffmpeg_engine.dart';
+import '../../screen_recorder/providers/screen_recorder_provider.dart';
 
 part 'screenshot_provider.g.dart';
 
@@ -47,9 +49,21 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       if (!ref.mounted) return;
       _loadPreferences();
       refreshRecentCaptures();
-      // Register global hotkey callback
+      // Register global hotkey callbacks
       ref.read(hotkeySettingsProvider.notifier).setScreenshotToggleCallback(() {
         capture();
+      });
+      ref.read(hotkeySettingsProvider.notifier).setSsFullscreenCallback(() {
+        setCaptureMode(CaptureMode.fullScreen);
+        capture();
+      });
+      ref.read(hotkeySettingsProvider.notifier).setSsAreaCallback(() {
+        setCaptureMode(CaptureMode.area);
+        capture();
+      });
+      ref.read(hotkeySettingsProvider.notifier).setSsLongCallback(() {
+        setCaptureMode(CaptureMode.scrolling);
+        ref.read(screenRecorderProvider.notifier).startLongScreenshotSession();
       });
     });
 
@@ -71,8 +85,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
     if (!ref.mounted) return;
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
 
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
@@ -166,22 +180,139 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     state = state.copyWith(searchQuery: query);
   }
 
-  Future<void> startOverlay() async {
+  Future<void> startMonitorSelection() async {
+    final displays = await screenRetriever.getAllDisplays();
+    if (displays.length <= 1) {
+      await capture();
+      return;
+    }
+
+    final currentSize = await windowManager.getSize();
+    final currentPos = await windowManager.getPosition();
+
+    // Spawn spanning window without frozen background
+    final coordinator = ref.read(windowTransitionProvider);
+    await WindowUtils.safeShow();
+    await windowManager.setOpacity(0.01);
+    await coordinator.waitForSync(resize: false, move: false);
+
+    await windowManager.setAsFrameless();
+    await windowManager.setHasShadow(false);
+    await windowManager.setBackgroundColor(Colors.transparent);
+
+    state = state.copyWith(
+      previousWindowSize: currentSize,
+      previousWindowPos: currentPos,
+      isOverlayVisible: true,
+      selectionRect: null,
+      availableDisplays: displays,
+      lockedDisplay: null, // this will make it span all monitors
+      frozenBackgroundBytes: null, // no background = transparent
+      annotations: [],
+    );
+
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
+
+    // Calculate spanning rect
+    double minX = 0, minY = 0, maxX = 0, maxY = 0;
+    for (final d in displays) {
+      final left = d.visiblePosition?.dx ?? 0;
+      final top = d.visiblePosition?.dy ?? 0;
+      final right = left + d.size.width;
+      final bottom = top + d.size.height;
+      if (left < minX) minX = left;
+      if (top < minY) minY = top;
+      if (right > maxX) maxX = right;
+      if (bottom > maxY) maxY = bottom;
+    }
+    await windowManager.setBounds(Rect.fromLTRB(minX, minY, maxX, maxY));
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
+  }
+
+  Future<void> startOverlayWithBytes(Uint8List bytes) async {
     final currentSize = await windowManager.getSize();
     final currentPos = await windowManager.getPosition();
     final displays = await screenRetriever.getAllDisplays();
 
-    // Span the entire virtual desktop
-    double minX = 0, minY = 0, maxX = 0, maxY = 0;
-    for (final display in displays) {
-      final pos = display.visiblePosition ?? Offset.zero;
-      final size = display.size;
-      minX = math.min(minX, pos.dx);
-      minY = math.min(minY, pos.dy);
-      maxX = math.max(maxX, pos.dx + size.width);
-      maxY = math.max(maxY, pos.dy + size.height);
+    Display activeDisplay = await screenRetriever.getPrimaryDisplay();
+    
+    final overlayRect = Rect.fromLTWH(
+      activeDisplay.visiblePosition?.dx ?? 0,
+      activeDisplay.visiblePosition?.dy ?? 0,
+      activeDisplay.size.width,
+      activeDisplay.size.height,
+    );
+
+    final coordinator = ref.read(windowTransitionProvider);
+    await WindowUtils.safeShow();
+    await windowManager.setOpacity(0.0);
+    await coordinator.waitForSync(resize: false, move: false);
+    await windowManager.setAsFrameless();
+    await windowManager.setHasShadow(false);
+    await windowManager.setBackgroundColor(Colors.transparent);
+
+    final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
+    final savedPos = state.isOverlayVisible ? state.previousWindowPos : currentPos;
+
+    state = state.copyWith(
+      previousWindowSize: savedSize,
+      previousWindowPos: savedPos,
+      isOverlayVisible: true,
+      annotations: [],
+      selectionRect: Rect.fromLTWH(0, 0, activeDisplay.size.width, activeDisplay.size.height), // Provide full area for annotation
+      availableDisplays: displays,
+      frozenBackgroundBytes: bytes,
+      captureMode: CaptureMode.area,
+    );
+
+    await coordinator.waitForSync(resize: false, move: false, frame: true);
+    await windowManager.setBounds(overlayRect);
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setIgnoreMouseEvents(false);
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: overlayRect.size,
+      targetOffset: overlayRect.topLeft,
+    );
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
+  }
+
+  Future<void> startOverlay([Display? targetDisplay]) async {
+    final currentSize = await windowManager.getSize();
+    final currentPos = await windowManager.getPosition();
+    final displays = await screenRetriever.getAllDisplays();
+
+    Display? activeDisplay = targetDisplay;
+
+    if (activeDisplay == null) {
+      // Snap window only to the active display (where the cursor is)
+      final cursor = await screenRetriever.getCursorScreenPoint();
+      for (final display in displays) {
+        final rect = Rect.fromLTWH(
+          display.visiblePosition?.dx ?? 0,
+          display.visiblePosition?.dy ?? 0,
+          display.size.width,
+          display.size.height,
+        );
+        if (rect.contains(cursor)) {
+          activeDisplay = display;
+          break;
+        }
+      }
     }
-    final overlayRect = Rect.fromLTRB(minX, minY, maxX, maxY);
+    activeDisplay ??= await screenRetriever.getPrimaryDisplay();
+    
+    final overlayRect = Rect.fromLTWH(
+      activeDisplay.visiblePosition?.dx ?? 0,
+      activeDisplay.visiblePosition?.dy ?? 0,
+      activeDisplay.size.width,
+      activeDisplay.size.height,
+    );
 
     final coordinator = ref.read(windowTransitionProvider);
     // 0. Ensure window is active and visible (even if from tray)
@@ -191,23 +322,40 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
 
+    // 1.5 Capture the clean desktop while our app is invisible
+    
+    Uint8List? frozenBytes;
+    final result = await freezeScreen();
+    if (result is CaptureSuccess<FrozenCanvas>) {
+      frozenBytes = Uint8List.fromList(result.data.bytes);
+    } else if (result is CaptureFailure<FrozenCanvas>) {
+      ref.read(loggingServiceProvider.notifier).logError('[Screenshot] Frozen background snapshot failed: ${result.message}', 'ScreenshotProvider', result.cause);
+    }
+
     // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
     await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
 
+    Rect? initialSelection;
+    if (state.captureMode == CaptureMode.fullScreen && frozenBytes != null) {
+      initialSelection = Rect.fromLTWH(0, 0, activeDisplay.size.width, activeDisplay.size.height);
+    }
+
+    // Only save previous bounds if we aren't already in the overlay state
+    // (startMonitorSelection already saved the true app bounds before spanning)
+    final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
+    final savedPos = state.isOverlayVisible ? state.previousWindowPos : currentPos;
+
     // 3. Update state early so Flutter starts building the transparent overlay UI
     state = state.copyWith(
-      previousWindowSize: currentSize,
-      previousWindowPos: currentPos,
+      previousWindowSize: savedSize,
+      previousWindowPos: savedPos,
       isOverlayVisible: true,
       annotations: [],
-      selectionRect: null,
-      targetedWindowRect: null,
-      targetWindowName: null,
+      selectionRect: initialSelection,
       availableDisplays: displays,
-      lockedDisplay: null,
-      isTargetingWindow: state.captureMode == CaptureMode.window,
+      frozenBackgroundBytes: frozenBytes,
     );
 
     // Wait for Flutter to commit the first frame of the overlay
@@ -216,6 +364,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     // 4. Expand the window while it is ghosted and Flutter is ready
     await windowManager.setBounds(overlayRect);
     await windowManager.setAlwaysOnTop(true);
+    await windowManager.setOpacity(1.0);
+    await windowManager.focus();
     await windowManager.setIgnoreMouseEvents(false);
 
     // 5. Robust sync delay for Windows DWM buffer allocation
@@ -256,7 +406,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       isCapturing: false,
       isOverlayVisible: false,
       selectionRect: null,
-      targetedWindowRect: null,
       lockedDisplay: null,
       annotations: [],
     );
@@ -275,6 +424,15 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     ]);
 
     await windowManager.setOpacity(1.0);
+    
+    // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
+    // when returning from frameless mode on Windows.
+    final s = await windowManager.getSize();
+    await windowManager.setSize(Size(s.width + 1, s.height));
+    await coordinator.waitForSync(resize: true, move: false, frame: false);
+    await windowManager.setSize(s);
+    await coordinator.waitForSync(resize: true, move: false, frame: true);
+
     await windowManager.focus();
   }
 
@@ -295,9 +453,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     state = state.copyWith(selectionRect: rect);
 
-    // Physical lock on Drag End
-    if (rect != null && state.lockedDisplay != null && !state.isCapturing) {
-      _lockToMonitor(rect, providedDisplay: state.lockedDisplay);
+    if (state.frozenBackgroundBytes == null && display != null) {
+      _restartOverlayForMonitor(display);
     }
   }
 
@@ -329,14 +486,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       return;
     }
 
+    final logger = ref.read(loggingServiceProvider.notifier);
+
     state = state.copyWith(isCapturing: true);
     final coordinator = ref.read(windowTransitionProvider);
 
-    // 1. Ghost the window instantly as the absolute FIRST step
-    // This makes the UI feel responsive and ensures the overlay doesn't appear in the screenshot
+    // 1. Ghost the window instantly
     await windowManager.setOpacity(0.01);
-
-    // Give Flutter and DWM a moment to hide the window
     await coordinator.waitForSync(resize: false, move: false);
 
     // Calculate final capture rect
@@ -348,7 +504,6 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         Offset(windowPos.dx, windowPos.dy),
       );
     } else {
-      // Full screen fallback
       final primary = state.availableDisplays.firstWhere(
         (d) => d.visiblePosition?.dx == 0 && d.visiblePosition?.dy == 0,
         orElse: () => state.availableDisplays.first,
@@ -361,10 +516,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       );
     }
 
-    // Construct save path
     final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
     final timestamp = DateTime.now()
@@ -375,71 +529,74 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final savePath = p.join(saveDir.path, filename);
 
     try {
-      // 1. Capture Annotations (Foreground) - High DPI Aware
+      // 1. Capture Annotations (Foreground) in memory
       final captureKey = ref.read(captureKeyProvider);
-      Uint8List? annotationBytes;
+      ui.Image? annotationImage;
+      final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
 
       try {
         final boundary =
             captureKey.currentContext?.findRenderObject()
                 as RenderRepaintBoundary?;
         if (boundary != null) {
-          // Determine the scale factor of the locked monitor
-          final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
-          final image = await boundary.toImage(pixelRatio: ratio);
-          final byteData = await image.toByteData(
-            format: ui.ImageByteFormat.png,
-          );
-          if (byteData != null) {
-            annotationBytes = byteData.buffer.asUint8List();
-          }
+          annotationImage = await boundary.toImage(pixelRatio: ratio);
         }
       } catch (e) {
-        debugPrint('[Screenshot] Annotation capture failed: $e');
+        logger.logError('[Screenshot] Annotation capture failed', 'ScreenshotProvider', e);
       }
 
-      // 2. UNMOUNT the heavy RepaintBoundary UI!
-      // This is the true fix for the UI corruption: by returning SizedBox.shrink()
-      // before we shrink the OS window, we prevent the Flutter graphics pipeline
-      // from crashing when trying to resize a massive multi-monitor texture!
+      // 2. UNMOUNT heavy UI
       ref.read(isScreenshotProcessingProvider.notifier).set(true);
       await coordinator.waitForSync(resize: false, move: false, frame: true);
 
-      final tempDir = await getTemporaryDirectory();
-      final fgPath = p.join(
-        tempDir.path,
-        'sqa_ss_fg_${DateTime.now().millisecondsSinceEpoch}.png',
-      );
-      final bgPath = p.join(
-        tempDir.path,
-        'sqa_ss_bg_${DateTime.now().millisecondsSinceEpoch}.png',
-      );
+      // 3. Background Capture via screen_capturer
+      
+      final frozenBytes = state.frozenBackgroundBytes;
+      if (frozenBytes != null) {
+        
+        // Find target display for cropping logic
+        Display? targetDisplay;
+        double maxOverlap = -1.0;
+        for (final d in state.availableDisplays) {
+          final dRect = Rect.fromLTWH(
+            d.visiblePosition?.dx ?? 0,
+            d.visiblePosition?.dy ?? 0,
+            d.size.width,
+            d.size.height,
+          );
+          final intersection = dRect.intersect(finalRect);
+          final area = intersection.width * intersection.height;
+          if (area > maxOverlap) {
+            maxOverlap = area;
+            targetDisplay = d;
+          }
+        }
+        targetDisplay ??= state.availableDisplays.first;
+        final displayOrigin = targetDisplay.visiblePosition ?? Offset.zero;
 
-      if (annotationBytes != null) {
-        await File(fgPath).writeAsBytes(annotationBytes);
-      }
+        double cropX = (finalRect.left - displayOrigin.dx) * ratio;
+        double cropY = (finalRect.top - displayOrigin.dy) * ratio;
+        double cropW = finalRect.width * ratio;
+        double cropH = finalRect.height * ratio;
+        
+        final srcBgRect = Rect.fromLTWH(cropX, cropY, cropW, cropH);
+        final dstRect = Rect.fromLTWH(0, 0, cropW, cropH);
 
-      // 2. Perform the Background Capture (Clean Screen)
-      // Visual ghosting already handled above, giving OS time to hide window.
-      await coordinator.waitForSync(resize: false, move: false, frame: true);
+        // Load Background Image
+        final bgCodec = await ui.instantiateImageCodec(frozenBytes);
+        final bgImage = (await bgCodec.getNextFrame()).image;
 
-      final bgFile = await FfmpegEngine.takeScreenshot(
-        logicalBounds: finalRect,
-        displays: state.availableDisplays,
-        format: 'PNG',
-        savePath: bgPath,
-      );
+        final recorder = ui.PictureRecorder();
+        final canvas = ui.Canvas(recorder);
 
-      if (bgFile != null) {
-        if (annotationBytes != null) {
-          // 3. Composite FG + BG via FFmpeg
-          // Calculate pixel-perfect offsets
-          final ratio = (state.lockedDisplay?.scaleFactor ?? 1.0).toDouble();
+        // Draw cropped background
+        canvas.drawImageRect(bgImage, srcBgRect, dstRect, ui.Paint());
 
-          // The foreground image is the size of the whole overlay window.
-          // We need to crop it to match the background screenshot's selectionRect.
-          final rect =
-              state.selectionRect ??
+        // Draw foreground annotations if any
+        if (annotationImage != null) {
+          // foreground was captured from the UI window. 
+          // Extract just the selected region.
+          final rect = state.selectionRect ??
               Rect.fromLTWH(
                 0,
                 0,
@@ -447,76 +604,81 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
                 finalRect.height / ratio,
               );
 
-          final offX = (rect.left * ratio).round();
-          final offY = (rect.top * ratio).round();
-          final width = (rect.width * ratio).round();
-          final height = (rect.height * ratio).round();
+          final offX = (rect.left * ratio).roundToDouble();
+          final offY = (rect.top * ratio).roundToDouble();
+          final width = (rect.width * ratio).roundToDouble();
+          final height = (rect.height * ratio).roundToDouble();
 
-          final success = await FfmpegEngine.compositeImages(
-            backgroundPath: bgPath,
-            foregroundPath: fgPath,
-            outputPath: savePath,
-            cropX: offX,
-            cropY: offY,
-            cropW: width,
-            cropH: height,
-          );
+          final srcFgRect = Rect.fromLTWH(offX, offY, width, height);
+          
+          canvas.drawImageRect(annotationImage, srcFgRect, dstRect, ui.Paint());
+        }
 
-          if (!success) {
-            await bgFile.copy(savePath);
+        // Export Final Image
+        final picture = recorder.endRecording();
+        final finalImage = await picture.toImage(cropW.toInt(), cropH.toInt());
+        final byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
+        
+        if (byteData != null) {
+          final pngBytes = byteData.buffer.asUint8List();
+          
+          if (state.format.toLowerCase() == 'png') {
+            await File(savePath).writeAsBytes(pngBytes);
+          } else {
+            final tempDir = await getTemporaryDirectory();
+            final tempFile = File(p.join(tempDir.path, 'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png'));
+            await tempFile.writeAsBytes(pngBytes);
+            
+            final success = await FfmpegEngine.convertImage(
+              inputPath: tempFile.path,
+              outputPath: savePath,
+            );
+            
+            if (await tempFile.exists()) await tempFile.delete();
+            
+            if (!success) {
+              // Fallback to saving as PNG if conversion fails
+              final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+              await File(fallbackPath).writeAsBytes(pngBytes);
+              logger.logWarning('[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.', 'ScreenshotProvider');
+            }
           }
-        } else {
-          await bgFile.copy(savePath);
+
+          if (shouldCopy) {
+            final clipboard = SystemClipboard.instance;
+            if (clipboard != null) {
+              final item = DataWriterItem();
+              item.add(Formats.png(pngBytes));
+              await clipboard.write([item]);
+            }
+          }
         }
+      } else {
+        logger.logError('[Screenshot] Frozen background is missing', 'ScreenshotProvider');
       }
 
-      if (await File(savePath).exists() && shouldCopy) {
-        final clipboard = SystemClipboard.instance;
-        if (clipboard != null) {
-          final item = DataWriterItem();
-          item.add(
-            Formats.png(
-              await File(savePath).readAsBytes(),
-            ), // Note: works for jpg/webp too as raw bytes
-          );
-          await clipboard.write([item]);
-        }
-      }
-
-      // Cleanup temp bits
-      try {
-        if (await File(fgPath).exists()) await File(fgPath).delete();
-        if (await File(bgPath).exists()) await File(bgPath).delete();
-      } catch (_) {}
-    } catch (e) {
-      debugPrint('[Screenshot] Finalize Error: $e');
+    } catch (e, stack) {
+      logger.logError('[Screenshot] Finalize Error', 'ScreenshotProvider', e, stack);
     } finally {
-      final coordinator = ref.read(windowTransitionProvider);
-
-      // 1. Ghost instantly (already nearly invisible from isCapturing, but set 0.01 for structural move)
+      // Restore UI State
       await windowManager.setOpacity(0.01);
       await coordinator.waitForSync(resize: false, move: false);
 
-      // 2. Perform background structural restoration while invisible
       await _restoreWindowInternal();
       await coordinator.waitForSync(resize: true, move: false, frame: false);
 
-      // 3. NOW switch the UI state to Toolbar mode
       state = state.copyWith(
         isCapturing: false,
         isOverlayVisible: false,
         selectionRect: null,
-        targetedWindowRect: null,
         lockedDisplay: null,
         annotations: [],
       );
       ref.read(isScreenshotProcessingProvider.notifier).set(false);
 
-      // 4. Wait for Flutter to commit the Toolbar frame
       await coordinator.waitForSync(resize: false, move: false, frame: true);
       final theme = ref.read(themeSettingsProvider);
 
-      // 5. Finally restore attributes, reveal and focus
       await Future.wait([
         windowManager.setAsFrameless(),
         windowManager.setHasShadow(false),
@@ -526,33 +688,32 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
-
-      // 6. Force a full DWM/Flutter swapchain invalidate!
-      // This solves the UI corruption issue perfectly. Because the window was
-      // ghosted during heavy CPU/GPU processing, DWM/Flutter can fail to 
-      // properly paint the new swapchain after resize. A 1-pixel resize 
-      // guarantees a complete OS-level and Engine-level invalidate/redraw.
-      final size = await windowManager.getSize();
-      await windowManager.setSize(Size(size.width, size.height + 1));
-      await Future<void>.delayed(const Duration(milliseconds: 32));
-      await windowManager.setSize(size);
+      
+      // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
+      // when returning from frameless mode on Windows.
+      final s = await windowManager.getSize();
+      await windowManager.setSize(Size(s.width + 1, s.height));
+      await coordinator.waitForSync(resize: true, move: false, frame: false);
+      await windowManager.setSize(s);
+      await coordinator.waitForSync(resize: true, move: false, frame: true);
 
       refreshRecentCaptures();
     }
   }
 
-  Future<void> capture() async {
-    await startOverlay();
+  Future<void> capture([Display? display]) async {
+    await startOverlay(display);
   }
 
   Future<void> openSaveDirectory() async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    final dir = state.saveDirectory ?? documentsDir.path;
-    final saveDir = Directory(p.join(dir, 'SQA_Screenshots'));
-    final targetDir = await saveDir.exists() ? saveDir : Directory(dir);
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
 
-    if (await targetDir.exists()) {
-      await PlatformUtils.openPath(targetDir.path);
+    if (await saveDir.exists()) {
+      await PlatformUtils.openPath(saveDir.path);
+    } else {
+      await PlatformUtils.openPath(documentsDir.path);
     }
   }
 
@@ -563,7 +724,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         await refreshRecentCaptures();
       }
     } catch (e) {
-      debugPrint('[Screenshot] Failed to delete capture: $e');
+      ref.read(loggingServiceProvider.notifier).logError('[Screenshot] Failed to delete capture', 'ScreenshotProvider', e);
     }
   }
 
@@ -578,7 +739,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         await refreshRecentCaptures();
       }
     } catch (e) {
-      debugPrint('[Screenshot] Failed to rename capture: $e');
+      ref.read(loggingServiceProvider.notifier).logError('[Screenshot] Failed to rename capture', 'ScreenshotProvider', e);
     }
   }
 
@@ -608,106 +769,35 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   // Window Targeting
-  void setTargetingWindow(bool value) {
-    state = state.copyWith(isTargetingWindow: value);
-  }
+  void setTargetingWindow(bool value) {}
 
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) {
-    state = state.copyWith(
-      targetedWindowRect: rect,
-      targetWindowName: name ?? 'Active Window',
-      targetedWindowHwnd: hwnd,
-    );
-  }
+  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) {}
 
   void confirmTargetWindow(Rect rect, String title) {
+    if (state.frozenBackgroundBytes == null && title.startsWith('Display ')) {
+      // We are in "Select Monitor" spanning mode!
+      final displayIndex = int.tryParse(title.split(' ').last) ?? 1;
+      final display = state.availableDisplays.length >= displayIndex 
+          ? state.availableDisplays[displayIndex - 1] 
+          : state.availableDisplays.first;
+      
+      // Launch the real capture on that monitor
+      _restartOverlayForMonitor(display);
+      return;
+    }
+
     state = state.copyWith(
-      isTargetingWindow: false,
       selectionRect: rect,
-      targetWindowName: title,
     );
-
-    _lockToMonitor(rect);
-
-    if (state.targetedWindowHwnd != null && state.targetedWindowHwnd != 0) {
-      WindowUtils.focusWindow(state.targetedWindowHwnd!);
-    }
   }
 
-  /// Physically shrinks the overlay window to cover only the target monitor.
-  Future<void> _lockToMonitor(
-    Rect targetRect, {
-    Display? providedDisplay,
-  }) async {
-    if (!state.isOverlayVisible || state.isCapturing) return;
-
-    final displays = state.availableDisplays;
-    if (displays.isEmpty) return;
-
-    // 1. Identify Target Display
-    Display? targetDisplay = providedDisplay;
-    if (targetDisplay == null) {
-      final windowPos = WindowUtils.getAppWindowPosition();
-      final center = targetRect.center.translate(windowPos.dx, windowPos.dy);
-
-      for (final d in displays) {
-        final dPos = d.visiblePosition ?? Offset.zero;
-        final dRect = Rect.fromLTWH(
-          dPos.dx,
-          dPos.dy,
-          d.size.width,
-          d.size.height,
-        );
-        if (dRect.contains(center)) {
-          targetDisplay = d;
-          break;
-        }
-      }
-    }
-
-    if (targetDisplay == null) return;
-
-    final targetDisplayRect = Rect.fromLTWH(
-      targetDisplay.visiblePosition?.dx ?? 0,
-      targetDisplay.visiblePosition?.dy ?? 0,
-      targetDisplay.size.width,
-      targetDisplay.size.height,
-    );
-
-    final coordinator = ref.read(windowTransitionProvider);
-
-    // 2. Ghost for transition safety
+  Future<void> _restartOverlayForMonitor(Display display) async {
+    // Hide spanning window instantly
     await windowManager.setOpacity(0.01);
-    await coordinator.waitForSync(resize: false, move: false);
-
-    // 3. Coordinate Remapping
-    final windowPos = WindowUtils.getAppWindowPosition();
-    final globalSelection = state.selectionRect?.shift(windowPos);
-    final globalTargeted = state.targetedWindowRect?.shift(windowPos);
-
-    final newWindowPos = targetDisplayRect.topLeft;
-    final newLocalSelection = globalSelection?.shift(-newWindowPos);
-    final newLocalTargeted = globalTargeted?.shift(-newWindowPos);
-
-    // 4. Physical Move
-    await windowManager.setBounds(targetDisplayRect);
-
-    // 5. Sync
-    await coordinator.waitForSync(
-      resize: true,
-      move: true,
-      targetSize: targetDisplayRect.size,
-      targetOffset: targetDisplayRect.topLeft,
-    );
-
-    // 6. Update State
-    state = state.copyWith(
-      selectionRect: newLocalSelection,
-      targetedWindowRect: newLocalTargeted,
-      lockedDisplay: targetDisplay,
-    );
-
-    // 7. Reveal
-    await windowManager.setOpacity(1.0);
+    
+    // Start real overlay on that display
+    await startOverlay(display);
   }
+
+
 }

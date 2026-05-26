@@ -226,20 +226,45 @@ class ScreenRecorderSettings extends ConsumerWidget {
         // --- SECTION: HOTKEYS ---
         Padding(
           padding: const EdgeInsets.only(top: 24, bottom: 12),
-          child: Text(
-            'HOTKEYS',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-          fontSize: SqaTokens.fontSizeSmall,
-          letterSpacing: 1.0,
-          color: theme.colorScheme.primary,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'HOTKEYS',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: SqaTokens.fontSizeSmall,
+                  letterSpacing: 1.0,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Note: Global hotkeys must include at least one modifier key (Ctrl, Alt, or Shift).',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ),
         ),
         SqaCard(
           padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
           child: Column(
             children: [
+              SqaHotkeyField(
+                label: 'Full Screen Record',
+                value: ref.watch(hotkeySettingsProvider).recFullscreen,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeyRecFullscreen, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(context, 'Full Screen Record hotkey updated!', type: SqaToastType.success);
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 0),
               SqaHotkeyField(
                 label: 'Start / Stop Recording',
                 value: ref.watch(hotkeySettingsProvider).recordToggle,

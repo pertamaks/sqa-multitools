@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_windows
   hotkey_manager_windows
   irondash_engine_context
+  screen_capturer_windows
   screen_retriever_windows
   super_native_extensions
   system_tray

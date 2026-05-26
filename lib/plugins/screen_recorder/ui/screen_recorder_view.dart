@@ -19,6 +19,7 @@ import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../core/models/capture_mode.dart';
 import '../../../../core/providers/plugin_provider.dart';
 import '../../../../core/providers/ffmpeg_provider.dart';
+import '../../../../core/providers/hotkey_provider.dart';
 import '../../../../core/utils/platform_utils.dart';
 
 class ScreenRecorderView extends ConsumerStatefulWidget {
@@ -30,6 +31,8 @@ class ScreenRecorderView extends ConsumerStatefulWidget {
 
 class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
   late TextEditingController _searchController;
+  late ScrollController _scrollController;
+  final GlobalKey _historyListKey = GlobalKey();
 
   @override
   void initState() {
@@ -37,16 +40,17 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     _searchController = TextEditingController(
       text: ref.read(screenRecorderProvider).searchQuery,
     );
+    _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _handleStart(BuildContext context) async {
-    final state = ref.read(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
     final engineStatus = ref.read(ffmpegProvider);
 
@@ -58,7 +62,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
         builder: (ctx) => SqaModal<bool>.confirm(
           title: 'Engine Required',
           message:
-              'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.\n\nDo you want to download and install it now?',
+                            'The Screen Recorder requires a lightweight video encoding engine (FFmpeg${engineStatus.formattedRemoteSize != null ? ', ~${engineStatus.formattedRemoteSize}' : ''}) to function fully.\n\nDo you want to download and install it now?',
           confirmLabel: 'Download',
           cancelLabel: 'Cancel',
           icon: Symbols.download,
@@ -85,9 +89,6 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
       return;
     }
 
-    if (state.captureMode == CaptureMode.window) {
-      notifier.setTargetingWindow(true);
-    }
     notifier.startOverlay();
   }
 
@@ -96,7 +97,28 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     final state = ref.watch(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
     final ffmpegStatus = ref.watch(ffmpegProvider);
+    final hotkeys = ref.watch(hotkeySettingsProvider);
     final theme = Theme.of(context);
+
+    // Auto-scroll to newly added recordings
+    ref.listen(screenRecorderProvider.select((s) => s.recentRecordings), (previous, next) {
+      if (previous != null && next.isNotEmpty) {
+        if (previous.isEmpty || next.first.file.path != previous.first.file.path) {
+          Future.delayed(const Duration(milliseconds: 150), () {
+            if (!mounted) return;
+            final contextToScroll = _historyListKey.currentContext;
+            if (contextToScroll != null && contextToScroll.mounted) {
+              Scrollable.ensureVisible(
+                contextToScroll,
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                alignment: 0.0,
+              );
+            }
+          });
+        }
+      }
+    });
 
     return SqaPluginLayout(
       icon: Symbols.videocam,
@@ -121,6 +143,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             )
           : null,
       child: SqaPluginScrollableContent(
+        controller: _scrollController,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,14 +180,14 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                 ConfigSnippet(
                                   icon: switch (state.captureMode) {
                                     CaptureMode.fullScreen =>
-                                      Symbols.fullscreen,
+                                      Symbols.desktop_windows,
                                     CaptureMode.area => Symbols.crop_free,
-                                    CaptureMode.window => Symbols.window,
+                                    CaptureMode.scrolling => Symbols.swipe_down,
                                   },
                                   label: switch (state.captureMode) {
                                     CaptureMode.fullScreen => 'Full Screen',
                                     CaptureMode.area => 'Select Area',
-                                    CaptureMode.window => 'Select Window',
+                                    CaptureMode.scrolling => 'Scrolling Area',
                                   },
                                 ),
                                 const SizedBox(height: SqaTokens.spacingSmall),
@@ -247,24 +270,25 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             ),
             const SizedBox(height: SqaTokens.spacingMedium),
             SqaSegmentedButton<CaptureMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: CaptureMode.fullScreen,
-                  icon: Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Full Screen'),
+                  icon: const Icon(Symbols.desktop_windows, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                  label: const Text('Full Screen'),
+                  tooltip: hotkeys.recFullscreen != null
+                      ? 'Full Screen (${hotkeys.recFullscreen})'
+                      : 'Full Screen — no hotkey assigned',
                 ),
                 ButtonSegment(
                   value: CaptureMode.area,
-                  icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Area'),
-                ),
-                ButtonSegment(
-                  value: CaptureMode.window,
-                  icon: Icon(Symbols.window, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Window'),
+                  icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                  label: const Text('Select Area'),
+                  tooltip: hotkeys.areaRecordToggle != null
+                      ? 'Select Area (${hotkeys.areaRecordToggle})'
+                      : 'Select Area — no hotkey assigned',
                 ),
               ],
-              selected: {state.captureMode},
+              selected: {state.captureMode == CaptureMode.scrolling ? CaptureMode.area : state.captureMode},
               onSelectionChanged: (Set<CaptureMode> set) =>
                   notifier.setCaptureMode(set.first),
             ),
@@ -275,8 +299,8 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   'Captures the entire primary monitor including taskbars.',
                 CaptureMode.area =>
                   'Allows you to draw a custom rectangle on the screen for selective capture.',
-                CaptureMode.window =>
-                  'Automatically locks onto a specific application window.',
+                CaptureMode.scrolling =>
+                  'Record a scrollable area to stitch into a single long screenshot.',
               },
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(
@@ -288,6 +312,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             const SizedBox(height: SqaTokens.spacingXXLarge),
 
             SqaHistoryList<RecordingInfo>(
+              key: _historyListKey,
               items: state.recentRecordings.where((info) {
                 if (state.searchQuery.isEmpty) return true;
                 final query = state.searchQuery.toLowerCase();

@@ -50,7 +50,7 @@ class SqaDependencyCard extends ConsumerWidget {
           const SizedBox(height: SqaTokens.spacingSmall),
           Text(
             status.error ??
-                'The $pluginName requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.',
+                'The $pluginName requires a lightweight video encoding engine (FFmpeg${status.formattedRemoteSize != null ? ', ~${status.formattedRemoteSize}' : ''}) to function fully.',
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: SqaTokens.spacingLarge),

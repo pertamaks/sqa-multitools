@@ -61,9 +61,8 @@ class SqaAnnotationStage extends StatefulWidget {
   final ValueChanged<Annotation> onAnnotationAdded;
   final ValueChanged<Annotation> onAnnotationRemoved;
 
-  // Render props passed down to painter
   final Rect? selectionRect;
-  final Rect? targetedWindowRect;
+  final Rect? hoveredRect;
   final bool isRecording;
   final bool isCapturing;
   final double animationValue;
@@ -90,7 +89,7 @@ class SqaAnnotationStage extends StatefulWidget {
     required this.onAnnotationAdded,
     required this.onAnnotationRemoved,
     required this.selectionRect,
-    required this.targetedWindowRect,
+    this.hoveredRect,
     required this.isRecording,
     required this.isCapturing,
     required this.animationValue,
@@ -447,7 +446,7 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
                 size: Size.infinite,
                 painter: SqaSelectionPainter(
                   selectionRect: widget.selectionRect,
-                  targetedWindowRect: widget.targetedWindowRect,
+                  hoveredRect: widget.hoveredRect,
                   annotations: widget.annotations,
                   isRecording: widget.isRecording,
                   isCapturing: widget.isCapturing,

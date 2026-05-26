@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -50,7 +51,6 @@ class _ScreenshotOverlayState extends ConsumerState<ScreenshotOverlay> {
 
     // UI structural changes that must trigger a rebuild
     ref.watch(screenshotProvider.select((s) => s.selectionRect));
-    ref.watch(screenshotProvider.select((s) => s.targetedWindowRect));
     ref.watch(screenshotProvider.select((s) => s.captureMode));
     ref.watch(screenshotProvider.select((s) => s.availableDisplays));
     ref.watch(screenshotProvider.select((s) => s.annotations));
@@ -162,15 +162,9 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override
   bool get isOverlayVisible => _state.isOverlayVisible;
   @override
-  bool get isTargetingWindow => _state.isTargetingWindow;
-  @override
   CaptureMode get captureMode => _state.captureMode;
   @override
   Rect? get selectionRect => _state.selectionRect;
-  @override
-  Rect? get targetedWindowRect => _state.targetedWindowRect;
-  @override
-  String? get targetWindowName => _state.targetWindowName;
   @override
   List<Annotation> get annotations => _annotationsNotifier.value;
   @override
@@ -185,6 +179,10 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   Display? get lockedDisplay => _state.lockedDisplay;
   @override
   List<Display> get availableDisplays => _state.availableDisplays;
+  @override
+  Uint8List? get frozenBackgroundBytes => _state.frozenBackgroundBytes;
+  @override
+  bool get isSelectingMonitor => _state.frozenBackgroundBytes == null;
   @override
   bool get isCapturing => _state.isCapturing;
   @override
@@ -205,12 +203,6 @@ class _ScreenshotDelegate implements CaptureOverlayDelegate {
   @override
   void setTextHasBackground(bool value) =>
       _notifier.setTextHasBackground(value);
-  @override
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) =>
-      _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override
-  void confirmTargetWindow(Rect rect, String title) =>
-      _notifier.confirmTargetWindow(rect, title);
 
   // Defaults for non-recording plugin
   @override

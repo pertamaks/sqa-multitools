@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
+import '../engine/long_screenshot_stitcher.dart';
 
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -22,11 +23,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default('1080p') String resolution,
     @Default('MP4') String format,
     @Default(CaptureMode.fullScreen) CaptureMode captureMode,
-    @Default('Active Window') String targetWindowName,
     @Default(false) bool isOverlayVisible,
-    @Default(false) bool isTargetingWindow,
-    Rect? targetedWindowRect,
-    int? targetedWindowHwnd,
     @Default([]) List<String> availableAudioDevices,
     String? selectedAudioDevice,
     @Default(Colors.white) Color clickFeedbackColor,
@@ -49,6 +46,9 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default([]) List<RecordingInfo> recentRecordings,
     Display? lockedDisplay,
     @Default(false) bool textHasBackground,
+    @Default(false) bool isLongScreenshotSession,
+    @Default(false) bool isStitching,
+    @Default(StitchAxis.vertical) StitchAxis scrollDirection,
     @Default('') String searchQuery,
     @JsonKey(includeFromJson: false, includeToJson: false)
     HotKey? registeredHotKey,

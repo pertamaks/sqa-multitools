@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_secure_storage_linux
   hotkey_manager_linux
   irondash_engine_context
+  screen_capturer_linux
   screen_retriever_linux
   super_native_extensions
   system_tray

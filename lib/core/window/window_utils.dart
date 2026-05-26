@@ -41,18 +41,9 @@ class WindowUtils {
   // Platform-delegated methods
   // ---------------------------------------------------------------------------
 
-  /// Finds the top-level window at the current mouse position and returns its
-  /// info, skipping windows from our own process (the overlay).
-  static WindowInfo? getWindowInfoAt() =>
-      WindowNativeApi.instance.getWindowInfoAt();
-
   /// Fetches the current application window's position synchronously.
   static Offset getAppWindowPosition() =>
       WindowNativeApi.instance.getAppWindowPosition();
-
-  /// Fetches a list of active window titles.
-  static Future<List<String>> getActiveWindowTitles() =>
-      WindowNativeApi.instance.getActiveWindowTitles();
 
   /// Fetches human-readable monitor names (e.g., "BenQ RL2455").
   static Future<List<String>> getFriendlyMonitorNames() =>

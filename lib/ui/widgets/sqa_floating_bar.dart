@@ -167,53 +167,54 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                   if (widget.leading != null) ...[...widget.leading!],
 
                   // Flexible Scrollable Center (Collapses)
-                  Flexible(
-                    child: MouseRegion(
-                      onEnter: (_) => _setExpanded(true),
-                      child: AnimatedSize(
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeOutCubic,
-                        alignment: Alignment.centerLeft,
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: _isExpanded
-                              ? Padding(
-                                  key: const ValueKey('tools'),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: SqaTokens.spacingSmall,
-                                  ),
-                                  child: SqaFadeWrapper(
-                                    axis: Axis.horizontal,
-                                    child: ScrollConfiguration(
-                                      behavior:
-                                          const SqaMouseDragScrollBehavior(),
-                                      child: SingleChildScrollView(
-                                        controller: _scrollController,
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: widget.children,
+                  if (widget.children.isNotEmpty)
+                    Flexible(
+                      child: MouseRegion(
+                        onEnter: (_) => _setExpanded(true),
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOutCubic,
+                          alignment: Alignment.centerLeft,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: _isExpanded
+                                ? Padding(
+                                    key: const ValueKey('tools'),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: SqaTokens.spacingSmall,
+                                    ),
+                                    child: SqaFadeWrapper(
+                                      axis: Axis.horizontal,
+                                      child: ScrollConfiguration(
+                                        behavior:
+                                            const SqaMouseDragScrollBehavior(),
+                                        child: SingleChildScrollView(
+                                          controller: _scrollController,
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: widget.children,
+                                          ),
                                         ),
                                       ),
                                     ),
+                                  )
+                                : Padding(
+                                    key: const ValueKey('more'),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: SqaTokens.spacingMedium,
+                                    ),
+                                    child: Icon(
+                                      Icons.more_horiz,
+                                      size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                                      color: theme.colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.5),
+                                    ),
                                   ),
-                                )
-                              : Padding(
-                                  key: const ValueKey('more'),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: SqaTokens.spacingMedium,
-                                  ),
-                                  child: Icon(
-                                    Icons.more_horiz,
-                                    size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
-                                    color: theme.colorScheme.onSurfaceVariant
-                                        .withValues(alpha: 0.5),
-                                  ),
-                                ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                   // Fixed Trailing Anchor (Always visible)
                   if (widget.trailing != null) ...[...widget.trailing!],

@@ -58,6 +58,7 @@ class SqaTokens {
   static const double contentPaddingHorizontal = spacingXLarge;
   static const double contentPaddingVertical = spacingMedium;
   static const double toolbarHeight = 56.0;
+  static const double floatingBarHeight = 56.0;
 
   // --- Animation ---
   static const Duration durationFast = Duration(milliseconds: 150);

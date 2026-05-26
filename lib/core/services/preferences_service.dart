@@ -53,6 +53,10 @@ class PreferencesService {
   static const String keyHotkeyRecordToggle = 'hotkey_record_toggle';
   static const String keyHotkeyScreenshotToggle = 'hotkey_screenshot_toggle';
   static const String keyHotkeyAreaRecord = 'hotkey_area_record';
+  static const String keyHotkeySsFullscreen = 'hotkey_ss_fullscreen';
+  static const String keyHotkeySsArea = 'hotkey_ss_area';
+  static const String keyHotkeySsLong = 'hotkey_ss_long';
+  static const String keyHotkeyRecFullscreen = 'hotkey_rec_fullscreen';
   static const String keyAppOpacity = 'app_opacity';
   static const String keyTransparencyMode = 'transparency_mode';
 

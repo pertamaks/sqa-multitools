@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -8,6 +9,7 @@ import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
 import '../providers/screen_recorder_provider.dart';
 import '../models/screen_recorder_state.dart';
+import '../engine/long_screenshot_stitcher.dart';
 import '../../../ui/widgets/sqa_capture_overlay.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_dropdown.dart';
@@ -57,11 +59,11 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
     ref.watch(screenRecorderProvider.select((s) => s.durationSeconds));
     ref.watch(screenRecorderProvider.select((s) => s.countdownSeconds));
     ref.watch(screenRecorderProvider.select((s) => s.selectionRect));
-    ref.watch(screenRecorderProvider.select((s) => s.targetedWindowRect));
     ref.watch(screenRecorderProvider.select((s) => s.captureMode));
     ref.watch(screenRecorderProvider.select((s) => s.availableDisplays));
     ref.watch(screenRecorderProvider.select((s) => s.annotations));
     ref.watch(screenRecorderProvider.select((s) => s.textHasBackground));
+    ref.watch(screenRecorderProvider.select((s) => s.scrollDirection));
 
     if (!isVisible) return const SizedBox.shrink();
 
@@ -85,86 +87,133 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
 
     return SqaCaptureOverlay(
       delegate: _RecorderDelegate(state, notifier, _annotationsNotifier),
-      leadingActionsBuilder: (context) => [
-        // Record/Stop button
-        SqaFloatingBarButton(
-          icon: isRecording ? Symbols.stop_circle : Symbols.play_arrow,
-          tooltip: isRecording ? 'Stop & Save' : 'Start',
-          onPressed: () {
-            notifier.toggleRecording();
-          },
-          isPrimary: !isRecording,
-          color: isRecording ? Colors.red : null,
-        ),
+      leadingActionsBuilder: (context) {
+        if (state.isLongScreenshotSession) {
+          final isVertical = state.scrollDirection == StitchAxis.vertical;
+          return [
+            if (!isRecording) ...[
+              SqaFloatingBarButton(
+                icon: Symbols.play_arrow,
+                tooltip: 'Start Scrolling Capture',
+                onPressed: () => notifier.toggleRecording(),
+                isPrimary: true,
+              ),
+              SqaFloatingBarButton(
+                icon: isVertical ? Symbols.swap_vert : Symbols.swap_horiz,
+                tooltip: 'Direction: ${isVertical ? 'Vertical' : 'Horizontal'}',
+                onPressed: () => notifier.toggleScrollDirection(),
+              ),
+              SqaFloatingBarButton(
+                icon: Symbols.close,
+                tooltip: 'Cancel',
+                onPressed: () => notifier.cancelOverlay(),
+                color: Colors.red,
+              ),
+            ] else ...[
+              SqaFloatingBarButton(
+                icon: Symbols.check,
+                tooltip: 'Finish & Stitch',
+                onPressed: () => notifier.toggleRecording(),
+                isPrimary: true,
+                color: Colors.green,
+              ),
+              SqaFloatingBarButton(
+                icon: Symbols.close,
+                tooltip: 'Cancel Capture',
+                onPressed: () => notifier.cancelOverlay(),
+                color: Colors.red,
+              ),
+            ],
+          ];
+        }
 
-        if (!isRecording)
+        return [
+          // Original Record/Stop button
           SqaFloatingBarButton(
-            icon: Symbols.close,
-            tooltip: countdownSeconds > 0
-                ? 'Cancel Countdown'
-                : 'Cancel Overlay',
+            icon: isRecording ? Symbols.stop_circle : Symbols.play_arrow,
+            tooltip: isRecording ? 'Stop & Save' : 'Start',
             onPressed: () {
-              if (countdownSeconds > 0) {
-                notifier.cancelCountdown();
-              } else {
-                notifier.cancelOverlay();
-              }
+              notifier.toggleRecording();
             },
-            color: Colors.red,
+            isPrimary: !isRecording,
+            color: isRecording ? Colors.red : null,
           ),
-      ],
-      toolbarBuilder: (context) => [
-        // Mic Toggle
-        SqaFloatingBarButton(
-          icon: microphoneEnabled ? Symbols.mic : Symbols.mic_off,
-          tooltip: 'Toggle Microphone',
-          onPressed: isRecording ? null : () => notifier.toggleMicrophone(),
-          isSelected: microphoneEnabled,
-        ),
 
-        // Delay selector (only before recording)
-        if (!isRecording) ...[
-          const SqaFloatingBarDivider(),
-          SqaDropdown<int>(
-            value: delaySeconds,
-            onChanged: (val) {
-              if (val != null) notifier.setDelay(val);
-            },
-            items: [0, 2, 5, 10]
-                .map((e) => DropdownMenuItem(value: e, child: Text('${e}s')))
-                .toList(),
+          if (!isRecording)
+            SqaFloatingBarButton(
+              icon: Symbols.close,
+              tooltip: countdownSeconds > 0
+                  ? 'Cancel Countdown'
+                  : 'Cancel Overlay',
+              onPressed: () {
+                if (countdownSeconds > 0) {
+                  notifier.cancelCountdown();
+                } else {
+                  notifier.cancelOverlay();
+                }
+              },
+              color: Colors.red,
+            ),
+        ];
+      },
+      toolbarBuilder: (context) {
+        if (state.isLongScreenshotSession) {
+          return []; // Hide all extra tools for scrolling mode
+        }
+
+        return [
+          // Mic Toggle
+          SqaFloatingBarButton(
+            icon: microphoneEnabled ? Symbols.mic : Symbols.mic_off,
+            tooltip: 'Toggle Microphone',
+            onPressed: isRecording ? null : () => notifier.toggleMicrophone(),
+            isSelected: microphoneEnabled,
           ),
-        ],
 
-        if (isRecording) ...[
-          const SqaFloatingBarDivider(),
+          // Delay selector (only before recording)
+          if (!isRecording) ...[
+            const SqaFloatingBarDivider(),
+            SqaDropdown<int>(
+              value: delaySeconds,
+              onChanged: (val) {
+                if (val != null) notifier.setDelay(val);
+              },
+              items: [0, 2, 5, 10]
+                  .map((e) => DropdownMenuItem(value: e, child: Text('${e}s')))
+                  .toList(),
+            ),
+          ],
 
-          // Annotation Tools & Colors
-          Consumer(
-            builder: (context, ref, child) {
-              final state = ref.watch(screenRecorderProvider);
-              return SqaAnnotationToolbar(
-                enabledTools: const [
-                  ScreenshotTool.pointer,
-                  ScreenshotTool.pen,
-                  ScreenshotTool.marker,
-                  ScreenshotTool.eraser,
-                  ScreenshotTool.arrow,
-                  ScreenshotTool.rectangle,
-                  ScreenshotTool.laser,
-                ],
-                currentTool: state.currentTool,
-                onToolSelected: notifier.setTool,
-                currentColor: state.annotationColor,
-                onColorSelected: notifier.setColor,
-                textHasBackground: state.textHasBackground,
-                onTextBackgroundToggled: notifier.setTextHasBackground,
-                onClear: notifier.clearAnnotations,
-              );
-            },
-          ),
-        ],
-      ],
+          if (isRecording) ...[
+            const SqaFloatingBarDivider(),
+
+            // Annotation Tools & Colors
+            Consumer(
+              builder: (context, ref, child) {
+                final state = ref.watch(screenRecorderProvider);
+                return SqaAnnotationToolbar(
+                  enabledTools: const [
+                    ScreenshotTool.pointer,
+                    ScreenshotTool.pen,
+                    ScreenshotTool.marker,
+                    ScreenshotTool.eraser,
+                    ScreenshotTool.arrow,
+                    ScreenshotTool.rectangle,
+                    ScreenshotTool.laser,
+                  ],
+                  currentTool: state.currentTool,
+                  onToolSelected: notifier.setTool,
+                  currentColor: state.annotationColor,
+                  onColorSelected: notifier.setColor,
+                  textHasBackground: state.textHasBackground,
+                  onTextBackgroundToggled: notifier.setTextHasBackground,
+                  onClear: notifier.clearAnnotations,
+                );
+              },
+            ),
+          ],
+        ];
+      },
     );
   }
 }
@@ -179,15 +228,9 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override
   bool get isOverlayVisible => _state.isOverlayVisible;
   @override
-  bool get isTargetingWindow => _state.isTargetingWindow;
-  @override
   CaptureMode get captureMode => _state.captureMode;
   @override
   Rect? get selectionRect => _state.selectionRect;
-  @override
-  Rect? get targetedWindowRect => _state.targetedWindowRect;
-  @override
-  String? get targetWindowName => _state.targetWindowName;
   @override
   List<Annotation> get annotations => _annotationsNotifier.value;
   @override
@@ -202,6 +245,10 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   Display? get lockedDisplay => _state.lockedDisplay;
   @override
   List<Display> get availableDisplays => _state.availableDisplays;
+  @override
+  Uint8List? get frozenBackgroundBytes => null;
+  @override
+  bool get isSelectingMonitor => false;
 
   @override
   void setSelection(Rect? rect, [Display? display]) =>
@@ -240,12 +287,7 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   @override
   void setTextHasBackground(bool value) =>
       _notifier.setTextHasBackground(value);
-  @override
-  void updateTargetedWindow(Rect? rect, String? name, [int? hwnd]) =>
-      _notifier.updateTargetedWindow(rect, name, hwnd);
-  @override
-  void confirmTargetWindow(Rect rect, String title) =>
-      _notifier.confirmTargetWindow(rect, title);
+
 
   @override
   Future<void> setIgnoreMouseEvents(bool ignore) =>

@@ -141,7 +141,6 @@ void main() {
 
       expect(state.isRecording, false);
       expect(state.captureMode, CaptureMode.fullScreen);
-      expect(state.targetWindowName, 'Active Window');
     });
 
     test('toggleRecording starts and stops recording', () async {
@@ -169,20 +168,10 @@ void main() {
         CaptureMode.area,
       );
 
-      notifier.setCaptureMode(CaptureMode.window);
+      notifier.setCaptureMode(CaptureMode.area);
       expect(
         container.read(screenRecorderProvider).captureMode,
-        CaptureMode.window,
-      );
-    });
-
-    test('setTargetWindow updates state', () {
-      final notifier = container.read(screenRecorderProvider.notifier);
-
-      notifier.setTargetWindow('Notepad');
-      expect(
-        container.read(screenRecorderProvider).targetWindowName,
-        'Notepad',
+        CaptureMode.area,
       );
     });
   });

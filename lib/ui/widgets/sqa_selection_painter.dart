@@ -9,7 +9,7 @@ import '../../core/models/click_ripple.dart';
 /// Used by both Screen Recorder and Screenshot plugins to ensure UI consistency.
 class SqaSelectionPainter extends CustomPainter {
   final Rect? selectionRect;
-  final Rect? targetedWindowRect;
+  final Rect? hoveredRect;
   final List<Annotation> annotations;
   final bool isRecording;
   final bool isCapturing;
@@ -28,7 +28,7 @@ class SqaSelectionPainter extends CustomPainter {
 
   SqaSelectionPainter({
     this.selectionRect,
-    this.targetedWindowRect,
+    this.hoveredRect,
     required this.annotations,
     required this.isRecording,
     required this.isCapturing,
@@ -57,17 +57,16 @@ class SqaSelectionPainter extends CustomPainter {
       if (selectionRect != null) {
         path.addRect(selectionRect!);
         path.fillType = PathFillType.evenOdd;
-      } else if (targetedWindowRect != null) {
-        // Spotlight the targeted window/monitor if no selection is active
-        path.addRect(targetedWindowRect!);
+      } else if (hoveredRect != null) {
+        path.addRect(hoveredRect!);
         path.fillType = PathFillType.evenOdd;
       }
 
       canvas.drawPath(path, backgroundPaint);
     }
 
-    // 2. Window/Monitor Hover Highlight
-    if (!isCapturing && targetedWindowRect != null && selectionRect == null) {
+    // 2. Monitor Hover Highlight
+    if (!isCapturing && hoveredRect != null && selectionRect == null) {
       final targetPaint = Paint()
         ..color = Colors.blue.withValues(alpha: 0.2)
         ..style = PaintingStyle.fill;
@@ -78,11 +77,11 @@ class SqaSelectionPainter extends CustomPainter {
         ..strokeWidth = SqaTokens.borderWidthThin * 2;
 
       canvas.drawRRect(
-        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(hoveredRect!, const Radius.circular(SqaTokens.radiusSmall)),
         targetPaint,
       );
       canvas.drawRRect(
-        RRect.fromRectAndRadius(targetedWindowRect!, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(hoveredRect!, const Radius.circular(SqaTokens.radiusSmall)),
         borderPaint,
       );
     } else if (!isCapturing && selectionRect != null) {

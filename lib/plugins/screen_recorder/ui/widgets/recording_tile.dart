@@ -39,79 +39,96 @@ class RecordingTile extends StatelessWidget {
         ? filename.substring(0, filename.lastIndexOf('.'))
         : filename;
 
-    return ListTile(
-      dense: true,
-      leading: SqaIconContainer(
-        icon: Symbols.movie,
-        color: theme.colorScheme.primary,
-        size: SqaTokens.spacingXXLarge,
-        iconSize: SqaTokens.spacingLarge,
-      ),
-      title: Text(
-        filename,
-        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        '${_formatSize(info.size)} • ${info.modified.hour}:${info.modified.minute.toString().padLeft(2, '0')}',
-        style: theme.textTheme.labelSmall,
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SqaHoverIconButton(
-            icon: Symbols.play_arrow,
-            onPressed: onOpen,
-            tooltip: 'Play',
-            iconSize: SqaTokens.spacingLarge + 2,
-          ),
-          SqaPopupMenu(
-            icon: Symbols.more_vert,
-            tooltip: 'Actions',
-            children: [
-              SqaPopupMenuItem(
-                onPressed: () async {
-                  final newName = await SqaModal.showPrompt(
-                    context,
-                    title: 'Rename Recording',
-                    message: 'Enter a new name for this recording:',
-                    initialValue: nameWithoutExt,
-                    validator: onValidate,
-                  );
-                  if (newName != null && newName.isNotEmpty) {
-                    onRename(newName);
-                  }
-                },
-                icon: const Icon(Symbols.edit),
-                label: 'Rename',
+    return InkWell(
+      onTap: onOpen,
+      borderRadius: BorderRadius.circular(SqaTokens.radiusMedium),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SqaTokens.spacingLarge,
+          vertical: SqaTokens.spacingSmall + 2,
+        ),
+        child: Row(
+          children: [
+            SqaIconContainer(
+              icon: Symbols.movie,
+              color: theme.colorScheme.primary,
+              size: SqaTokens.spacingXXLarge,
+              iconSize: SqaTokens.spacingLarge,
+            ),
+            const SizedBox(width: SqaTokens.spacingLarge),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    filename,
+                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${_formatSize(info.size)} • ${info.modified.day.toString().padLeft(2, '0')}/${info.modified.month.toString().padLeft(2, '0')}/${info.modified.year} ${info.modified.hour.toString().padLeft(2, '0')}:${info.modified.minute.toString().padLeft(2, '0')}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
               ),
-              SqaPopupMenuItem(
-                onPressed: onOpenFolder,
-                icon: const Icon(Symbols.folder_open),
-                label: 'Open Folder',
-              ),
-              const Divider(height: 1),
-              SqaPopupMenuItem(
-                onPressed: () async {
-                  final confirm = await SqaModal.showDanger(
-                    context,
-                    title: 'Delete Recording?',
-                    message:
-                        'Are you sure you want to permanently delete this file? This action cannot be undone.',
-                    confirmLabel: 'Delete',
-                    icon: Symbols.delete,
-                  );
-                  if (confirm == true) {
-                    onDelete();
-                  }
-                },
-                icon: const Icon(Symbols.delete),
-                label: 'Delete',
-                isDestructive: true,
-              ),
-            ],
-          ),
-        ],
+            ),
+            SqaHoverIconButton(
+              icon: Symbols.play_arrow,
+              onPressed: onOpen,
+              tooltip: 'Play',
+              iconSize: SqaTokens.spacingLarge + 2,
+            ),
+            SqaPopupMenu(
+              icon: Symbols.more_vert,
+              tooltip: 'Actions',
+              children: [
+                SqaPopupMenuItem(
+                  onPressed: () async {
+                    final newName = await SqaModal.showPrompt(
+                      context,
+                      title: 'Rename Recording',
+                      message: 'Enter a new name for this recording:',
+                      initialValue: nameWithoutExt,
+                      validator: onValidate,
+                    );
+                    if (newName != null && newName.isNotEmpty) {
+                      onRename(newName);
+                    }
+                  },
+                  icon: const Icon(Symbols.edit),
+                  label: 'Rename',
+                ),
+                SqaPopupMenuItem(
+                  onPressed: onOpenFolder,
+                  icon: const Icon(Symbols.folder_open),
+                  label: 'Open Folder',
+                ),
+                const Divider(height: 1),
+                SqaPopupMenuItem(
+                  onPressed: () async {
+                    final confirm = await SqaModal.showDanger(
+                      context,
+                      title: 'Delete Recording?',
+                      message:
+                          'Are you sure you want to permanently delete this file? This action cannot be undone.',
+                      confirmLabel: 'Delete',
+                      icon: Symbols.delete,
+                    );
+                    if (confirm == true) {
+                      onDelete();
+                    }
+                  },
+                  icon: const Icon(Symbols.delete),
+                  label: 'Delete',
+                  isDestructive: true,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

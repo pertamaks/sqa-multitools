@@ -43,17 +43,9 @@ abstract class WindowNativeApi {
   // Window discovery
   // ---------------------------------------------------------------------------
 
-  /// Returns info about the topmost non-SQA-Multitools window under the
-  /// current cursor position. Returns [null] if unavailable or not supported.
-  WindowInfo? getWindowInfoAt();
-
   /// Returns the current logical screen position of the SQA-Multitools
   /// application window. Returns [Offset.zero] if unavailable.
   Offset getAppWindowPosition();
-
-  /// Returns a list of visible application window titles.
-  /// Returns an empty list if unavailable or not supported.
-  Future<List<String>> getActiveWindowTitles();
 
   /// Returns human-readable monitor/display names (e.g. "BenQ RL2455").
   /// Returns an empty list if unavailable or not supported.

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart' show Color, Colors, Rect, Size, Offset;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -19,10 +20,6 @@ abstract class ScreenshotState with _$ScreenshotState {
     @Default(false) bool isOverlayVisible,
     @Default(null) Rect? selectionRect,
     @Default([]) List<Annotation> annotations,
-    @Default(false) bool isTargetingWindow,
-    Rect? targetedWindowRect,
-    String? targetWindowName,
-    int? targetedWindowHwnd,
     String? saveDirectory,
     Size? previousWindowSize,
     Offset? previousWindowPos,
@@ -31,6 +28,7 @@ abstract class ScreenshotState with _$ScreenshotState {
     @Default(false) bool textHasBackground,
     @Default('') String searchQuery,
     Display? lockedDisplay,
+    Uint8List? frozenBackgroundBytes,
   }) = _ScreenshotState;
 }
 

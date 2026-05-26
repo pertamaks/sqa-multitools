@@ -68,6 +68,13 @@ class FfmpegEngine {
     return false;
   }
 
+  static Future<String?> getExecutablePath() async {
+    if (await isEngineAvailable()) {
+      return _resolvedExecutable;
+    }
+    return null;
+  }
+
   /// Downloads and extracts the FFmpeg binary.
   static Future<void> downloadEngine(
     void Function(double progress) onProgress,
@@ -129,7 +136,11 @@ class FfmpegEngine {
       }
     } finally {
       if (await archiveFile.exists()) {
-        await archiveFile.delete();
+        try {
+          await archiveFile.delete();
+        } catch (e) {
+          debugPrint('Warning: Failed to delete temporary archive: $e');
+        }
       }
     }
   }
@@ -177,8 +188,7 @@ class FfmpegEngine {
     ));
 
     final filters = <String>[];
-    if (config.captureMode == CaptureMode.window ||
-        config.captureRect != null) {
+    if (config.captureRect != null) {
       final rect = config.captureRect!;
 
       // 1. Calculate Virtual Desktop logical bounds
@@ -510,6 +520,32 @@ class FfmpegEngine {
       return result.exitCode == 0;
     } catch (e) {
       debugPrint('[FfmpegEngine] Compositing failed: $e');
+      return false;
+    }
+  }
+  /// Converts an image file to another format using FFmpeg.
+  static Future<bool> convertImage({
+    required String inputPath,
+    required String outputPath,
+  }) async {
+    if (!await isEngineAvailable() || _resolvedExecutable == null) return false;
+
+    final args = [
+      '-y',
+      '-i',
+      inputPath,
+      outputPath,
+    ];
+
+    try {
+      final result = await Process.run(
+        _resolvedExecutable!,
+        args,
+      ).timeout(const Duration(seconds: 15));
+
+      return result.exitCode == 0;
+    } catch (e) {
+      debugPrint('[FfmpegEngine] Convert image failed: $e');
       return false;
     }
   }

@@ -542,6 +542,11 @@ class GeneralSettingsView extends ConsumerWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Note: Global hotkeys must include at least one modifier key (Ctrl, Alt, or Shift).',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
                 const SizedBox(height: SqaTokens.spacingLarge),
                 SqaHotkeyField(
                   label: 'Universal Toolbar Shortcut',

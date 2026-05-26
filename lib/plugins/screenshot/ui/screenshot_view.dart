@@ -11,6 +11,7 @@ import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../core/models/capture_mode.dart';
+import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/providers/plugin_provider.dart';
 import '../../../core/utils/platform_utils.dart';
 import '../providers/screenshot_provider.dart';
@@ -63,6 +64,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
   Widget build(BuildContext context) {
     final state = ref.watch(screenshotProvider);
     final notifier = ref.read(screenshotProvider.notifier);
+    final hotkeys = ref.watch(hotkeySettingsProvider);
     final theme = Theme.of(context);
 
     // Auto-scroll to newly added captures
@@ -74,7 +76,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
           Future.delayed(const Duration(milliseconds: 150), () {
             if (!mounted) return;
             final contextToScroll = _historyListKey.currentContext;
-            if (contextToScroll != null) {
+            if (contextToScroll != null && contextToScroll.mounted) {
               Scrollable.ensureVisible(
                 contextToScroll,
                 duration: const Duration(milliseconds: 600),
@@ -210,21 +212,30 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
               ),
               const SizedBox(height: SqaTokens.spacingMedium),
               SqaSegmentedButton<CaptureMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: CaptureMode.fullScreen,
-                    icon: Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Full Screen'),
+                    icon: const Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: const Text('Full Screen'),
+                    tooltip: hotkeys.ssFullscreen != null
+                        ? 'Full Screen (${hotkeys.ssFullscreen})'
+                        : 'Full Screen — no hotkey assigned',
                   ),
                   ButtonSegment(
                     value: CaptureMode.area,
-                    icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Area'),
+                    icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: const Text('Area'),
+                    tooltip: hotkeys.ssArea != null
+                        ? 'Area (${hotkeys.ssArea})'
+                        : 'Area — no hotkey assigned',
                   ),
                   ButtonSegment(
                     value: CaptureMode.scrolling,
-                    icon: Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: Text('Long SS'),
+                    icon: const Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    label: const Text('Long SS'),
+                    tooltip: hotkeys.ssLong != null
+                        ? 'Long Screenshot (${hotkeys.ssLong})'
+                        : 'Long Screenshot — no hotkey assigned',
                   ),
                 ],
                 selected: {state.captureMode},

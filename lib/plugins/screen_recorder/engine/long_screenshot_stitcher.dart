@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -63,7 +62,7 @@ class LongScreenshotStitcher {
         
         // Yield to event loop every few frames to prevent UI freeze
         if (i % 5 == 0) {
-          await Future.delayed(Duration.zero);
+          await Future<void>.delayed(Duration.zero);
         }
       }
 
@@ -133,10 +132,10 @@ class LongScreenshotStitcher {
   }
 
   /// This runs in a compute isolate to avoid UI freeze.
-  /// Expects a map with 'projections': List<Float32List> and 'frameHeight': int
+  /// Expects a map with 'projections': `List<Float32List>` and 'frameHeight': int
   static Future<List<int>> _computeOffsetsIsolate(Map<String, dynamic> args) async {
-    final List<Float32List> projections = args['projections'];
-    final int frameHeight = args['frameHeight'];
+    final List<Float32List> projections = args['projections'] as List<Float32List>;
+    final int frameHeight = args['frameHeight'] as int;
     
     if (projections.isEmpty) return [];
 
@@ -176,11 +175,15 @@ class LongScreenshotStitcher {
       
       // Calculate query stats
       double queryMean = 0;
-      for (final v in query) queryMean += v;
+      for (final v in query) {
+        queryMean += v;
+      }
       queryMean /= query.length;
       
       double queryStd = 0;
-      for (final v in query) queryStd += math.pow(v - queryMean, 2);
+      for (final v in query) {
+        queryStd += math.pow(v - queryMean, 2);
+      }
       queryStd = math.sqrt(queryStd / query.length);
       if (queryStd < 0.001) queryStd = 1.0; 
 

@@ -241,6 +241,21 @@ class ScreenRecorderSettings extends ConsumerWidget {
           child: Column(
             children: [
               SqaHotkeyField(
+                label: 'Full Screen Record',
+                value: ref.watch(hotkeySettingsProvider).recFullscreen,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeyRecFullscreen, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(context, 'Full Screen Record hotkey updated!', type: SqaToastType.success);
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 0),
+              SqaHotkeyField(
                 label: 'Start / Stop Recording',
                 value: ref.watch(hotkeySettingsProvider).recordToggle,
                 onSave: (info) {

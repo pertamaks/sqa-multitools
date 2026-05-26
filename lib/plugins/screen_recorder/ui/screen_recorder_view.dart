@@ -19,6 +19,7 @@ import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../core/models/capture_mode.dart';
 import '../../../../core/providers/plugin_provider.dart';
 import '../../../../core/providers/ffmpeg_provider.dart';
+import '../../../../core/providers/hotkey_provider.dart';
 import '../../../../core/utils/platform_utils.dart';
 
 class ScreenRecorderView extends ConsumerStatefulWidget {
@@ -96,6 +97,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     final state = ref.watch(screenRecorderProvider);
     final notifier = ref.read(screenRecorderProvider.notifier);
     final ffmpegStatus = ref.watch(ffmpegProvider);
+    final hotkeys = ref.watch(hotkeySettingsProvider);
     final theme = Theme.of(context);
 
     // Auto-scroll to newly added recordings
@@ -105,7 +107,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
           Future.delayed(const Duration(milliseconds: 150), () {
             if (!mounted) return;
             final contextToScroll = _historyListKey.currentContext;
-            if (contextToScroll != null) {
+            if (contextToScroll != null && contextToScroll.mounted) {
               Scrollable.ensureVisible(
                 contextToScroll,
                 duration: const Duration(milliseconds: 600),
@@ -268,16 +270,22 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             ),
             const SizedBox(height: SqaTokens.spacingMedium),
             SqaSegmentedButton<CaptureMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: CaptureMode.fullScreen,
-                  icon: Icon(Symbols.desktop_windows, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Full Screen'),
+                  icon: const Icon(Symbols.desktop_windows, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                  label: const Text('Full Screen'),
+                  tooltip: hotkeys.recFullscreen != null
+                      ? 'Full Screen (${hotkeys.recFullscreen})'
+                      : 'Full Screen — no hotkey assigned',
                 ),
                 ButtonSegment(
                   value: CaptureMode.area,
-                  icon: Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                  label: Text('Select Area'),
+                  icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                  label: const Text('Select Area'),
+                  tooltip: hotkeys.areaRecordToggle != null
+                      ? 'Select Area (${hotkeys.areaRecordToggle})'
+                      : 'Select Area — no hotkey assigned',
                 ),
               ],
               selected: {state.captureMode == CaptureMode.scrolling ? CaptureMode.area : state.captureMode},

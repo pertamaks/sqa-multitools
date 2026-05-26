@@ -25,6 +25,7 @@ import '../../../core/providers/capture_key_provider.dart';
 import '../../../core/services/logging_service.dart';
 import '../../../core/engine/silent_frozen_canvas.dart';
 import '../../../core/engine/ffmpeg_engine.dart';
+import '../../screen_recorder/providers/screen_recorder_provider.dart';
 
 part 'screenshot_provider.g.dart';
 
@@ -48,9 +49,21 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       if (!ref.mounted) return;
       _loadPreferences();
       refreshRecentCaptures();
-      // Register global hotkey callback
+      // Register global hotkey callbacks
       ref.read(hotkeySettingsProvider.notifier).setScreenshotToggleCallback(() {
         capture();
+      });
+      ref.read(hotkeySettingsProvider.notifier).setSsFullscreenCallback(() {
+        setCaptureMode(CaptureMode.fullScreen);
+        capture();
+      });
+      ref.read(hotkeySettingsProvider.notifier).setSsAreaCallback(() {
+        setCaptureMode(CaptureMode.area);
+        capture();
+      });
+      ref.read(hotkeySettingsProvider.notifier).setSsLongCallback(() {
+        setCaptureMode(CaptureMode.scrolling);
+        ref.read(screenRecorderProvider.notifier).startLongScreenshotSession();
       });
     });
 

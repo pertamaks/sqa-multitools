@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
@@ -67,6 +66,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
       hotkeyNotifier.setRecordToggleCallback(() {
         toggleRecording();
+      });
+
+      hotkeyNotifier.setRecFullscreenCallback(() {
+        setCaptureMode(CaptureMode.fullScreen);
+        startOverlay();
       });
     });
 

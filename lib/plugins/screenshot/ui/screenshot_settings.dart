@@ -117,26 +117,68 @@ class ScreenshotSettings extends ConsumerWidget {
         ),
         SqaCard(
           padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
-          child: SqaHotkeyField(
-            label: 'Start Capture',
-            value: ref.watch(hotkeySettingsProvider).screenshotToggle,
-            onSave: (info) {
-              final error = ref
-                  .read(hotkeySettingsProvider.notifier)
-                  .updateHotkey(
-                    PreferencesService.keyHotkeyScreenshotToggle,
-                    info,
-                  );
-              if (error != null) {
-                SqaToast.show(context, error, type: SqaToastType.error);
-              } else {
-                SqaToast.show(
-                  context,
-                  'Screenshot hotkey updated!',
-                  type: SqaToastType.success,
-                );
-              }
-            },
+          child: Column(
+            children: [
+              SqaHotkeyField(
+                label: 'Full Screen Capture',
+                value: ref.watch(hotkeySettingsProvider).ssFullscreen,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeySsFullscreen, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(context, 'Full Screen hotkey updated!', type: SqaToastType.success);
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 0),
+              SqaHotkeyField(
+                label: 'Area Capture',
+                value: ref.watch(hotkeySettingsProvider).ssArea,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeySsArea, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(context, 'Area hotkey updated!', type: SqaToastType.success);
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 0),
+              SqaHotkeyField(
+                label: 'Long Screenshot',
+                value: ref.watch(hotkeySettingsProvider).ssLong,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeySsLong, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(context, 'Long Screenshot hotkey updated!', type: SqaToastType.success);
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 0),
+              SqaHotkeyField(
+                label: 'General Capture',
+                value: ref.watch(hotkeySettingsProvider).screenshotToggle,
+                onSave: (info) {
+                  final error = ref
+                      .read(hotkeySettingsProvider.notifier)
+                      .updateHotkey(PreferencesService.keyHotkeyScreenshotToggle, info);
+                  if (error != null) {
+                    SqaToast.show(context, error, type: SqaToastType.error);
+                  } else {
+                    SqaToast.show(context, 'General screenshot hotkey updated!', type: SqaToastType.success);
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ],

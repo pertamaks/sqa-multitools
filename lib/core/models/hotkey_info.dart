@@ -5,7 +5,8 @@ class HotkeyInfo {
   final int keyCode;
   final List<int> modifierIndices;
 
-  const HotkeyInfo({required this.keyCode, required this.modifierIndices});
+  HotkeyInfo({required this.keyCode, required List<int> modifierIndices})
+      : modifierIndices = List<int>.from(modifierIndices)..sort();
 
   /// Converts this info to a hotkey_manager HotKey object.
   HotKey toHotKey({

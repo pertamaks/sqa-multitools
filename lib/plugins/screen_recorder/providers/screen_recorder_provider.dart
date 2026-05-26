@@ -165,6 +165,15 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     await startOverlay();
   }
 
+  /// Toggles the scroll direction for long screenshot between vertical and horizontal.
+  void toggleScrollDirection() {
+    state = state.copyWith(
+      scrollDirection: state.scrollDirection == StitchAxis.vertical
+          ? StitchAxis.horizontal
+          : StitchAxis.vertical,
+    );
+  }
+
   Future<void> startOverlay([Rect? targetBounds]) async {
     final engineReady = ref.read(ffmpegProvider).isReady;
     if (!engineReady) {
@@ -863,7 +872,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     state = state.copyWith(isStitching: true);
 
     try {
-      final Uint8List? finalImage = await LongScreenshotStitcher.stitch(videoPath);
+      final Uint8List? finalImage =
+            await LongScreenshotStitcher.stitch(videoPath, direction: state.scrollDirection);
       
       if (finalImage != null) {
         debugPrint('Long Screenshot: Stitching complete! Saving to disk...');

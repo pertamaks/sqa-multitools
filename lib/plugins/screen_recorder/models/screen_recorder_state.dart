@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../core/models/capture_mode.dart';
 import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
+import '../engine/long_screenshot_stitcher.dart';
 
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -47,6 +48,7 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     @Default(false) bool textHasBackground,
     @Default(false) bool isLongScreenshotSession,
     @Default(false) bool isStitching,
+    @Default(StitchAxis.vertical) StitchAxis scrollDirection,
     @Default('') String searchQuery,
     @JsonKey(includeFromJson: false, includeToJson: false)
     HotKey? registeredHotKey,

@@ -105,14 +105,24 @@ class ScreenshotSettings extends ConsumerWidget {
         // --- SECTION: HOTKEYS ---
         Padding(
           padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
-          child: Text(
-            'HOTKEYS',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: SqaTokens.fontSizeSmall,
-              letterSpacing: 1.0,
-              color: theme.colorScheme.primary,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'HOTKEYS',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: SqaTokens.fontSizeSmall,
+                  letterSpacing: 1.0,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Note: Global hotkeys must include at least one modifier key (Ctrl, Alt, or Shift).',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ),
         ),
         SqaCard(

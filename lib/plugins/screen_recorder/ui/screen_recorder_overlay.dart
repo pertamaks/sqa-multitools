@@ -9,6 +9,7 @@ import '../../../core/models/annotation.dart';
 import '../../../core/models/screenshot_tool.dart';
 import '../providers/screen_recorder_provider.dart';
 import '../models/screen_recorder_state.dart';
+import '../engine/long_screenshot_stitcher.dart';
 import '../../../ui/widgets/sqa_capture_overlay.dart';
 import '../../../ui/widgets/sqa_floating_bar.dart';
 import '../../../ui/widgets/sqa_dropdown.dart';
@@ -62,6 +63,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
     ref.watch(screenRecorderProvider.select((s) => s.availableDisplays));
     ref.watch(screenRecorderProvider.select((s) => s.annotations));
     ref.watch(screenRecorderProvider.select((s) => s.textHasBackground));
+    ref.watch(screenRecorderProvider.select((s) => s.scrollDirection));
 
     if (!isVisible) return const SizedBox.shrink();
 
@@ -87,6 +89,7 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
       delegate: _RecorderDelegate(state, notifier, _annotationsNotifier),
       leadingActionsBuilder: (context) {
         if (state.isLongScreenshotSession) {
+          final isVertical = state.scrollDirection == StitchAxis.vertical;
           return [
             if (!isRecording) ...[
               SqaFloatingBarButton(
@@ -94,6 +97,11 @@ class _ScreenRecorderOverlayState extends ConsumerState<ScreenRecorderOverlay> {
                 tooltip: 'Start Scrolling Capture',
                 onPressed: () => notifier.toggleRecording(),
                 isPrimary: true,
+              ),
+              SqaFloatingBarButton(
+                icon: isVertical ? Symbols.swap_vert : Symbols.swap_horiz,
+                tooltip: 'Direction: ${isVertical ? 'Vertical' : 'Horizontal'}',
+                onPressed: () => notifier.toggleScrollDirection(),
               ),
               SqaFloatingBarButton(
                 icon: Symbols.close,

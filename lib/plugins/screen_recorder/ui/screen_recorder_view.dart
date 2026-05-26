@@ -62,7 +62,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
         builder: (ctx) => SqaModal<bool>.confirm(
           title: 'Engine Required',
           message:
-              'The Screen Recorder requires a lightweight video encoding engine (FFmpeg, ~30MB) to function fully.\n\nDo you want to download and install it now?',
+                            'The Screen Recorder requires a lightweight video encoding engine (FFmpeg${engineStatus.formattedRemoteSize != null ? ', ~${engineStatus.formattedRemoteSize}' : ''}) to function fully.\n\nDo you want to download and install it now?',
           confirmLabel: 'Download',
           cancelLabel: 'Cancel',
           icon: Symbols.download,

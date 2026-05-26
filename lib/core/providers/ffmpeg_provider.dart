@@ -11,25 +11,37 @@ class FfmpegStatus {
   final bool isDownloading;
   final double? downloadProgress;
   final String? error;
+  final int? remoteSizeBytes;
 
   const FfmpegStatus({
     this.isReady = false,
     this.isDownloading = false,
     this.downloadProgress,
     this.error,
+    this.remoteSizeBytes,
   });
+
+  String? get formattedRemoteSize {
+    if (remoteSizeBytes == null) return null;
+    final bytes = remoteSizeBytes!;
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB';
+    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).round()} MB';
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
 
   FfmpegStatus copyWith({
     bool? isReady,
     bool? isDownloading,
     double? downloadProgress,
     String? error,
+    int? remoteSizeBytes,
   }) {
     return FfmpegStatus(
       isReady: isReady ?? this.isReady,
       isDownloading: isDownloading ?? this.isDownloading,
       downloadProgress: downloadProgress ?? this.downloadProgress,
       error: error ?? this.error,
+      remoteSizeBytes: remoteSizeBytes ?? this.remoteSizeBytes,
     );
   }
 }
@@ -46,6 +58,12 @@ class Ffmpeg extends _$Ffmpeg {
     final available = await FfmpegEngine.isEngineAvailable();
     if (!ref.mounted) return;
     state = state.copyWith(isReady: available);
+
+    if (!available) {
+      final size = await FfmpegEngine.fetchRemoteSize();
+      if (!ref.mounted) return;
+      state = state.copyWith(remoteSizeBytes: size);
+    }
   }
 
   Future<void> download() async {

@@ -76,6 +76,8 @@ class FfmpegEngine {
   }
 
   /// Downloads and extracts the FFmpeg binary.
+  /// If a valid archive already exists on disk (from a previous failed attempt),
+  /// the download is skipped and extraction is retried directly.
   static Future<void> downloadEngine(
     void Function(double progress) onProgress,
   ) async {
@@ -83,10 +85,26 @@ class FfmpegEngine {
     final archiveFile = File(p.join(dir.path, _config.archiveTempName));
     final ffmpegDir = Directory(p.join(dir.path, 'ffmpeg'));
 
-    try {
+    // If a valid archive already exists from a prior run, skip the download.
+    if (await archiveFile.exists()) {
+      try {
+        await _validateZipArchive(archiveFile.path, -1);
+        onProgress(0.5); // Already downloaded
+      } catch (_) {
+        // Corrupt or truncated — delete it so we re-download below.
+        try {
+          await archiveFile.delete();
+        } catch (_) {}
+      }
+    }
+
+    if (!await archiveFile.exists()) {
       final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 30);
       final request = await client.getUrl(Uri.parse(_downloadUrl));
-      final response = await request.close();
+      final response = await request.close().timeout(
+        const Duration(seconds: 15),
+      );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to download FFmpeg: ${response.statusCode}');
@@ -105,43 +123,117 @@ class FfmpegEngine {
       }
       await sink.close();
 
+      if (contentLength > 0 && receivedBytes < contentLength) {
+        throw Exception(
+          'Download incomplete: received $receivedBytes of $contentLength bytes.',
+        );
+      }
+
       if (contentLength < 0) {
         onProgress(1.0); // Assume done if length was unknown
       }
 
-      // Extract archive (format handled by platform config)
-      onProgress(-1); // Indeterminate state during extraction
+      await _validateZipArchive(archiveFile.path, contentLength);
+    }
 
-      if (!await ffmpegDir.exists()) {
-        await ffmpegDir.create(recursive: true);
-      }
-      await _config.extractArchive(archiveFile.path, ffmpegDir.path);
+    // Extract archive (format handled by platform config)
+    onProgress(-1); // Indeterminate state during extraction
 
-      // We must optionally move the bin contents up, or just find ffmpeg binary.
-      final extractedBins = await ffmpegDir
-          .list(recursive: true)
-          .where((e) => e is File && e.path.endsWith(_executableName))
-          .toList();
+    if (!await ffmpegDir.exists()) {
+      await ffmpegDir.create(recursive: true);
+    }
+    await _config.extractArchive(archiveFile.path, ffmpegDir.path);
 
-      if (extractedBins.isNotEmpty) {
-        final actualExe = extractedBins.first as File;
-        final targetExe = await _executableFile;
-        if (!await targetExe.parent.exists()) {
-          await targetExe.parent.create(recursive: true);
-        }
-        await actualExe.copy(targetExe.path);
-        _resolvedExecutable = targetExe.path;
-      } else {
-        throw Exception('$_executableName not found in downloaded archive.');
+    final extractedBins = await ffmpegDir
+        .list(recursive: true)
+        .where((e) => e is File && e.path.endsWith(_executableName))
+        .toList();
+
+    if (extractedBins.isNotEmpty) {
+      final actualExe = extractedBins.first as File;
+      final targetExe = await _executableFile;
+      if (!await targetExe.parent.exists()) {
+        await targetExe.parent.create(recursive: true);
       }
-    } finally {
-      if (await archiveFile.exists()) {
-        try {
-          await archiveFile.delete();
-        } catch (e) {
-          debugPrint('Warning: Failed to delete temporary archive: $e');
-        }
+      await actualExe.copy(targetExe.path);
+      _resolvedExecutable = targetExe.path;
+    } else {
+      throw Exception('$_executableName not found in downloaded archive.');
+    }
+
+    // Success — clean up the archive. On failure it stays for the next attempt.
+    if (await archiveFile.exists()) {
+      try {
+        await archiveFile.delete();
+      } catch (e) {
+        debugPrint('Warning: Failed to delete temporary archive: $e');
       }
+    }
+  }
+
+  /// Fetches the remote archive size in bytes without downloading the full file.
+  static Future<int?> fetchRemoteSize() async {
+    try {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 10);
+      final request = await client.getUrl(Uri.parse(_downloadUrl));
+      final response = await request.close().timeout(
+        const Duration(seconds: 10),
+      );
+
+      if (response.statusCode != 200) return null;
+
+      final size = response.contentLength;
+      response.drain<void>();
+      return size > 0 ? size : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Verifies that a file is a well-formed ZIP archive by checking the local
+  /// file header signature at the start and the end-of-central-directory record
+  /// near the tail. This catches truncated or corrupt downloads before extraction.
+  static Future<void> _validateZipArchive(String path, int expectedSize) async {
+    final file = File(path);
+    final actualSize = await file.length();
+
+    if (actualSize < 22) {
+      throw Exception('Downloaded archive is too small ($actualSize bytes).');
+    }
+
+    if (expectedSize > 0 && actualSize < expectedSize) {
+      throw Exception(
+        'Archive size mismatch: expected $expectedSize, got $actualSize bytes.',
+      );
+    }
+
+    // Verify ZIP local file header signature (PK\x03\x04)
+    final header = await file.openRead(0, 4).toList();
+    if (header.isEmpty || header.first.length < 4) {
+      throw Exception('Cannot read archive header.');
+    }
+    final magic = header.first;
+    if (magic[0] != 0x50 || magic[1] != 0x4B || magic[2] != 0x03 || magic[3] != 0x04) {
+      throw Exception('Downloaded file is not a valid ZIP archive.');
+    }
+
+    // Verify end-of-central-directory signature (PK\x05\x06) in the last 64 KB
+    final tailStart = actualSize > 65536 ? actualSize - 65536 : 0;
+    final tail = await file.openRead(tailStart, actualSize).toList();
+    final tailBytes = tail.expand((b) => b).toList();
+    bool foundEocd = false;
+    for (int i = tailBytes.length - 22; i >= 0; i--) {
+      if (tailBytes[i] == 0x50 &&
+          tailBytes[i + 1] == 0x4B &&
+          tailBytes[i + 2] == 0x05 &&
+          tailBytes[i + 3] == 0x06) {
+        foundEocd = true;
+        break;
+      }
+    }
+    if (!foundEocd) {
+      throw Exception('ZIP central directory not found — archive may be truncated.');
     }
   }
 

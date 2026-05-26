@@ -61,8 +61,8 @@ abstract class FfmpegPlatformConfig {
 }
 
 /// ZIP extraction helper used by the default [FfmpegPlatformConfig.extractArchive].
-void _extractZipSync(Map<String, String> args) {
-  extractFileToDisk(args['archivePath']!, args['destPath']!);
+Future<void> _extractZipSync(Map<String, String> args) async {
+  await extractFileToDisk(args['archivePath']!, args['destPath']!);
 }
 
 /// Windows implementation using gdigrab and dshow.

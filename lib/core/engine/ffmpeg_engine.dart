@@ -136,7 +136,11 @@ class FfmpegEngine {
       }
     } finally {
       if (await archiveFile.exists()) {
-        await archiveFile.delete();
+        try {
+          await archiveFile.delete();
+        } catch (e) {
+          debugPrint('Warning: Failed to delete temporary archive: $e');
+        }
       }
     }
   }

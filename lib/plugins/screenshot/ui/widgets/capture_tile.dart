@@ -10,6 +10,7 @@ class CaptureTile extends StatelessWidget {
   final CaptureInfo info;
   final VoidCallback onDelete;
   final VoidCallback onOpen;
+  final VoidCallback onAnnotate;
   final VoidCallback onOpenFolder;
   final void Function(String) onRename;
   final String? Function(String) onValidate;
@@ -19,6 +20,7 @@ class CaptureTile extends StatelessWidget {
     required this.info,
     required this.onDelete,
     required this.onOpen,
+    required this.onAnnotate,
     required this.onOpenFolder,
     required this.onRename,
     required this.onValidate,
@@ -98,6 +100,12 @@ class CaptureTile extends StatelessWidget {
               icon: Symbols.more_vert,
               tooltip: 'Actions',
               children: [
+                SqaPopupMenuItem(
+                  onPressed: onAnnotate,
+                  icon: const Icon(Symbols.edit_square),
+                  label: 'Annotate',
+                ),
+                const Divider(height: 1),
                 SqaPopupMenuItem(
                   onPressed: () async {
                     final newName = await SqaModal.showPrompt(

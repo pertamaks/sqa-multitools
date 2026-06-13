@@ -3,12 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_multi_window
   dynamic_color
   file_selector_linux
   flutter_secure_storage_linux
   hotkey_manager_linux
   irondash_engine_context
   media_kit_libs_linux
+  media_kit_video
   screen_capturer_linux
   screen_retriever_linux
   super_native_extensions

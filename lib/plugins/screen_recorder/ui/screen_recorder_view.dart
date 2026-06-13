@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/window/window_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'dart:convert';
 import 'package:path/path.dart' as p;
 import '../providers/screen_recorder_provider.dart';
 import '../models/screen_recorder_state.dart';
@@ -422,6 +424,33 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   onValidate: (name) =>
                       notifier.validateNewName(name, info),
                   onOpen: () => PlatformUtils.openPath(info.file.path),
+                  onAnnotate: () async {
+                    final windows = await WindowController.getAll();
+                    WindowController? annotatorWindow;
+                    for (final w in windows) {
+                      if (w.arguments.contains('"type":"annotator"')) {
+                        annotatorWindow = w;
+                        break;
+                      }
+                    }
+
+                    if (annotatorWindow != null) {
+                      await annotatorWindow.invokeMethod('setMedia', {
+                        'filePath': info.file.path,
+                        'format': state.format,
+                      });
+                      await annotatorWindow.show();
+                    } else {
+                      annotatorWindow = await WindowController.create(
+                        WindowConfiguration(arguments: jsonEncode({
+                          'type': 'annotator',
+                          'filePath': info.file.path,
+                          'format': state.format,
+                        })),
+                      );
+                      await annotatorWindow.show();
+                    }
+                  },
                   onOpenFolder: () =>
                       notifier.openSaveDirectory(),
                 );

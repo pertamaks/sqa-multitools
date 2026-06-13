@@ -12,6 +12,7 @@ import 'package:appflowy_editor/appflowy_editor.dart';
 import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:media_kit/media_kit.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/logging_service.dart';
 import 'ui/main_toolbar.dart';
@@ -23,12 +24,41 @@ import 'ui/widgets/sqa_styles.dart';
 import 'ui/widgets/sqa_scroll_behavior.dart';
 import 'ui/widgets/sqa_toast.dart';
 import 'core/ui/sqa_theme.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'dart:convert';
+import 'package:path/path.dart' as p;
+import 'ui/widgets/media_annotator/media_annotator_app.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 late final ProviderContainer globalProviderContainer;
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (args.isNotEmpty && args[0] == 'multi_window') {
+    final windowId = args[1];
+    final argument = args[2].isEmpty ? const <String, dynamic>{} : Map<String, dynamic>.from(jsonDecode(args[2]) as Map);
+    
+    MediaKit.ensureInitialized();
+    await windowManager.ensureInitialized();
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1280, 720),
+      center: true,
+      titleBarStyle: TitleBarStyle.hidden,
+      alwaysOnTop: true,
+    );
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      final title = argument['filePath'] != null 
+          ? 'Annotator: ${p.basename(argument['filePath'])}' 
+          : 'Annotator';
+      await windowManager.setTitle(title);
+      await windowManager.show();
+      await windowManager.focus();
+    });
+
+    runApp(MediaAnnotatorApp(windowId: windowId, args: argument));
+    return;
+  }
 
   final prefs = await SharedPreferences.getInstance();
 
@@ -109,6 +139,15 @@ void main() async {
   });
 
   await TrayManager.init(globalProviderContainer);
+
+  WindowController.fromWindowId('0').setWindowMethodHandler((call) async {
+    if (call.method == 'refresh') {
+      globalProviderContainer.invalidate(screenshotProvider);
+      globalProviderContainer.invalidate(screenRecorderProvider);
+      return true;
+    }
+    return false;
+  });
 
   runApp(
     UncontrolledProviderScope(

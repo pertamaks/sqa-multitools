@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'dart:convert';
 import 'package:path/path.dart' as p;
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_card.dart';
@@ -291,6 +293,33 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                       onValidate: (name) =>
                           notifier.validateNewName(name, info),
                       onOpen: () => PlatformUtils.openPath(info.file.path),
+                      onAnnotate: () async {
+                        final windows = await WindowController.getAll();
+                        WindowController? annotatorWindow;
+                        for (final w in windows) {
+                          if (w.arguments.contains('"type":"annotator"')) {
+                            annotatorWindow = w;
+                            break;
+                          }
+                        }
+
+                        if (annotatorWindow != null) {
+                          await annotatorWindow.invokeMethod('setMedia', {
+                            'filePath': info.file.path,
+                            'format': state.format,
+                          });
+                          await annotatorWindow.show();
+                        } else {
+                          annotatorWindow = await WindowController.create(
+                            WindowConfiguration(arguments: jsonEncode({
+                              'type': 'annotator',
+                              'filePath': info.file.path,
+                              'format': state.format,
+                            })),
+                          );
+                          await annotatorWindow.show();
+                        }
+                      },
                       onOpenFolder: () =>
                           notifier.openSaveDirectory(),
                     );

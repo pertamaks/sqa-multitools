@@ -803,7 +803,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       if (await info.file.exists()) {
         final dir = info.file.parent.path;
         final extension = info.file.path.split('.').last;
-        final newPath = '$dir/$newName.$extension';
+        final newPath = p.join(dir, '$newName.$extension');
 
         await info.file.rename(newPath);
         await refreshRecentCaptures();
@@ -829,7 +829,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (name == nameWithoutExt) return null; // No change
 
     final extension = filename.split('.').last;
-    final targetPath = '${currentInfo.file.parent.path}/$name.$extension';
+    final targetPath = p.join(currentInfo.file.parent.path, '$name.$extension');
 
     if (File(targetPath).existsSync()) {
       return 'A file with this name already exists';

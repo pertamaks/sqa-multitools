@@ -137,7 +137,7 @@ void main() {
     );
     expect(notifier.validateNewName('SQA_SS_2', info1), isNotNull); // Duplicate
     expect(
-      notifier.validateNewName('invalid*name', info1),
+      notifier.validateNewName('invalid/name', info1),
       isNotNull,
     ); // Invalid char
     expect(notifier.validateNewName('ValidName', info1), isNull); // Valid
@@ -150,6 +150,6 @@ void main() {
       state.recentCaptures.any((i) => i.file.path.contains('NewName.png')),
       true,
     );
-    expect(File('${screenshotsDir.path}\\NewName.png').existsSync(), true);
+    expect(File(p.join(screenshotsDir.path, 'NewName.png')).existsSync(), true);
   });
 }

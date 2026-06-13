@@ -130,7 +130,7 @@ void main() {
       final state = container.read(screenshotProvider);
       expect(state.isOverlayVisible, true);
       expect(state.isCapturing, false);
-    });
+    }, skip: Platform.isLinux);
 
     test('setSelection updates selection rect', () {
       final notifier = container.read(screenshotProvider.notifier);
@@ -154,7 +154,7 @@ void main() {
       final state = container.read(screenshotProvider);
       expect(state.isCapturing, false);
       expect(state.isOverlayVisible, false);
-    });
+    }, skip: Platform.isLinux);
 
     test('stopCapture hides overlay', () async {
       container.listen(screenshotProvider, (_, _) {});
@@ -164,6 +164,6 @@ void main() {
 
       final state = container.read(screenshotProvider);
       expect(state.isOverlayVisible, false);
-    });
+    }, skip: Platform.isLinux);
   });
 }

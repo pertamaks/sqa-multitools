@@ -3,13 +3,15 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
+import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors, Alignment;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:dbus/dbus.dart';
 import '../../../core/utils/platform_utils.dart';
+import '../../../core/window/window_constants.dart';
 import '../models/screen_recorder_state.dart';
 import '../engine/long_screenshot_stitcher.dart';
 import '../../../core/models/capture_mode.dart';
@@ -33,6 +35,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   bool _isStopping = false;
   Timer? _laserTimer;
   String? _currentSavePath;
+  DBusClient? _waylandDbusClient;
 
   @override
   ScreenRecorderState build() {
@@ -43,6 +46,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         _ffmpegProcess?.kill();
         _ffmpegProcess = null;
       }
+      _waylandDbusClient?.close();
     });
 
     // Listen to engine status changes
@@ -174,7 +178,100 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     );
   }
 
+  Future<void> triggerWaylandPortal([Display? monitor]) async {
+    try {
+      _waylandDbusClient ??= DBusClient.session();
+      final object = DBusRemoteObject(
+        _waylandDbusClient!,
+        name: 'org.gnome.Shell.Screencast',
+        path: DBusObjectPath('/org/gnome/Shell/Screencast'),
+      );
+
+      final documentsDir = await getApplicationDocumentsDirectory();
+      final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+      final saveDir = Directory(saveDirPath);
+      if (!await saveDir.exists()) {
+        await saveDir.create(recursive: true);
+      }
+      final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[:.-]'), '').replaceAll(' ', '_');
+      final outPath = p.join(saveDirPath, 'sqa_rec_$timestamp.webm');
+
+      if (monitor != null) {
+        final pos = monitor.visiblePosition ?? Offset.zero;
+        final size = monitor.size;
+        await object.callMethod(
+          'org.gnome.Shell.Screencast',
+          'ScreencastArea',
+          [
+            DBusInt32(pos.dx.toInt()),
+            DBusInt32(pos.dy.toInt()),
+            DBusInt32(size.width.toInt()),
+            DBusInt32(size.height.toInt()),
+            DBusString(outPath),
+            DBusDict.stringVariant({}),
+          ],
+        );
+      } else {
+        await object.callMethod(
+          'org.gnome.Shell.Screencast',
+          'Screencast',
+          [
+            DBusString(outPath),
+            DBusDict.stringVariant({}),
+          ],
+        );
+      }
+      final currentSize = await windowManager.getSize();
+      final currentPos = await windowManager.getPosition();
+      state = state.copyWith(
+        isRecording: true,
+        previousWindowSize: currentSize,
+        previousWindowPos: currentPos,
+      );
+
+      // Wayland Toolbar Mode setup
+      await windowManager.setAlwaysOnTop(true);
+      // Do not close the client, otherwise GNOME immediately stops the recording!
+    } catch (e) {
+      debugPrint('[ScreenRecorder] Wayland portal trigger failed: $e');
+    }
+  }
+
+  Future<void> stopWaylandPortal() async {
+    try {
+      if (_waylandDbusClient == null) return;
+      final object = DBusRemoteObject(
+        _waylandDbusClient!,
+        name: 'org.gnome.Shell.Screencast',
+        path: DBusObjectPath('/org/gnome/Shell/Screencast'),
+      );
+      await object.callMethod(
+        'org.gnome.Shell.Screencast',
+        'StopScreencast',
+        [],
+      );
+      await _waylandDbusClient!.close();
+      _waylandDbusClient = null;
+      state = state.copyWith(isRecording: false);
+
+      // Restore window
+      await windowManager.setAlwaysOnTop(false);
+      await windowManager.setAlignment(Alignment.center);
+
+      // Give GNOME a moment to flush the video file to disk, then refresh the list
+      Future.delayed(const Duration(milliseconds: 500), () {
+        refreshRecentRecordings();
+      });
+    } catch (e) {
+      debugPrint('[ScreenRecorder] Wayland portal stop failed: $e');
+    }
+  }
+
   Future<void> startOverlay([Rect? targetBounds]) async {
+    if (Platform.isLinux) {
+      throw 'Screen recording is delegated to the native OS on Linux. Please use your system recorder and save to the SQA_Recordings folder.';
+    }
+
     final engineReady = ref.read(ffmpegProvider).isReady;
     if (!engineReady) {
       throw 'Engine not ready.';
@@ -264,7 +361,10 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   /// Toggles whether the window intercepts mouse events.
   /// Used to allow clicking THROUGH the overlay to reach underlying apps.
   Future<void> setIgnoreMouseEvents(bool ignore) async {
-    await windowManager.setIgnoreMouseEvents(ignore);
+    if (Platform.isLinux) return;
+    try {
+      await windowManager.setIgnoreMouseEvents(ignore);
+    } catch (_) {}
   }
 
   Future<void> toggleRecording() async {

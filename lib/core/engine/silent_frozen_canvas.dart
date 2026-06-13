@@ -37,7 +37,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
-
+import 'package:screen_capturer/screen_capturer.dart';
+import 'package:dbus/dbus.dart';
 // ---------------------------------------------------------------------------
 // Result type — every operation returns this, never a raw throw
 // ---------------------------------------------------------------------------
@@ -187,6 +188,7 @@ class _ScreenCapturerStrategy implements _CaptureStrategy {
   Future<bool> isAvailable() async {
     if (Platform.isWindows) return false; // Force FFI fallback on Windows
     try {
+      // The screen_capturer package is available on macOS and Linux
       return true;
     } catch (_) {
       return false;
@@ -195,7 +197,125 @@ class _ScreenCapturerStrategy implements _CaptureStrategy {
 
   @override
   Future<CaptureResult<Uint8List>> capture(CaptureRegion region) async {
-    return CaptureFailure('screen_capturer not wired in this version');
+    try {
+      final tempDir = Directory.systemTemp;
+      final outPath =
+          '${tempDir.path}${Platform.pathSeparator}sqa_frozen_sc_${DateTime.now().microsecondsSinceEpoch}.png';
+
+      final capturedData = await screenCapturer.capture(
+        mode: region.isFullscreen ? CaptureMode.screen : CaptureMode.region,
+        imagePath: outPath,
+        silent: !Platform.isLinux,
+      );
+
+      if (capturedData == null || capturedData.imagePath == null) {
+        return CaptureFailure('screen_capturer returned null or user canceled');
+      }
+
+      final outFile = File(capturedData.imagePath!);
+      if (!await outFile.exists()) {
+        return CaptureFailure('screen_capturer reported success but file is missing');
+      }
+
+      final bytes = await outFile.readAsBytes();
+      
+      // Cleanup
+      try { await outFile.delete(); } catch (_) {}
+      
+      if (bytes.isEmpty) {
+        return CaptureFailure('screen_capturer produced empty bytes');
+      }
+
+      return CaptureSuccess(bytes);
+    } catch (e, st) {
+      return CaptureFailure('screen_capturer exception', cause: e, stack: st);
+    }
+  }
+}
+
+// ============================================================================
+// STRATEGY 1.2: Wayland DBus Portal (Linux Interactive)
+// ============================================================================
+
+class _WaylandPortalStrategy implements _CaptureStrategy {
+  @override
+  String get name => 'wayland_portal';
+
+  @override
+  Future<bool> isAvailable() async {
+    if (!Platform.isLinux) return false;
+    final waylandDisplay = Platform.environment['WAYLAND_DISPLAY'];
+    return waylandDisplay != null && waylandDisplay.isNotEmpty;
+  }
+
+  @override
+  Future<CaptureResult<Uint8List>> capture(CaptureRegion region) async {
+    try {
+      final client = DBusClient.session();
+      final object = DBusRemoteObject(
+        client,
+        name: 'org.freedesktop.portal.Desktop',
+        path: DBusObjectPath('/org/freedesktop/portal/desktop'),
+      );
+
+      final response = await object.callMethod(
+        'org.freedesktop.portal.Screenshot',
+        'Screenshot',
+        [
+          DBusString(''),
+          DBusDict.stringVariant({
+            'interactive': DBusBoolean(true),
+          }),
+        ],
+      );
+
+      final requestPath = response.returnValues[0].asObjectPath();
+
+      final requestObject = DBusRemoteObject(
+        client,
+        name: 'org.freedesktop.portal.Desktop',
+        path: requestPath,
+      );
+
+      final completer = Completer<String?>();
+      final sub = DBusRemoteObjectSignalStream(
+        object: requestObject,
+        interface: 'org.freedesktop.portal.Request',
+        name: 'Response',
+      ).listen((signal) {
+        if (signal.values.length >= 2) {
+          final code = signal.values[0].asUint32();
+          if (code == 0) {
+            final results = signal.values[1].asStringVariantDict();
+            for (var key in results.keys) {
+              if (key == 'uri') {
+                completer.complete(results[key]!.asString());
+                return;
+              }
+            }
+          }
+        }
+        completer.complete(null);
+      });
+
+      final uri = await completer.future;
+      await sub.cancel();
+      await client.close();
+
+      if (uri != null && uri.startsWith('file://')) {
+        final filePath = Uri.parse(uri).toFilePath();
+        final file = File(filePath);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          try { await file.delete(); } catch (_) {}
+          return CaptureSuccess(bytes);
+        }
+      }
+
+      return CaptureFailure('User cancelled Wayland portal screenshot');
+    } catch (e, st) {
+      return CaptureFailure('Wayland DBus exception', cause: e, stack: st);
+    }
   }
 }
 
@@ -659,6 +779,12 @@ class SilentFrozenCanvasEngine {
   /// calls are no-ops.
   Future<void> initialize() async {
     if (_initialized) return;
+
+    // Try Wayland DBus Portal first (Linux).
+    final waylandPortal = _WaylandPortalStrategy();
+    if (await waylandPortal.isAvailable()) {
+      _strategies.add(waylandPortal);
+    }
 
     // Always register the native CLI strategy — it has no external deps.
     final nativeCli = _NativeCliStrategy();

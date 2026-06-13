@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -196,8 +197,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setOpacity(0.01);
     await coordinator.waitForSync(resize: false, move: false);
 
-    await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (!Platform.isLinux) await windowManager.setAsFrameless();
+    if (!Platform.isLinux) await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
 
     state = state.copyWith(
@@ -249,8 +250,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await WindowUtils.safeShow();
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
-    await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (!Platform.isLinux) await windowManager.setAsFrameless();
+    if (!Platform.isLinux) await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
 
     final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
@@ -270,7 +271,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await coordinator.waitForSync(resize: false, move: false, frame: true);
     await windowManager.setBounds(overlayRect);
     await windowManager.setAlwaysOnTop(true);
-    await windowManager.setIgnoreMouseEvents(false);
+    try { await windowManager.setIgnoreMouseEvents(false); } catch (_) {}
     await coordinator.waitForSync(
       resize: true,
       move: true,
@@ -333,8 +334,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     // 2. Prepare the background state while invisible
-    await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (!Platform.isLinux) await windowManager.setAsFrameless();
+    if (!Platform.isLinux) await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
 
     Rect? initialSelection;
@@ -366,7 +367,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setAlwaysOnTop(true);
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
-    await windowManager.setIgnoreMouseEvents(false);
+    try { await windowManager.setIgnoreMouseEvents(false); } catch (_) {}
 
     // 5. Robust sync delay for Windows DWM buffer allocation
     await coordinator.waitForSync(
@@ -417,10 +418,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     // 4. Finally restore native attributes, reveal and focus
     await Future.wait([
-      windowManager.setAsFrameless(),
-      windowManager.setHasShadow(false),
+      if (!Platform.isLinux) windowManager.setAsFrameless(),
+      if (!Platform.isLinux) windowManager.setHasShadow(false),
       windowManager.setAlwaysOnTop(theme.alwaysOnTop),
-      windowManager.setIgnoreMouseEvents(false),
+      _safeSetIgnoreMouseEvents(false),
     ]);
 
     await windowManager.setOpacity(1.0);
@@ -680,10 +681,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       final theme = ref.read(themeSettingsProvider);
 
       await Future.wait([
-        windowManager.setAsFrameless(),
-        windowManager.setHasShadow(false),
+        if (!Platform.isLinux) windowManager.setAsFrameless(),
+        if (!Platform.isLinux) windowManager.setHasShadow(false),
         windowManager.setAlwaysOnTop(theme.alwaysOnTop),
-        windowManager.setIgnoreMouseEvents(false),
+        _safeSetIgnoreMouseEvents(false),
       ]);
 
       await windowManager.setOpacity(1.0);
@@ -702,6 +703,75 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
   Future<void> capture([Display? display]) async {
+    if (Platform.isLinux) {
+      ref.read(isScreenshotProcessingProvider.notifier).set(true);
+      final logger = ref.read(loggingServiceProvider.notifier);
+      await WindowUtils.safeHide();
+      await Future.delayed(const Duration(milliseconds: 300));
+      try {
+        final engine = SilentFrozenCanvasEngine();
+        final result = await engine.capture(
+          state.captureMode == CaptureMode.fullScreen
+              ? const CaptureRegion.fullscreen()
+              : const CaptureRegion(x: 0, y: 0, width: 0, height: 0),
+        );
+
+        if (result is CaptureSuccess<FrozenCanvas>) {
+          final documentsDir = await getApplicationDocumentsDirectory();
+          final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+          final saveDir = Directory(saveDirPath);
+          if (!await saveDir.exists()) await saveDir.create(recursive: true);
+
+          final timestamp = DateTime.now()
+              .toString()
+              .replaceAll(RegExp(r'[:.-]'), '')
+              .replaceAll(' ', '_');
+          final filename = 'SQA_SS_$timestamp.${state.format.toLowerCase()}';
+          final savePath = p.join(saveDir.path, filename);
+
+          final pngBytes = Uint8List.fromList(result.data.bytes);
+
+          if (state.format.toLowerCase() == 'png') {
+            await File(savePath).writeAsBytes(pngBytes);
+          } else {
+            final tempDir = await getTemporaryDirectory();
+            final tempFile = File(p.join(tempDir.path, 'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png'));
+            await tempFile.writeAsBytes(pngBytes);
+            
+            final success = await FfmpegEngine.convertImage(
+              inputPath: tempFile.path,
+              outputPath: savePath,
+            );
+            
+            if (await tempFile.exists()) await tempFile.delete();
+            
+            if (!success) {
+              final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+              await File(fallbackPath).writeAsBytes(pngBytes);
+              logger.logWarning('[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.', 'ScreenshotProvider');
+            }
+          }
+
+          final clipboard = SystemClipboard.instance;
+          if (clipboard != null) {
+            final item = DataWriterItem();
+            item.add(Formats.png(pngBytes));
+            await clipboard.write([item]);
+          }
+
+          refreshRecentCaptures();
+        } else if (result is CaptureFailure) {
+          logger.logError('[Screenshot] Linux capture failed: ${(result as CaptureFailure).message}', 'ScreenshotProvider', (result as CaptureFailure).cause);
+        }
+      } catch (e, st) {
+        logger.logError('[Screenshot] Linux capture crashed', 'ScreenshotProvider', e, st);
+      } finally {
+        ref.read(isScreenshotProcessingProvider.notifier).set(false);
+        await WindowUtils.safeShow();
+      }
+      return;
+    }
+
     await startOverlay(display);
   }
 
@@ -800,4 +870,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   }
 
 
+  Future<void> _safeSetIgnoreMouseEvents(bool ignore) async {
+    if (Platform.isLinux) return;
+    try {
+      await windowManager.setIgnoreMouseEvents(ignore);
+    } catch (_) {}
+  }
 }

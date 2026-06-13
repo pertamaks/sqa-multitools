@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/logging_service.dart';
 import 'ui/main_toolbar.dart';
@@ -63,6 +65,10 @@ void main() async {
   // Register the platform-specific native window API implementation.
   initializePlatformNativeApi();
 
+  if (Platform.isLinux) {
+    JustAudioMediaKit.ensureInitialized(linux: true);
+  }
+
   AudioService.instance.init();
 
   await windowManager.ensureInitialized();
@@ -72,22 +78,25 @@ void main() async {
 
   final alwaysOnTop = prefs.getBool('always_on_top') ?? true;
 
-  const windowOptions = WindowOptions(
-    size: Size(
+  final windowOptions = WindowOptions(
+    size: const Size(
       WindowConstants.kDefaultWindowWidth,
       WindowConstants.kToolbarWindowHeight,
     ),
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
+    titleBarStyle: Platform.isLinux ? TitleBarStyle.normal : TitleBarStyle.hidden,
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (!Platform.isLinux) {
+      await windowManager.setAsFrameless();
+      await windowManager.setHasShadow(false);
+    }
     await windowManager.setIcon('assets/desktop_new.png');
     await windowManager.setAlwaysOnTop(alwaysOnTop);
+    await windowManager.setMaximizable(false);
     await windowManager.setMinimumSize(
       const Size(
         WindowConstants.kDefaultWindowWidth,

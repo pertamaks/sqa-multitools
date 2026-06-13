@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'window_native_api.dart';
 
 /// Linux implementation of [WindowNativeApi].
-/// Currently a shell to be implemented using xdotool/wmctrl (X11)
-/// or portal APIs (Wayland).
+/// Provides safe defaults for Wayland compatibility. Wayland's security model
+/// strictly isolates applications, meaning global window positions, mouse
+/// tracking, and external window titles are inaccessible by design without
+/// specific compositor plugins or portals.
 class WindowNativeApiLinux implements WindowNativeApi {
   @override
-  // TBD: Set to true once xinput/XQueryPointer is implemented.
+  // Global mouse polling is not permitted on Wayland.
   bool get supportsGlobalMousePolling => false;
 
   @override
@@ -16,13 +18,12 @@ class WindowNativeApiLinux implements WindowNativeApi {
 
   @override
   Future<List<String>> getFriendlyMonitorNames() async {
-    // TBD: Implement using xrandr
+    // Requires xrandr or wayland-specific protocols. Safe default: empty.
     return [];
   }
 
   @override
   bool isLeftMouseDown() {
-    // TBD: Implement using xinput or reading /dev/input
     return false;
   }
 
@@ -33,6 +34,6 @@ class WindowNativeApiLinux implements WindowNativeApi {
 
   @override
   void focusWindow(int hwnd) {
-    // TBD: Implement using wmctrl -a
+    // Window IDs are not globally meaningful or accessible on Wayland.
   }
 }

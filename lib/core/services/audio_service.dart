@@ -43,7 +43,9 @@ class AudioService {
 
       // If a new asset is requested, load it.
       // Otherwise, we just reuse the pre-loaded one for zero latency.
-      if (_currentPath != assetPath) {
+      // On Linux (media_kit), seeking to zero after EOF doesn't reliably restart playback
+      // for assets, so we force a reload of the asset.
+      if (_currentPath != assetPath || Platform.isLinux) {
         await _player?.setAsset(assetPath);
         _currentPath = assetPath;
       }

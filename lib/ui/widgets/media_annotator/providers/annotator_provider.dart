@@ -8,7 +8,9 @@ import 'package:path/path.dart' as p;
 import '../../../../core/models/annotation.dart';
 import '../../../../core/models/screenshot_tool.dart';
 import '../../../../core/engine/ffmpeg_engine.dart';
+import '../../../../core/services/logging_service.dart';
 import '../models/annotator_state.dart';
+import '../../../../main.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -46,9 +48,12 @@ class AnnotatorNotifier extends _$AnnotatorNotifier {
       final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return;
 
-      final ui.Image image = await boundary.toImage(pixelRatio: 1.0); // We assume pixelRatio 1.0 for output, but maybe need to scale? We'll capture exactly the video dimensions.
-      // Actually, if it's a video, the boundary only wraps the AnnotationCanvas, not the video (to be safe).
-      // Wait, we can just extract the AnnotationCanvas to PNG, and run ffmpeg!
+      // Calculate a dynamic pixelRatio to guarantee at least a 2K resolution export.
+      // This prevents the annotations from looking pixelated when upscaled by FFmpeg.
+      final double logicalWidth = boundary.size.width;
+      final double pixelRatio = (2560.0 / logicalWidth).clamp(1.0, 4.0);
+
+      final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
       
       final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
@@ -58,34 +63,57 @@ class AnnotatorNotifier extends _$AnnotatorNotifier {
       final ext = p.extension(state.filePath);
       final outputPath = p.join(dir, '${base}_annotated$ext');
       
-      final tempPngPath = p.join(dir, '${base}_temp_overlay.png');
+      // Fire background task so the annotator window can close immediately
+      _processSaveInBackground(pngBytes, state.filePath, outputPath, isVideo);
+      
+    } catch (e) {
+      ref.read(loggingServiceProvider.notifier).logError('Media annotator failed to save: $e');
+    }
+    // We intentionally DO NOT set isProcessing=false here, because the save method 
+    // finishes immediately, and the background task handles its own global state.
+  }
+
+  Future<void> _processSaveInBackground(Uint8List pngBytes, String inputPath, String outputPath, bool isVideo) async {
+    // Show the global blur loading indicator over the main app
+    globalProviderContainer.read(globalProcessingProvider.notifier).setProcessing(true);
+
+    try {
+      final tempPngPath = p.join(p.dirname(inputPath), '${p.basenameWithoutExtension(inputPath)}_temp_overlay.png');
       await File(tempPngPath).writeAsBytes(pngBytes);
 
       final exe = await FfmpegEngine.getExecutablePath();
       if (exe != null) {
+        ProcessResult result;
         if (isVideo) {
-          await Process.run(exe, [
+          result = await Process.run(exe, [
             '-y',
             '-i', state.filePath,
             '-i', tempPngPath,
-            '-filter_complex', '[1:v]scale=iw:ih[ovrl];[0:v][ovrl]overlay=0:0',
+            '-filter_complex', '[1:v][0:v]scale2ref[ovrl][main];[main][ovrl]overlay=0:0',
             '-c:a', 'copy',
             outputPath
           ]);
         } else {
-          await Process.run(exe, [
+          result = await Process.run(exe, [
             '-y',
             '-i', state.filePath,
             '-i', tempPngPath,
-            '-filter_complex', '[1:v]scale=iw:ih[ovrl];[0:v][ovrl]overlay=0:0',
+            '-filter_complex', '[1:v][0:v]scale2ref[ovrl][main];[main][ovrl]overlay=0:0',
             outputPath
           ]);
+        }
+        
+        if (result.exitCode != 0) {
+          globalProviderContainer.read(loggingServiceProvider.notifier).logError('Media annotator FFmpeg failed: ${result.stderr}');
         }
       }
       
       await File(tempPngPath).delete();
+    } catch (e) {
+      globalProviderContainer.read(loggingServiceProvider.notifier).logError('Media annotator background process failed: $e');
     } finally {
-      state = state.copyWith(isProcessing: false);
+      // Hide the global blur loading indicator
+      globalProviderContainer.read(globalProcessingProvider.notifier).setProcessing(false);
     }
   }
 }

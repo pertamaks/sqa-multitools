@@ -212,7 +212,7 @@ return $default(_that.filePath,_that.format,_that.currentTool,_that.annotationCo
 
 
 class _AnnotatorState implements AnnotatorState {
-  const _AnnotatorState({required this.filePath, required this.format, this.currentTool = ScreenshotTool.pointer, this.annotationColor = Colors.red, final  List<Annotation> annotations = const [], this.isProcessing = false, this.textHasBackground = false}): _annotations = annotations;
+  const _AnnotatorState({required this.filePath, required this.format, this.currentTool = ScreenshotTool.pen, this.annotationColor = Colors.red, final  List<Annotation> annotations = const [], this.isProcessing = false, this.textHasBackground = false}): _annotations = annotations;
   
 
 @override final  String filePath;

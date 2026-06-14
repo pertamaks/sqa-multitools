@@ -69,7 +69,10 @@ class _SqaHoverIconButtonState extends State<SqaHoverIconButton> {
             size: widget.iconSize,
             weight: widget.weight,
           ),
-          onPressed: widget.onPressed,
+          onPressed: () {
+            setState(() => _isHovered = false);
+            widget.onPressed();
+          },
           tooltip: widget.tooltip,
           color: currentColor,
           style: IconButton.styleFrom(

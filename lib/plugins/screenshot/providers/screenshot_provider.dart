@@ -43,8 +43,14 @@ final isScreenshotProcessingProvider =
 
 @riverpod
 class ScreenshotNotifier extends _$ScreenshotNotifier {
+  StreamSubscription<FileSystemEvent>? _watchSubscription;
+
   @override
   ScreenshotState build() {
+    ref.onDispose(() {
+      _watchSubscription?.cancel();
+    });
+
     // Initial data refresh
     Future.microtask(() {
       if (!ref.mounted) return;
@@ -66,6 +72,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         setCaptureMode(CaptureMode.scrolling);
         ref.read(screenRecorderProvider.notifier).startLongScreenshotSession();
       });
+      _setupDirectoryWatcher();
     });
 
     return const ScreenshotState();
@@ -144,12 +151,34 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
   }
 
+  void _setupDirectoryWatcher() async {
+    await _watchSubscription?.cancel();
+    _watchSubscription = null;
+    
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDir = Directory(saveDirPath);
+
+    if (!await saveDir.exists()) {
+      try {
+        await saveDir.create(recursive: true);
+      } catch (_) {}
+    }
+
+    if (await saveDir.exists()) {
+      _watchSubscription = saveDir.watch().listen((event) {
+        refreshRecentCaptures();
+      });
+    }
+  }
+
   void setSaveDirectory(String path) {
     state = state.copyWith(saveDirectory: path);
     ref
         .read(preferencesServiceProvider)
         .rawPrefs
         .setString(PreferencesService.keyScreenshotSaveDir, path);
+    _setupDirectoryWatcher();
     refreshRecentCaptures();
   }
 

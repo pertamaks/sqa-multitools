@@ -36,11 +36,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Timer? _laserTimer;
   String? _currentSavePath;
   DBusClient? _waylandDbusClient;
+  StreamSubscription<FileSystemEvent>? _watchSubscription;
 
   @override
   ScreenRecorderState build() {
     // Kill any orphaned FFmpeg process when the provider is destroyed
     ref.onDispose(() {
+      _watchSubscription?.cancel();
       _laserTimer?.cancel();
       if (_ffmpegProcess != null) {
         _ffmpegProcess?.kill();
@@ -76,9 +78,31 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         setCaptureMode(CaptureMode.fullScreen);
         startOverlay();
       });
+      _setupDirectoryWatcher();
     });
 
     return const ScreenRecorderState();
+  }
+
+  void _setupDirectoryWatcher() async {
+    await _watchSubscription?.cancel();
+    _watchSubscription = null;
+    
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+    final saveDir = Directory(saveDirPath);
+
+    if (!await saveDir.exists()) {
+      try {
+        await saveDir.create(recursive: true);
+      } catch (_) {}
+    }
+
+    if (await saveDir.exists()) {
+      _watchSubscription = saveDir.watch().listen((event) {
+        refreshRecentRecordings();
+      });
+    }
   }
 
   /// Refreshes the list of available monitors and their friendly names.
@@ -761,6 +785,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   void setFramerate(int hz) => state = state.copyWith(framerate: hz);
   void setSaveDirectory(String path) {
     state = state.copyWith(saveDirectory: path);
+    _setupDirectoryWatcher();
     refreshRecentRecordings();
   }
   void setCaptureMode(CaptureMode mode) =>

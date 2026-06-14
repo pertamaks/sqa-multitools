@@ -2,9 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'dart:convert';
 import 'package:path/path.dart' as p;
+import 'package:window_manager/window_manager.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
@@ -24,6 +23,7 @@ import '../../screen_recorder/providers/screen_recorder_provider.dart';
 import 'widgets/config_snippet.dart';
 import 'widgets/capture_tile.dart';
 import '../../../ui/widgets/sqa_history_list.dart';
+import '../../../ui/widgets/media_annotator/media_annotator_view.dart';
 
 class ScreenshotView extends ConsumerStatefulWidget {
   const ScreenshotView({super.key});
@@ -294,30 +294,25 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                           notifier.validateNewName(name, info),
                       onOpen: () => PlatformUtils.openPath(info.file.path),
                       onAnnotate: () async {
-                        final windows = await WindowController.getAll();
-                        WindowController? annotatorWindow;
-                        for (final w in windows) {
-                          if (w.arguments.contains('"type":"annotator"')) {
-                            annotatorWindow = w;
-                            break;
-                          }
-                        }
-
-                        if (annotatorWindow != null) {
-                          await annotatorWindow.invokeMethod('setMedia', {
-                            'filePath': info.file.path,
-                            'format': state.format,
-                          });
-                          await annotatorWindow.show();
+                        if (!Platform.isLinux) {
+                          await windowManager.setMinimumSize(const Size(800, 600));
+                          await windowManager.setSize(const Size(1280, 720));
+                          await windowManager.center();
                         } else {
-                          annotatorWindow = await WindowController.create(
-                            WindowConfiguration(arguments: jsonEncode({
-                              'type': 'annotator',
-                              'filePath': info.file.path,
-                              'format': state.format,
-                            })),
+                          await windowManager.setMaximizable(true);
+                          await windowManager.setSize(const Size(1280, 720));
+                          await windowManager.center();
+                        }
+                        
+                        if (context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => MediaAnnotatorView(
+                                filePath: info.file.path,
+                                format: state.format,
+                              ),
+                            ),
                           );
-                          await annotatorWindow.show();
                         }
                       },
                       onOpenFolder: () =>

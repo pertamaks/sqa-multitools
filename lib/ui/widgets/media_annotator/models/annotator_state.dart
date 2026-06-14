@@ -10,7 +10,7 @@ abstract class AnnotatorState with _$AnnotatorState {
   const factory AnnotatorState({
     required String filePath,
     required String format,
-    @Default(ScreenshotTool.pointer) ScreenshotTool currentTool,
+    @Default(ScreenshotTool.pen) ScreenshotTool currentTool,
     @Default(Colors.red) Color annotationColor,
     @Default([]) List<Annotation> annotations,
     @Default(false) bool isProcessing,

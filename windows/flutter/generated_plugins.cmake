@@ -3,11 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_multi_window
   dynamic_color
   file_selector_windows
   flutter_secure_storage_windows
   hotkey_manager_windows
   irondash_engine_context
+  media_kit_libs_windows_video
+  media_kit_video
   screen_capturer_windows
   screen_retriever_windows
   super_native_extensions

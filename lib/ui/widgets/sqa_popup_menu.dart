@@ -7,6 +7,15 @@ import 'sqa_hover_icon_button.dart';
 ///
 /// Reuses the MenuStyle and animation logic from SqaDropdown to ensure
 /// visual consistency across the application.
+class SqaMenuOpenNotification extends Notification {
+  final bool isOpen;
+  SqaMenuOpenNotification(this.isOpen);
+}
+
+/// Global state to track if ANY SqaPopupMenu is currently open in the app.
+/// This is used to globally disable hover effects on underlying widgets when a menu is active.
+final ValueNotifier<bool> sqaGlobalMenuOpenState = ValueNotifier(false);
+
 class SqaPopupMenu extends StatelessWidget {
   final IconData icon;
   final List<Widget> children;
@@ -28,6 +37,14 @@ class SqaPopupMenu extends StatelessWidget {
     final theme = Theme.of(context);
 
     return MenuAnchor(
+      onOpen: () {
+        sqaGlobalMenuOpenState.value = true;
+        SqaMenuOpenNotification(true).dispatch(context);
+      },
+      onClose: () {
+        sqaGlobalMenuOpenState.value = false;
+        SqaMenuOpenNotification(false).dispatch(context);
+      },
       alignmentOffset: alignmentOffset,
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
@@ -47,7 +64,6 @@ class SqaPopupMenu extends StatelessWidget {
       builder: builder ?? (context, controller, child) {
         return SqaHoverIconButton(
           icon: icon,
-          tooltip: tooltip ?? 'Actions',
           onPressed: () {
             if (controller.isOpen) {
               controller.close();

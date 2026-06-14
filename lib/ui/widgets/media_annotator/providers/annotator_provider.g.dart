@@ -58,7 +58,7 @@ final class AnnotatorNotifierProvider
   }
 }
 
-String _$annotatorNotifierHash() => r'13f3b13a3899a2772c6f775223c7446d640adba0';
+String _$annotatorNotifierHash() => r'521858bcc0c20e92b36606e6994a47c0c2164169';
 
 final class AnnotatorNotifierFamily extends $Family
     with

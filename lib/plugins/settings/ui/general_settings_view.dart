@@ -376,6 +376,14 @@ class GeneralSettingsView extends ConsumerWidget {
                                       'Enable premium transparency effects for a cleaner look.',
                                       style: TextStyle(fontSize: SqaTokens.spacingSmall + 3, color: Colors.grey),
                                     ),
+                                    if (Platform.isLinux)
+                                      const Padding(
+                                        padding: EdgeInsets.only(top: 4.0),
+                                        child: Text(
+                                          'Note: Wayland compositors may block window transparency.',
+                                          style: TextStyle(fontSize: 11, color: Colors.orangeAccent),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -489,22 +497,30 @@ class GeneralSettingsView extends ConsumerWidget {
                 const SizedBox(height: SqaTokens.spacingLarge),
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Always on Top',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
+                          const Text(
                             'Keep the toolbar above all other windows.',
                             style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
                           ),
+                          if (Platform.isLinux)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                'Note: Wayland strictly blocks Always on Top requests for security. Run with GDK_BACKEND=x11 if needed.',
+                                style: TextStyle(fontSize: 11, color: Colors.orangeAccent),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -547,6 +563,14 @@ class GeneralSettingsView extends ConsumerWidget {
                   'Note: Global hotkeys must include at least one modifier key (Ctrl, Alt, or Shift).',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
+                if (Platform.isLinux)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Note: Wayland prevents apps from reading global hotkeys when out of focus.',
+                      style: TextStyle(fontSize: 11, color: Colors.orangeAccent),
+                    ),
+                  ),
                 const SizedBox(height: SqaTokens.spacingLarge),
                 SqaHotkeyField(
                   label: 'Universal Toolbar Shortcut',

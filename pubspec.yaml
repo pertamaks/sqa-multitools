@@ -86,7 +86,6 @@ dependencies:
   just_audio_media_kit: ^2.1.0
   media_kit: ^1.2.6
   media_kit_libs_linux: ^1.2.1
-  desktop_multi_window: ^0.3.0
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
 dev_dependencies:

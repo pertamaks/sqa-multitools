@@ -20,7 +20,10 @@ class SqaMarkdownViewer extends StatefulWidget {
   const SqaMarkdownViewer({
     super.key,
     required this.markdown,
-    this.padding = const EdgeInsets.all(SqaTokens.spacingLarge),
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: SqaTokens.contentPaddingHorizontal,
+      vertical: SqaTokens.contentPaddingVertical,
+    ),
     this.useScrollable = true,
     this.selectable = false,
   });

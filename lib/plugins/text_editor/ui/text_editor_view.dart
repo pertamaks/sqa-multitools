@@ -1039,9 +1039,8 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                       ),
                       editorStyle: EditorStyle.desktop(
                         padding: const EdgeInsets.symmetric(
-                          horizontal:
-                              SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
-                          vertical: SqaTokens.spacingMedium,
+                          horizontal: SqaTokens.contentPaddingHorizontal,
+                          vertical: SqaTokens.contentPaddingVertical,
                         ),
                         maxWidth: 800.0,
                         textScaleFactor: 14.0 / 16.0,

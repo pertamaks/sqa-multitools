@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=SQA-Multitools
+GenericName=SQA-Multitools
+Comment=A powerful desktop suite of quality assurance tools
+Terminal=false
+Type=Application
+Categories=Utility;Development;
+Keywords=SQA;Testing;Screenshot;Recorder;
+Icon=sqa_multitools
+Exec=sqa_multitools %U
+StartupNotify=true

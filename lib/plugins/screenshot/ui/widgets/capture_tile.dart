@@ -6,7 +6,6 @@ import '../../../../ui/widgets/sqa_modal.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
-import 'dart:io';
 
 class CaptureTile extends StatefulWidget {
   final CaptureInfo info;

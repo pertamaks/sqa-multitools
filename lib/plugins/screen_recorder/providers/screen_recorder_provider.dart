@@ -11,7 +11,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:dbus/dbus.dart';
 import '../../../core/utils/platform_utils.dart';
-import '../../../core/window/window_constants.dart';
 import '../models/screen_recorder_state.dart';
 import '../engine/long_screenshot_stitcher.dart';
 import '../../../core/models/capture_mode.dart';
@@ -89,6 +88,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     _watchSubscription = null;
     
     final documentsDir = await getApplicationDocumentsDirectory();
+    if (!ref.mounted) return;
     final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     final saveDir = Directory(saveDirPath);
 
@@ -98,6 +98,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       } catch (_) {}
     }
 
+    if (!ref.mounted) return;
     if (await saveDir.exists()) {
       _watchSubscription = saveDir.watch().listen((event) {
         refreshRecentRecordings();
@@ -566,8 +567,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Future<void> refreshRecentRecordings() async {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     if (!ref.mounted) return;
+    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     final saveDir = Directory(saveDirPath);
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;

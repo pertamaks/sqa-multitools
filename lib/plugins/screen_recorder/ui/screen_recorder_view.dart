@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../../../core/window/window_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' as p;
@@ -437,7 +436,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                     
                     if (context.mounted) {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (context) => MediaAnnotatorView(
                             filePath: info.file.path,
                             format: state.format,

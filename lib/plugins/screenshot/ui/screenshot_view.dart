@@ -306,7 +306,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                         
                         if (context.mounted) {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            MaterialPageRoute<void>(
                               builder: (context) => MediaAnnotatorView(
                                 filePath: info.file.path,
                                 format: state.format,

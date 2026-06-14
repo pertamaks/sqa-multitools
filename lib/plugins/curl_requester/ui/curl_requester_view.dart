@@ -14,6 +14,7 @@ import 'tabs/request_tab.dart';
 import 'tabs/history_tab.dart';
 import 'modals/transaction_inspector_modal.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../core/providers/plugin_provider.dart';
 
 class CurlRequesterView extends ConsumerStatefulWidget {
   const CurlRequesterView({super.key});
@@ -154,6 +155,9 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
           icon: Symbols.terminal,
           title: 'cURL Requester',
           description: 'Transform and execute cURL commands',
+          onBack: ref.watch(navigationHistoryProvider) != null ? () {
+            ref.read(navigationServiceProvider).goBack();
+          } : null,
           tabController: _tabController,
           trailing: _tabController.index == 0
               ? SqaButton.primary(

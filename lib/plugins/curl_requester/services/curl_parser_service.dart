@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 import '../models/curl_command.dart';
+import '../models/form_data_item.dart';
 
 class CurlParserService {
   static CurlCommand parse(String curlString) {
@@ -11,6 +13,11 @@ class CurlParserService {
     final Map<String, String> pathParameters = {};
     final Map<String, String> queryParameters = {};
     String body = '';
+    BodyType bodyType = BodyType.raw;
+    AuthMethod authMethod = AuthMethod.none;
+    final Map<String, String> authData = {};
+    final List<FormDataItem> formData = [];
+    final List<FormDataItem> urlEncodedData = [];
 
     // Handle backslashes with potential trailing whitespace as line continuations
     // We do NOT replace all newlines with spaces anymore to preserve multi-line bodies
@@ -28,13 +35,58 @@ class CurlParserService {
           final header = tokens[++i];
           final parts = header.split(':');
           if (parts.length >= 2) {
-            headers[parts[0].trim()] = parts.sublist(1).join(':').trim();
+            final key = parts[0].trim();
+            final value = parts.sublist(1).join(':').trim();
+            if (key.toLowerCase() == 'authorization') {
+              if (value.toLowerCase().startsWith('bearer ')) {
+                authMethod = AuthMethod.bearerToken;
+                authData['token'] = value.substring(7).trim();
+              } else if (value.toLowerCase().startsWith('basic ')) {
+                try {
+                  final decoded = utf8.decode(base64Decode(value.substring(6).trim()));
+                  final split = decoded.split(':');
+                  if (split.length == 2) {
+                    authMethod = AuthMethod.basicAuth;
+                    authData['username'] = split[0];
+                    authData['password'] = split[1];
+                  } else {
+                    headers[key] = value;
+                  }
+                } catch (_) {
+                  headers[key] = value;
+                }
+              } else {
+                headers[key] = value;
+              }
+            } else {
+              headers[key] = value;
+            }
           }
         }
       } else if (token == '-d' || token == '--data' || token == '--data-raw' || token == '--data-binary') {
         if (i + 1 < tokens.length) {
           // Preserve newlines in body
           body = tokens[++i];
+          if (token == '--data-binary' && body.startsWith('@')) {
+            bodyType = BodyType.binaryFile;
+          } else if (bodyType == BodyType.raw && headers.entries.any((e) => e.key.toLowerCase() == 'content-type' && e.value.toLowerCase().contains('application/x-www-form-urlencoded'))) {
+            bodyType = BodyType.urlEncoded;
+          }
+        }
+      } else if (token == '-F' || token == '--form') {
+        if (i + 1 < tokens.length) {
+          final formStr = tokens[++i];
+          final parts = formStr.split('=');
+          if (parts.length >= 2) {
+            final key = parts[0];
+            final valueStr = parts.sublist(1).join('=');
+            if (valueStr.startsWith('@')) {
+               formData.add(FormDataItem(id: const Uuid().v4(), key: key, value: '', filePath: valueStr.substring(1), isFile: true));
+            } else {
+               formData.add(FormDataItem(id: const Uuid().v4(), key: key, value: valueStr, isFile: false));
+            }
+          }
+          bodyType = BodyType.multipartFormData;
         }
       } else if (url.isEmpty && 
                  !token.startsWith('-') && 
@@ -70,6 +122,42 @@ class CurlParserService {
       }
     }
 
+    if (bodyType == BodyType.raw && body.isNotEmpty) {
+      final contentType = headers.entries
+          .firstWhere((e) => e.key.toLowerCase() == 'content-type', orElse: () => const MapEntry('', ''))
+          .value.toLowerCase();
+      
+      if (contentType.contains('application/x-www-form-urlencoded')) {
+        bodyType = BodyType.urlEncoded;
+        final parts = body.split('&');
+        for (final part in parts) {
+          final kv = part.split('=');
+          if (kv.length == 2) {
+            urlEncodedData.add(FormDataItem(
+              id: const Uuid().v4(),
+              key: Uri.decodeComponent(kv[0]),
+              value: Uri.decodeComponent(kv[1]),
+            ));
+          } else if (kv.length == 1 && kv[0].isNotEmpty) {
+            urlEncodedData.add(FormDataItem(
+              id: const Uuid().v4(),
+              key: Uri.decodeComponent(kv[0]),
+              value: '',
+            ));
+          }
+        }
+      } else if (contentType.contains('application/json')) {
+        bodyType = BodyType.json;
+      } else {
+        try {
+          final decoded = jsonDecode(body);
+          if (decoded is Map || decoded is List) {
+            bodyType = BodyType.json;
+          }
+        } catch (_) {}
+      }
+    }
+
     return CurlCommand(
       url: url,
       method: method,
@@ -77,6 +165,11 @@ class CurlParserService {
       pathParameters: pathParameters,
       queryParameters: queryParameters,
       body: body,
+      bodyType: bodyType,
+      authMethod: authMethod,
+      authData: authData,
+      formData: formData,
+      urlEncodedData: urlEncodedData,
     );
   }
 
@@ -97,7 +190,7 @@ class CurlParserService {
   }
 
   static String stringify(CurlCommand command) {
-    if (command.url.isEmpty && command.body.isEmpty && command.headers.isEmpty) return '';
+    if (command.url.isEmpty && command.body.isEmpty && command.headers.isEmpty && command.formData.isEmpty && command.urlEncodedData.isEmpty && command.authMethod == AuthMethod.none) return '';
 
     final buffer = StringBuffer('curl');
     if (command.method != 'GET') {
@@ -139,12 +232,55 @@ class CurlParserService {
 
     buffer.write(' "$finalUrl"');
 
+    // Headers
     for (var entry in command.headers.entries) {
       if (command.inactiveHeaders.contains(entry.key)) continue;
       buffer.write(' \\\n  -H "${entry.key}: ${entry.value}"');
     }
 
-    if (command.body.isNotEmpty) {
+    // Auth
+    if (command.authMethod == AuthMethod.bearerToken) {
+      final token = command.authData['token'] ?? '';
+      if (token.isNotEmpty) {
+        buffer.write(' \\\n  -H "Authorization: Bearer $token"');
+      }
+    } else if (command.authMethod == AuthMethod.basicAuth) {
+      final username = command.authData['username'] ?? '';
+      final password = command.authData['password'] ?? '';
+      if (username.isNotEmpty || password.isNotEmpty) {
+        final encoded = base64Encode(utf8.encode('$username:$password'));
+        buffer.write(' \\\n  -H "Authorization: Basic $encoded"');
+      }
+    } else if (command.authMethod == AuthMethod.apiKey) {
+      final key = command.authData['key'] ?? '';
+      final value = command.authData['value'] ?? '';
+      final addTo = command.authData['addTo'] ?? 'Header';
+      if (key.isNotEmpty && value.isNotEmpty && addTo == 'Header') {
+        buffer.write(' \\\n  -H "$key: $value"');
+      }
+    }
+
+    // Body
+    if (command.bodyType == BodyType.multipartFormData) {
+      for (final item in command.formData) {
+        if (!item.isActive) continue;
+        if (item.isFile) {
+          buffer.write(" \\\n  -F '${item.key}=@${item.filePath ?? ''}'");
+        } else {
+          buffer.write(" \\\n  -F '${item.key}=${item.value}'");
+        }
+      }
+    } else if (command.bodyType == BodyType.urlEncoded) {
+      final encodedParts = command.urlEncodedData
+          .where((i) => i.isActive)
+          .map((i) => '${Uri.encodeComponent(i.key)}=${Uri.encodeComponent(i.value)}')
+          .join('&');
+      if (encodedParts.isNotEmpty) {
+        buffer.write(" \\\n  -d '$encodedParts'");
+      }
+    } else if (command.bodyType == BodyType.binaryFile && command.body.isNotEmpty) {
+      buffer.write(" \\\n  --data-binary '${command.body}'");
+    } else if (command.body.isNotEmpty) {
       String displayBody = command.body;
       try {
         // Attempt to prettify JSON if it looks like JSON

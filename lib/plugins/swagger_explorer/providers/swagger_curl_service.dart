@@ -147,6 +147,10 @@ class SwaggerCurlService {
               }
             });
           }
+        } else if (content.containsKey('application/octet-stream') || content.containsKey('*/*') || content.containsKey('image/*')) {
+          final matchedType = content.keys.firstWhere((k) => k == 'application/octet-stream' || k == '*/*' || k == 'image/*');
+          headers['Content-Type'] = matchedType;
+          rawBody = '@dummy_file.ext';
         }
       }
     }
@@ -185,6 +189,21 @@ class SwaggerCurlService {
       rawBody = parts.join('&');
     }
 
+    BodyType bodyType = BodyType.none;
+    if (rawBody.isNotEmpty || formFields.isNotEmpty) {
+      if (headers['Content-Type']?.contains('application/json') == true) {
+        bodyType = BodyType.json;
+      } else if (headers['Content-Type']?.contains('multipart/form-data') == true) {
+        bodyType = BodyType.multipartFormData;
+      } else if (headers['Content-Type']?.contains('application/x-www-form-urlencoded') == true) {
+        bodyType = BodyType.urlEncoded;
+      } else if (headers['Content-Type']?.contains('application/octet-stream') == true || headers['Content-Type']?.contains('*/*') == true || headers['Content-Type']?.contains('image/*') == true) {
+        bodyType = BodyType.binaryFile;
+      } else {
+        bodyType = BodyType.raw;
+      }
+    }
+
     return CurlCommand(
       url: '$baseUrl$url',
       method: endpoint.method,
@@ -192,6 +211,7 @@ class SwaggerCurlService {
       pathParameters: pathParams,
       queryParameters: queryParams,
       body: rawBody,
+      bodyType: bodyType,
     );
   }
 

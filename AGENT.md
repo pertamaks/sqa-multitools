@@ -185,3 +185,10 @@ To ensure visual coherence and facilitate rapid branding updates:
 * **Shared Context**: Never create ad-hoc `ProviderContainer` instances. All global error handlers and background tasks must utilize the `globalProviderContainer` initialized in `main.dart`.
 * **Post-Mortem Readiness**: The application maintains a persistent `app.log` file on disk. When a feature fails in production, the first step is to instruct the user to provide this log via the "Diagnostic Logs" button in Settings.
 * **Atomic Integrity**: For plugins that persist user-generated content (like Todo or Text Editor), ensure data is saved atomically to prevent file corruption during unexpected application termination.
+
+## 25. Inline Field Validation & Variables
+To ensure a premium and uniform experience when fields support dynamic variables (e.g., `{{variable}}`):
+* **SqaVariableController**: Always use `SqaVariableController` (an extension of `TextEditingController`) instead of a basic controller. It natively parses the `{{...}}` syntax and applies syntax highlighting (e.g., blue for valid, red for invalid/undefined).
+* **Environment Context**: Hook the `SqaVariableController` up to a validation callback (like `getKnownVariables`) to provide live context.
+* **Floating Tooltips**: Use `SqaField`'s `extraFloatingButtonBuilder` property to inject a `CurlVariableInfoButton` (or similar component) when variables are detected. This floating action button MUST display an informative tooltip mapping the detected variables to their resolved values.
+* **Theme Adaptability**: Always use dynamic theme colors (`Theme.of(context).colorScheme.onInverseSurface`) for tooltip text to ensure readability across light and dark modes.

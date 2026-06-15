@@ -1,12 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../providers/curl_requester_provider.dart';
+
+import '../../models/curl_command.dart';
 import '../components/curl_requester_grid_row.dart';
-import '../../../../ui/widgets/sqa_card.dart';
+import '../components/auth_editor.dart';
+import '../components/form_data_editor.dart';
+import '../components/curl_variable_info_button.dart';
 import '../../../../ui/widgets/sqa_field.dart';
+import '../../../../ui/widgets/sqa_button.dart';
+import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class RequestTab extends ConsumerStatefulWidget {
@@ -128,10 +136,11 @@ class _RequestTabState extends ConsumerState<RequestTab> {
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
-                fontSize: SqaTokens.fontSizeSmall,
+                      fontSize: SqaTokens.fontSizeSmall,
                       color: Theme.of(context).colorScheme.primary,
                     ),
               ),
+
             ],
           ),
           Row(
@@ -169,6 +178,8 @@ class _RequestTabState extends ConsumerState<RequestTab> {
     );
   }
 
+
+
   Widget _buildCommandDeckContent(BuildContext context) {
     return SizedBox.expand(
       child: SqaField(
@@ -183,6 +194,7 @@ class _RequestTabState extends ConsumerState<RequestTab> {
         hintText: 'Paste curl command here...',
         showCopyButton: false,
         showLineNumbers: true,
+        extraFloatingButtonBuilder: (ctrl) => CurlVariableInfoButton(controller: ctrl),
       ),
     );
   }
@@ -201,26 +213,156 @@ class _RequestTabState extends ConsumerState<RequestTab> {
         const SizedBox(height: SqaTokens.spacingXXLarge),
         _buildHeadersEditor(context, ref),
         const SizedBox(height: SqaTokens.spacingXXLarge),
+        AuthEditor(onSyncRaw: widget.onSyncRaw),
+        const SizedBox(height: SqaTokens.spacingXXLarge),
         _buildBodySection(context, ref),
       ],
     );
   }
 
   Widget _buildBodySection(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(curlRequesterProvider);
+    final command = state.currentCommand;
+    final notifier = ref.read(curlRequesterProvider.notifier);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'JSON BODY',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.1,
-                color: Theme.of(context).colorScheme.primary,
-                fontSize: SqaTokens.fontSizeSmall,
-              ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'BODY',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.1,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: SqaTokens.fontSizeSmall,
+                  ),
+            ),
+            SqaPopupMenu(
+              icon: Symbols.arrow_drop_down,
+              builder: (context, controller, child) {
+                String currentLabel = command.bodyType.name;
+                if (command.bodyType == BodyType.none) currentLabel = 'None';
+                if (command.bodyType == BodyType.raw) currentLabel = 'Raw Text';
+                if (command.bodyType == BodyType.json) currentLabel = 'JSON (Structured)';
+                if (command.bodyType == BodyType.urlEncoded) currentLabel = 'x-www-form-urlencoded';
+                if (command.bodyType == BodyType.multipartFormData) currentLabel = 'multipart/form-data';
+                if (command.bodyType == BodyType.binaryFile) currentLabel = 'Binary File';
+                
+                return InkWell(
+                  onTap: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  borderRadius: SqaTokens.borderRadiusSmall,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall, vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(currentLabel, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 4),
+                        const Icon(Symbols.arrow_drop_down, size: 16),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              children: BodyType.values.map((t) {
+                String label = t.name;
+                if (t == BodyType.none) label = 'None';
+                if (t == BodyType.raw) label = 'Raw Text';
+                if (t == BodyType.json) label = 'JSON (Structured)';
+                if (t == BodyType.urlEncoded) label = 'x-www-form-urlencoded';
+                if (t == BodyType.multipartFormData) label = 'multipart/form-data';
+                if (t == BodyType.binaryFile) label = 'Binary File';
+                
+                return SqaPopupMenuItem(
+                  onPressed: () {
+                    notifier.updateCommand(command.copyWith(bodyType: t));
+                    widget.onSyncRaw();
+                  },
+                  icon: const Icon(Symbols.short_text, size: 16),
+                  label: label,
+                );
+              }).toList(),
+            ),
+          ],
         ),
-        const SizedBox(height: SqaTokens.spacingLarge),
-        _buildGridEditor(context, ref),
+        const SizedBox(height: SqaTokens.spacingMedium),
+        if (command.bodyType == BodyType.json)
+          _buildGridEditor(context, ref)
+        else if (command.bodyType == BodyType.multipartFormData)
+          FormDataEditor(onSyncRaw: widget.onSyncRaw, isUrlEncoded: false)
+        else if (command.bodyType == BodyType.urlEncoded)
+          FormDataEditor(onSyncRaw: widget.onSyncRaw, isUrlEncoded: true)
+        else if (command.bodyType == BodyType.binaryFile)
+          SqaCard(
+            child: Row(
+              children: [
+                Expanded(
+                  child: SqaField(
+                    label: 'File Path',
+                    initialValue: command.body,
+                    isMonospace: true,
+                    onChanged: (val) {
+                      notifier.updateCommand(command.copyWith(body: val));
+                      widget.onSyncRaw();
+                    },
+                    showCopyButton: false,
+                    fontSize: SqaTokens.spacingMedium,
+                  ),
+                ),
+                const SizedBox(width: SqaTokens.spacingSmall),
+                SqaButton(
+                  label: 'Browse',
+                  icon: Symbols.folder_open,
+                  type: SqaButtonType.tonal,
+                  onPressed: () async {
+                    const XTypeGroup typeGroup = XTypeGroup(label: 'All Files');
+                    final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+                    if (file != null) {
+                      notifier.updateCommand(command.copyWith(body: '@${file.path}'));
+                      widget.onSyncRaw();
+                    }
+                  },
+                ),
+              ],
+            ),
+          )
+        else if (command.bodyType == BodyType.raw)
+          SqaCard(
+            child: SqaField(
+              label: '',
+              showLabel: false,
+              initialValue: command.body,
+              isMonospace: true,
+              highlightVariables: true,
+              isMultiline: true,
+              maxLines: 8,
+              minLines: 4,
+              fontSize: SqaTokens.spacingMedium,
+              hintText: 'Enter raw body payload...',
+              showCopyButton: false,
+              extraFloatingButtonBuilder: (ctrl) => CurlVariableInfoButton(controller: ctrl),
+              onChanged: (v) {
+                notifier.updateCommand(command.copyWith(body: v));
+                widget.onSyncRaw();
+              },
+            ),
+          )
+        else
+          const SqaCard(
+            child: Padding(
+              padding: EdgeInsets.all(SqaTokens.spacingXXLarge),
+              child: Center(child: Text('This request does not have a body.')),
+            ),
+          ),
       ],
     );
   }
@@ -449,7 +591,7 @@ class _RequestTabState extends ConsumerState<RequestTab> {
                 const Icon(Symbols.error_outline, color: Colors.orange, size: SqaTokens.spacingXXLarge),
                 const SizedBox(height: SqaTokens.spacingSmall),
                 Text('Invalid JSON: ${e.toString()}',
-                    style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey)),
+                    style: const TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey)),
               ],
             ),
           ),

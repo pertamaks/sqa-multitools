@@ -188,8 +188,15 @@ class _RequestTabState extends ConsumerState<RequestTab> {
   }
 
   Widget _buildUnifiedGridContent(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(curlRequesterProvider);
+    final hasPathParams = state.currentCommand.pathParameters.isNotEmpty;
+
     return Column(
       children: [
+        if (hasPathParams) ...[
+          _buildPathParamsEditor(context, ref),
+          const SizedBox(height: SqaTokens.spacingXXLarge),
+        ],
         _buildParamsEditor(context, ref),
         const SizedBox(height: SqaTokens.spacingXXLarge),
         _buildHeadersEditor(context, ref),
@@ -214,6 +221,66 @@ class _RequestTabState extends ConsumerState<RequestTab> {
         ),
         const SizedBox(height: SqaTokens.spacingLarge),
         _buildGridEditor(context, ref),
+      ],
+    );
+  }
+
+  Widget _buildPathParamsEditor(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(curlRequesterProvider);
+    final notifier = ref.read(curlRequesterProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'PATH VARIABLES',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.1,
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: SqaTokens.fontSizeSmall,
+              ),
+        ),
+        const SizedBox(height: SqaTokens.spacingMedium),
+        SqaCard(
+          child: Column(
+            children: [
+              ...state.currentCommand.pathParameters.entries.map((entry) {
+                return Column(
+                  key: ValueKey('path_param_${entry.key}'),
+                  children: [
+                    CurlRequesterGridRow(
+                      label: entry.key,
+                      value: entry.value,
+                      isActive: !state.currentCommand.inactivePathParameters
+                          .contains(entry.key),
+                      onChanged: (k, v) {
+                        notifier.updatePathParam(entry.key, k, v);
+                        widget.onSyncRaw();
+                      },
+                      onToggle: (isActive) {
+                        notifier.togglePathParam(entry.key, isActive);
+                        widget.onSyncRaw();
+                      },
+                      onDelete: () {
+                        notifier.removePathParam(entry.key);
+                        widget.onSyncRaw();
+                      },
+                    ),
+                    const Divider(height: 1, indent: SqaTokens.spacingLarge, endIndent: SqaTokens.spacingLarge),
+                  ],
+                );
+              }),
+              _buildAddRowButton(
+                context,
+                onPressed: () {
+                  notifier.addPathParam();
+                  widget.onSyncRaw();
+                },
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

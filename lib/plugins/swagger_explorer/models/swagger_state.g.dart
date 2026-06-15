@@ -6,6 +6,28 @@ part of 'swagger_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_SwaggerSecurityScheme _$SwaggerSecuritySchemeFromJson(
+  Map<String, dynamic> json,
+) => _SwaggerSecurityScheme(
+  type: json['type'] as String,
+  description: json['description'] as String?,
+  name: json['name'] as String?,
+  inLocation: json['in'] as String?,
+  scheme: json['scheme'] as String?,
+  bearerFormat: json['bearerFormat'] as String?,
+);
+
+Map<String, dynamic> _$SwaggerSecuritySchemeToJson(
+  _SwaggerSecurityScheme instance,
+) => <String, dynamic>{
+  'type': instance.type,
+  'description': instance.description,
+  'name': instance.name,
+  'in': instance.inLocation,
+  'scheme': instance.scheme,
+  'bearerFormat': instance.bearerFormat,
+};
+
 _SwaggerEndpoint _$SwaggerEndpointFromJson(Map<String, dynamic> json) =>
     _SwaggerEndpoint(
       path: json['path'] as String,
@@ -15,6 +37,16 @@ _SwaggerEndpoint _$SwaggerEndpointFromJson(Map<String, dynamic> json) =>
       parameters: json['parameters'] as Map<String, dynamic>?,
       requestBody: json['requestBody'] as Map<String, dynamic>?,
       responses: json['responses'] as Map<String, dynamic>?,
+      security: (json['security'] as List<dynamic>?)
+          ?.map(
+            (e) => (e as Map<String, dynamic>).map(
+              (k, e) => MapEntry(
+                k,
+                (e as List<dynamic>).map((e) => e as String).toList(),
+              ),
+            ),
+          )
+          .toList(),
     );
 
 Map<String, dynamic> _$SwaggerEndpointToJson(_SwaggerEndpoint instance) =>
@@ -26,6 +58,7 @@ Map<String, dynamic> _$SwaggerEndpointToJson(_SwaggerEndpoint instance) =>
       'parameters': instance.parameters,
       'requestBody': instance.requestBody,
       'responses': instance.responses,
+      'security': instance.security,
     };
 
 _SwaggerSchemaInfo _$SwaggerSchemaInfoFromJson(Map<String, dynamic> json) =>
@@ -34,6 +67,26 @@ _SwaggerSchemaInfo _$SwaggerSchemaInfoFromJson(Map<String, dynamic> json) =>
       version: json['version'] as String,
       description: json['description'] as String?,
       baseUrl: json['baseUrl'] as String?,
+      securitySchemes:
+          (json['securitySchemes'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(
+              k,
+              SwaggerSecurityScheme.fromJson(e as Map<String, dynamic>),
+            ),
+          ) ??
+          const {},
+      security:
+          (json['security'] as List<dynamic>?)
+              ?.map(
+                (e) => (e as Map<String, dynamic>).map(
+                  (k, e) => MapEntry(
+                    k,
+                    (e as List<dynamic>).map((e) => e as String).toList(),
+                  ),
+                ),
+              )
+              .toList() ??
+          const [],
       endpoints:
           (json['endpoints'] as List<dynamic>?)
               ?.map((e) => SwaggerEndpoint.fromJson(e as Map<String, dynamic>))
@@ -47,6 +100,8 @@ Map<String, dynamic> _$SwaggerSchemaInfoToJson(_SwaggerSchemaInfo instance) =>
       'version': instance.version,
       'description': instance.description,
       'baseUrl': instance.baseUrl,
+      'securitySchemes': instance.securitySchemes,
+      'security': instance.security,
       'endpoints': instance.endpoints,
     };
 
@@ -92,6 +147,11 @@ _SwaggerState _$SwaggerStateFromJson(Map<String, dynamic> json) =>
           : SwaggerEndpoint.fromJson(
               json['activeEndpoint'] as Map<String, dynamic>,
             ),
+      activeSecurityValues:
+          (json['activeSecurityValues'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$SwaggerStateToJson(_SwaggerState instance) =>
@@ -102,6 +162,7 @@ Map<String, dynamic> _$SwaggerStateToJson(_SwaggerState instance) =>
       'isLoading': instance.isLoading,
       'errorMessage': instance.errorMessage,
       'activeEndpoint': instance.activeEndpoint,
+      'activeSecurityValues': instance.activeSecurityValues,
     };
 
 const _$SwaggerViewModeEnumMap = {

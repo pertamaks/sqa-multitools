@@ -15,10 +15,11 @@ class SwaggerExplorerPlugin implements SqaPlugin {
   String get name => 'Swagger Explorer';
 
   @override
-  String get description => 'Natively parse and discover OpenAPI schemas to bridge with cURL Requester.';
+  String get description =>
+      'Natively parse and discover OpenAPI schemas to bridge with cURL Requester.';
 
   @override
-  IconData get icon => Symbols.api;
+  IconData get icon => Symbols.data_object;
 
   @override
   String? get badge => null;

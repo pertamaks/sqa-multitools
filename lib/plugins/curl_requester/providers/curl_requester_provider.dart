@@ -103,6 +103,55 @@ class CurlRequester extends _$CurlRequester {
     );
   }
 
+  void updatePathParam(String oldKey, String newKey, String value) {
+    final params = Map<String, String>.from(state.currentCommand.pathParameters);
+    final inactive = Set<String>.from(state.currentCommand.inactivePathParameters);
+    if (oldKey != newKey) {
+      params.remove(oldKey);
+      if (inactive.remove(oldKey)) inactive.add(newKey);
+    }
+    params[newKey] = value;
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(
+        pathParameters: params,
+        inactivePathParameters: inactive,
+      ),
+    );
+  }
+
+  void addPathParam() {
+    final params = Map<String, String>.from(state.currentCommand.pathParameters);
+    params['new_path_param_${params.length}'] = '';
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(pathParameters: params),
+    );
+  }
+
+  void removePathParam(String key) {
+    final params = Map<String, String>.from(state.currentCommand.pathParameters);
+    final inactive = Set<String>.from(state.currentCommand.inactivePathParameters);
+    params.remove(key);
+    inactive.remove(key);
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(
+        pathParameters: params,
+        inactivePathParameters: inactive,
+      ),
+    );
+  }
+
+  void togglePathParam(String key, bool isActive) {
+    final inactive = Set<String>.from(state.currentCommand.inactivePathParameters);
+    if (isActive) {
+      inactive.remove(key);
+    } else {
+      inactive.add(key);
+    }
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(inactivePathParameters: inactive),
+    );
+  }
+
   void updateHeader(String oldKey, String newKey, String value) {
     final headers = Map<String, String>.from(state.currentCommand.headers);
     final inactive = Set<String>.from(state.currentCommand.inactiveHeaders);
@@ -178,6 +227,14 @@ class CurlRequester extends _$CurlRequester {
       String finalUrl = resolvedCommand.url;
       if (!finalUrl.startsWith('http')) finalUrl = 'http://$finalUrl';
       
+      // Inject path parameters
+      final activePathParams = Map<String, String>.from(resolvedCommand.pathParameters)
+        ..removeWhere((k, _) => command.inactivePathParameters.contains(k));
+      for (final entry in activePathParams.entries) {
+        finalUrl = finalUrl.replaceAll('{${entry.key}}', Uri.encodeComponent(entry.value));
+        finalUrl = finalUrl.replaceAll(':${entry.key}', Uri.encodeComponent(entry.value));
+      }
+
       final activeParams = Map<String, String>.from(resolvedCommand.queryParameters)
         ..removeWhere((k, _) => command.inactiveQueryParameters.contains(k));
       

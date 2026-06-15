@@ -46,6 +46,7 @@ To ensure a consistent and premium experience across all plugins:
     - **Visibility**: Always set `thumbVisibility` to `true` via the global `ScrollbarThemeData` to ensure sliders are visible without hovering.
     - **Draggability**: Every scrollable region MUST be wrapped in a `Scrollbar` widget with an explicitly linked `ScrollController` to ensure the thumb is draggable.
 * **Submenu Artifacts**: To remove or replace the default black triangle from `SubmenuButton`, do NOT attempt to hide it via the `child` or `trailingIcon` properties (which results in double icons). Use the `submenuIcon` property with a `WidgetStatePropertyAll` (e.g., `submenuIcon: WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14))`) to correctly override the framework's default arrow.
+* **List Item Hover Bleed**: When rendering interactive list items (especially those containing an `SqaPopupMenu`), NEVER use a raw `InkWell`. You MUST use an `SqaCard` (passing your `onTap` and `padding` directly to it). `SqaCard` automatically listens to `sqaGlobalMenuOpenState` to suppress background hover highlights while popup menus are active, preventing visual bleed.
 
 ## 6. Asset & Audio Optimization
 * **Lazy Loading**: Never pre-load large assets during global app startup.

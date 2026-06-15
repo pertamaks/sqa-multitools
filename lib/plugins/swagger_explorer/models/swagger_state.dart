@@ -6,6 +6,21 @@ part 'swagger_state.g.dart';
 enum SwaggerViewMode { list, detail }
 
 @freezed
+abstract class SwaggerSecurityScheme with _$SwaggerSecurityScheme {
+  const factory SwaggerSecurityScheme({
+    required String type, // apiKey, http, oauth2, openIdConnect, basic
+    String? description,
+    String? name, // Name of the header, query or cookie parameter
+    @JsonKey(name: 'in') String? inLocation, // query, header, cookie
+    String? scheme, // bearer, basic, etc.
+    String? bearerFormat,
+  }) = _SwaggerSecurityScheme;
+
+  factory SwaggerSecurityScheme.fromJson(Map<String, dynamic> json) =>
+      _$SwaggerSecuritySchemeFromJson(json);
+}
+
+@freezed
 abstract class SwaggerEndpoint with _$SwaggerEndpoint {
   const factory SwaggerEndpoint({
     required String path,
@@ -15,6 +30,7 @@ abstract class SwaggerEndpoint with _$SwaggerEndpoint {
     Map<String, dynamic>? parameters,
     Map<String, dynamic>? requestBody,
     Map<String, dynamic>? responses,
+    List<Map<String, List<String>>>? security,
   }) = _SwaggerEndpoint;
 
   factory SwaggerEndpoint.fromJson(Map<String, dynamic> json) =>
@@ -28,6 +44,8 @@ abstract class SwaggerSchemaInfo with _$SwaggerSchemaInfo {
     required String version,
     String? description,
     String? baseUrl,
+    @Default({}) Map<String, SwaggerSecurityScheme> securitySchemes,
+    @Default([]) List<Map<String, List<String>>> security,
     @Default([]) List<SwaggerEndpoint> endpoints,
   }) = _SwaggerSchemaInfo;
 
@@ -58,6 +76,7 @@ abstract class SwaggerState with _$SwaggerState {
     @Default(false) bool isLoading,
     String? errorMessage,
     SwaggerEndpoint? activeEndpoint,
+    @Default({}) Map<String, String> activeSecurityValues,
   }) = _SwaggerState;
 
   factory SwaggerState.fromJson(Map<String, dynamic> json) =>

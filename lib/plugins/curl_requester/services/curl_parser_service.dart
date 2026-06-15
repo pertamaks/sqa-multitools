@@ -8,6 +8,7 @@ class CurlParserService {
     String url = '';
     String method = 'GET';
     final Map<String, String> headers = {};
+    final Map<String, String> pathParameters = {};
     final Map<String, String> queryParameters = {};
     String body = '';
 
@@ -57,12 +58,23 @@ class CurlParserService {
       } catch (_) {
         // Fallback for malformed URLs
       }
+
+      // Extract path variables from URL (e.g., {id} or :id)
+      final pathVarRegex = RegExp(r'\{([^}]+)\}|:([a-zA-Z0-9_]+)');
+      final matches = pathVarRegex.allMatches(url);
+      for (final match in matches) {
+        final paramName = match.group(1) ?? match.group(2);
+        if (paramName != null && paramName.isNotEmpty) {
+          pathParameters[paramName] = '';
+        }
+      }
     }
 
     return CurlCommand(
       url: url,
       method: method,
       headers: headers,
+      pathParameters: pathParameters,
       queryParameters: queryParameters,
       body: body,
     );
@@ -92,8 +104,19 @@ class CurlParserService {
       buffer.write(' -X ${command.method}');
     }
 
-    // Reconstruct URL with query parameters
+    // Reconstruct URL with query and path parameters
     String finalUrl = command.url;
+
+    // Inject active path parameters
+    final activePathParams = Map<String, String>.from(command.pathParameters)
+      ..removeWhere((k, v) => command.inactivePathParameters.contains(k));
+    for (final entry in activePathParams.entries) {
+      if (entry.value.isNotEmpty) {
+        finalUrl = finalUrl.replaceAll('{${entry.key}}', Uri.encodeComponent(entry.value));
+        finalUrl = finalUrl.replaceAll(':${entry.key}', Uri.encodeComponent(entry.value));
+      }
+    }
+
     final activeParams = Map<String, String>.from(command.queryParameters)
       ..removeWhere((k, v) => command.inactiveQueryParameters.contains(k));
     

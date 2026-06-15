@@ -27,7 +27,7 @@ abstract class SwaggerEndpoint with _$SwaggerEndpoint {
     required String method,
     required String summary,
     required List<String> tags,
-    Map<String, dynamic>? parameters,
+    List<Map<String, dynamic>>? parameters,
     Map<String, dynamic>? requestBody,
     Map<String, dynamic>? responses,
     List<Map<String, List<String>>>? security,

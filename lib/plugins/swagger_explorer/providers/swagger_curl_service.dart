@@ -72,9 +72,8 @@ class SwaggerCurlService {
     }
 
     // Process Parameters
-    if (endpoint.parameters != null && endpoint.parameters!['raw'] != null) {
-      for (final p in endpoint.parameters!['raw'] as List) {
-        if (p is! Map) continue;
+    if (endpoint.parameters != null && endpoint.parameters!.isNotEmpty) {
+      for (final p in endpoint.parameters!) {
         final name = p['name']?.toString() ?? '';
         final inLoc = p['in']?.toString() ?? '';
 

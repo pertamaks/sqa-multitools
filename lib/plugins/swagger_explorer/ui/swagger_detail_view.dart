@@ -17,7 +17,7 @@ import 'dart:convert';
 class SwaggerDetailView extends ConsumerWidget {
   const SwaggerDetailView({super.key});
 
-  Color _getMethodColor(String method) {
+  static Color _getMethodColor(String method) {
     switch (method.toUpperCase()) {
       case 'GET':
         return const Color(0xFF61AFFE);
@@ -53,9 +53,11 @@ class SwaggerDetailView extends ConsumerWidget {
         .setHistory('com.sqa.plugin.swagger_explorer');
         
     final allPlugins = ref.read(availablePluginsProvider);
-    final curlPlugin = allPlugins.firstWhere(
+    final curlPlugin = allPlugins.where(
       (p) => p.id == 'com.sqa.plugin.curl_requester',
-    );
+    ).firstOrNull;
+    if (curlPlugin == null) return;
+
     ref.read(activePluginProvider.notifier).setPlugin(curlPlugin);
   }
 
@@ -267,7 +269,6 @@ class SwaggerDetailView extends ConsumerWidget {
 
     return SqaPluginLayout(
       title: schema.title,
-      description: '',
       onBack: () {
         ref.read(swaggerProvider.notifier).setViewMode(SwaggerViewMode.list);
       },
@@ -420,10 +421,10 @@ class SwaggerDetailView extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (state.isLoading)
+                                    const LinearProgressIndicator(),
                                   if (ep.parameters != null &&
-                                      ep.parameters!['raw'] != null &&
-                                      (ep.parameters!['raw'] as List)
-                                          .isNotEmpty) ...[
+                                      ep.parameters!.isNotEmpty) ...[
                                     Text(
                                       'Parameters',
                                       style: TextStyle(
@@ -434,11 +435,8 @@ class SwaggerDetailView extends ConsumerWidget {
                                     const SizedBox(
                                       height: SqaTokens.spacingMedium,
                                     ),
-                                    ...(ep.parameters!['raw'] as List).map(
-                                      (p) => _buildParameter(
-                                        theme,
-                                        p as Map<String, dynamic>,
-                                      ),
+                                    ...ep.parameters!.map(
+                                      (p) => _buildParameter(theme, p),
                                     ),
                                     const SizedBox(
                                       height: SqaTokens.spacingMedium,

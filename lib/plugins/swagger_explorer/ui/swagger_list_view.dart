@@ -91,7 +91,7 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
                       : () async {
                           const typeGroup = XTypeGroup(
                             label: 'Swagger Documents',
-                            extensions: ['json', 'yaml', 'yml'],
+                            extensions: ['json'],
                           );
                           final file = await openFile(
                             acceptedTypeGroups: [typeGroup],
@@ -120,6 +120,12 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
                 style: TextStyle(color: theme.colorScheme.error),
               ),
             ],
+
+            if (state.isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: SqaTokens.spacingMedium),
+                child: LinearProgressIndicator(),
+              ),
 
             const SizedBox(height: SqaTokens.spacingXXXLarge),
 

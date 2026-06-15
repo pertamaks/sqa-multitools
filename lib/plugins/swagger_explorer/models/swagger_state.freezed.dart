@@ -301,7 +301,7 @@ as String?,
 /// @nodoc
 mixin _$SwaggerEndpoint {
 
- String get path; String get method; String get summary; List<String> get tags; Map<String, dynamic>? get parameters; Map<String, dynamic>? get requestBody; Map<String, dynamic>? get responses; List<Map<String, List<String>>>? get security;
+ String get path; String get method; String get summary; List<String> get tags; List<Map<String, dynamic>>? get parameters; Map<String, dynamic>? get requestBody; Map<String, dynamic>? get responses; List<Map<String, List<String>>>? get security;
 /// Create a copy of SwaggerEndpoint
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -334,7 +334,7 @@ abstract mixin class $SwaggerEndpointCopyWith<$Res>  {
   factory $SwaggerEndpointCopyWith(SwaggerEndpoint value, $Res Function(SwaggerEndpoint) _then) = _$SwaggerEndpointCopyWithImpl;
 @useResult
 $Res call({
- String path, String method, String summary, List<String> tags, Map<String, dynamic>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses, List<Map<String, List<String>>>? security
+ String path, String method, String summary, List<String> tags, List<Map<String, dynamic>>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses, List<Map<String, List<String>>>? security
 });
 
 
@@ -358,7 +358,7 @@ as String,method: null == method ? _self.method : method // ignore: cast_nullabl
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>,parameters: freezed == parameters ? _self.parameters : parameters // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,requestBody: freezed == requestBody ? _self.requestBody : requestBody // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,requestBody: freezed == requestBody ? _self.requestBody : requestBody // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,responses: freezed == responses ? _self.responses : responses // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,security: freezed == security ? _self.security : security // ignore: cast_nullable_to_non_nullable
 as List<Map<String, List<String>>>?,
@@ -446,7 +446,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  List<Map<String, dynamic>>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwaggerEndpoint() when $default != null:
 return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses,_that.security);case _:
@@ -467,7 +467,7 @@ return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameter
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  List<Map<String, dynamic>>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerEndpoint():
 return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses,_that.security);case _:
@@ -487,7 +487,7 @@ return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameter
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String path,  String method,  String summary,  List<String> tags,  List<Map<String, dynamic>>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)?  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerEndpoint() when $default != null:
 return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses,_that.security);case _:
@@ -502,7 +502,7 @@ return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameter
 @JsonSerializable()
 
 class _SwaggerEndpoint implements SwaggerEndpoint {
-  const _SwaggerEndpoint({required this.path, required this.method, required this.summary, required final  List<String> tags, final  Map<String, dynamic>? parameters, final  Map<String, dynamic>? requestBody, final  Map<String, dynamic>? responses, final  List<Map<String, List<String>>>? security}): _tags = tags,_parameters = parameters,_requestBody = requestBody,_responses = responses,_security = security;
+  const _SwaggerEndpoint({required this.path, required this.method, required this.summary, required final  List<String> tags, final  List<Map<String, dynamic>>? parameters, final  Map<String, dynamic>? requestBody, final  Map<String, dynamic>? responses, final  List<Map<String, List<String>>>? security}): _tags = tags,_parameters = parameters,_requestBody = requestBody,_responses = responses,_security = security;
   factory _SwaggerEndpoint.fromJson(Map<String, dynamic> json) => _$SwaggerEndpointFromJson(json);
 
 @override final  String path;
@@ -515,13 +515,13 @@ class _SwaggerEndpoint implements SwaggerEndpoint {
   return EqualUnmodifiableListView(_tags);
 }
 
- final  Map<String, dynamic>? _parameters;
-@override Map<String, dynamic>? get parameters {
+ final  List<Map<String, dynamic>>? _parameters;
+@override List<Map<String, dynamic>>? get parameters {
   final value = _parameters;
   if (value == null) return null;
-  if (_parameters is EqualUnmodifiableMapView) return _parameters;
+  if (_parameters is EqualUnmodifiableListView) return _parameters;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(value);
+  return EqualUnmodifiableListView(value);
 }
 
  final  Map<String, dynamic>? _requestBody;
@@ -585,7 +585,7 @@ abstract mixin class _$SwaggerEndpointCopyWith<$Res> implements $SwaggerEndpoint
   factory _$SwaggerEndpointCopyWith(_SwaggerEndpoint value, $Res Function(_SwaggerEndpoint) _then) = __$SwaggerEndpointCopyWithImpl;
 @override @useResult
 $Res call({
- String path, String method, String summary, List<String> tags, Map<String, dynamic>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses, List<Map<String, List<String>>>? security
+ String path, String method, String summary, List<String> tags, List<Map<String, dynamic>>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses, List<Map<String, List<String>>>? security
 });
 
 
@@ -609,7 +609,7 @@ as String,method: null == method ? _self.method : method // ignore: cast_nullabl
 as String,summary: null == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>,parameters: freezed == parameters ? _self._parameters : parameters // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,requestBody: freezed == requestBody ? _self._requestBody : requestBody // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>?,requestBody: freezed == requestBody ? _self._requestBody : requestBody // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,responses: freezed == responses ? _self._responses : responses // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,security: freezed == security ? _self._security : security // ignore: cast_nullable_to_non_nullable
 as List<Map<String, List<String>>>?,

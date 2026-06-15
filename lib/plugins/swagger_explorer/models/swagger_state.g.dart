@@ -34,7 +34,9 @@ _SwaggerEndpoint _$SwaggerEndpointFromJson(Map<String, dynamic> json) =>
       method: json['method'] as String,
       summary: json['summary'] as String,
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
-      parameters: json['parameters'] as Map<String, dynamic>?,
+      parameters: (json['parameters'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
       requestBody: json['requestBody'] as Map<String, dynamic>?,
       responses: json['responses'] as Map<String, dynamic>?,
       security: (json['security'] as List<dynamic>?)

@@ -66,6 +66,7 @@ class PreferencesService {
   static const String keyTextEditorSaveDir = 'text_editor_save_dir';
   static const String keyFakerLocale = 'faker_locale';
   static const String keyCurlHistory = 'plugin_curl_requester_history_v1';
+  static const String keyCurlEnvironments = 'plugin_curl_requester_environments_v1';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);

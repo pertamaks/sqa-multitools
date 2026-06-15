@@ -91,3 +91,59 @@ class SqaTextController extends TextEditingController {
     return TextSpan(style: style, children: children);
   }
 }
+
+/// A specialized [TextEditingController] that highlights template variables
+/// like {{VARIABLE_NAME}} or {{faker.name}} inside raw text.
+class SqaVariableController extends TextEditingController {
+  final Set<String> Function()? getKnownVariables;
+
+  SqaVariableController({super.text, this.getKnownVariables});
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final theme = Theme.of(context);
+    final List<TextSpan> children = [];
+    final knownVars = getKnownVariables?.call() ?? {};
+
+    // Match {{...}}
+    final RegExp varPattern = RegExp(r'\{\{.*?\}\}');
+    int lastMatchEnd = 0;
+
+    text.splitMapJoin(
+      varPattern,
+      onMatch: (Match match) {
+        final String matchText = match[0]!;
+
+        if (match.start > lastMatchEnd) {
+          children.add(
+            TextSpan(text: text.substring(lastMatchEnd, match.start)),
+          );
+        }
+
+        final varName = matchText.substring(2, matchText.length - 2).trim();
+        final isKnown = getKnownVariables == null || varName.startsWith('faker.') || knownVars.contains(varName);
+
+        // Distinct styling for variables
+        final matchStyle = style?.copyWith(
+          color: isKnown ? const Color(0xFF1E90FF) : theme.colorScheme.error, // Blue if known, Red if unknown
+          fontWeight: FontWeight.bold,
+        );
+
+        children.add(TextSpan(text: matchText, style: matchStyle));
+        lastMatchEnd = match.end;
+        return matchText;
+      },
+      onNonMatch: (String nonMatch) => nonMatch,
+    );
+
+    if (lastMatchEnd < text.length) {
+      children.add(TextSpan(text: text.substring(lastMatchEnd)));
+    }
+
+    return TextSpan(style: style, children: children);
+  }
+}

@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_design_tokens.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
+import 'sqa_text_controller.dart';
 import 'sqa_hover_icon_button.dart';
 
 class SqaField extends StatefulWidget {
@@ -43,6 +44,9 @@ class SqaField extends StatefulWidget {
     this.focusNode,
     this.isSelectable = true,
     this.expands = false,
+    this.highlightVariables = false,
+    this.getKnownVariables,
+    this.extraFloatingButtonBuilder,
   });
 
   final String label;
@@ -79,6 +83,9 @@ class SqaField extends StatefulWidget {
   final bool autofocus;
   final bool isSelectable;
   final bool expands;
+  final bool highlightVariables;
+  final Set<String> Function()? getKnownVariables;
+  final Widget Function(TextEditingController controller)? extraFloatingButtonBuilder;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -184,7 +191,7 @@ class _SqaFieldState extends State<SqaField> {
   void initState() {
     super.initState();
     _internalController =
-        widget.controller ?? TextEditingController(text: widget.initialValue);
+        widget.controller ?? (widget.highlightVariables ? SqaVariableController(text: widget.initialValue, getKnownVariables: widget.getKnownVariables) : TextEditingController(text: widget.initialValue));
     _lastLineCount = _internalController.text.split('\n').length;
     _internalController.addListener(_onControllerChanged);
     _verticalScrollController = ScrollController();
@@ -398,7 +405,7 @@ class _SqaFieldState extends State<SqaField> {
                     bottom: 0,
                     child: _buildExpansionFooter(theme),
                   ),
-                if (widget.showCopyButton || widget.showSentenceCaseButton)
+                if (widget.showCopyButton || widget.showSentenceCaseButton || widget.extraFloatingButtonBuilder != null)
                   ValueListenableBuilder<double>(
                     valueListenable: _stickyTopNotifier,
                     builder: (context, stickyTop, child) {
@@ -408,6 +415,8 @@ class _SqaFieldState extends State<SqaField> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (widget.extraFloatingButtonBuilder != null)
+                              widget.extraFloatingButtonBuilder!(_internalController),
                             if (widget.showSentenceCaseButton)
                               SqaHoverIconButton(
                                 icon: Symbols.text_fields,

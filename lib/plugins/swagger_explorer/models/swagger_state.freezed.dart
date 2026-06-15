@@ -13,9 +13,295 @@ part of 'swagger_state.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
+mixin _$SwaggerSecurityScheme {
+
+ String get type;// apiKey, http, oauth2, openIdConnect, basic
+ String? get description; String? get name;// Name of the header, query or cookie parameter
+@JsonKey(name: 'in') String? get inLocation;// query, header, cookie
+ String? get scheme;// bearer, basic, etc.
+ String? get bearerFormat;
+/// Create a copy of SwaggerSecurityScheme
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SwaggerSecuritySchemeCopyWith<SwaggerSecurityScheme> get copyWith => _$SwaggerSecuritySchemeCopyWithImpl<SwaggerSecurityScheme>(this as SwaggerSecurityScheme, _$identity);
+
+  /// Serializes this SwaggerSecurityScheme to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerSecurityScheme&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&(identical(other.name, name) || other.name == name)&&(identical(other.inLocation, inLocation) || other.inLocation == inLocation)&&(identical(other.scheme, scheme) || other.scheme == scheme)&&(identical(other.bearerFormat, bearerFormat) || other.bearerFormat == bearerFormat));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,description,name,inLocation,scheme,bearerFormat);
+
+@override
+String toString() {
+  return 'SwaggerSecurityScheme(type: $type, description: $description, name: $name, inLocation: $inLocation, scheme: $scheme, bearerFormat: $bearerFormat)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SwaggerSecuritySchemeCopyWith<$Res>  {
+  factory $SwaggerSecuritySchemeCopyWith(SwaggerSecurityScheme value, $Res Function(SwaggerSecurityScheme) _then) = _$SwaggerSecuritySchemeCopyWithImpl;
+@useResult
+$Res call({
+ String type, String? description, String? name,@JsonKey(name: 'in') String? inLocation, String? scheme, String? bearerFormat
+});
+
+
+
+
+}
+/// @nodoc
+class _$SwaggerSecuritySchemeCopyWithImpl<$Res>
+    implements $SwaggerSecuritySchemeCopyWith<$Res> {
+  _$SwaggerSecuritySchemeCopyWithImpl(this._self, this._then);
+
+  final SwaggerSecurityScheme _self;
+  final $Res Function(SwaggerSecurityScheme) _then;
+
+/// Create a copy of SwaggerSecurityScheme
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? description = freezed,Object? name = freezed,Object? inLocation = freezed,Object? scheme = freezed,Object? bearerFormat = freezed,}) {
+  return _then(_self.copyWith(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,inLocation: freezed == inLocation ? _self.inLocation : inLocation // ignore: cast_nullable_to_non_nullable
+as String?,scheme: freezed == scheme ? _self.scheme : scheme // ignore: cast_nullable_to_non_nullable
+as String?,bearerFormat: freezed == bearerFormat ? _self.bearerFormat : bearerFormat // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SwaggerSecurityScheme].
+extension SwaggerSecuritySchemePatterns on SwaggerSecurityScheme {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SwaggerSecurityScheme value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SwaggerSecurityScheme() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SwaggerSecurityScheme value)  $default,){
+final _that = this;
+switch (_that) {
+case _SwaggerSecurityScheme():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SwaggerSecurityScheme value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SwaggerSecurityScheme() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String? description,  String? name, @JsonKey(name: 'in')  String? inLocation,  String? scheme,  String? bearerFormat)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SwaggerSecurityScheme() when $default != null:
+return $default(_that.type,_that.description,_that.name,_that.inLocation,_that.scheme,_that.bearerFormat);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String? description,  String? name, @JsonKey(name: 'in')  String? inLocation,  String? scheme,  String? bearerFormat)  $default,) {final _that = this;
+switch (_that) {
+case _SwaggerSecurityScheme():
+return $default(_that.type,_that.description,_that.name,_that.inLocation,_that.scheme,_that.bearerFormat);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String? description,  String? name, @JsonKey(name: 'in')  String? inLocation,  String? scheme,  String? bearerFormat)?  $default,) {final _that = this;
+switch (_that) {
+case _SwaggerSecurityScheme() when $default != null:
+return $default(_that.type,_that.description,_that.name,_that.inLocation,_that.scheme,_that.bearerFormat);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SwaggerSecurityScheme implements SwaggerSecurityScheme {
+  const _SwaggerSecurityScheme({required this.type, this.description, this.name, @JsonKey(name: 'in') this.inLocation, this.scheme, this.bearerFormat});
+  factory _SwaggerSecurityScheme.fromJson(Map<String, dynamic> json) => _$SwaggerSecuritySchemeFromJson(json);
+
+@override final  String type;
+// apiKey, http, oauth2, openIdConnect, basic
+@override final  String? description;
+@override final  String? name;
+// Name of the header, query or cookie parameter
+@override@JsonKey(name: 'in') final  String? inLocation;
+// query, header, cookie
+@override final  String? scheme;
+// bearer, basic, etc.
+@override final  String? bearerFormat;
+
+/// Create a copy of SwaggerSecurityScheme
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SwaggerSecuritySchemeCopyWith<_SwaggerSecurityScheme> get copyWith => __$SwaggerSecuritySchemeCopyWithImpl<_SwaggerSecurityScheme>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SwaggerSecuritySchemeToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerSecurityScheme&&(identical(other.type, type) || other.type == type)&&(identical(other.description, description) || other.description == description)&&(identical(other.name, name) || other.name == name)&&(identical(other.inLocation, inLocation) || other.inLocation == inLocation)&&(identical(other.scheme, scheme) || other.scheme == scheme)&&(identical(other.bearerFormat, bearerFormat) || other.bearerFormat == bearerFormat));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,description,name,inLocation,scheme,bearerFormat);
+
+@override
+String toString() {
+  return 'SwaggerSecurityScheme(type: $type, description: $description, name: $name, inLocation: $inLocation, scheme: $scheme, bearerFormat: $bearerFormat)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SwaggerSecuritySchemeCopyWith<$Res> implements $SwaggerSecuritySchemeCopyWith<$Res> {
+  factory _$SwaggerSecuritySchemeCopyWith(_SwaggerSecurityScheme value, $Res Function(_SwaggerSecurityScheme) _then) = __$SwaggerSecuritySchemeCopyWithImpl;
+@override @useResult
+$Res call({
+ String type, String? description, String? name,@JsonKey(name: 'in') String? inLocation, String? scheme, String? bearerFormat
+});
+
+
+
+
+}
+/// @nodoc
+class __$SwaggerSecuritySchemeCopyWithImpl<$Res>
+    implements _$SwaggerSecuritySchemeCopyWith<$Res> {
+  __$SwaggerSecuritySchemeCopyWithImpl(this._self, this._then);
+
+  final _SwaggerSecurityScheme _self;
+  final $Res Function(_SwaggerSecurityScheme) _then;
+
+/// Create a copy of SwaggerSecurityScheme
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? description = freezed,Object? name = freezed,Object? inLocation = freezed,Object? scheme = freezed,Object? bearerFormat = freezed,}) {
+  return _then(_SwaggerSecurityScheme(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,inLocation: freezed == inLocation ? _self.inLocation : inLocation // ignore: cast_nullable_to_non_nullable
+as String?,scheme: freezed == scheme ? _self.scheme : scheme // ignore: cast_nullable_to_non_nullable
+as String?,bearerFormat: freezed == bearerFormat ? _self.bearerFormat : bearerFormat // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$SwaggerEndpoint {
 
- String get path; String get method; String get summary; List<String> get tags; Map<String, dynamic>? get parameters; Map<String, dynamic>? get requestBody; Map<String, dynamic>? get responses;
+ String get path; String get method; String get summary; List<String> get tags; Map<String, dynamic>? get parameters; Map<String, dynamic>? get requestBody; Map<String, dynamic>? get responses; List<Map<String, List<String>>>? get security;
 /// Create a copy of SwaggerEndpoint
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +314,16 @@ $SwaggerEndpointCopyWith<SwaggerEndpoint> get copyWith => _$SwaggerEndpointCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerEndpoint&&(identical(other.path, path) || other.path == path)&&(identical(other.method, method) || other.method == method)&&(identical(other.summary, summary) || other.summary == summary)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.parameters, parameters)&&const DeepCollectionEquality().equals(other.requestBody, requestBody)&&const DeepCollectionEquality().equals(other.responses, responses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerEndpoint&&(identical(other.path, path) || other.path == path)&&(identical(other.method, method) || other.method == method)&&(identical(other.summary, summary) || other.summary == summary)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.parameters, parameters)&&const DeepCollectionEquality().equals(other.requestBody, requestBody)&&const DeepCollectionEquality().equals(other.responses, responses)&&const DeepCollectionEquality().equals(other.security, security));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,path,method,summary,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(parameters),const DeepCollectionEquality().hash(requestBody),const DeepCollectionEquality().hash(responses));
+int get hashCode => Object.hash(runtimeType,path,method,summary,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(parameters),const DeepCollectionEquality().hash(requestBody),const DeepCollectionEquality().hash(responses),const DeepCollectionEquality().hash(security));
 
 @override
 String toString() {
-  return 'SwaggerEndpoint(path: $path, method: $method, summary: $summary, tags: $tags, parameters: $parameters, requestBody: $requestBody, responses: $responses)';
+  return 'SwaggerEndpoint(path: $path, method: $method, summary: $summary, tags: $tags, parameters: $parameters, requestBody: $requestBody, responses: $responses, security: $security)';
 }
 
 
@@ -48,7 +334,7 @@ abstract mixin class $SwaggerEndpointCopyWith<$Res>  {
   factory $SwaggerEndpointCopyWith(SwaggerEndpoint value, $Res Function(SwaggerEndpoint) _then) = _$SwaggerEndpointCopyWithImpl;
 @useResult
 $Res call({
- String path, String method, String summary, List<String> tags, Map<String, dynamic>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses
+ String path, String method, String summary, List<String> tags, Map<String, dynamic>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses, List<Map<String, List<String>>>? security
 });
 
 
@@ -65,7 +351,7 @@ class _$SwaggerEndpointCopyWithImpl<$Res>
 
 /// Create a copy of SwaggerEndpoint
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? path = null,Object? method = null,Object? summary = null,Object? tags = null,Object? parameters = freezed,Object? requestBody = freezed,Object? responses = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? path = null,Object? method = null,Object? summary = null,Object? tags = null,Object? parameters = freezed,Object? requestBody = freezed,Object? responses = freezed,Object? security = freezed,}) {
   return _then(_self.copyWith(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,method: null == method ? _self.method : method // ignore: cast_nullable_to_non_nullable
@@ -74,7 +360,8 @@ as String,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non
 as List<String>,parameters: freezed == parameters ? _self.parameters : parameters // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,requestBody: freezed == requestBody ? _self.requestBody : requestBody // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,responses: freezed == responses ? _self.responses : responses // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,
+as Map<String, dynamic>?,security: freezed == security ? _self.security : security // ignore: cast_nullable_to_non_nullable
+as List<Map<String, List<String>>>?,
   ));
 }
 
@@ -159,10 +446,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwaggerEndpoint() when $default != null:
-return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses);case _:
+return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses,_that.security);case _:
   return orElse();
 
 }
@@ -180,10 +467,10 @@ return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameter
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerEndpoint():
-return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses);case _:
+return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses,_that.security);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +487,10 @@ return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameter
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String path,  String method,  String summary,  List<String> tags,  Map<String, dynamic>? parameters,  Map<String, dynamic>? requestBody,  Map<String, dynamic>? responses,  List<Map<String, List<String>>>? security)?  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerEndpoint() when $default != null:
-return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses);case _:
+return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameters,_that.requestBody,_that.responses,_that.security);case _:
   return null;
 
 }
@@ -215,7 +502,7 @@ return $default(_that.path,_that.method,_that.summary,_that.tags,_that.parameter
 @JsonSerializable()
 
 class _SwaggerEndpoint implements SwaggerEndpoint {
-  const _SwaggerEndpoint({required this.path, required this.method, required this.summary, required final  List<String> tags, final  Map<String, dynamic>? parameters, final  Map<String, dynamic>? requestBody, final  Map<String, dynamic>? responses}): _tags = tags,_parameters = parameters,_requestBody = requestBody,_responses = responses;
+  const _SwaggerEndpoint({required this.path, required this.method, required this.summary, required final  List<String> tags, final  Map<String, dynamic>? parameters, final  Map<String, dynamic>? requestBody, final  Map<String, dynamic>? responses, final  List<Map<String, List<String>>>? security}): _tags = tags,_parameters = parameters,_requestBody = requestBody,_responses = responses,_security = security;
   factory _SwaggerEndpoint.fromJson(Map<String, dynamic> json) => _$SwaggerEndpointFromJson(json);
 
 @override final  String path;
@@ -255,6 +542,15 @@ class _SwaggerEndpoint implements SwaggerEndpoint {
   return EqualUnmodifiableMapView(value);
 }
 
+ final  List<Map<String, List<String>>>? _security;
+@override List<Map<String, List<String>>>? get security {
+  final value = _security;
+  if (value == null) return null;
+  if (_security is EqualUnmodifiableListView) return _security;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
 
 /// Create a copy of SwaggerEndpoint
 /// with the given fields replaced by the non-null parameter values.
@@ -269,16 +565,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerEndpoint&&(identical(other.path, path) || other.path == path)&&(identical(other.method, method) || other.method == method)&&(identical(other.summary, summary) || other.summary == summary)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._parameters, _parameters)&&const DeepCollectionEquality().equals(other._requestBody, _requestBody)&&const DeepCollectionEquality().equals(other._responses, _responses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerEndpoint&&(identical(other.path, path) || other.path == path)&&(identical(other.method, method) || other.method == method)&&(identical(other.summary, summary) || other.summary == summary)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._parameters, _parameters)&&const DeepCollectionEquality().equals(other._requestBody, _requestBody)&&const DeepCollectionEquality().equals(other._responses, _responses)&&const DeepCollectionEquality().equals(other._security, _security));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,path,method,summary,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_parameters),const DeepCollectionEquality().hash(_requestBody),const DeepCollectionEquality().hash(_responses));
+int get hashCode => Object.hash(runtimeType,path,method,summary,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_parameters),const DeepCollectionEquality().hash(_requestBody),const DeepCollectionEquality().hash(_responses),const DeepCollectionEquality().hash(_security));
 
 @override
 String toString() {
-  return 'SwaggerEndpoint(path: $path, method: $method, summary: $summary, tags: $tags, parameters: $parameters, requestBody: $requestBody, responses: $responses)';
+  return 'SwaggerEndpoint(path: $path, method: $method, summary: $summary, tags: $tags, parameters: $parameters, requestBody: $requestBody, responses: $responses, security: $security)';
 }
 
 
@@ -289,7 +585,7 @@ abstract mixin class _$SwaggerEndpointCopyWith<$Res> implements $SwaggerEndpoint
   factory _$SwaggerEndpointCopyWith(_SwaggerEndpoint value, $Res Function(_SwaggerEndpoint) _then) = __$SwaggerEndpointCopyWithImpl;
 @override @useResult
 $Res call({
- String path, String method, String summary, List<String> tags, Map<String, dynamic>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses
+ String path, String method, String summary, List<String> tags, Map<String, dynamic>? parameters, Map<String, dynamic>? requestBody, Map<String, dynamic>? responses, List<Map<String, List<String>>>? security
 });
 
 
@@ -306,7 +602,7 @@ class __$SwaggerEndpointCopyWithImpl<$Res>
 
 /// Create a copy of SwaggerEndpoint
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? method = null,Object? summary = null,Object? tags = null,Object? parameters = freezed,Object? requestBody = freezed,Object? responses = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? method = null,Object? summary = null,Object? tags = null,Object? parameters = freezed,Object? requestBody = freezed,Object? responses = freezed,Object? security = freezed,}) {
   return _then(_SwaggerEndpoint(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,method: null == method ? _self.method : method // ignore: cast_nullable_to_non_nullable
@@ -315,7 +611,8 @@ as String,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_no
 as List<String>,parameters: freezed == parameters ? _self._parameters : parameters // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,requestBody: freezed == requestBody ? _self._requestBody : requestBody // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,responses: freezed == responses ? _self._responses : responses // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,
+as Map<String, dynamic>?,security: freezed == security ? _self._security : security // ignore: cast_nullable_to_non_nullable
+as List<Map<String, List<String>>>?,
   ));
 }
 
@@ -326,7 +623,7 @@ as Map<String, dynamic>?,
 /// @nodoc
 mixin _$SwaggerSchemaInfo {
 
- String get title; String get version; String? get description; String? get baseUrl; List<SwaggerEndpoint> get endpoints;
+ String get title; String get version; String? get description; String? get baseUrl; Map<String, SwaggerSecurityScheme> get securitySchemes; List<Map<String, List<String>>> get security; List<SwaggerEndpoint> get endpoints;
 /// Create a copy of SwaggerSchemaInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -339,16 +636,16 @@ $SwaggerSchemaInfoCopyWith<SwaggerSchemaInfo> get copyWith => _$SwaggerSchemaInf
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerSchemaInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.version, version) || other.version == version)&&(identical(other.description, description) || other.description == description)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&const DeepCollectionEquality().equals(other.endpoints, endpoints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerSchemaInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.version, version) || other.version == version)&&(identical(other.description, description) || other.description == description)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&const DeepCollectionEquality().equals(other.securitySchemes, securitySchemes)&&const DeepCollectionEquality().equals(other.security, security)&&const DeepCollectionEquality().equals(other.endpoints, endpoints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,version,description,baseUrl,const DeepCollectionEquality().hash(endpoints));
+int get hashCode => Object.hash(runtimeType,title,version,description,baseUrl,const DeepCollectionEquality().hash(securitySchemes),const DeepCollectionEquality().hash(security),const DeepCollectionEquality().hash(endpoints));
 
 @override
 String toString() {
-  return 'SwaggerSchemaInfo(title: $title, version: $version, description: $description, baseUrl: $baseUrl, endpoints: $endpoints)';
+  return 'SwaggerSchemaInfo(title: $title, version: $version, description: $description, baseUrl: $baseUrl, securitySchemes: $securitySchemes, security: $security, endpoints: $endpoints)';
 }
 
 
@@ -359,7 +656,7 @@ abstract mixin class $SwaggerSchemaInfoCopyWith<$Res>  {
   factory $SwaggerSchemaInfoCopyWith(SwaggerSchemaInfo value, $Res Function(SwaggerSchemaInfo) _then) = _$SwaggerSchemaInfoCopyWithImpl;
 @useResult
 $Res call({
- String title, String version, String? description, String? baseUrl, List<SwaggerEndpoint> endpoints
+ String title, String version, String? description, String? baseUrl, Map<String, SwaggerSecurityScheme> securitySchemes, List<Map<String, List<String>>> security, List<SwaggerEndpoint> endpoints
 });
 
 
@@ -376,13 +673,15 @@ class _$SwaggerSchemaInfoCopyWithImpl<$Res>
 
 /// Create a copy of SwaggerSchemaInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? version = null,Object? description = freezed,Object? baseUrl = freezed,Object? endpoints = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? version = null,Object? description = freezed,Object? baseUrl = freezed,Object? securitySchemes = null,Object? security = null,Object? endpoints = null,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,baseUrl: freezed == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
-as String?,endpoints: null == endpoints ? _self.endpoints : endpoints // ignore: cast_nullable_to_non_nullable
+as String?,securitySchemes: null == securitySchemes ? _self.securitySchemes : securitySchemes // ignore: cast_nullable_to_non_nullable
+as Map<String, SwaggerSecurityScheme>,security: null == security ? _self.security : security // ignore: cast_nullable_to_non_nullable
+as List<Map<String, List<String>>>,endpoints: null == endpoints ? _self.endpoints : endpoints // ignore: cast_nullable_to_non_nullable
 as List<SwaggerEndpoint>,
   ));
 }
@@ -468,10 +767,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String version,  String? description,  String? baseUrl,  List<SwaggerEndpoint> endpoints)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String version,  String? description,  String? baseUrl,  Map<String, SwaggerSecurityScheme> securitySchemes,  List<Map<String, List<String>>> security,  List<SwaggerEndpoint> endpoints)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwaggerSchemaInfo() when $default != null:
-return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.endpoints);case _:
+return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.securitySchemes,_that.security,_that.endpoints);case _:
   return orElse();
 
 }
@@ -489,10 +788,10 @@ return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String version,  String? description,  String? baseUrl,  List<SwaggerEndpoint> endpoints)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String version,  String? description,  String? baseUrl,  Map<String, SwaggerSecurityScheme> securitySchemes,  List<Map<String, List<String>>> security,  List<SwaggerEndpoint> endpoints)  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerSchemaInfo():
-return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.endpoints);case _:
+return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.securitySchemes,_that.security,_that.endpoints);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -509,10 +808,10 @@ return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String version,  String? description,  String? baseUrl,  List<SwaggerEndpoint> endpoints)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String version,  String? description,  String? baseUrl,  Map<String, SwaggerSecurityScheme> securitySchemes,  List<Map<String, List<String>>> security,  List<SwaggerEndpoint> endpoints)?  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerSchemaInfo() when $default != null:
-return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.endpoints);case _:
+return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.securitySchemes,_that.security,_that.endpoints);case _:
   return null;
 
 }
@@ -524,13 +823,27 @@ return $default(_that.title,_that.version,_that.description,_that.baseUrl,_that.
 @JsonSerializable()
 
 class _SwaggerSchemaInfo implements SwaggerSchemaInfo {
-  const _SwaggerSchemaInfo({required this.title, required this.version, this.description, this.baseUrl, final  List<SwaggerEndpoint> endpoints = const []}): _endpoints = endpoints;
+  const _SwaggerSchemaInfo({required this.title, required this.version, this.description, this.baseUrl, final  Map<String, SwaggerSecurityScheme> securitySchemes = const {}, final  List<Map<String, List<String>>> security = const [], final  List<SwaggerEndpoint> endpoints = const []}): _securitySchemes = securitySchemes,_security = security,_endpoints = endpoints;
   factory _SwaggerSchemaInfo.fromJson(Map<String, dynamic> json) => _$SwaggerSchemaInfoFromJson(json);
 
 @override final  String title;
 @override final  String version;
 @override final  String? description;
 @override final  String? baseUrl;
+ final  Map<String, SwaggerSecurityScheme> _securitySchemes;
+@override@JsonKey() Map<String, SwaggerSecurityScheme> get securitySchemes {
+  if (_securitySchemes is EqualUnmodifiableMapView) return _securitySchemes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_securitySchemes);
+}
+
+ final  List<Map<String, List<String>>> _security;
+@override@JsonKey() List<Map<String, List<String>>> get security {
+  if (_security is EqualUnmodifiableListView) return _security;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_security);
+}
+
  final  List<SwaggerEndpoint> _endpoints;
 @override@JsonKey() List<SwaggerEndpoint> get endpoints {
   if (_endpoints is EqualUnmodifiableListView) return _endpoints;
@@ -552,16 +865,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerSchemaInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.version, version) || other.version == version)&&(identical(other.description, description) || other.description == description)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&const DeepCollectionEquality().equals(other._endpoints, _endpoints));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerSchemaInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.version, version) || other.version == version)&&(identical(other.description, description) || other.description == description)&&(identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl)&&const DeepCollectionEquality().equals(other._securitySchemes, _securitySchemes)&&const DeepCollectionEquality().equals(other._security, _security)&&const DeepCollectionEquality().equals(other._endpoints, _endpoints));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,version,description,baseUrl,const DeepCollectionEquality().hash(_endpoints));
+int get hashCode => Object.hash(runtimeType,title,version,description,baseUrl,const DeepCollectionEquality().hash(_securitySchemes),const DeepCollectionEquality().hash(_security),const DeepCollectionEquality().hash(_endpoints));
 
 @override
 String toString() {
-  return 'SwaggerSchemaInfo(title: $title, version: $version, description: $description, baseUrl: $baseUrl, endpoints: $endpoints)';
+  return 'SwaggerSchemaInfo(title: $title, version: $version, description: $description, baseUrl: $baseUrl, securitySchemes: $securitySchemes, security: $security, endpoints: $endpoints)';
 }
 
 
@@ -572,7 +885,7 @@ abstract mixin class _$SwaggerSchemaInfoCopyWith<$Res> implements $SwaggerSchema
   factory _$SwaggerSchemaInfoCopyWith(_SwaggerSchemaInfo value, $Res Function(_SwaggerSchemaInfo) _then) = __$SwaggerSchemaInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String title, String version, String? description, String? baseUrl, List<SwaggerEndpoint> endpoints
+ String title, String version, String? description, String? baseUrl, Map<String, SwaggerSecurityScheme> securitySchemes, List<Map<String, List<String>>> security, List<SwaggerEndpoint> endpoints
 });
 
 
@@ -589,13 +902,15 @@ class __$SwaggerSchemaInfoCopyWithImpl<$Res>
 
 /// Create a copy of SwaggerSchemaInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? version = null,Object? description = freezed,Object? baseUrl = freezed,Object? endpoints = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? version = null,Object? description = freezed,Object? baseUrl = freezed,Object? securitySchemes = null,Object? security = null,Object? endpoints = null,}) {
   return _then(_SwaggerSchemaInfo(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,baseUrl: freezed == baseUrl ? _self.baseUrl : baseUrl // ignore: cast_nullable_to_non_nullable
-as String?,endpoints: null == endpoints ? _self._endpoints : endpoints // ignore: cast_nullable_to_non_nullable
+as String?,securitySchemes: null == securitySchemes ? _self._securitySchemes : securitySchemes // ignore: cast_nullable_to_non_nullable
+as Map<String, SwaggerSecurityScheme>,security: null == security ? _self._security : security // ignore: cast_nullable_to_non_nullable
+as List<Map<String, List<String>>>,endpoints: null == endpoints ? _self._endpoints : endpoints // ignore: cast_nullable_to_non_nullable
 as List<SwaggerEndpoint>,
   ));
 }
@@ -882,7 +1197,7 @@ as DateTime,
 /// @nodoc
 mixin _$SwaggerState {
 
- SwaggerViewMode get viewMode; List<SwaggerHistoryItem> get history; SwaggerSchemaInfo? get activeSchema; bool get isLoading; String? get errorMessage; SwaggerEndpoint? get activeEndpoint;
+ SwaggerViewMode get viewMode; List<SwaggerHistoryItem> get history; SwaggerSchemaInfo? get activeSchema; bool get isLoading; String? get errorMessage; SwaggerEndpoint? get activeEndpoint; Map<String, String> get activeSecurityValues;
 /// Create a copy of SwaggerState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -895,16 +1210,16 @@ $SwaggerStateCopyWith<SwaggerState> get copyWith => _$SwaggerStateCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerState&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&const DeepCollectionEquality().equals(other.history, history)&&(identical(other.activeSchema, activeSchema) || other.activeSchema == activeSchema)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.activeEndpoint, activeEndpoint) || other.activeEndpoint == activeEndpoint));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwaggerState&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&const DeepCollectionEquality().equals(other.history, history)&&(identical(other.activeSchema, activeSchema) || other.activeSchema == activeSchema)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.activeEndpoint, activeEndpoint) || other.activeEndpoint == activeEndpoint)&&const DeepCollectionEquality().equals(other.activeSecurityValues, activeSecurityValues));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,viewMode,const DeepCollectionEquality().hash(history),activeSchema,isLoading,errorMessage,activeEndpoint);
+int get hashCode => Object.hash(runtimeType,viewMode,const DeepCollectionEquality().hash(history),activeSchema,isLoading,errorMessage,activeEndpoint,const DeepCollectionEquality().hash(activeSecurityValues));
 
 @override
 String toString() {
-  return 'SwaggerState(viewMode: $viewMode, history: $history, activeSchema: $activeSchema, isLoading: $isLoading, errorMessage: $errorMessage, activeEndpoint: $activeEndpoint)';
+  return 'SwaggerState(viewMode: $viewMode, history: $history, activeSchema: $activeSchema, isLoading: $isLoading, errorMessage: $errorMessage, activeEndpoint: $activeEndpoint, activeSecurityValues: $activeSecurityValues)';
 }
 
 
@@ -915,7 +1230,7 @@ abstract mixin class $SwaggerStateCopyWith<$Res>  {
   factory $SwaggerStateCopyWith(SwaggerState value, $Res Function(SwaggerState) _then) = _$SwaggerStateCopyWithImpl;
 @useResult
 $Res call({
- SwaggerViewMode viewMode, List<SwaggerHistoryItem> history, SwaggerSchemaInfo? activeSchema, bool isLoading, String? errorMessage, SwaggerEndpoint? activeEndpoint
+ SwaggerViewMode viewMode, List<SwaggerHistoryItem> history, SwaggerSchemaInfo? activeSchema, bool isLoading, String? errorMessage, SwaggerEndpoint? activeEndpoint, Map<String, String> activeSecurityValues
 });
 
 
@@ -932,7 +1247,7 @@ class _$SwaggerStateCopyWithImpl<$Res>
 
 /// Create a copy of SwaggerState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? viewMode = null,Object? history = null,Object? activeSchema = freezed,Object? isLoading = null,Object? errorMessage = freezed,Object? activeEndpoint = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? viewMode = null,Object? history = null,Object? activeSchema = freezed,Object? isLoading = null,Object? errorMessage = freezed,Object? activeEndpoint = freezed,Object? activeSecurityValues = null,}) {
   return _then(_self.copyWith(
 viewMode: null == viewMode ? _self.viewMode : viewMode // ignore: cast_nullable_to_non_nullable
 as SwaggerViewMode,history: null == history ? _self.history : history // ignore: cast_nullable_to_non_nullable
@@ -940,7 +1255,8 @@ as List<SwaggerHistoryItem>,activeSchema: freezed == activeSchema ? _self.active
 as SwaggerSchemaInfo?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,activeEndpoint: freezed == activeEndpoint ? _self.activeEndpoint : activeEndpoint // ignore: cast_nullable_to_non_nullable
-as SwaggerEndpoint?,
+as SwaggerEndpoint?,activeSecurityValues: null == activeSecurityValues ? _self.activeSecurityValues : activeSecurityValues // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,
   ));
 }
 /// Create a copy of SwaggerState
@@ -1049,10 +1365,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SwaggerViewMode viewMode,  List<SwaggerHistoryItem> history,  SwaggerSchemaInfo? activeSchema,  bool isLoading,  String? errorMessage,  SwaggerEndpoint? activeEndpoint)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SwaggerViewMode viewMode,  List<SwaggerHistoryItem> history,  SwaggerSchemaInfo? activeSchema,  bool isLoading,  String? errorMessage,  SwaggerEndpoint? activeEndpoint,  Map<String, String> activeSecurityValues)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwaggerState() when $default != null:
-return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,_that.errorMessage,_that.activeEndpoint);case _:
+return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,_that.errorMessage,_that.activeEndpoint,_that.activeSecurityValues);case _:
   return orElse();
 
 }
@@ -1070,10 +1386,10 @@ return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SwaggerViewMode viewMode,  List<SwaggerHistoryItem> history,  SwaggerSchemaInfo? activeSchema,  bool isLoading,  String? errorMessage,  SwaggerEndpoint? activeEndpoint)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SwaggerViewMode viewMode,  List<SwaggerHistoryItem> history,  SwaggerSchemaInfo? activeSchema,  bool isLoading,  String? errorMessage,  SwaggerEndpoint? activeEndpoint,  Map<String, String> activeSecurityValues)  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerState():
-return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,_that.errorMessage,_that.activeEndpoint);case _:
+return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,_that.errorMessage,_that.activeEndpoint,_that.activeSecurityValues);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1090,10 +1406,10 @@ return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SwaggerViewMode viewMode,  List<SwaggerHistoryItem> history,  SwaggerSchemaInfo? activeSchema,  bool isLoading,  String? errorMessage,  SwaggerEndpoint? activeEndpoint)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SwaggerViewMode viewMode,  List<SwaggerHistoryItem> history,  SwaggerSchemaInfo? activeSchema,  bool isLoading,  String? errorMessage,  SwaggerEndpoint? activeEndpoint,  Map<String, String> activeSecurityValues)?  $default,) {final _that = this;
 switch (_that) {
 case _SwaggerState() when $default != null:
-return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,_that.errorMessage,_that.activeEndpoint);case _:
+return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,_that.errorMessage,_that.activeEndpoint,_that.activeSecurityValues);case _:
   return null;
 
 }
@@ -1105,7 +1421,7 @@ return $default(_that.viewMode,_that.history,_that.activeSchema,_that.isLoading,
 @JsonSerializable()
 
 class _SwaggerState implements SwaggerState {
-  const _SwaggerState({this.viewMode = SwaggerViewMode.list, final  List<SwaggerHistoryItem> history = const [], this.activeSchema, this.isLoading = false, this.errorMessage, this.activeEndpoint}): _history = history;
+  const _SwaggerState({this.viewMode = SwaggerViewMode.list, final  List<SwaggerHistoryItem> history = const [], this.activeSchema, this.isLoading = false, this.errorMessage, this.activeEndpoint, final  Map<String, String> activeSecurityValues = const {}}): _history = history,_activeSecurityValues = activeSecurityValues;
   factory _SwaggerState.fromJson(Map<String, dynamic> json) => _$SwaggerStateFromJson(json);
 
 @override@JsonKey() final  SwaggerViewMode viewMode;
@@ -1120,6 +1436,13 @@ class _SwaggerState implements SwaggerState {
 @override@JsonKey() final  bool isLoading;
 @override final  String? errorMessage;
 @override final  SwaggerEndpoint? activeEndpoint;
+ final  Map<String, String> _activeSecurityValues;
+@override@JsonKey() Map<String, String> get activeSecurityValues {
+  if (_activeSecurityValues is EqualUnmodifiableMapView) return _activeSecurityValues;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_activeSecurityValues);
+}
+
 
 /// Create a copy of SwaggerState
 /// with the given fields replaced by the non-null parameter values.
@@ -1134,16 +1457,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerState&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&const DeepCollectionEquality().equals(other._history, _history)&&(identical(other.activeSchema, activeSchema) || other.activeSchema == activeSchema)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.activeEndpoint, activeEndpoint) || other.activeEndpoint == activeEndpoint));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwaggerState&&(identical(other.viewMode, viewMode) || other.viewMode == viewMode)&&const DeepCollectionEquality().equals(other._history, _history)&&(identical(other.activeSchema, activeSchema) || other.activeSchema == activeSchema)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.activeEndpoint, activeEndpoint) || other.activeEndpoint == activeEndpoint)&&const DeepCollectionEquality().equals(other._activeSecurityValues, _activeSecurityValues));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,viewMode,const DeepCollectionEquality().hash(_history),activeSchema,isLoading,errorMessage,activeEndpoint);
+int get hashCode => Object.hash(runtimeType,viewMode,const DeepCollectionEquality().hash(_history),activeSchema,isLoading,errorMessage,activeEndpoint,const DeepCollectionEquality().hash(_activeSecurityValues));
 
 @override
 String toString() {
-  return 'SwaggerState(viewMode: $viewMode, history: $history, activeSchema: $activeSchema, isLoading: $isLoading, errorMessage: $errorMessage, activeEndpoint: $activeEndpoint)';
+  return 'SwaggerState(viewMode: $viewMode, history: $history, activeSchema: $activeSchema, isLoading: $isLoading, errorMessage: $errorMessage, activeEndpoint: $activeEndpoint, activeSecurityValues: $activeSecurityValues)';
 }
 
 
@@ -1154,7 +1477,7 @@ abstract mixin class _$SwaggerStateCopyWith<$Res> implements $SwaggerStateCopyWi
   factory _$SwaggerStateCopyWith(_SwaggerState value, $Res Function(_SwaggerState) _then) = __$SwaggerStateCopyWithImpl;
 @override @useResult
 $Res call({
- SwaggerViewMode viewMode, List<SwaggerHistoryItem> history, SwaggerSchemaInfo? activeSchema, bool isLoading, String? errorMessage, SwaggerEndpoint? activeEndpoint
+ SwaggerViewMode viewMode, List<SwaggerHistoryItem> history, SwaggerSchemaInfo? activeSchema, bool isLoading, String? errorMessage, SwaggerEndpoint? activeEndpoint, Map<String, String> activeSecurityValues
 });
 
 
@@ -1171,7 +1494,7 @@ class __$SwaggerStateCopyWithImpl<$Res>
 
 /// Create a copy of SwaggerState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? viewMode = null,Object? history = null,Object? activeSchema = freezed,Object? isLoading = null,Object? errorMessage = freezed,Object? activeEndpoint = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? viewMode = null,Object? history = null,Object? activeSchema = freezed,Object? isLoading = null,Object? errorMessage = freezed,Object? activeEndpoint = freezed,Object? activeSecurityValues = null,}) {
   return _then(_SwaggerState(
 viewMode: null == viewMode ? _self.viewMode : viewMode // ignore: cast_nullable_to_non_nullable
 as SwaggerViewMode,history: null == history ? _self._history : history // ignore: cast_nullable_to_non_nullable
@@ -1179,7 +1502,8 @@ as List<SwaggerHistoryItem>,activeSchema: freezed == activeSchema ? _self.active
 as SwaggerSchemaInfo?,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,activeEndpoint: freezed == activeEndpoint ? _self.activeEndpoint : activeEndpoint // ignore: cast_nullable_to_non_nullable
-as SwaggerEndpoint?,
+as SwaggerEndpoint?,activeSecurityValues: null == activeSecurityValues ? _self._activeSecurityValues : activeSecurityValues // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,
   ));
 }
 

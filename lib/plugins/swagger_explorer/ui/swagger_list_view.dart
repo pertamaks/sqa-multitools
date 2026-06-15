@@ -9,6 +9,9 @@ import '../../../../ui/widgets/sqa_card.dart';
 import '../../../../ui/widgets/sqa_icon_container.dart';
 import '../../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../../ui/widgets/sqa_history_list.dart';
+import '../../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../../ui/widgets/sqa_styles.dart';
+import 'package:file_selector/file_selector.dart';
 import '../providers/swagger_provider.dart';
 import '../models/swagger_state.dart';
 
@@ -42,8 +45,9 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
 
     return SqaPluginLayout(
       title: 'Swagger Explorer',
-      description: 'Discover API endpoints natively and send them to the cURL Requester.',
-      icon: Symbols.api,
+      description:
+          'Discover API endpoints natively and send them to the cURL Requester.',
+      icon: Symbols.data_object,
       child: SqaPluginScrollableContent(
         center: false,
         padding: const EdgeInsets.symmetric(
@@ -55,15 +59,52 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
           children: [
             Row(
               children: [
+                Text(
+                  'OPENAPI URL',
+                  style: SqaTextStyles.labelBold(context).copyWith(
+                    letterSpacing: 1.1,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: SqaTokens.spacingSmall),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
                 Expanded(
                   child: SqaField(
                     controller: _urlController,
-                    label: 'OPENAPI URL (e.g., /v3/api-docs)',
+                    label: '',
+                    showLabel: false,
                     hintText: 'http://localhost:8080/v3/api-docs',
                     onSubmitted: (_) => _fetchUrl(),
+                    showCopyButton: false,
                   ),
                 ),
                 const SizedBox(width: SqaTokens.spacingMedium),
+                SqaButton(
+                  label: '',
+                  icon: Symbols.folder_open,
+                  onPressed: state.isLoading
+                      ? null
+                      : () async {
+                          const typeGroup = XTypeGroup(
+                            label: 'Swagger Documents',
+                            extensions: ['json', 'yaml', 'yml'],
+                          );
+                          final file = await openFile(
+                            acceptedTypeGroups: [typeGroup],
+                          );
+                          if (file != null) {
+                            ref
+                                .read(swaggerProvider.notifier)
+                                .fetchFromFile(file.path);
+                          }
+                        },
+                  type: SqaButtonType.tonal,
+                ),
+                const SizedBox(width: SqaTokens.spacingSmall),
                 SqaButton(
                   label: 'Fetch',
                   icon: Symbols.download,
@@ -79,26 +120,36 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
                 style: TextStyle(color: theme.colorScheme.error),
               ),
             ],
-            
+
             const SizedBox(height: SqaTokens.spacingXXXLarge),
-            
+
             SqaHistoryList<SwaggerHistoryItem>(
               title: 'HISTORY',
               items: state.history,
               emptyLabel: 'No APIs loaded yet.',
+              onClearAll: () =>
+                  ref.read(swaggerProvider.notifier).clearHistory(),
               itemBuilder: (context, item, isLast) {
-                return InkWell(
+                return SqaCard(
                   onTap: () {
                     if (item.url != null) {
-                      ref.read(swaggerProvider.notifier).fetchFromUrl(item.url!);
+                      ref
+                          .read(swaggerProvider.notifier)
+                          .fetchFromUrl(item.url!);
+                    } else if (item.filePath != null) {
+                      ref
+                          .read(swaggerProvider.notifier)
+                          .fetchFromFile(item.filePath!);
                     }
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: SqaTokens.spacingMedium, horizontal: SqaTokens.spacingMedium),
-                    child: Row(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: SqaTokens.spacingMedium,
+                    horizontal: SqaTokens.spacingMedium,
+                  ),
+                  child: Row(
                       children: [
                         SqaIconContainer(
-                          icon: Symbols.api,
+                          icon: Symbols.data_object,
                           backgroundColor: theme.colorScheme.primaryContainer,
                         ),
                         const SizedBox(width: SqaTokens.spacingMedium),
@@ -108,7 +159,9 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
                             children: [
                               Text(
                                 item.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               if (item.url != null)
                                 Text(
@@ -122,10 +175,24 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
                             ],
                           ),
                         ),
-                        Icon(Symbols.chevron_right, size: 20, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                        SqaPopupMenu(
+                          icon: Symbols.more_vert,
+                          tooltip: 'Options',
+                          children: [
+                            SqaPopupMenuItem(
+                              icon: const Icon(Symbols.delete),
+                              label: 'Remove',
+                              isDestructive: true,
+                              onPressed: () {
+                                ref
+                                    .read(swaggerProvider.notifier)
+                                    .deleteFromHistory(item.id);
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ),
                 );
               },
             ),

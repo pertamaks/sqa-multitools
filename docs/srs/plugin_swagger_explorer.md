@@ -13,7 +13,9 @@ The **Swagger Explorer** is a high-fidelity discovery tool for SQA-Multitools. I
 ### 2.2 The Execution Bridge (cURL Requester)
 * **Zero-Execution Architecture:** The Swagger Explorer *does not* execute HTTP requests natively. It completely removes the bloated "Try it out" feature found in standard Swagger UI.
 * **One-Click Hand-Off:** Every endpoint view features a prominent "Send to cURL Requester" button.
-* **State Transfer:** Clicking the hand-off button automatically translates the endpoint (URL, Method, Headers, Body template) into a valid raw cURL string and injects it directly into the `curlRequesterProvider` state.
+* **Smart Schema Parsing:** Intelligent mapping of OpenAPI 3 request bodies. Safely maps `application/octet-stream` and image types to `binaryFile` bodies, avoiding multipart mismatching.
+* **Global Authorization:** Supports schema-level Security Schemes. Users can globally authorize via a dedicated dialog (Bearer, Basic, API Key). The active tokens are injected directly into the cURL hand-off automatically.
+* **State Transfer:** Clicking the hand-off button automatically translates the endpoint (URL, Method, Headers, Body template, auth values) into a valid raw cURL string and injects it directly into the `curlRequesterProvider` state.
 
 ### 2.3 Persistence (List View)
 * **History Management:** The plugin maintains a history of previously loaded schemas.

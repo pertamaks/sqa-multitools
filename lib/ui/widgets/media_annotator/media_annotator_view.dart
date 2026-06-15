@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' as p;
-import 'dart:ui' as ui;
 
 import '../../../main.dart';
 import '../../../core/models/screenshot_tool.dart';
@@ -16,9 +14,7 @@ import '../sqa_annotation_toolbar.dart';
 import '../sqa_floating_bar.dart';
 import '../sqa_design_tokens.dart';
 import '../sqa_styles.dart';
-import '../../../core/services/logging_service.dart';
 import 'providers/annotator_provider.dart';
-import 'models/annotator_state.dart';
 
 
 

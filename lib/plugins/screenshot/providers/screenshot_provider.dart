@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
@@ -156,6 +155,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     _watchSubscription = null;
     
     final documentsDir = await getApplicationDocumentsDirectory();
+    if (!ref.mounted) return;
     final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
     final saveDir = Directory(saveDirPath);
 
@@ -165,6 +165,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       } catch (_) {}
     }
 
+    if (!ref.mounted) return;
     if (await saveDir.exists()) {
       _watchSubscription = saveDir.watch().listen((event) {
         refreshRecentCaptures();
@@ -736,7 +737,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       ref.read(isScreenshotProcessingProvider.notifier).set(true);
       final logger = ref.read(loggingServiceProvider.notifier);
       await WindowUtils.safeHide();
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future<void>.delayed(const Duration(milliseconds: 300));
       try {
         final engine = SilentFrozenCanvasEngine();
         final result = await engine.capture(

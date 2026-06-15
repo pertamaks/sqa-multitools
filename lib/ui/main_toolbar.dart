@@ -25,7 +25,6 @@ import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/ffmpeg_provider.dart';
 import 'widgets/sqa_safe_plugin_builder.dart';
-import 'widgets/sqa_floating_bar.dart';
 import 'dart:io';
 
 class MainToolbar extends ConsumerStatefulWidget {

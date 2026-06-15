@@ -14,7 +14,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
   return const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(),
     wOptions: WindowsOptions(),
   );
 });

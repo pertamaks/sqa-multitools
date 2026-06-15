@@ -22,7 +22,6 @@ import 'plugins/screenshot/providers/screenshot_provider.dart';
 import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
 import 'ui/widgets/sqa_styles.dart';
-import 'ui/widgets/sqa_styles.dart';
 import 'ui/widgets/sqa_design_tokens.dart';
 import 'ui/widgets/sqa_scroll_behavior.dart';
 import 'ui/widgets/sqa_toast.dart';

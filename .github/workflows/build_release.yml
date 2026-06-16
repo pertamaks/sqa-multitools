@@ -98,7 +98,7 @@ jobs:
             --appdir AppDir \
             --executable AppDir/usr/bin/sqa_multitools \
             --desktop-file linux/sqa_multitools.desktop \
-            --icon-file assets/app_icon.png \
+            --icon-file assets/app_icon_linux.png \
             --plugin gtk \
             --output appimage
 

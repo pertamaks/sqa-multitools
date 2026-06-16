@@ -94,7 +94,13 @@ jobs:
           
           # Run linuxdeploy
           export OUTPUT=sqa-multitools-${{ github.ref_name }}-linux.AppImage
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable AppDir/usr/bin/sqa_multitools --desktop-file linux/sqa_multitools.desktop --icon-file assets/app_icon.png --plugin gtk --custom-apprun --output appimage
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable AppDir/usr/bin/sqa_multitools \
+            --desktop-file linux/sqa_multitools.desktop \
+            --icon-file assets/app_icon.png \
+            --plugin gtk \
+            --output appimage
 
       - name: Upload Artifact Map
         uses: actions/upload-artifact@v4

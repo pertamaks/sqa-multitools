@@ -8,7 +8,7 @@ import 'package:mockito/mockito.dart';
 
 class MockSecureStorage extends Mock implements FlutterSecureStorage {}
 
-class MockSupporterTierNotifier extends SupporterTierNotifier {
+class MockSupporterTier extends SupporterTier {
   @override
   int build() => 3;
 }
@@ -25,7 +25,7 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         secureStorageProvider.overrideWithValue(mockSecure),
-        supporterTierProvider.overrideWith(() => MockSupporterTierNotifier()), // Ensure all features unlocked
+        supporterTierProvider.overrideWith(() => MockSupporterTier()), // Ensure all features unlocked
       ],
     );
 

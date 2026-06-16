@@ -1,5 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/preferences_service.dart';
+
+part 'magic_8ball_provider.g.dart';
 
 enum OracleMode {
   savage('Savage'),
@@ -10,22 +12,23 @@ enum OracleMode {
   const OracleMode(this.label);
 }
 
-class OracleSettings {
+class OracleSettingsData {
   final OracleMode mode;
 
-  const OracleSettings({required this.mode});
+  const OracleSettingsData({required this.mode});
 
-  OracleSettings copyWith({OracleMode? mode}) {
-    return OracleSettings(mode: mode ?? this.mode);
+  OracleSettingsData copyWith({OracleMode? mode}) {
+    return OracleSettingsData(mode: mode ?? this.mode);
   }
 }
 
-class OracleSettingsNotifier extends Notifier<OracleSettings> {
+@Riverpod(keepAlive: true)
+class OracleSettings extends _$OracleSettings {
   @override
-  OracleSettings build() {
+  OracleSettingsData build() {
     final service = ref.watch(preferencesServiceProvider);
     final index = service.getOracleModeIndex();
-    return OracleSettings(mode: OracleMode.values[index]);
+    return OracleSettingsData(mode: OracleMode.values[index]);
   }
 
   void setMode(OracleMode mode) {
@@ -34,12 +37,8 @@ class OracleSettingsNotifier extends Notifier<OracleSettings> {
   }
 }
 
-final oracleSettingsProvider =
-    NotifierProvider<OracleSettingsNotifier, OracleSettings>(() {
-      return OracleSettingsNotifier();
-    });
-
-final oracleResponsesProvider = Provider<List<String>>((ref) {
+@Riverpod(keepAlive: true)
+List<String> oracleResponses(Ref ref) {
   final mode = ref.watch(oracleSettingsProvider).mode;
 
   switch (mode) {
@@ -99,4 +98,4 @@ final oracleResponsesProvider = Provider<List<String>>((ref) {
         'It\'s fine. Everything is fine. 🔥',
       ];
   }
-});
+}

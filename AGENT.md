@@ -28,6 +28,7 @@ Every plugin MUST implement the `SqaPlugin` interface from the core package to e
 To ensure that the project documentation reflects the current state of the application:
 * **Mandatory Update:** Any changes to core features or plugins MUST be accompanied by an update to the corresponding SRS document in `docs/srs/`. 
 * **Guideline Evolution:** If a feature change affects these guidelines (`AGENT.md`) or introduces a NEW centralized pattern/widget, these guidelines MUST be updated immediately to maintain "Agent Awareness" for future sessions.
+* **Architecture Ledger:** Any significant architectural decision, or any newly identified technical debt, MUST be logged in `docs/tech_debt_and_architecture.md` (under the ADR section or the Tech Debt Roadmap) to provide context for future sessions.
 * **Context Sync:** Proactively update the "Step File" and "SRS" to reflect architectural decisions made during development.
 
 ## 5. UI Standards

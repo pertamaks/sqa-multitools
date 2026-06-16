@@ -2,18 +2,32 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqa_multitools/plugins/swagger_explorer/models/swagger_state.dart';
+import 'package:sqa_multitools/core/services/logging_service.dart';
 import 'package:sqa_multitools/plugins/swagger_explorer/providers/swagger_provider.dart';
+import 'package:sqa_multitools/plugins/swagger_explorer/models/swagger_state.dart';
+class MockLoggingService extends LoggingService {
+  @override
+  void build() {}
+  @override
+  void logInfo(String message, [String? name]) {}
+  @override
+  void logError(String message, [String? name, Object? error, StackTrace? stackTrace]) {}
+  @override
+  void logWarning(String message, [String? name, Object? error, StackTrace? stackTrace]) {}
+  @override
+  void logDebug(String message, [String? name]) {}
+}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('SwaggerNotifier — state mutations', () {
     late ProviderContainer container;
 
     setUp(() {
       container = ProviderContainer(
         overrides: [
-          // No overrides needed for pure state mutation tests.
-          // The logging service is never called in these paths.
+          loggingServiceProvider.overrideWith(() => MockLoggingService()),
         ],
       );
       addTearDown(container.dispose);
@@ -123,7 +137,11 @@ void main() {
     late Directory tmpDir;
 
     setUp(() {
-      container = ProviderContainer();
+      container = ProviderContainer(
+        overrides: [
+          loggingServiceProvider.overrideWith(() => MockLoggingService()),
+        ],
+      );
       addTearDown(container.dispose);
       tmpDir = Directory.systemTemp.createTempSync('swagger_test_');
       addTearDown(() => tmpDir.deleteSync(recursive: true));

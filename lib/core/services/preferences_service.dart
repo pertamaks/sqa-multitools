@@ -1,23 +1,27 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import '../models/hotkey_info.dart';
 import 'coffee_shop_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+part 'preferences_service.g.dart';
+
+@Riverpod(keepAlive: true)
+SharedPreferences sharedPreferences(Ref ref) {
   throw UnimplementedError(
     'sharedPreferencesProvider must be overridden in main()',
   );
-});
+}
 
-final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+@Riverpod(keepAlive: true)
+FlutterSecureStorage secureStorage(Ref ref) {
   return const FlutterSecureStorage(
     aOptions: AndroidOptions(),
     wOptions: WindowsOptions(),
   );
-});
+}
 
 class PreferencesService {
   final SharedPreferences _prefs;
@@ -288,14 +292,15 @@ class PreferencesService {
   }
 }
 
-final preferencesServiceProvider = Provider<PreferencesService>((ref) {
+@Riverpod(keepAlive: true)
+PreferencesService preferencesService(Ref ref) {
   return PreferencesService(
     ref.watch(sharedPreferencesProvider),
     ref.watch(secureStorageProvider),
   );
-});
+}
 
-class ThemeSettings {
+class ThemeSettingsData {
   final int modeIndex;
   final int seedColorValue;
   final bool useDynamicColor;
@@ -303,7 +308,7 @@ class ThemeSettings {
   final double opacity;
   final bool isTransparencyModeEnabled;
 
-  const ThemeSettings({
+  const ThemeSettingsData({
     required this.modeIndex,
     required this.seedColorValue,
     required this.useDynamicColor,
@@ -312,7 +317,7 @@ class ThemeSettings {
     required this.isTransparencyModeEnabled,
   });
 
-  ThemeSettings copyWith({
+  ThemeSettingsData copyWith({
     int? modeIndex,
     int? seedColorValue,
     bool? useDynamicColor,
@@ -320,7 +325,7 @@ class ThemeSettings {
     double? opacity,
     bool? isTransparencyModeEnabled,
   }) {
-    return ThemeSettings(
+    return ThemeSettingsData(
       modeIndex: modeIndex ?? this.modeIndex,
       seedColorValue: seedColorValue ?? this.seedColorValue,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
@@ -332,12 +337,13 @@ class ThemeSettings {
   }
 }
 
-class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
+@Riverpod(keepAlive: true)
+class ThemeSettings extends _$ThemeSettings {
   @override
-  ThemeSettings build() {
+  ThemeSettingsData build() {
     final service = ref.watch(preferencesServiceProvider);
     
-    final initialSettings = ThemeSettings(
+    final initialSettings = ThemeSettingsData(
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
@@ -349,7 +355,7 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
     return _applyTierConstraints(initialSettings);
   }
 
-  ThemeSettings _applyTierConstraints(ThemeSettings settings) {
+  ThemeSettingsData _applyTierConstraints(ThemeSettingsData settings) {
     final tier = ref.read(supporterTierProvider);
     
     int seedColorValue = settings.seedColorValue;
@@ -461,7 +467,7 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
   // Restore state from saved preferences (used when closing settings preview)
   void resetToSaved() {
     final service = ref.read(preferencesServiceProvider);
-    final savedSettings = ThemeSettings(
+    final savedSettings = ThemeSettingsData(
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
       useDynamicColor: service.getUseDynamicColor(),
@@ -474,12 +480,8 @@ class ThemeSettingsNotifier extends Notifier<ThemeSettings> {
   }
 }
 
-final themeSettingsProvider =
-    NotifierProvider<ThemeSettingsNotifier, ThemeSettings>(() {
-      return ThemeSettingsNotifier();
-    });
-
-class BugSquashEnabledNotifier extends Notifier<bool> {
+@Riverpod(keepAlive: true)
+class BugSquashEnabled extends _$BugSquashEnabled {
   @override
   bool build() {
     return ref.watch(preferencesServiceProvider).getBugSquashEnabled();
@@ -490,8 +492,3 @@ class BugSquashEnabledNotifier extends Notifier<bool> {
     ref.read(preferencesServiceProvider).setBugSquashEnabled(enabled);
   }
 }
-
-final bugSquashEnabledProvider =
-    NotifierProvider<BugSquashEnabledNotifier, bool>(() {
-      return BugSquashEnabledNotifier();
-    });

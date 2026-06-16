@@ -5,7 +5,7 @@ A modular desktop utility suite built for QA Engineers and Developers. SQA-Multi
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)
 ![Platform Windows](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)
 ![Platform Linux](https://img.shields.io/badge/Platform-Linux-FCC624?logo=linux&logoColor=black)
-[![License](https://img.shields.io/badge/License-Proprietary-gray)](LICENSE)
+[![License: Freeware](https://img.shields.io/badge/License-Freeware-blue.svg)](LICENSE)
 
 ---
 

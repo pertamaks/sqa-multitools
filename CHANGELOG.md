@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-06-16
+
+### Added
+- **Swagger Explorer Plugin:** Complete plugin to parse and explore Swagger/OpenAPI documentation.
+- **Media Annotator:** Integrated native annotator for modifying captured media.
+- **Linux Support:** Added Linux AppImage build pipeline and platform compatibility improvements.
+
+### Changed
+- **cURL Requester:** Overhauled integration, added inline variable feedback, binary uploads, and synchronized docs.
+- **Architecture:** Standardized state management using Riverpod code generation and resolved major technical debt across the application.
+- **UI:** Fixed text editor view padding and resolved global hover bleeding.
+
 ## [0.3.0] - 2026-05-26
 
 ### Added

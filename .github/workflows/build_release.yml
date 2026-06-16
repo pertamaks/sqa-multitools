@@ -95,7 +95,9 @@ jobs:
           cp assets/app_icon_linux.png sqa_multitools.png
 
           # Run linuxdeploy
-          export OUTPUT=sqa-multitools-${{ github.ref_name }}-linux.AppImage
+          REF_NAME="${{ github.ref_name }}"
+          SANITIZED_NAME="${REF_NAME//\//-}"
+          export OUTPUT="sqa-multitools-${SANITIZED_NAME}-linux.AppImage"
           ./linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             --executable AppDir/usr/bin/sqa_multitools \

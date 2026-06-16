@@ -3,7 +3,7 @@
 A modular desktop utility suite built for QA Engineers and Developers. SQA-Multitools brings together everyday testing tools into a single, lightweight toolbar that floats on your desktop.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)
-![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D6?logo=linux)
 [![License](https://img.shields.io/badge/License-Proprietary-gray)](LICENSE)
 
 ---
@@ -23,7 +23,7 @@ A modular desktop utility suite built for QA Engineers and Developers. SQA-Multi
 | **TODO & Tasks** | Lightweight task management for development sprints |
 | **QA Cheatsheet** | Quick access to standard QA checklists and project-specific guides |
 | **Security Payloads** | Quick-access XSS/SQL injection test strings |
-| **Settings** | Theme selection, preferences, and Coffee Shop license manager |
+| **Settings** | Theme selection, preferences, Coffee Shop manager, and Auto Run on Startup |
 | **QA Oracle** | The essential QA decision-making tool 🎱 |
 
 ## Architecture
@@ -65,13 +65,40 @@ lib/
 - **Native:** Windows Mutex for single-instance enforcement
 - **CI/CD:** GitHub Actions — automated Windows release builds on version tags with manual approval gate
 
-## Getting Started
+## Installation
 
-### Prerequisites
+### Windows
+Download the latest release `.zip` from GitHub Releases, extract it anywhere, and run `sqa-multitools.exe`.
+
+### Linux (AppImage)
+SQA-Multitools is distributed as a portable AppImage for Linux. You can download and run it directly from your terminal:
+
+```bash
+# Download the latest AppImage
+wget https://github.com/pertamaks/sqa-multitools/releases/latest/download/sqa-multitools-x86_64.AppImage
+
+# Make it executable
+chmod +x sqa-multitools-x86_64.AppImage
+
+# Run it
+./sqa-multitools-x86_64.AppImage
+```
+
+> **Tip:** If you enable "Auto Run on Startup" in the app's Settings, SQA-Multitools will automatically create the necessary `.desktop` file in your `~/.config/autostart/` folder, ensuring the AppImage runs seamlessly every time you log in.
+
+## Getting Started (Development)
+
+### Windows Prerequisites
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (stable channel, Dart ≥ 3.11.3)
 - Windows 10/11
 - [Rust toolchain](https://rustup.rs/) (required by `super_native_extensions`)
+
+### Linux Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
+- Standard GTK/development headers (`libgtk-3-dev`, `pkg-config`, `cmake`, `ninja-build`)
+- Linux-specific plugin dependencies: `libsecret-1-dev`, `libmpv-dev`, `libkeybinder-3.0-dev`, `libayatana-appindicator3-dev`
 
 ### Setup
 

@@ -8,6 +8,7 @@ import '../../../core/services/coffee_shop_service.dart';
 import '../../../core/services/logging_service.dart';
 import '../../../core/providers/hotkey_provider.dart';
 import '../../../core/providers/version_provider.dart';
+import '../../../core/providers/auto_start_provider.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_icon_container.dart';
@@ -533,6 +534,53 @@ class GeneralSettingsView extends ConsumerWidget {
                       },
                     ),
                   ],
+                ),
+                const SizedBox(height: SqaTokens.spacingLarge),
+                Consumer(
+                  builder: (context, ref, child) {
+                    final autoStartAsync = ref.watch(autoStartProvider);
+                    
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Auto Run on Startup',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                'Automatically start SQA-Multitools when you log in.',
+                                style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        autoStartAsync.when(
+                          data: (isEnabled) => SqaSwitch(
+                            value: isEnabled,
+                            onChanged: (v) {
+                              ref.read(autoStartProvider.notifier).toggle(v);
+                            },
+                          ),
+                          loading: () => const SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          error: (_, _) => const Icon(Symbols.error, color: Colors.red),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

@@ -61,7 +61,7 @@ static void my_application_activate(GApplication* application) {
   // Load the app icon from Flutter assets
   g_autoptr(GError) icon_error = nullptr;
   g_autofree gchar* icon_path = g_build_filename(
-      fl_dart_project_get_assets_path(project), "assets", "app_icon.png", nullptr);
+      fl_dart_project_get_assets_path(project), "assets", "app_icon_linux.png", nullptr);
   GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(icon_path, &icon_error);
   if (pixbuf != nullptr) {
     gtk_window_set_icon(window, pixbuf);

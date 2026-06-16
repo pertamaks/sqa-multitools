@@ -41,6 +41,13 @@ This is a core standalone plugin for SQA-Multitools, utilizing the standard `Sqa
 - **Processing:** Updates the `themeSettingsProvider`, which triggers a global repaint.
 - **Outputs:** Updated UI colors and modes.
 
+### Window Behavior & Startup
+- **Description:** Manage how the application interacts with the host OS environment.
+- **Features:**
+    - **Always on Top:** Toggle to force the toolbar to float above all other windows (disabled/ignored on Wayland).
+    - **Auto Run on Startup:** Register the app to start automatically on OS login. Features intent-based persistence to automatically self-heal and update registry/autostart paths when portable versions are updated or moved.
+- **Processing:** Updates `themeSettingsProvider` (for Always on Top) and `autoStartProvider` (for startup registry writes).
+
 ### Plugin Management
 - **Description:** Enable/Disable plugins at runtime.
 - **Inputs:** Toggle switch state.

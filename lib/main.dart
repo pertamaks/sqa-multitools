@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,6 +97,21 @@ void main(List<String> args) async {
   AudioService.instance.init();
 
   await windowManager.ensureInitialized();
+
+  // Setup Launch at Startup
+  final packageInfo = await PackageInfo.fromPlatform();
+  launchAtStartup.setup(
+    appName: packageInfo.appName,
+    appPath: Platform.resolvedExecutable,
+  );
+
+  // Self-heal the startup path for portable versions
+  final intendsToAutoStart = prefs.getBool('auto_start_intent') ?? false;
+  if (intendsToAutoStart) {
+    await launchAtStartup.enable(); // Overwrites OS registry/autostart with current executable path
+  } else {
+    await launchAtStartup.disable(); // Cleans up if they disabled it
+  }
 
   // Run migrations
   await globalProviderContainer.read(preferencesServiceProvider).migrate();

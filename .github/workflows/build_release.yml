@@ -3,7 +3,6 @@ name: Build Release
 on:
   push:
     branches:
-      - main
       - 'release/**'
     tags:
       - 'v*' # Builds trigger when pushing a version tag

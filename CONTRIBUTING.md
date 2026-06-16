@@ -23,7 +23,7 @@ flutter test
 We use structured templates for bug reports and feature requests. Avoid opening blank issues. Ensure you provide:
 - **Reproducible steps** for bugs.
 - **Expected vs Actual** behavior.
-- **System context** (Windows version, app version).
+- **System context** (OS version, app version).
 
 ---
 
@@ -163,7 +163,7 @@ All plugins consume a shared widget library in `lib/ui/widgets/`. This ensures a
 
 - **Never** pre-load large assets (audio, images, JSON) during app startup.
 - **Always** use the plugin's `initialize()` method for lazy loading.
-- **Audio warm-up:** Use `preLoad(path)` with `preload: true` inside `initialize()` to prevent cold-start silence on Windows.
+- **Audio warm-up:** Use `preLoad(path)` with `preload: true` inside `initialize()` to prevent cold-start silence on desktop.
 
 ---
 

@@ -6,7 +6,7 @@ This document outlines the procedure for building, verifying, and publishing new
 
 ## 1. Release Workflow
 
-We use **GitHub Actions** to automate the build and distribution of Windows release bundles. The workflow is triggered by version tags.
+We use **GitHub Actions** to automate the build and distribution of Windows and Linux release bundles. The workflow is triggered by version tags.
 
 ### Triggering a Release
 To start a new release, push a tag following the `vX.Y.Z` format:
@@ -31,7 +31,8 @@ To prevent accidental or unverified builds from reaching production, the `build_
 
 Once approved, the following artifacts are automatically generated and attached to a new GitHub Release:
 
-- **`sqa-multitools-vX.Y-windows.zip`**: The complete production bundle (Portable).
+- **`sqa-multitools-vX.Y-windows.zip`**: The complete Windows production bundle (Portable).
+- **`sqa-multitools-vX.Y-linux.AppImage`**: The standalone executable bundle for Linux.
 - **`version.json`**: Updated metadata for the in-app update checker.
 
 ---

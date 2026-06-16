@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - **Swagger Explorer Plugin:** Complete plugin to parse and explore Swagger/OpenAPI documentation.
 - **Media Annotator:** Integrated native annotator for modifying captured media.
 - **Linux Support:** Added Linux AppImage build pipeline and platform compatibility improvements.
+- **Taskbar/Dock Visibility:** Added toggle to show or hide the application icon in the system taskbar/dock.
 - **Auto Run on Startup:** Added toggle in Settings to automatically launch the app on login, featuring self-healing paths for portable versions.
 
 ### Changed

@@ -3,7 +3,8 @@
 A modular desktop utility suite built for QA Engineers and Developers. SQA-Multitools brings together everyday testing tools into a single, lightweight toolbar that floats on your desktop.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D6?logo=linux)
+![Platform Windows](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)
+![Platform Linux](https://img.shields.io/badge/Platform-Linux-FCC624?logo=linux&logoColor=black)
 [![License](https://img.shields.io/badge/License-Proprietary-gray)](LICENSE)
 
 ---
@@ -19,11 +20,12 @@ A modular desktop utility suite built for QA Engineers and Developers. SQA-Multi
 | **Text Editor** | Premium Markdown editor for bug reports and dev tickets with "Smart Paste" support |
 | **cURL Requester** | Simplified HTTP client with history and "Mini-Postman" transaction inspection |
 | **Screen Recorder** | Record your screen with a draggable floating control bar |
-| **Screenshot** | Capture full-screen or region-select screenshots |
+| **Screenshot** | Capture full-screen or region-select screenshots with integrated Media Annotator |
 | **TODO & Tasks** | Lightweight task management for development sprints |
 | **QA Cheatsheet** | Quick access to standard QA checklists and project-specific guides |
 | **Security Payloads** | Quick-access XSS/SQL injection test strings |
-| **Settings** | Theme selection, preferences, Coffee Shop manager, and Auto Run on Startup |
+| **Swagger Explorer** | Parse and explore Swagger/OpenAPI documentation |
+| **Settings** | Theme selection, preferences, Coffee Shop manager, Auto Run on Startup, and Taskbar/Dock Visibility |
 | **QA Oracle** | The essential QA decision-making tool 🎱 |
 
 ## Architecture
@@ -39,7 +41,7 @@ lib/
 │   ├── utils/         # Utilities (locale, formatting)
 │   └── window/        # Frameless window handling
 ├── ui/                # Shared component library (SqaButton, SqaField, etc.)
-│   └── widgets/       # 18 standardized Material 3 widgets
+│   └── widgets/       # Standardized Material 3 widgets
 └── plugins/           # Feature modules (each self-contained)
     ├── beautifier/
     ├── curl_requester/
@@ -51,6 +53,7 @@ lib/
     ├── screenshot/
     ├── security_payloads/
     ├── settings/
+    ├── swagger_explorer/
     ├── text_editor/
     ├── timer/
     └── todo/
@@ -63,7 +66,7 @@ lib/
 - **Immutability:** Freezed
 - **UI:** Material 3 with custom frameless window chrome
 - **Native:** Windows Mutex for single-instance enforcement
-- **CI/CD:** GitHub Actions — automated Windows release builds on version tags with manual approval gate
+- **CI/CD:** GitHub Actions — automated Windows and Linux release builds on version tags with manual approval gate
 
 ## Installation
 
@@ -132,7 +135,7 @@ flutter build windows --release
 The compiled bundle will be at `build/windows/x64/runner/Release/`.
 
 ### Automated Pipeline
-Releases are automatically triggered by pushing a version tag (e.g., `v0.1.0`). This process is guarded by a manual approval gate in GitHub Actions. 
+Releases are automatically triggered by pushing a version tag (e.g., `v1.0.0`). This process is guarded by a manual approval gate in GitHub Actions. 
 
 For full details on the release workflow and branching strategy, see **[RELEASE.md](RELEASE.md)**.
 

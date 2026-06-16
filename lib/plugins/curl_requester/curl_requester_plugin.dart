@@ -33,9 +33,7 @@ class CurlRequesterPlugin implements SqaPlugin {
       padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          SqaFakerLocalePicker(),
-        ],
+        children: const [SqaFakerLocalePicker()],
       ),
     );
   }

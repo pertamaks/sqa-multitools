@@ -238,14 +238,21 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
           final textPainter = TextPainter(
             text: TextSpan(
               text: ann.text,
-              style: const TextStyle(fontSize: SqaTokens.fontSizeLarge, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: SqaTokens.fontSizeLarge,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             textDirection: TextDirection.ltr,
           );
           if (ann.points.length >= 2) {
             final maxWidth = (ann.points.last.dx - ann.points.first.dx).abs();
-            final safeWidth = (maxWidth - (SqaTokens.spacingLarge + SqaTokens.spacingXXSmall)) > 0 
-                ? (maxWidth - (SqaTokens.spacingLarge + SqaTokens.spacingXXSmall)) 
+            final safeWidth =
+                (maxWidth -
+                        (SqaTokens.spacingLarge + SqaTokens.spacingXXSmall)) >
+                    0
+                ? (maxWidth -
+                      (SqaTokens.spacingLarge + SqaTokens.spacingXXSmall))
                 : 0.0;
             textPainter.layout(maxWidth: safeWidth);
           } else {
@@ -397,7 +404,12 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
         // Default to a 300px box if they just clicked without dragging
         Rect rect = Rect.fromPoints(start, end);
         if (rect.width < 50) {
-          rect = Rect.fromLTWH(start.dx, start.dy, SqaTokens.spacingXXXLarge * 6, SqaTokens.spacingXXXLarge * 2);
+          rect = Rect.fromLTWH(
+            start.dx,
+            start.dy,
+            SqaTokens.spacingXXXLarge * 6,
+            SqaTokens.spacingXXXLarge * 2,
+          );
         }
 
         setState(() {
@@ -417,7 +429,9 @@ class _SqaAnnotationStageState extends State<SqaAnnotationStage> {
           pointTimestamps: List.from(_drawingController.timestamps),
           tool: widget.currentTool,
           color: widget.annotationColor,
-          strokeWidth: widget.currentTool == ScreenshotTool.marker ? SqaTokens.spacingXXLarge : SqaTokens.borderWidthThick,
+          strokeWidth: widget.currentTool == ScreenshotTool.marker
+              ? SqaTokens.spacingXXLarge
+              : SqaTokens.borderWidthThick,
         );
         widget.onAnnotationAdded(annotation);
         _drawingController.clear();

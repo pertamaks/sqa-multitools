@@ -86,7 +86,9 @@ class _InteractiveTimeSegmentState extends State<InteractiveTimeSegment> {
 
             // Value Display
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall),
+              padding: const EdgeInsets.symmetric(
+                horizontal: SqaTokens.spacingXSmall,
+              ),
               decoration: BoxDecoration(
                 borderRadius: SqaTokens.borderRadiusMedium,
                 color: _isHovered && widget.isEnabled

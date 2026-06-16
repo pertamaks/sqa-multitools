@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'sqa_design_tokens.dart';
 import 'sqa_toast.dart';
 import 'sqa_styles.dart';
+import 'sqa_text_controller.dart';
 import 'sqa_hover_icon_button.dart';
 
 class SqaField extends StatefulWidget {
@@ -43,6 +44,9 @@ class SqaField extends StatefulWidget {
     this.focusNode,
     this.isSelectable = true,
     this.expands = false,
+    this.highlightVariables = false,
+    this.getKnownVariables,
+    this.extraFloatingButtonBuilder,
   });
 
   final String label;
@@ -79,6 +83,10 @@ class SqaField extends StatefulWidget {
   final bool autofocus;
   final bool isSelectable;
   final bool expands;
+  final bool highlightVariables;
+  final Set<String> Function()? getKnownVariables;
+  final Widget Function(TextEditingController controller)?
+  extraFloatingButtonBuilder;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -163,7 +171,9 @@ class _SqaFieldState extends State<SqaField> {
       double nextStickyTop = padding;
 
       if (fieldTop < 0 && _isExpanded) {
-        final footerHeight = (isActuallyShowingFooter) ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : 0.0;
+        final footerHeight = (isActuallyShowingFooter)
+            ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall)
+            : 0.0;
         nextStickyTop = (-fieldTop + padding).clamp(
           padding,
           fieldHeight - buttonHeight - padding - footerHeight,
@@ -184,7 +194,13 @@ class _SqaFieldState extends State<SqaField> {
   void initState() {
     super.initState();
     _internalController =
-        widget.controller ?? TextEditingController(text: widget.initialValue);
+        widget.controller ??
+        (widget.highlightVariables
+            ? SqaVariableController(
+                text: widget.initialValue,
+                getKnownVariables: widget.getKnownVariables,
+              )
+            : TextEditingController(text: widget.initialValue));
     _lastLineCount = _internalController.text.split('\n').length;
     _internalController.addListener(_onControllerChanged);
     _verticalScrollController = ScrollController();
@@ -310,25 +326,25 @@ class _SqaFieldState extends State<SqaField> {
             color: widget.isTransparent
                 ? Colors.transparent
                 : (!widget.readOnly && _isFocused
-                    ? colorScheme.primaryContainer.withValues(alpha: 0.15)
-                    : (!widget.readOnly && _isHovered
-                        ? colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.1,
-                          )
-                        : Colors.transparent)),
+                      ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                      : (!widget.readOnly && _isHovered
+                            ? colorScheme.surfaceContainerHighest.withValues(
+                                alpha: 0.1,
+                              )
+                            : Colors.transparent)),
             borderRadius: SqaTokens.borderRadiusLarge,
             border: Border.all(
               color: widget.isTransparent
                   ? Colors.transparent
                   : (!widget.readOnly && _isFocused
-                      ? colorScheme.primary.withValues(alpha: 0.3)
-                      : (!widget.readOnly && _isHovered
-                          ? colorScheme.outlineVariant.withValues(
-                              alpha: 0.3,
-                            )
-                          : colorScheme.outlineVariant.withValues(
-                              alpha: 0.0,
-                            ))),
+                        ? colorScheme.primary.withValues(alpha: 0.3)
+                        : (!widget.readOnly && _isHovered
+                              ? colorScheme.outlineVariant.withValues(
+                                  alpha: 0.3,
+                                )
+                              : colorScheme.outlineVariant.withValues(
+                                  alpha: 0.0,
+                                ))),
             ),
             boxShadow: !widget.readOnly && _isFocused
                 ? [
@@ -367,8 +383,11 @@ class _SqaFieldState extends State<SqaField> {
                   ),
                 Padding(
                   padding: EdgeInsets.only(
-                    bottom: (showFooter && _isExpanded) ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : 0,
-                    right: (widget.showCopyButton ||
+                    bottom: (showFooter && _isExpanded)
+                        ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall)
+                        : 0,
+                    right:
+                        (widget.showCopyButton ||
                             widget.showSentenceCaseButton ||
                             widget.trailing != null)
                         ? (SqaTokens.spacingXXLarge + SqaTokens.spacingMedium)
@@ -383,9 +402,7 @@ class _SqaFieldState extends State<SqaField> {
                         children: [
                           if (widget.showLineNumbers)
                             _buildNativeGutter(theme, constraints.maxWidth),
-                          Expanded(
-                            child: _buildTextField(context, theme),
-                          ),
+                          Expanded(child: _buildTextField(context, theme)),
                         ],
                       );
                     },
@@ -398,7 +415,9 @@ class _SqaFieldState extends State<SqaField> {
                     bottom: 0,
                     child: _buildExpansionFooter(theme),
                   ),
-                if (widget.showCopyButton || widget.showSentenceCaseButton)
+                if (widget.showCopyButton ||
+                    widget.showSentenceCaseButton ||
+                    widget.extraFloatingButtonBuilder != null)
                   ValueListenableBuilder<double>(
                     valueListenable: _stickyTopNotifier,
                     builder: (context, stickyTop, child) {
@@ -408,6 +427,10 @@ class _SqaFieldState extends State<SqaField> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (widget.extraFloatingButtonBuilder != null)
+                              widget.extraFloatingButtonBuilder!(
+                                _internalController,
+                              ),
                             if (widget.showSentenceCaseButton)
                               SqaHoverIconButton(
                                 icon: Symbols.text_fields,
@@ -433,10 +456,7 @@ class _SqaFieldState extends State<SqaField> {
                                       text: _internalController.text,
                                     ),
                                   );
-                                  SqaToast.show(
-                                    context,
-                                    'Copied to clipboard',
-                                  );
+                                  SqaToast.show(context, 'Copied to clipboard');
                                 },
                                 tooltip: 'Copy to clipboard',
                               ),
@@ -463,15 +483,18 @@ class _SqaFieldState extends State<SqaField> {
               Row(
                 children: [
                   if (widget.icon != null) ...[
-                    Icon(widget.icon, size: SqaTokens.fontSizeSmall + 2, color: colorScheme.primary),
+                    Icon(
+                      widget.icon,
+                      size: SqaTokens.fontSizeSmall + 2,
+                      color: colorScheme.primary,
+                    ),
                     const SizedBox(width: SqaTokens.spacingXSmall + 2),
                   ],
                   Text(
                     widget.label,
-                    style: SqaTextStyles.labelBold(context).copyWith(
-                      letterSpacing: 1.1,
-                      color: colorScheme.primary,
-                    ),
+                    style: SqaTextStyles.labelBold(
+                      context,
+                    ).copyWith(letterSpacing: 1.1, color: colorScheme.primary),
                   ),
                 ],
               ),
@@ -504,19 +527,20 @@ class _SqaFieldState extends State<SqaField> {
       maxLines: widget.expands
           ? null
           : ((widget.collapsedMaxLines != null && !_isExpanded)
-              ? widget.collapsedMaxLines
-              : (widget.isMultiline ? widget.maxLines : 1)),
+                ? widget.collapsedMaxLines
+                : (widget.isMultiline ? widget.maxLines : 1)),
       minLines: widget.expands ? null : (widget.minLines ?? 1),
       expands: widget.expands,
-      style: (widget.isMonospace
-              ? SqaTextStyles.mono(context)
-              : SqaTextStyles.body(context))
-          .copyWith(
-        fontSize: fontSize,
-        height: fontHeight,
-        color: widget.color ?? colorScheme.onSurface,
-        fontWeight: widget.fontWeight,
-      ),
+      style:
+          (widget.isMonospace
+                  ? SqaTextStyles.mono(context)
+                  : SqaTextStyles.body(context))
+              .copyWith(
+                fontSize: fontSize,
+                height: fontHeight,
+                color: widget.color ?? colorScheme.onSurface,
+                fontWeight: widget.fontWeight,
+              ),
       strutStyle: StrutStyle(
         fontSize: fontSize,
         height: fontHeight,
@@ -542,8 +566,17 @@ class _SqaFieldState extends State<SqaField> {
       textAlignVertical: TextAlignVertical.top,
     );
 
+    final wrappedTextField = Scrollbar(
+      controller: _verticalScrollController,
+      thumbVisibility: true,
+      thickness: SqaTokens.spacingXSmall,
+      radius: const Radius.circular(2),
+      child: textField,
+    );
+
     if (!widget.wrap) {
-      final hController = widget.horizontalScrollController ??
+      final hController =
+          widget.horizontalScrollController ??
           _internalHorizontalScrollController;
 
       return Scrollbar(
@@ -554,13 +587,11 @@ class _SqaFieldState extends State<SqaField> {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           controller: hController,
-          child: IntrinsicWidth(
-            child: textField,
-          ),
+          child: IntrinsicWidth(child: wrappedTextField),
         ),
       );
     }
-    return textField;
+    return wrappedTextField;
   }
 
   Widget _buildNativeGutter(ThemeData theme, double totalWidth) {
@@ -573,13 +604,11 @@ class _SqaFieldState extends State<SqaField> {
         final fontHeight = widget.lineHeight;
         final gFontSize = widget.gutterFontSize ?? (fontSize * 0.9);
 
-        final textStyle = (widget.isMonospace
-                ? SqaTextStyles.mono(context)
-                : SqaTextStyles.body(context))
-            .copyWith(
-          fontSize: fontSize,
-          height: fontHeight,
-        );
+        final textStyle =
+            (widget.isMonospace
+                    ? SqaTextStyles.mono(context)
+                    : SqaTextStyles.body(context))
+                .copyWith(fontSize: fontSize, height: fontHeight);
 
         String numbers = '';
         for (int i = 0; i < logicalLines.length; i++) {
@@ -590,7 +619,14 @@ class _SqaFieldState extends State<SqaField> {
               textDirection: TextDirection.ltr,
             );
             // Ensure maxWidth is never negative
-            tp.layout(maxWidth: ((totalWidth - (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall)) - (SqaTokens.spacingXXLarge)).clamp(0, double.infinity));
+            tp.layout(
+              maxWidth:
+                  ((totalWidth -
+                              (SqaTokens.spacingXXLarge +
+                                  SqaTokens.spacingSmall)) -
+                          (SqaTokens.spacingXXLarge))
+                      .clamp(0, double.infinity),
+            );
             final visualLines = tp.computeLineMetrics().length;
             final effectiveLines = visualLines < 1 ? 1 : visualLines;
             for (int j = 0; j < effectiveLines; j++) {
@@ -620,20 +656,24 @@ class _SqaFieldState extends State<SqaField> {
                   if (_verticalScrollController.hasClients) {
                     offset = _verticalScrollController.offset;
                   }
-                  
+
                   return OverflowBox(
                     maxHeight: double.infinity,
                     alignment: Alignment.topLeft,
                     child: Transform.translate(
                       offset: Offset(0, -offset),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
+                        padding: const EdgeInsets.only(
+                          right: SqaTokens.spacingSmall,
+                        ),
                         child: Text(
                           numbers,
                           style: SqaTextStyles.mono(context).copyWith(
                             fontSize: gFontSize,
                             height: (fontSize * fontHeight) / gFontSize,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.3,
+                            ),
                           ),
                           textAlign: TextAlign.right,
                           strutStyle: StrutStyle(
@@ -671,7 +711,9 @@ class _SqaFieldState extends State<SqaField> {
         },
         child: Container(
           width: double.infinity,
-          height: _isExpanded ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) : (SqaTokens.spacingXXXLarge + SqaTokens.spacingMedium),
+          height: _isExpanded
+              ? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall)
+              : (SqaTokens.spacingXXXLarge + SqaTokens.spacingMedium),
           padding: const EdgeInsets.fromLTRB(
             SqaTokens.spacingLarge,
             0,

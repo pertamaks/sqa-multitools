@@ -23,6 +23,7 @@ class SecurityPayloadsView extends ConsumerStatefulWidget {
 class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
   final Map<String, String> _selectedSectionIds = {};
   late TextEditingController _searchController;
+  late ScrollController _listScrollController;
 
   @override
   void initState() {
@@ -30,11 +31,13 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
     _searchController = TextEditingController(
       text: ref.read(securityPayloadsProvider).searchQuery,
     );
+    _listScrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _listScrollController.dispose();
     super.dispose();
   }
 
@@ -100,8 +103,13 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                   .map(
                     (c) => Tab(
                       text: c.name,
-                      icon: Icon(c.icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                      iconMargin: const EdgeInsets.only(bottom: SqaTokens.spacingXSmall),
+                      icon: Icon(
+                        c.icon,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                      ),
+                      iconMargin: const EdgeInsets.only(
+                        bottom: SqaTokens.spacingXSmall,
+                      ),
                     ),
                   )
                   .toList(),
@@ -210,13 +218,17 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
         Expanded(
           child: SqaFadeWrapper(
             child: hasStructuredData
-                ? ListView.builder(
-                    key: ValueKey(selectedSection.id),
-                    padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
-                    itemCount: filteredPayloads.length,
-                    itemBuilder: (context, index) {
-                      return PayloadCard(payload: filteredPayloads[index]);
-                    },
+                ? Scrollbar(
+                    controller: _listScrollController,
+                    child: ListView.builder(
+                      key: ValueKey(selectedSection.id),
+                      controller: _listScrollController,
+                      padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
+                      itemCount: filteredPayloads.length,
+                      itemBuilder: (context, index) {
+                        return PayloadCard(payload: filteredPayloads[index]);
+                      },
+                    ),
                   )
                 : SqaMarkdownViewer(
                     key: ValueKey(selectedSection.id),

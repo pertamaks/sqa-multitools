@@ -20,7 +20,10 @@ class SqaMarkdownViewer extends StatefulWidget {
   const SqaMarkdownViewer({
     super.key,
     required this.markdown,
-    this.padding = const EdgeInsets.all(SqaTokens.spacingLarge),
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: SqaTokens.contentPaddingHorizontal,
+      vertical: SqaTokens.contentPaddingVertical,
+    ),
     this.useScrollable = true,
     this.selectable = false,
   });
@@ -241,7 +244,12 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
 
   void _addFootnoteSection(md.Element element) {
     final theme = Theme.of(context);
-    widgets.add(const Divider(height: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge, thickness: 1));
+    widgets.add(
+      const Divider(
+        height: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
+        thickness: 1,
+      ),
+    );
     widgets.add(
       Padding(
         padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall + 4),
@@ -324,7 +332,9 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
               if (level <= 2) ...[
                 const SizedBox(height: SqaTokens.spacingTiny),
                 Container(
-                  width: level == 1 ? (SqaTokens.spacingXXLarge + SqaTokens.spacingMedium) : SqaTokens.spacingXXLarge,
+                  width: level == 1
+                      ? (SqaTokens.spacingXXLarge + SqaTokens.spacingMedium)
+                      : SqaTokens.spacingXXLarge,
                   height: SqaTokens.borderWidthThick,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.3),
@@ -427,7 +437,10 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
         _wrapWithAnchor(
           itemId,
           Padding(
-            padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall, left: SqaTokens.spacingSmall),
+            padding: const EdgeInsets.only(
+              bottom: SqaTokens.spacingSmall,
+              left: SqaTokens.spacingSmall,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -487,7 +500,9 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
         .where((e) => e.tag == 'tbody')
         .firstOrNull;
 
-    final cellStyle = theme.textTheme.bodySmall?.copyWith(fontSize: SqaTokens.fontSizeSmall - 1);
+    final cellStyle = theme.textTheme.bodySmall?.copyWith(
+      fontSize: SqaTokens.fontSizeSmall - 1,
+    );
     final headerStyle = cellStyle?.copyWith(
       fontWeight: FontWeight.bold,
       color: theme.colorScheme.primary,
@@ -557,7 +572,9 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
     final table = fragment.querySelector('table');
     if (table == null) return;
 
-    final cellStyle = theme.textTheme.bodySmall?.copyWith(fontSize: SqaTokens.fontSizeSmall - 1);
+    final cellStyle = theme.textTheme.bodySmall?.copyWith(
+      fontSize: SqaTokens.fontSizeSmall - 1,
+    );
     final headerStyle = cellStyle?.copyWith(
       fontWeight: FontWeight.bold,
       color: theme.colorScheme.primary,
@@ -737,7 +754,11 @@ class SqaMarkdownVisitor implements md.NodeVisitor {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall, color: color),
+                Icon(
+                  icon,
+                  size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                  color: color,
+                ),
                 const SizedBox(width: SqaTokens.spacingSmall + 4),
                 Expanded(
                   child: Column(
@@ -857,7 +878,15 @@ class SqaInlineSpanVisitor implements md.NodeVisitor {
         if (id != null) {
           final uniqueId = idGenerator(id);
           final key = anchorKeys.putIfAbsent(uniqueId, () => GlobalKey());
-          spans.add(WidgetSpan(child: SizedBox(key: key, width: SqaTokens.borderWidthThick, height: SqaTokens.borderWidthThick)));
+          spans.add(
+            WidgetSpan(
+              child: SizedBox(
+                key: key,
+                width: SqaTokens.borderWidthThick,
+                height: SqaTokens.borderWidthThick,
+              ),
+            ),
+          );
         }
 
         if (href != null && href.startsWith('#')) {

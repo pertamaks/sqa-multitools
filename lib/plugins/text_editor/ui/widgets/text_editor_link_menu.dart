@@ -55,7 +55,11 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
         children: [
           Row(
             children: [
-              Icon(Symbols.link, size: SqaTokens.spacingLarge, color: theme.colorScheme.primary),
+              Icon(
+                Symbols.link,
+                size: SqaTokens.spacingLarge,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: SqaTokens.spacingSmall),
               Text(
                 widget.initialUrl == null ? 'Add Link' : 'Edit Link',
@@ -71,7 +75,9 @@ class SqaLinkMenuWidgetState extends State<SqaLinkMenuWidget> {
           TextField(
             controller: _controller,
             focusNode: _focusNode,
-            style: theme.textTheme.bodyMedium?.copyWith(fontSize: SqaTokens.fontSizeSmall),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: SqaTokens.fontSizeSmall,
+            ),
             decoration: InputDecoration(
               hintText: 'Paste or type a link...',
               hintStyle: TextStyle(

@@ -47,8 +47,8 @@ class SqaTheme {
     final isTest = kIsWeb || Platform.environment.containsKey('FLUTTER_TEST');
 
     final textTheme = brightness == Brightness.dark
-          ? ThemeData.dark().textTheme
-          : ThemeData.light().textTheme;
+        ? ThemeData.dark().textTheme
+        : ThemeData.light().textTheme;
 
     // Use standard fonts in tests to avoid network/asset issues with GoogleFonts
     final baseTextTheme = isTest
@@ -59,9 +59,7 @@ class SqaTheme {
       useMaterial3: true,
       colorScheme: scheme,
       brightness: brightness,
-      fontFamily: isTest
-          ? null
-          : GoogleFonts.dmSans().fontFamily,
+      fontFamily: isTest ? null : GoogleFonts.dmSans().fontFamily,
       textTheme: baseTextTheme.apply(
         bodyColor: scheme.onSurface,
         displayColor: scheme.onSurface,
@@ -106,24 +104,22 @@ class SqaTheme {
         }),
         headerHeadlineStyle: isTest
             ? const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)
-            : GoogleFonts.dmSans(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            : GoogleFonts.dmSans(fontSize: 24, fontWeight: FontWeight.bold),
         headerHelpStyle: isTest
             ? const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)
-            : GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-        dayStyle: isTest ? const TextStyle(fontSize: 14) : GoogleFonts.inter(fontSize: 14),
+            : GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+        dayStyle: isTest
+            ? const TextStyle(fontSize: 14)
+            : GoogleFonts.inter(fontSize: 14),
       ),
       timePickerTheme: TimePickerThemeData(
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
-        hourMinuteShape:
-            RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
-        dayPeriodShape:
-            RoundedRectangleBorder(borderRadius: SqaStyles.radiusMedium),
+        hourMinuteShape: RoundedRectangleBorder(
+          borderRadius: SqaStyles.radiusMedium,
+        ),
+        dayPeriodShape: RoundedRectangleBorder(
+          borderRadius: SqaStyles.radiusMedium,
+        ),
         hourMinuteColor: WidgetStateColor.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return scheme.primaryContainer;
@@ -152,10 +148,7 @@ class SqaTheme {
               ),
         dayPeriodTextStyle: isTest
             ? const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)
-            : GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+            : GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold),
       ),
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
@@ -179,39 +172,27 @@ class SqaTheme {
   }
 
   static FilledButtonThemeData _filledButtonTheme() {
-    return FilledButtonThemeData(
-      style: _commonButtonStyle(isFilled: true),
-    );
+    return FilledButtonThemeData(style: _commonButtonStyle(isFilled: true));
   }
 
   static ElevatedButtonThemeData _elevatedButtonTheme() {
-    return ElevatedButtonThemeData(
-      style: _commonButtonStyle(),
-    );
+    return ElevatedButtonThemeData(style: _commonButtonStyle());
   }
 
   static OutlinedButtonThemeData _outlinedButtonTheme() {
-    return OutlinedButtonThemeData(
-      style: _commonButtonStyle(),
-    );
+    return OutlinedButtonThemeData(style: _commonButtonStyle());
   }
 
   static TextButtonThemeData _textButtonTheme() {
-    return TextButtonThemeData(
-      style: _commonButtonStyle(),
-    );
+    return TextButtonThemeData(style: _commonButtonStyle());
   }
 
   static IconButtonThemeData _iconButtonTheme() {
-    return IconButtonThemeData(
-      style: _commonButtonStyle(),
-    );
+    return IconButtonThemeData(style: _commonButtonStyle());
   }
 
   static MenuButtonThemeData _menuButtonTheme() {
-    return MenuButtonThemeData(
-      style: _commonButtonStyle(),
-    );
+    return MenuButtonThemeData(style: _commonButtonStyle());
   }
 
   static ButtonStyle _commonButtonStyle({bool isFilled = false}) {

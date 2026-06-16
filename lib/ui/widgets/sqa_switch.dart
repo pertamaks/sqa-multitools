@@ -22,7 +22,9 @@ class SqaSwitch extends StatelessWidget {
     // We use Transform.scale to maintain consistency with the established
     // design in the settings plugin.
     return SizedBox(
-      height: SqaTokens.spacingXXLarge + SqaTokens.spacingXSmall, // Match standard toolbar button height (36)
+      height:
+          SqaTokens.spacingXXLarge +
+          SqaTokens.spacingXSmall, // Match standard toolbar button height (36)
       child: Transform.scale(
         scale: scale,
         child: Switch(

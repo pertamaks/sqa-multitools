@@ -25,6 +25,7 @@ import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/ffmpeg_provider.dart';
 import 'widgets/sqa_safe_plugin_builder.dart';
+import 'dart:io';
 
 class MainToolbar extends ConsumerStatefulWidget {
   const MainToolbar({super.key});
@@ -91,6 +92,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     int supporterTier,
     bool hasTodoReminder,
     bool isTimerRunning,
+    bool isLinuxRecording,
   ) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -211,6 +213,39 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                     ),
                     const SizedBox(width: 4),
 
+                    if (isLinuxRecording) ...[
+                      const SizedBox(width: 4),
+                      SqaInlineTooltipTrigger(
+                        tooltip: 'Stop Recording',
+                        child: SqaHoverIconButton(
+                          icon: Symbols.stop_circle,
+                          color: colorScheme.error,
+                          backgroundColor: colorScheme.errorContainer,
+                          onPressed: () async {
+                            await ref
+                                .read(screenRecorderProvider.notifier)
+                                .stopWaylandPortal();
+                            final allPlugins = ref.read(
+                              availablePluginsProvider,
+                            );
+                            final screenRecorderPlugin = allPlugins.firstWhere(
+                              (p) => p.id == 'com.sqa.screen_recorder',
+                            );
+                            ref
+                                .read(navigationServiceProvider)
+                                .togglePlugin(
+                                  screenRecorderPlugin,
+                                  forceOpen: true,
+                                );
+                          },
+                          tooltip: null,
+                          iconSize: 24,
+                          padding: 6.0,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+
                     ToolIcon(
                       icon: settingsPlugin.icon,
                       tooltip: settingsPlugin.name,
@@ -227,17 +262,19 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                     ),
                     const SizedBox(width: 4),
 
-                    // Close to Tray
-                    SqaInlineTooltipTrigger(
-                      tooltip: 'Close to Tray',
-                      child: SqaHoverIconButton(
-                        icon: Symbols.close,
-                        onPressed: () => WindowUtils.safeHide(),
-                        tooltip: null,
-                        iconSize: 24,
-                        padding: 6.0,
+                    if (!Platform.isLinux) ...[
+                      // Close to Tray
+                      SqaInlineTooltipTrigger(
+                        tooltip: 'Close to Tray',
+                        child: SqaHoverIconButton(
+                          icon: Symbols.close,
+                          onPressed: () => WindowUtils.safeHide(),
+                          tooltip: null,
+                          iconSize: 24,
+                          padding: 6.0,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -390,6 +427,8 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       }
     });
 
+    final isLinuxRecording = Platform.isLinux && recorderState.isRecording;
+
     return ExcludeSemantics(
       child: Scaffold(
         backgroundColor: isOverlayActive
@@ -424,6 +463,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                               supporterTier,
                               hasTodoReminder,
                               isTimerRunning,
+                              isLinuxRecording,
                             ),
                           ),
                         ),
@@ -459,7 +499,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 if (isStitching)
                   Positioned.fill(
                     child: Container(
-                      color: colorScheme.surfaceContainerLow.withValues(alpha: 0.8),
+                      color: colorScheme.surfaceContainerLow.withValues(
+                        alpha: 0.8,
+                      ),
                       child: Center(
                         child: hasPlugin
                             ? Column(
@@ -482,7 +524,9 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                   const SizedBox(
                                     width: 24,
                                     height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                   const SizedBox(width: 16),
                                   Text(

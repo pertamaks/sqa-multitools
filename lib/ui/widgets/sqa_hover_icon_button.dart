@@ -33,7 +33,10 @@ class SqaHoverIconButton extends StatefulWidget {
     this.weight,
     this.isSelected = false,
     this.borderRadius,
-  }) : assert(icon != null || iconWidget != null, 'Either icon or iconWidget must be provided');
+  }) : assert(
+         icon != null || iconWidget != null,
+         'Either icon or iconWidget must be provided',
+       );
 
   @override
   State<SqaHoverIconButton> createState() => _SqaHoverIconButtonState();
@@ -64,12 +67,13 @@ class _SqaHoverIconButtonState extends State<SqaHoverIconButton> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutBack,
         child: IconButton(
-          icon: widget.iconWidget ?? Icon(
-            widget.icon!,
-            size: widget.iconSize,
-            weight: widget.weight,
-          ),
-          onPressed: widget.onPressed,
+          icon:
+              widget.iconWidget ??
+              Icon(widget.icon!, size: widget.iconSize, weight: widget.weight),
+          onPressed: () {
+            setState(() => _isHovered = false);
+            widget.onPressed();
+          },
           tooltip: widget.tooltip,
           color: currentColor,
           style: IconButton.styleFrom(
@@ -78,8 +82,8 @@ class _SqaHoverIconButtonState extends State<SqaHoverIconButton> {
             hoverColor: Colors.transparent,
             highlightColor: Colors.transparent,
             splashFactory: NoSplash.splashFactory,
-            shape: widget.borderRadius != null 
-                ? RoundedRectangleBorder(borderRadius: widget.borderRadius!) 
+            shape: widget.borderRadius != null
+                ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
                 : null,
           ),
         ),

@@ -91,7 +91,9 @@ class TodoExpansionGroup extends StatelessWidget {
     final subtleColor = color ?? theme.colorScheme.onSurfaceVariant;
 
     return ListTileTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingSmall,
+      ),
       shape: RoundedRectangleBorder(borderRadius: SqaStyles.radiusLarge),
       child: Theme(
         data: theme.copyWith(dividerColor: Colors.transparent),
@@ -109,7 +111,10 @@ class TodoExpansionGroup extends StatelessWidget {
               ),
               const SizedBox(width: SqaTokens.spacingSmall),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall, vertical: SqaTokens.spacingXSmall / 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SqaTokens.spacingSmall,
+                  vertical: SqaTokens.spacingXSmall / 2,
+                ),
                 decoration: BoxDecoration(
                   color: subtleColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(SqaTokens.radiusSmall),
@@ -137,7 +142,9 @@ class TodoExpansionGroup extends StatelessWidget {
           children: items
               .map(
                 (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
+                  padding: const EdgeInsets.only(
+                    bottom: SqaTokens.spacingMedium,
+                  ),
                   child: Opacity(
                     opacity: opacity,
                     child: TodoListItem(

@@ -8,12 +8,18 @@ enum IdentityType { email, address, phone, internet, company, name }
 extension IdentityTypeExtension on IdentityType {
   String get label {
     switch (this) {
-      case IdentityType.email: return 'Email';
-      case IdentityType.address: return 'Address';
-      case IdentityType.phone: return 'Phone';
-      case IdentityType.internet: return 'Internet';
-      case IdentityType.company: return 'Company';
-      case IdentityType.name: return 'Name';
+      case IdentityType.email:
+        return 'Email';
+      case IdentityType.address:
+        return 'Address';
+      case IdentityType.phone:
+        return 'Phone';
+      case IdentityType.internet:
+        return 'Internet';
+      case IdentityType.company:
+        return 'Company';
+      case IdentityType.name:
+        return 'Name';
     }
   }
 }

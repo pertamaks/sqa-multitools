@@ -34,10 +34,10 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
 
   void _showResult(List<String> session, String title) {
     final state = ref.read(identityProvider);
-    final text = state.includeFormatting 
-        ? session.map((e) => '• $e').join('\n') 
+    final text = state.includeFormatting
+        ? session.map((e) => '• $e').join('\n')
         : session.join('\n');
-    
+
     showDialog<void>(
       context: context,
       builder: (context) => SqaModal<void>.custom(
@@ -50,7 +50,11 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
             icon: Symbols.content_copy,
             onPressed: () {
               Clipboard.setData(ClipboardData(text: text));
-              SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+              SqaToast.show(
+                context,
+                'Copied to clipboard',
+                type: SqaToastType.success,
+              );
             },
           ),
           const SizedBox(width: SqaTokens.spacingXXSmall),
@@ -101,7 +105,7 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
           const SizedBox(height: SqaTokens.spacingXLarge),
           const IdentityConfigPanel(),
           const SizedBox(height: SqaTokens.spacingXLarge),
-          
+
           SqaHistoryList<List<String>>(
             items: history,
             title: 'History',
@@ -110,7 +114,8 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
               final index = history.indexOf(item);
               final displayIndex = history.length - index;
               return DataHistoryTile(
-                title: '${state.selectedType.label} • ${LocaleNames.getDisplayName(state.locale.name)} • ${state.quantity} items ($displayIndex)',
+                title:
+                    '${state.selectedType.label} • ${LocaleNames.getDisplayName(state.locale.name)} • ${state.quantity} items ($displayIndex)',
                 subtitle: item.join(', '),
                 icon: Symbols.person,
                 onTap: () => _showResult(item, 'Identity Result'),
@@ -120,11 +125,15 @@ class _IdentityTabViewState extends ConsumerState<IdentityTabView> {
                     icon: Symbols.content_copy,
                     tooltip: 'Copy all',
                     onPressed: () {
-                      final text = state.includeFormatting 
-                          ? item.map((e) => '• $e').join('\n') 
+                      final text = state.includeFormatting
+                          ? item.map((e) => '• $e').join('\n')
                           : item.join('\n');
                       Clipboard.setData(ClipboardData(text: text));
-                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                      SqaToast.show(
+                        context,
+                        'Copied to clipboard',
+                        type: SqaToastType.success,
+                      );
                     },
                   ),
                 ],

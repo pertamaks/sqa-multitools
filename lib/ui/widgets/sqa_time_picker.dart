@@ -121,7 +121,10 @@ class SqaTimePicker extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 24.0),
               child: Text(
                 ':',
-                style: TextStyle(fontSize: SqaTokens.fontSizeXXXLarge, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: SqaTokens.fontSizeXXXLarge,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             SqaTimeSegment(

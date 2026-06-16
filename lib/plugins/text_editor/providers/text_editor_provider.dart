@@ -97,7 +97,7 @@ class TextEditor extends _$TextEditor {
 
   Future<void> createFromTemplate(TextTemplateType type) async {
     state = state.copyWith(isLoading: true);
-    
+
     // Brief delay to allow the loading transition to be visible
     await Future<void>.delayed(const Duration(milliseconds: 150));
 

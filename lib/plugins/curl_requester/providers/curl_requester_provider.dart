@@ -6,6 +6,7 @@ import '../models/curl_command.dart';
 import '../models/curl_requester_state.dart';
 import '../models/curl_transaction.dart';
 import '../services/curl_parser_service.dart';
+import 'environments_provider.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/services/faker_resolution_service.dart';
 
@@ -13,28 +14,34 @@ part 'curl_requester_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class CurlRequester extends _$CurlRequester {
-  final _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 30),
-    validateStatus: (_) => true, // Capture all status codes
-  ));
+  final _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      validateStatus: (_) => true, // Capture all status codes
+    ),
+  );
 
   @override
   CurlRequesterState build() {
     try {
       // Load history on build
       final prefs = ref.read(preferencesServiceProvider);
-      final historyJson = prefs.rawPrefs.getString(PreferencesService.keyCurlHistory);
-      
+      final historyJson = prefs.rawPrefs.getString(
+        PreferencesService.keyCurlHistory,
+      );
+
       if (historyJson != null) {
         final decoded = jsonDecode(historyJson) as List;
         final history = decoded
             .map((e) => CurlTransaction.fromJson(e as Map<String, dynamic>))
             .toList();
-            
+
         // "shown as last curl in the request" - If history exists, populate current command
-        final lastCommand = history.isNotEmpty ? history.first.request : const CurlCommand();
-        
+        final lastCommand = history.isNotEmpty
+            ? history.first.request
+            : const CurlCommand();
+
         return CurlRequesterState(
           history: history,
           currentCommand: lastCommand,
@@ -44,7 +51,7 @@ class CurlRequester extends _$CurlRequester {
       // Fallback on error or incompatible data
       return const CurlRequesterState();
     }
-    
+
     return const CurlRequesterState();
   }
 
@@ -62,7 +69,9 @@ class CurlRequester extends _$CurlRequester {
   }
 
   void updateQueryParam(String oldKey, String newKey, String value) {
-    final params = Map<String, String>.from(state.currentCommand.queryParameters);
+    final params = Map<String, String>.from(
+      state.currentCommand.queryParameters,
+    );
     if (oldKey != newKey) params.remove(oldKey);
     params[newKey] = value;
     state = state.copyWith(
@@ -71,7 +80,9 @@ class CurlRequester extends _$CurlRequester {
   }
 
   void addQueryParam() {
-    final params = Map<String, String>.from(state.currentCommand.queryParameters);
+    final params = Map<String, String>.from(
+      state.currentCommand.queryParameters,
+    );
     params['new_param_${params.length}'] = '';
     state = state.copyWith(
       currentCommand: state.currentCommand.copyWith(queryParameters: params),
@@ -79,8 +90,12 @@ class CurlRequester extends _$CurlRequester {
   }
 
   void removeQueryParam(String key) {
-    final params = Map<String, String>.from(state.currentCommand.queryParameters);
-    final inactive = Set<String>.from(state.currentCommand.inactiveQueryParameters);
+    final params = Map<String, String>.from(
+      state.currentCommand.queryParameters,
+    );
+    final inactive = Set<String>.from(
+      state.currentCommand.inactiveQueryParameters,
+    );
     params.remove(key);
     inactive.remove(key);
     state = state.copyWith(
@@ -92,14 +107,81 @@ class CurlRequester extends _$CurlRequester {
   }
 
   void toggleQueryParam(String key, bool isActive) {
-    final inactive = Set<String>.from(state.currentCommand.inactiveQueryParameters);
+    final inactive = Set<String>.from(
+      state.currentCommand.inactiveQueryParameters,
+    );
     if (isActive) {
       inactive.remove(key);
     } else {
       inactive.add(key);
     }
     state = state.copyWith(
-      currentCommand: state.currentCommand.copyWith(inactiveQueryParameters: inactive),
+      currentCommand: state.currentCommand.copyWith(
+        inactiveQueryParameters: inactive,
+      ),
+    );
+  }
+
+  void updatePathParam(String oldKey, String newKey, String value) {
+    final params = Map<String, String>.from(
+      state.currentCommand.pathParameters,
+    );
+    final inactive = Set<String>.from(
+      state.currentCommand.inactivePathParameters,
+    );
+    if (oldKey != newKey) {
+      params.remove(oldKey);
+      if (inactive.remove(oldKey)) inactive.add(newKey);
+    }
+    params[newKey] = value;
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(
+        pathParameters: params,
+        inactivePathParameters: inactive,
+      ),
+    );
+  }
+
+  void addPathParam() {
+    final params = Map<String, String>.from(
+      state.currentCommand.pathParameters,
+    );
+    params['new_path_param_${params.length}'] = '';
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(pathParameters: params),
+    );
+  }
+
+  void removePathParam(String key) {
+    final params = Map<String, String>.from(
+      state.currentCommand.pathParameters,
+    );
+    final inactive = Set<String>.from(
+      state.currentCommand.inactivePathParameters,
+    );
+    params.remove(key);
+    inactive.remove(key);
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(
+        pathParameters: params,
+        inactivePathParameters: inactive,
+      ),
+    );
+  }
+
+  void togglePathParam(String key, bool isActive) {
+    final inactive = Set<String>.from(
+      state.currentCommand.inactivePathParameters,
+    );
+    if (isActive) {
+      inactive.remove(key);
+    } else {
+      inactive.add(key);
+    }
+    state = state.copyWith(
+      currentCommand: state.currentCommand.copyWith(
+        inactivePathParameters: inactive,
+      ),
     );
   }
 
@@ -170,26 +252,139 @@ class CurlRequester extends _$CurlRequester {
     final stopwatch = Stopwatch()..start();
 
     try {
-      // 1. Resolve Placeholders (Faker Integration)
       final prefs = ref.read(preferencesServiceProvider);
-      final resolvedCommand = FakerResolutionService.resolveCommand(command, prefs);
+      final activeEnvId = ref.read(activeEnvironmentIdProvider);
+      final envs = ref.read(environmentsProvider);
+      final activeEnv = envs.firstWhere(
+        (e) => e.id == activeEnvId,
+        orElse: () => envs.first,
+      );
+
+      // 0. Resolve Env Variables locally first
+      CurlCommand envResolvedCommand = command;
+      if (activeEnv.variables.isNotEmpty) {
+        String resolveStr(String input) {
+          String output = input;
+          for (final entry in activeEnv.variables.entries) {
+            output = output.replaceAll('{{${entry.key}}}', entry.value);
+          }
+          return output;
+        }
+
+        envResolvedCommand = command.copyWith(
+          url: resolveStr(command.url),
+          body: resolveStr(command.body),
+          headers: command.headers.map((k, v) => MapEntry(k, resolveStr(v))),
+          queryParameters: command.queryParameters.map(
+            (k, v) => MapEntry(k, resolveStr(v)),
+          ),
+          pathParameters: command.pathParameters.map(
+            (k, v) => MapEntry(k, resolveStr(v)),
+          ),
+          authData: command.authData.map((k, v) => MapEntry(k, resolveStr(v))),
+        );
+      }
+
+      // 1. Resolve Placeholders (Faker Integration)
+      final resolvedCommand = FakerResolutionService.resolveCommand(
+        envResolvedCommand,
+        prefs,
+      );
 
       // 2. Prepare URL & Params
       String finalUrl = resolvedCommand.url;
       if (!finalUrl.startsWith('http')) finalUrl = 'http://$finalUrl';
-      
-      final activeParams = Map<String, String>.from(resolvedCommand.queryParameters)
-        ..removeWhere((k, _) => command.inactiveQueryParameters.contains(k));
-      
+
+      // Inject path parameters
+      final activePathParams = Map<String, String>.from(
+        resolvedCommand.pathParameters,
+      )..removeWhere((k, _) => command.inactivePathParameters.contains(k));
+      for (final entry in activePathParams.entries) {
+        finalUrl = finalUrl.replaceAll(
+          '{${entry.key}}',
+          Uri.encodeComponent(entry.value),
+        );
+        finalUrl = finalUrl.replaceAll(
+          ':${entry.key}',
+          Uri.encodeComponent(entry.value),
+        );
+      }
+
+      final activeParams = Map<String, String>.from(
+        resolvedCommand.queryParameters,
+      )..removeWhere((k, _) => command.inactiveQueryParameters.contains(k));
+
+      // Inject API Key to Query Params if needed
+      if (resolvedCommand.authMethod == AuthMethod.apiKey) {
+        final key = resolvedCommand.authData['key'] ?? '';
+        final value = resolvedCommand.authData['value'] ?? '';
+        final addTo = resolvedCommand.authData['addTo'] ?? 'Header';
+        if (key.isNotEmpty && value.isNotEmpty && addTo == 'Query Parameter') {
+          activeParams[key] = value;
+        }
+      }
+
       // 3. Prepare Headers
       final activeHeaders = Map<String, dynamic>.from(resolvedCommand.headers)
         ..removeWhere((k, _) => command.inactiveHeaders.contains(k));
 
+      // Inject Auth to Headers
+      if (resolvedCommand.authMethod == AuthMethod.bearerToken) {
+        final token = resolvedCommand.authData['token'] ?? '';
+        if (token.isNotEmpty) activeHeaders['Authorization'] = 'Bearer $token';
+      } else if (resolvedCommand.authMethod == AuthMethod.basicAuth) {
+        final username = resolvedCommand.authData['username'] ?? '';
+        final password = resolvedCommand.authData['password'] ?? '';
+        if (username.isNotEmpty || password.isNotEmpty) {
+          final encoded = base64Encode(utf8.encode('$username:$password'));
+          activeHeaders['Authorization'] = 'Basic $encoded';
+        }
+      } else if (resolvedCommand.authMethod == AuthMethod.apiKey) {
+        final key = resolvedCommand.authData['key'] ?? '';
+        final value = resolvedCommand.authData['value'] ?? '';
+        final addTo = resolvedCommand.authData['addTo'] ?? 'Header';
+        if (key.isNotEmpty && value.isNotEmpty && addTo == 'Header') {
+          activeHeaders[key] = value;
+        }
+      }
+
       // 4. Send Request via Dio
+      dynamic requestData;
+      if (resolvedCommand.bodyType == BodyType.multipartFormData) {
+        final formDataMap = <String, dynamic>{};
+        for (final item in resolvedCommand.formData) {
+          if (!item.isActive) continue;
+          if (item.isFile &&
+              item.filePath != null &&
+              item.filePath!.isNotEmpty) {
+            try {
+              formDataMap[item.key] = await MultipartFile.fromFile(
+                item.filePath!,
+              );
+            } catch (e) {
+              formDataMap[item.key] = 'Error: File not found';
+            }
+          } else {
+            formDataMap[item.key] = item.value;
+          }
+        }
+        requestData = FormData.fromMap(formDataMap);
+      } else if (resolvedCommand.bodyType == BodyType.urlEncoded) {
+        final map = <String, String>{};
+        for (final item in resolvedCommand.urlEncodedData) {
+          if (!item.isActive) continue;
+          map[item.key] = item.value;
+        }
+        requestData = map;
+        activeHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+      } else if (resolvedCommand.body.isNotEmpty) {
+        requestData = resolvedCommand.body;
+      }
+
       final response = await _dio.request<String>(
         finalUrl,
         queryParameters: activeParams,
-        data: resolvedCommand.body.isNotEmpty ? resolvedCommand.body : null,
+        data: requestData,
         options: Options(
           method: command.method,
           headers: activeHeaders,
@@ -202,8 +397,8 @@ class CurlRequester extends _$CurlRequester {
       // 5. Create Transaction
       final transaction = CurlTransaction(
         id: const Uuid().v4(),
-        request: command, 
-        resolvedRequest: resolvedCommand, 
+        request: command,
+        resolvedRequest: resolvedCommand,
         statusCode: response.statusCode ?? 0,
         responseBody: response.data?.toString() ?? '',
         latency: stopwatch.elapsed,
@@ -218,7 +413,8 @@ class CurlRequester extends _$CurlRequester {
         id: const Uuid().v4(),
         request: command,
         statusCode: e.response?.statusCode ?? 0,
-        responseBody: 'Error [${e.type.name}]: ${e.message}\n\n${e.response?.data ?? ""}',
+        responseBody:
+            'Error [${e.type.name}]: ${e.message}\n\n${e.response?.data ?? ""}',
         latency: stopwatch.elapsed,
         responseSize: 0,
         timestamp: DateTime.now(),
@@ -248,7 +444,9 @@ class CurlRequester extends _$CurlRequester {
 
   void _saveHistory() {
     final prefs = ref.read(preferencesServiceProvider);
-    final historyJson = jsonEncode(state.history.map((e) => e.toJson()).toList());
+    final historyJson = jsonEncode(
+      state.history.map((e) => e.toJson()).toList(),
+    );
     prefs.rawPrefs.setString(PreferencesService.keyCurlHistory, historyJson);
   }
 

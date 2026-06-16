@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -31,55 +32,60 @@ class ScreenRecorderSettings extends ConsumerWidget {
         const SqaDependencyCard(pluginName: 'Screen Recorder'),
 
         // --- SECTION: AUDIO ---
-        _buildSectionHeader(theme, 'AUDIO CONFIGURATION'),
-        SqaCard(
-          padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: SqaTokens.spacingXXLarge),
-          child: Column(
-            children: [
-              SqaSettingsTile(
-                icon: Symbols.mic,
-                title: 'Capture Microphone',
-                subtitle: 'Record voice input during session',
-                trailing: SqaSwitch(
-                  value: state.microphoneEnabled,
-                  onChanged: (v) => notifier.setMicrophone(v),
-                ),
-              ),
-              if (ref.watch(ffmpegProvider).isReady &&
-                  state.microphoneEnabled) ...[
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+        if (!Platform.isLinux) ...[
+          _buildSectionHeader(theme, 'AUDIO CONFIGURATION'),
+          SqaCard(
+            padding: EdgeInsets.zero,
+            margin: const EdgeInsets.only(bottom: SqaTokens.spacingXXLarge),
+            child: Column(
+              children: [
                 SqaSettingsTile(
-                  icon: Symbols.settings_input_component,
-                  title: 'Microphone Device',
-                  subtitle: 'Select active input source',
-                  trailing: SqaDropdown<String?>(
-                    value: state.selectedAudioDevice,
-                    onChanged: (val) => notifier.setSelectedAudioDevice(val),
-                    items: state.availableAudioDevices.isEmpty
-                        ? <DropdownMenuItem<String?>>[
-                            const DropdownMenuItem<String?>(
-                              value: null,
-                              child: Text('No devices found'),
-                            ),
-                          ]
-                        : state.availableAudioDevices
-                              .map<DropdownMenuItem<String?>>(
-                                (e) => DropdownMenuItem<String?>(
-                                  value: e,
-                                  child: Text(
-                                    e,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                  icon: Symbols.mic,
+                  title: 'Capture Microphone',
+                  subtitle: 'Record voice input during session',
+                  trailing: SqaSwitch(
+                    value: state.microphoneEnabled,
+                    onChanged: (v) => notifier.setMicrophone(v),
                   ),
                 ),
+                if (ref.watch(ffmpegProvider).isReady &&
+                    state.microphoneEnabled) ...[
+                  const Divider(
+                    height: 1,
+                    indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+                  ),
+                  SqaSettingsTile(
+                    icon: Symbols.settings_input_component,
+                    title: 'Microphone Device',
+                    subtitle: 'Select active input source',
+                    trailing: SqaDropdown<String?>(
+                      value: state.selectedAudioDevice,
+                      onChanged: (val) => notifier.setSelectedAudioDevice(val),
+                      items: state.availableAudioDevices.isEmpty
+                          ? <DropdownMenuItem<String?>>[
+                              const DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('No devices found'),
+                              ),
+                            ]
+                          : state.availableAudioDevices
+                                .map<DropdownMenuItem<String?>>(
+                                  (e) => DropdownMenuItem<String?>(
+                                    value: e,
+                                    child: Text(
+                                      e,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
+        ],
 
         // --- SECTION: VISUALS ---
         _buildSectionHeader(theme, 'VISUAL FEEDBACK'),
@@ -97,7 +103,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                   onChanged: (bool v) => notifier.setShowCursor(v),
                 ),
               ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+              const Divider(
+                height: 1,
+                indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+              ),
               // Left Click Color
               SqaSettingsTile(
                 icon: Symbols.left_click,
@@ -110,7 +119,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                   items: _buildColorItems(),
                 ),
               ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+              const Divider(
+                height: 1,
+                indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+              ),
               // Right Click Color
               SqaSettingsTile(
                 icon: Symbols.right_click,
@@ -128,71 +140,85 @@ class ScreenRecorderSettings extends ConsumerWidget {
         ),
 
         // --- SECTION: RECORDING ---
-        _buildSectionHeader(theme, 'RECORDING SETUP'),
-        SqaCard(
-          padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 24),
-          child: Column(
-            children: [
-              SqaSettingsTile(
-                icon: Symbols.photo_size_select_large,
-                title: 'Resolution',
-                subtitle: 'Target video dimensions',
-                trailing: SqaDropdown<String>(
-                  value: state.resolution,
-                  onChanged: (String? val) => notifier.setResolution(val!),
-                  items: ['1080p', '720p', '480p', '360p']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
+        if (!Platform.isLinux) ...[
+          _buildSectionHeader(theme, 'RECORDING SETUP'),
+          SqaCard(
+            padding: EdgeInsets.zero,
+            margin: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              children: [
+                SqaSettingsTile(
+                  icon: Symbols.photo_size_select_large,
+                  title: 'Resolution',
+                  subtitle: 'Target video dimensions',
+                  trailing: SqaDropdown<String>(
+                    value: state.resolution,
+                    onChanged: (String? val) => notifier.setResolution(val!),
+                    items: ['1080p', '720p', '480p', '360p']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                  ),
                 ),
-              ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
-              SqaSettingsTile(
-                icon: Symbols.speed,
-                title: 'Framerate',
-                subtitle: 'Smoothness of the recording',
-                trailing: SqaDropdown<int>(
-                  value: state.framerate,
-                  onChanged: (int? val) => notifier.setFramerate(val!),
-                  items: [60, 30, 15, 10]
-                      .map(
-                        (e) =>
-                            DropdownMenuItem(value: e, child: Text('${e}fps')),
-                      )
-                      .toList(),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
                 ),
-              ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
-              SqaSettingsTile(
-                icon: Symbols.schedule,
-                title: 'Start Delay',
-                subtitle: 'Wait duration before capture',
-                trailing: SqaDropdown<int>(
-                  value: state.delaySeconds,
-                  onChanged: (int? val) => notifier.setDelay(val!),
-                  items: [0, 2, 5, 10]
-                      .map(
-                        (e) => DropdownMenuItem(value: e, child: Text('${e}s')),
-                      )
-                      .toList(),
+                SqaSettingsTile(
+                  icon: Symbols.speed,
+                  title: 'Framerate',
+                  subtitle: 'Smoothness of the recording',
+                  trailing: SqaDropdown<int>(
+                    value: state.framerate,
+                    onChanged: (int? val) => notifier.setFramerate(val!),
+                    items: [60, 30, 15, 10]
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text('${e}fps'),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
-              ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
-              SqaSettingsTile(
-                icon: Symbols.movie_filter,
-                title: 'Export Format',
-                subtitle: 'Video container type',
-                trailing: SqaDropdown<String>(
-                  value: state.format,
-                  onChanged: (String? val) => notifier.setFormat(val!),
-                  items: ['MP4', 'MKV']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
                 ),
-              ),
-            ],
+                SqaSettingsTile(
+                  icon: Symbols.schedule,
+                  title: 'Start Delay',
+                  subtitle: 'Wait duration before capture',
+                  trailing: SqaDropdown<int>(
+                    value: state.delaySeconds,
+                    onChanged: (int? val) => notifier.setDelay(val!),
+                    items: [0, 2, 5, 10]
+                        .map(
+                          (e) =>
+                              DropdownMenuItem(value: e, child: Text('${e}s')),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+                ),
+                SqaSettingsTile(
+                  icon: Symbols.movie_filter,
+                  title: 'Export Format',
+                  subtitle: 'Video container type',
+                  trailing: SqaDropdown<String>(
+                    value: state.format,
+                    onChanged: (String? val) => notifier.setFormat(val!),
+                    items: ['MP4', 'MKV']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
 
         // --- SECTION: FILES ---
         _buildSectionHeader(theme, 'SYSTEM & FILES'),
@@ -247,7 +273,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
           ),
         ),
         SqaCard(
-          padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
+          padding: const EdgeInsets.symmetric(
+            horizontal: SqaTokens.spacingLarge,
+            vertical: SqaTokens.spacingSmall,
+          ),
           child: Column(
             children: [
               SqaHotkeyField(
@@ -256,11 +285,18 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 onSave: (info) {
                   final error = ref
                       .read(hotkeySettingsProvider.notifier)
-                      .updateHotkey(PreferencesService.keyHotkeyRecFullscreen, info);
+                      .updateHotkey(
+                        PreferencesService.keyHotkeyRecFullscreen,
+                        info,
+                      );
                   if (error != null) {
                     SqaToast.show(context, error, type: SqaToastType.error);
                   } else {
-                    SqaToast.show(context, 'Full Screen Record hotkey updated!', type: SqaToastType.success);
+                    SqaToast.show(
+                      context,
+                      'Full Screen Record hotkey updated!',
+                      type: SqaToastType.success,
+                    );
                   }
                 },
               ),

@@ -50,47 +50,50 @@ void main() {
   late Directory screenshotsDir;
 
   setUp(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),
-      (MethodCall call) async => null,
-    );
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('dev.leanflutter.plugins/hotkey_manager_event'),
-      (MethodCall call) async => null,
-    );
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('dev.leanflutter.plugins/screen_retriever'),
-      (MethodCall call) async {
-        if (call.method == 'getAllDisplays') {
-          return {
-            'displays': [
-              {
-                'id': '1',
-                'name': 'Screen 1',
-                'size': {'width': 1920.0, 'height': 1080.0},
-                'scaleFactor': 1.0,
-              },
-            ],
-          };
-        }
-        return null;
-      },
-    );
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('window_manager'),
-      (MethodCall call) async {
-        if (call.method == 'getBounds') {
-          return {'x': 0.0, 'y': 0.0, 'width': 800.0, 'height': 600.0};
-        }
-        if (call.method == 'getSize') {
-          return {'width': 800.0, 'height': 600.0};
-        }
-        if (call.method == 'getPosition') {
-          return {'x': 0.0, 'y': 0.0};
-        }
-        return true;
-      },
-    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),
+          (MethodCall call) async => null,
+        );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('dev.leanflutter.plugins/hotkey_manager_event'),
+          (MethodCall call) async => null,
+        );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('dev.leanflutter.plugins/screen_retriever'),
+          (MethodCall call) async {
+            if (call.method == 'getAllDisplays') {
+              return {
+                'displays': [
+                  {
+                    'id': '1',
+                    'name': 'Screen 1',
+                    'size': {'width': 1920.0, 'height': 1080.0},
+                    'scaleFactor': 1.0,
+                  },
+                ],
+              };
+            }
+            return null;
+          },
+        );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('window_manager'), (
+          MethodCall call,
+        ) async {
+          if (call.method == 'getBounds') {
+            return {'x': 0.0, 'y': 0.0, 'width': 800.0, 'height': 600.0};
+          }
+          if (call.method == 'getSize') {
+            return {'width': 800.0, 'height': 600.0};
+          }
+          if (call.method == 'getPosition') {
+            return {'x': 0.0, 'y': 0.0};
+          }
+          return true;
+        });
 
     testDir = Directory.systemTemp.createTempSync('sqa_screenshot_test');
     screenshotsDir = Directory(p.join(testDir.path, 'SQA_Screenshots'));
@@ -137,7 +140,7 @@ void main() {
     );
     expect(notifier.validateNewName('SQA_SS_2', info1), isNotNull); // Duplicate
     expect(
-      notifier.validateNewName('invalid*name', info1),
+      notifier.validateNewName('invalid/name', info1),
       isNotNull,
     ); // Invalid char
     expect(notifier.validateNewName('ValidName', info1), isNull); // Valid
@@ -150,6 +153,6 @@ void main() {
       state.recentCaptures.any((i) => i.file.path.contains('NewName.png')),
       true,
     );
-    expect(File('${screenshotsDir.path}\\NewName.png').existsSync(), true);
+    expect(File(p.join(screenshotsDir.path, 'NewName.png')).existsSync(), true);
   });
 }

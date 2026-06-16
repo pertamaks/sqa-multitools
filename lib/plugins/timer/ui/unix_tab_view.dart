@@ -85,7 +85,9 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(SqaTokens.spacingSmall),
+                        borderRadius: BorderRadius.circular(
+                          SqaTokens.spacingSmall,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -112,7 +114,9 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
               const SizedBox(height: SqaTokens.spacingLarge),
               _buildDateTimeInput(dt, state.isLive, notifier),
 
-              const SizedBox(height: SqaTokens.spacingLarge + SqaTokens.spacingXSmall),
+              const SizedBox(
+                height: SqaTokens.spacingLarge + SqaTokens.spacingXSmall,
+              ),
 
               // Conversion & Reset Actions
               Row(
@@ -138,7 +142,9 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
                 ],
               ),
 
-              const SizedBox(height: SqaTokens.spacingLarge + SqaTokens.spacingXSmall),
+              const SizedBox(
+                height: SqaTokens.spacingLarge + SqaTokens.spacingXSmall,
+              ),
 
               // Unix Section
               SqaField(
@@ -191,7 +197,11 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
           ),
         ),
         const SizedBox(width: SqaTokens.spacingSmall),
-        Container(width: 1, height: SqaTokens.spacingXXLarge, color: Colors.grey.withAlpha(50)),
+        Container(
+          width: 1,
+          height: SqaTokens.spacingXXLarge,
+          color: Colors.grey.withAlpha(50),
+        ),
         const SizedBox(width: SqaTokens.spacingSmall),
         InteractiveDateSegment(
           label: 'Hour',
@@ -231,7 +241,10 @@ class _UnixTabViewState extends ConsumerState<UnixTabView> {
       padding: const EdgeInsets.symmetric(horizontal: 2.0),
       child: Text(
         '/',
-        style: TextStyle(color: Colors.grey.withAlpha(50), fontSize: SqaTokens.fontSizeSmall - 1),
+        style: TextStyle(
+          color: Colors.grey.withAlpha(50),
+          fontSize: SqaTokens.fontSizeSmall - 1,
+        ),
       ),
     );
   }

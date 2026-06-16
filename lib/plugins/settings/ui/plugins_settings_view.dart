@@ -70,7 +70,12 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(SqaTokens.spacingLarge, SqaTokens.spacingSmall, SqaTokens.spacingLarge, 0),
+          padding: const EdgeInsets.fromLTRB(
+            SqaTokens.spacingLarge,
+            SqaTokens.spacingSmall,
+            SqaTokens.spacingLarge,
+            0,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -136,7 +141,9 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                   return SqaCard(
                     // Use a dynamic key to force rebuild and collapse when toggling editMode
                     key: ValueKey('${plugin.id}_$editMode'),
-                    margin: const EdgeInsets.only(bottom: SqaTokens.spacingSmall),
+                    margin: const EdgeInsets.only(
+                      bottom: SqaTokens.spacingSmall,
+                    ),
                     padding: EdgeInsets.zero,
                     borderSide: isFocused
                         ? BorderSide(
@@ -157,7 +164,9 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                             ReorderableDragStartListener(
                               index: index,
                               child: Padding(
-                                padding: const EdgeInsets.only(right: SqaTokens.spacingMedium),
+                                padding: const EdgeInsets.only(
+                                  right: SqaTokens.spacingMedium,
+                                ),
                                 child: Icon(
                                   Symbols.drag_indicator,
                                   size: SqaTokens.spacingXLarge,
@@ -170,7 +179,8 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                           SqaIconContainer(
                             icon: plugin.icon,
                             size: SqaTokens.spacingXXLarge,
-                            iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                            iconSize:
+                                SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                           ),
                         ],
                       ),
@@ -196,7 +206,9 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                                     : Theme.of(
                                         context,
                                       ).colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
+                                borderRadius: BorderRadius.circular(
+                                  SqaTokens.spacingXSmall,
+                                ),
                               ),
                               child: Text(
                                 plugin.badge!,
@@ -208,8 +220,8 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                                           plugin.badge == 'BETA'
                                       ? Colors.white
                                       : Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimaryContainer,
+                                          context,
+                                        ).colorScheme.onPrimaryContainer,
                                 ),
                               ),
                             ),
@@ -239,7 +251,8 @@ class _PluginsSettingsViewState extends ConsumerState<PluginsSettingsView> {
                             child: SqaSafePluginBuilder(
                               pluginId: plugin.id,
                               pluginName: '${plugin.name} Settings',
-                              builder: (context) => plugin.buildSettingsPanel(context),
+                              builder: (context) =>
+                                  plugin.buildSettingsPanel(context),
                             ),
                           ),
                         ),

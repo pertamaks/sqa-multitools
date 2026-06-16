@@ -17,12 +17,16 @@ class LongScreenshotStitcher {
   /// auto-detects by comparing NCC scores for both axes.
   ///
   /// Returns a Uint8List containing the PNG bytes of the final stitched image.
-  static Future<Uint8List?> stitch(String videoPath,
-      {StitchAxis? direction}) async {
+  static Future<Uint8List?> stitch(
+    String videoPath, {
+    StitchAxis? direction,
+  }) async {
     final tempDir = await Directory.systemTemp.createTemp('sqa_stitching_');
     try {
       // Phase 1: Extract frames
-      debugPrint('[LongScreenshotStitcher] Extracting frames to ${tempDir.path}...');
+      debugPrint(
+        '[LongScreenshotStitcher] Extracting frames to ${tempDir.path}...',
+      );
       final framePaths = await _extractFrames(videoPath, tempDir.path);
       if (framePaths.isEmpty) {
         debugPrint('[LongScreenshotStitcher] No frames extracted.');
@@ -30,7 +34,9 @@ class LongScreenshotStitcher {
       }
 
       // Phase 2: Compute projections (on main thread to allow dart:ui)
-      debugPrint('[LongScreenshotStitcher] Computing projections on main thread...');
+      debugPrint(
+        '[LongScreenshotStitcher] Computing projections on main thread...',
+      );
       final rowProjections = <Float32List>[];
       final colProjections = <Float32List>[];
       int frameWidth = 0;
@@ -47,7 +53,9 @@ class LongScreenshotStitcher {
           frameHeight = image.height;
         }
 
-        final rgbaData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+        final rgbaData = await image.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
         if (rgbaData != null) {
           final rowProj = Float32List(frameHeight);
           final colProj = Float32List(frameWidth);
@@ -59,7 +67,8 @@ class LongScreenshotStitcher {
             final rowOffset = y * frameWidth * 4;
             for (int x = 0; x < frameWidth; x++) {
               final idx = rowOffset + (x * 4);
-              final gray = 0.2126 * rawBytes[idx] +
+              final gray =
+                  0.2126 * rawBytes[idx] +
                   0.7152 * rawBytes[idx + 1] +
                   0.0722 * rawBytes[idx + 2];
               rowSum += gray;
@@ -98,13 +107,16 @@ class LongScreenshotStitcher {
             ? rowProjections
             : colProjections;
         final dim = direction == StitchAxis.vertical ? frameHeight : frameWidth;
-        final singleResult = await compute(
-            _computeSingleAxisIsolate,
-            {'projections': projections, 'frameDimension': dim});
+        final singleResult = await compute(_computeSingleAxisIsolate, {
+          'projections': projections,
+          'frameDimension': dim,
+        });
         offsets = singleResult['offsets'] as List<int>;
         axis = direction;
       } else {
-        debugPrint('[LongScreenshotStitcher] Computing offsets (dual NCC) in background...');
+        debugPrint(
+          '[LongScreenshotStitcher] Computing offsets (dual NCC) in background...',
+        );
         final result = await compute(_computeOffsetsIsolate, {
           'rowProjections': rowProjections,
           'colProjections': colProjections,
@@ -113,8 +125,10 @@ class LongScreenshotStitcher {
         });
         offsets = result['offsets'] as List<int>;
         axis = StitchAxis.values[result['axis'] as int];
-        debugPrint('[LongScreenshotStitcher] Auto-detected axis: $axis '
-            '(${offsets.length} frames, ${offsets.last} px offset)');
+        debugPrint(
+          '[LongScreenshotStitcher] Auto-detected axis: $axis '
+          '(${offsets.length} frames, ${offsets.last} px offset)',
+        );
       }
 
       if (offsets.isEmpty) {
@@ -123,8 +137,14 @@ class LongScreenshotStitcher {
       }
 
       // Phase 5: Composite frames onto canvas
-      debugPrint('[LongScreenshotStitcher] Compositing frames on main thread...');
-      final finalImageBytes = await _compositeFrames(framePaths, offsets, axis: axis);
+      debugPrint(
+        '[LongScreenshotStitcher] Compositing frames on main thread...',
+      );
+      final finalImageBytes = await _compositeFrames(
+        framePaths,
+        offsets,
+        axis: axis,
+      );
 
       debugPrint('[LongScreenshotStitcher] Stitching complete.');
       return finalImageBytes;
@@ -138,25 +158,33 @@ class LongScreenshotStitcher {
     }
   }
 
-  static Future<List<String>> _extractFrames(String videoPath, String outDir) async {
+  static Future<List<String>> _extractFrames(
+    String videoPath,
+    String outDir,
+  ) async {
     final executable = await FfmpegEngine.getExecutablePath();
     if (executable == null) throw Exception("FFmpeg not found");
 
     final outPattern = p.join(outDir, 'frame_%04d.png');
 
     final result = await Process.run(executable, [
-      '-i', videoPath,
-      '-vf', 'fps=10',
+      '-i',
+      videoPath,
+      '-vf',
+      'fps=10',
       outPattern,
     ]);
 
     if (result.exitCode != 0) {
-      debugPrint('[LongScreenshotStitcher] FFmpeg extract failed: ${result.stderr}');
+      debugPrint(
+        '[LongScreenshotStitcher] FFmpeg extract failed: ${result.stderr}',
+      );
       return [];
     }
 
     final dir = Directory(outDir);
-    final files = dir.listSync()
+    final files = dir
+        .listSync()
         .whereType<File>()
         .where((f) => f.path.endsWith('.png'))
         .toList();
@@ -177,7 +205,9 @@ class LongScreenshotStitcher {
   ///   'avgNcc'   — `double`, average NCC score across all matched pairs
   @visibleForTesting
   static Map<String, dynamic> computeOffsets1D(
-      List<Float32List> projections, int frameDimension) {
+    List<Float32List> projections,
+    int frameDimension,
+  ) {
     if (projections.isEmpty) {
       return {'offsets': <int>[], 'avgNcc': 0.0};
     }
@@ -275,7 +305,8 @@ class LongScreenshotStitcher {
   /// Runs in a compute isolate to avoid UI freeze.
   /// Computes NCC offsets for a single axis and returns the offsets.
   static Future<Map<String, dynamic>> _computeSingleAxisIsolate(
-      Map<String, dynamic> args) async {
+    Map<String, dynamic> args,
+  ) async {
     final List<Float32List> projections =
         args['projections'] as List<Float32List>;
     final int frameDimension = args['frameDimension'] as int;
@@ -291,7 +322,8 @@ class LongScreenshotStitcher {
   /// Computes NCC offsets for both vertical and horizontal axes, then picks
   /// the winner based on average NCC score.
   static Future<Map<String, dynamic>> _computeOffsetsIsolate(
-      Map<String, dynamic> args) async {
+    Map<String, dynamic> args,
+  ) async {
     final List<Float32List> rowProjections =
         args['rowProjections'] as List<Float32List>;
     final List<Float32List> colProjections =
@@ -323,19 +355,20 @@ class LongScreenshotStitcher {
       offsets = vertResult['offsets'] as List<int>;
     }
 
-    debugPrint('[LongScreenshotStitcher] Auto-detected axis: $winner '
-        '(vertical NCC=${vertAvgNcc.toStringAsFixed(3)}, '
-        'horizontal NCC=${horizAvgNcc.toStringAsFixed(3)})');
+    debugPrint(
+      '[LongScreenshotStitcher] Auto-detected axis: $winner '
+      '(vertical NCC=${vertAvgNcc.toStringAsFixed(3)}, '
+      'horizontal NCC=${horizAvgNcc.toStringAsFixed(3)})',
+    );
 
-    return {
-      'offsets': offsets,
-      'axis': winner.index,
-    };
+    return {'offsets': offsets, 'axis': winner.index};
   }
 
   static Future<Uint8List> _compositeFrames(
-      List<String> framePaths, List<int> globalOffsets,
-      {StitchAxis axis = StitchAxis.vertical}) async {
+    List<String> framePaths,
+    List<int> globalOffsets, {
+    StitchAxis axis = StitchAxis.vertical,
+  }) async {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
 
@@ -377,12 +410,14 @@ class LongScreenshotStitcher {
 
           if (newContentStartY < frameHeight) {
             final srcRect = ui.Rect.fromLTWH(
-              0, newContentStartY.toDouble(),
+              0,
+              newContentStartY.toDouble(),
               frame.width.toDouble(),
               (frameHeight - newContentStartY).toDouble(),
             );
             final dstRect = ui.Rect.fromLTWH(
-              0, currentPos.toDouble(),
+              0,
+              currentPos.toDouble(),
               frame.width.toDouble(),
               (frameHeight - newContentStartY).toDouble(),
             );
@@ -394,12 +429,14 @@ class LongScreenshotStitcher {
 
           if (newContentStartX < frameWidth) {
             final srcRect = ui.Rect.fromLTWH(
-              newContentStartX.toDouble(), 0,
+              newContentStartX.toDouble(),
+              0,
               (frameWidth - newContentStartX).toDouble(),
               frame.height.toDouble(),
             );
             final dstRect = ui.Rect.fromLTWH(
-              currentPos.toDouble(), 0,
+              currentPos.toDouble(),
+              0,
               (frameWidth - newContentStartX).toDouble(),
               frame.height.toDouble(),
             );

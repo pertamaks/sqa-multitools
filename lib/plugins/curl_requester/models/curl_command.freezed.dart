@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CurlCommand {
 
- String get url; String get method; Map<String, String> get headers; Map<String, String> get queryParameters; Set<String> get inactiveHeaders; Set<String> get inactiveQueryParameters; String get body;
+ String get url; String get method; Map<String, String> get headers; Map<String, String> get pathParameters; Map<String, String> get queryParameters; Set<String> get inactiveHeaders; Set<String> get inactivePathParameters; Set<String> get inactiveQueryParameters; String get body; BodyType get bodyType; AuthMethod get authMethod; Map<String, String> get authData; List<FormDataItem> get formData; List<FormDataItem> get urlEncodedData;
 /// Create a copy of CurlCommand
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $CurlCommandCopyWith<CurlCommand> get copyWith => _$CurlCommandCopyWithImpl<Curl
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CurlCommand&&(identical(other.url, url) || other.url == url)&&(identical(other.method, method) || other.method == method)&&const DeepCollectionEquality().equals(other.headers, headers)&&const DeepCollectionEquality().equals(other.queryParameters, queryParameters)&&const DeepCollectionEquality().equals(other.inactiveHeaders, inactiveHeaders)&&const DeepCollectionEquality().equals(other.inactiveQueryParameters, inactiveQueryParameters)&&(identical(other.body, body) || other.body == body));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CurlCommand&&(identical(other.url, url) || other.url == url)&&(identical(other.method, method) || other.method == method)&&const DeepCollectionEquality().equals(other.headers, headers)&&const DeepCollectionEquality().equals(other.pathParameters, pathParameters)&&const DeepCollectionEquality().equals(other.queryParameters, queryParameters)&&const DeepCollectionEquality().equals(other.inactiveHeaders, inactiveHeaders)&&const DeepCollectionEquality().equals(other.inactivePathParameters, inactivePathParameters)&&const DeepCollectionEquality().equals(other.inactiveQueryParameters, inactiveQueryParameters)&&(identical(other.body, body) || other.body == body)&&(identical(other.bodyType, bodyType) || other.bodyType == bodyType)&&(identical(other.authMethod, authMethod) || other.authMethod == authMethod)&&const DeepCollectionEquality().equals(other.authData, authData)&&const DeepCollectionEquality().equals(other.formData, formData)&&const DeepCollectionEquality().equals(other.urlEncodedData, urlEncodedData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,method,const DeepCollectionEquality().hash(headers),const DeepCollectionEquality().hash(queryParameters),const DeepCollectionEquality().hash(inactiveHeaders),const DeepCollectionEquality().hash(inactiveQueryParameters),body);
+int get hashCode => Object.hash(runtimeType,url,method,const DeepCollectionEquality().hash(headers),const DeepCollectionEquality().hash(pathParameters),const DeepCollectionEquality().hash(queryParameters),const DeepCollectionEquality().hash(inactiveHeaders),const DeepCollectionEquality().hash(inactivePathParameters),const DeepCollectionEquality().hash(inactiveQueryParameters),body,bodyType,authMethod,const DeepCollectionEquality().hash(authData),const DeepCollectionEquality().hash(formData),const DeepCollectionEquality().hash(urlEncodedData));
 
 @override
 String toString() {
-  return 'CurlCommand(url: $url, method: $method, headers: $headers, queryParameters: $queryParameters, inactiveHeaders: $inactiveHeaders, inactiveQueryParameters: $inactiveQueryParameters, body: $body)';
+  return 'CurlCommand(url: $url, method: $method, headers: $headers, pathParameters: $pathParameters, queryParameters: $queryParameters, inactiveHeaders: $inactiveHeaders, inactivePathParameters: $inactivePathParameters, inactiveQueryParameters: $inactiveQueryParameters, body: $body, bodyType: $bodyType, authMethod: $authMethod, authData: $authData, formData: $formData, urlEncodedData: $urlEncodedData)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $CurlCommandCopyWith<$Res>  {
   factory $CurlCommandCopyWith(CurlCommand value, $Res Function(CurlCommand) _then) = _$CurlCommandCopyWithImpl;
 @useResult
 $Res call({
- String url, String method, Map<String, String> headers, Map<String, String> queryParameters, Set<String> inactiveHeaders, Set<String> inactiveQueryParameters, String body
+ String url, String method, Map<String, String> headers, Map<String, String> pathParameters, Map<String, String> queryParameters, Set<String> inactiveHeaders, Set<String> inactivePathParameters, Set<String> inactiveQueryParameters, String body, BodyType bodyType, AuthMethod authMethod, Map<String, String> authData, List<FormDataItem> formData, List<FormDataItem> urlEncodedData
 });
 
 
@@ -65,16 +65,23 @@ class _$CurlCommandCopyWithImpl<$Res>
 
 /// Create a copy of CurlCommand
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? url = null,Object? method = null,Object? headers = null,Object? queryParameters = null,Object? inactiveHeaders = null,Object? inactiveQueryParameters = null,Object? body = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? url = null,Object? method = null,Object? headers = null,Object? pathParameters = null,Object? queryParameters = null,Object? inactiveHeaders = null,Object? inactivePathParameters = null,Object? inactiveQueryParameters = null,Object? body = null,Object? bodyType = null,Object? authMethod = null,Object? authData = null,Object? formData = null,Object? urlEncodedData = null,}) {
   return _then(_self.copyWith(
 url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,method: null == method ? _self.method : method // ignore: cast_nullable_to_non_nullable
 as String,headers: null == headers ? _self.headers : headers // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,pathParameters: null == pathParameters ? _self.pathParameters : pathParameters // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,queryParameters: null == queryParameters ? _self.queryParameters : queryParameters // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,inactiveHeaders: null == inactiveHeaders ? _self.inactiveHeaders : inactiveHeaders // ignore: cast_nullable_to_non_nullable
+as Set<String>,inactivePathParameters: null == inactivePathParameters ? _self.inactivePathParameters : inactivePathParameters // ignore: cast_nullable_to_non_nullable
 as Set<String>,inactiveQueryParameters: null == inactiveQueryParameters ? _self.inactiveQueryParameters : inactiveQueryParameters // ignore: cast_nullable_to_non_nullable
 as Set<String>,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
-as String,
+as String,bodyType: null == bodyType ? _self.bodyType : bodyType // ignore: cast_nullable_to_non_nullable
+as BodyType,authMethod: null == authMethod ? _self.authMethod : authMethod // ignore: cast_nullable_to_non_nullable
+as AuthMethod,authData: null == authData ? _self.authData : authData // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,formData: null == formData ? _self.formData : formData // ignore: cast_nullable_to_non_nullable
+as List<FormDataItem>,urlEncodedData: null == urlEncodedData ? _self.urlEncodedData : urlEncodedData // ignore: cast_nullable_to_non_nullable
+as List<FormDataItem>,
   ));
 }
 
@@ -159,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String url,  String method,  Map<String, String> headers,  Map<String, String> queryParameters,  Set<String> inactiveHeaders,  Set<String> inactiveQueryParameters,  String body)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String url,  String method,  Map<String, String> headers,  Map<String, String> pathParameters,  Map<String, String> queryParameters,  Set<String> inactiveHeaders,  Set<String> inactivePathParameters,  Set<String> inactiveQueryParameters,  String body,  BodyType bodyType,  AuthMethod authMethod,  Map<String, String> authData,  List<FormDataItem> formData,  List<FormDataItem> urlEncodedData)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CurlCommand() when $default != null:
-return $default(_that.url,_that.method,_that.headers,_that.queryParameters,_that.inactiveHeaders,_that.inactiveQueryParameters,_that.body);case _:
+return $default(_that.url,_that.method,_that.headers,_that.pathParameters,_that.queryParameters,_that.inactiveHeaders,_that.inactivePathParameters,_that.inactiveQueryParameters,_that.body,_that.bodyType,_that.authMethod,_that.authData,_that.formData,_that.urlEncodedData);case _:
   return orElse();
 
 }
@@ -180,10 +187,10 @@ return $default(_that.url,_that.method,_that.headers,_that.queryParameters,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String url,  String method,  Map<String, String> headers,  Map<String, String> queryParameters,  Set<String> inactiveHeaders,  Set<String> inactiveQueryParameters,  String body)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String url,  String method,  Map<String, String> headers,  Map<String, String> pathParameters,  Map<String, String> queryParameters,  Set<String> inactiveHeaders,  Set<String> inactivePathParameters,  Set<String> inactiveQueryParameters,  String body,  BodyType bodyType,  AuthMethod authMethod,  Map<String, String> authData,  List<FormDataItem> formData,  List<FormDataItem> urlEncodedData)  $default,) {final _that = this;
 switch (_that) {
 case _CurlCommand():
-return $default(_that.url,_that.method,_that.headers,_that.queryParameters,_that.inactiveHeaders,_that.inactiveQueryParameters,_that.body);case _:
+return $default(_that.url,_that.method,_that.headers,_that.pathParameters,_that.queryParameters,_that.inactiveHeaders,_that.inactivePathParameters,_that.inactiveQueryParameters,_that.body,_that.bodyType,_that.authMethod,_that.authData,_that.formData,_that.urlEncodedData);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +207,10 @@ return $default(_that.url,_that.method,_that.headers,_that.queryParameters,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String url,  String method,  Map<String, String> headers,  Map<String, String> queryParameters,  Set<String> inactiveHeaders,  Set<String> inactiveQueryParameters,  String body)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String url,  String method,  Map<String, String> headers,  Map<String, String> pathParameters,  Map<String, String> queryParameters,  Set<String> inactiveHeaders,  Set<String> inactivePathParameters,  Set<String> inactiveQueryParameters,  String body,  BodyType bodyType,  AuthMethod authMethod,  Map<String, String> authData,  List<FormDataItem> formData,  List<FormDataItem> urlEncodedData)?  $default,) {final _that = this;
 switch (_that) {
 case _CurlCommand() when $default != null:
-return $default(_that.url,_that.method,_that.headers,_that.queryParameters,_that.inactiveHeaders,_that.inactiveQueryParameters,_that.body);case _:
+return $default(_that.url,_that.method,_that.headers,_that.pathParameters,_that.queryParameters,_that.inactiveHeaders,_that.inactivePathParameters,_that.inactiveQueryParameters,_that.body,_that.bodyType,_that.authMethod,_that.authData,_that.formData,_that.urlEncodedData);case _:
   return null;
 
 }
@@ -215,7 +222,7 @@ return $default(_that.url,_that.method,_that.headers,_that.queryParameters,_that
 @JsonSerializable()
 
 class _CurlCommand implements CurlCommand {
-  const _CurlCommand({this.url = '', this.method = 'GET', final  Map<String, String> headers = const {}, final  Map<String, String> queryParameters = const {}, final  Set<String> inactiveHeaders = const {}, final  Set<String> inactiveQueryParameters = const {}, this.body = ''}): _headers = headers,_queryParameters = queryParameters,_inactiveHeaders = inactiveHeaders,_inactiveQueryParameters = inactiveQueryParameters;
+  const _CurlCommand({this.url = '', this.method = 'GET', final  Map<String, String> headers = const {}, final  Map<String, String> pathParameters = const {}, final  Map<String, String> queryParameters = const {}, final  Set<String> inactiveHeaders = const {}, final  Set<String> inactivePathParameters = const {}, final  Set<String> inactiveQueryParameters = const {}, this.body = '', this.bodyType = BodyType.raw, this.authMethod = AuthMethod.none, final  Map<String, String> authData = const {}, final  List<FormDataItem> formData = const [], final  List<FormDataItem> urlEncodedData = const []}): _headers = headers,_pathParameters = pathParameters,_queryParameters = queryParameters,_inactiveHeaders = inactiveHeaders,_inactivePathParameters = inactivePathParameters,_inactiveQueryParameters = inactiveQueryParameters,_authData = authData,_formData = formData,_urlEncodedData = urlEncodedData;
   factory _CurlCommand.fromJson(Map<String, dynamic> json) => _$CurlCommandFromJson(json);
 
 @override@JsonKey() final  String url;
@@ -225,6 +232,13 @@ class _CurlCommand implements CurlCommand {
   if (_headers is EqualUnmodifiableMapView) return _headers;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_headers);
+}
+
+ final  Map<String, String> _pathParameters;
+@override@JsonKey() Map<String, String> get pathParameters {
+  if (_pathParameters is EqualUnmodifiableMapView) return _pathParameters;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_pathParameters);
 }
 
  final  Map<String, String> _queryParameters;
@@ -241,6 +255,13 @@ class _CurlCommand implements CurlCommand {
   return EqualUnmodifiableSetView(_inactiveHeaders);
 }
 
+ final  Set<String> _inactivePathParameters;
+@override@JsonKey() Set<String> get inactivePathParameters {
+  if (_inactivePathParameters is EqualUnmodifiableSetView) return _inactivePathParameters;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableSetView(_inactivePathParameters);
+}
+
  final  Set<String> _inactiveQueryParameters;
 @override@JsonKey() Set<String> get inactiveQueryParameters {
   if (_inactiveQueryParameters is EqualUnmodifiableSetView) return _inactiveQueryParameters;
@@ -249,6 +270,29 @@ class _CurlCommand implements CurlCommand {
 }
 
 @override@JsonKey() final  String body;
+@override@JsonKey() final  BodyType bodyType;
+@override@JsonKey() final  AuthMethod authMethod;
+ final  Map<String, String> _authData;
+@override@JsonKey() Map<String, String> get authData {
+  if (_authData is EqualUnmodifiableMapView) return _authData;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_authData);
+}
+
+ final  List<FormDataItem> _formData;
+@override@JsonKey() List<FormDataItem> get formData {
+  if (_formData is EqualUnmodifiableListView) return _formData;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_formData);
+}
+
+ final  List<FormDataItem> _urlEncodedData;
+@override@JsonKey() List<FormDataItem> get urlEncodedData {
+  if (_urlEncodedData is EqualUnmodifiableListView) return _urlEncodedData;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_urlEncodedData);
+}
+
 
 /// Create a copy of CurlCommand
 /// with the given fields replaced by the non-null parameter values.
@@ -263,16 +307,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CurlCommand&&(identical(other.url, url) || other.url == url)&&(identical(other.method, method) || other.method == method)&&const DeepCollectionEquality().equals(other._headers, _headers)&&const DeepCollectionEquality().equals(other._queryParameters, _queryParameters)&&const DeepCollectionEquality().equals(other._inactiveHeaders, _inactiveHeaders)&&const DeepCollectionEquality().equals(other._inactiveQueryParameters, _inactiveQueryParameters)&&(identical(other.body, body) || other.body == body));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CurlCommand&&(identical(other.url, url) || other.url == url)&&(identical(other.method, method) || other.method == method)&&const DeepCollectionEquality().equals(other._headers, _headers)&&const DeepCollectionEquality().equals(other._pathParameters, _pathParameters)&&const DeepCollectionEquality().equals(other._queryParameters, _queryParameters)&&const DeepCollectionEquality().equals(other._inactiveHeaders, _inactiveHeaders)&&const DeepCollectionEquality().equals(other._inactivePathParameters, _inactivePathParameters)&&const DeepCollectionEquality().equals(other._inactiveQueryParameters, _inactiveQueryParameters)&&(identical(other.body, body) || other.body == body)&&(identical(other.bodyType, bodyType) || other.bodyType == bodyType)&&(identical(other.authMethod, authMethod) || other.authMethod == authMethod)&&const DeepCollectionEquality().equals(other._authData, _authData)&&const DeepCollectionEquality().equals(other._formData, _formData)&&const DeepCollectionEquality().equals(other._urlEncodedData, _urlEncodedData));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,method,const DeepCollectionEquality().hash(_headers),const DeepCollectionEquality().hash(_queryParameters),const DeepCollectionEquality().hash(_inactiveHeaders),const DeepCollectionEquality().hash(_inactiveQueryParameters),body);
+int get hashCode => Object.hash(runtimeType,url,method,const DeepCollectionEquality().hash(_headers),const DeepCollectionEquality().hash(_pathParameters),const DeepCollectionEquality().hash(_queryParameters),const DeepCollectionEquality().hash(_inactiveHeaders),const DeepCollectionEquality().hash(_inactivePathParameters),const DeepCollectionEquality().hash(_inactiveQueryParameters),body,bodyType,authMethod,const DeepCollectionEquality().hash(_authData),const DeepCollectionEquality().hash(_formData),const DeepCollectionEquality().hash(_urlEncodedData));
 
 @override
 String toString() {
-  return 'CurlCommand(url: $url, method: $method, headers: $headers, queryParameters: $queryParameters, inactiveHeaders: $inactiveHeaders, inactiveQueryParameters: $inactiveQueryParameters, body: $body)';
+  return 'CurlCommand(url: $url, method: $method, headers: $headers, pathParameters: $pathParameters, queryParameters: $queryParameters, inactiveHeaders: $inactiveHeaders, inactivePathParameters: $inactivePathParameters, inactiveQueryParameters: $inactiveQueryParameters, body: $body, bodyType: $bodyType, authMethod: $authMethod, authData: $authData, formData: $formData, urlEncodedData: $urlEncodedData)';
 }
 
 
@@ -283,7 +327,7 @@ abstract mixin class _$CurlCommandCopyWith<$Res> implements $CurlCommandCopyWith
   factory _$CurlCommandCopyWith(_CurlCommand value, $Res Function(_CurlCommand) _then) = __$CurlCommandCopyWithImpl;
 @override @useResult
 $Res call({
- String url, String method, Map<String, String> headers, Map<String, String> queryParameters, Set<String> inactiveHeaders, Set<String> inactiveQueryParameters, String body
+ String url, String method, Map<String, String> headers, Map<String, String> pathParameters, Map<String, String> queryParameters, Set<String> inactiveHeaders, Set<String> inactivePathParameters, Set<String> inactiveQueryParameters, String body, BodyType bodyType, AuthMethod authMethod, Map<String, String> authData, List<FormDataItem> formData, List<FormDataItem> urlEncodedData
 });
 
 
@@ -300,16 +344,23 @@ class __$CurlCommandCopyWithImpl<$Res>
 
 /// Create a copy of CurlCommand
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? url = null,Object? method = null,Object? headers = null,Object? queryParameters = null,Object? inactiveHeaders = null,Object? inactiveQueryParameters = null,Object? body = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? url = null,Object? method = null,Object? headers = null,Object? pathParameters = null,Object? queryParameters = null,Object? inactiveHeaders = null,Object? inactivePathParameters = null,Object? inactiveQueryParameters = null,Object? body = null,Object? bodyType = null,Object? authMethod = null,Object? authData = null,Object? formData = null,Object? urlEncodedData = null,}) {
   return _then(_CurlCommand(
 url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,method: null == method ? _self.method : method // ignore: cast_nullable_to_non_nullable
 as String,headers: null == headers ? _self._headers : headers // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,pathParameters: null == pathParameters ? _self._pathParameters : pathParameters // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,queryParameters: null == queryParameters ? _self._queryParameters : queryParameters // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,inactiveHeaders: null == inactiveHeaders ? _self._inactiveHeaders : inactiveHeaders // ignore: cast_nullable_to_non_nullable
+as Set<String>,inactivePathParameters: null == inactivePathParameters ? _self._inactivePathParameters : inactivePathParameters // ignore: cast_nullable_to_non_nullable
 as Set<String>,inactiveQueryParameters: null == inactiveQueryParameters ? _self._inactiveQueryParameters : inactiveQueryParameters // ignore: cast_nullable_to_non_nullable
 as Set<String>,body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
-as String,
+as String,bodyType: null == bodyType ? _self.bodyType : bodyType // ignore: cast_nullable_to_non_nullable
+as BodyType,authMethod: null == authMethod ? _self.authMethod : authMethod // ignore: cast_nullable_to_non_nullable
+as AuthMethod,authData: null == authData ? _self._authData : authData // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,formData: null == formData ? _self._formData : formData // ignore: cast_nullable_to_non_nullable
+as List<FormDataItem>,urlEncodedData: null == urlEncodedData ? _self._urlEncodedData : urlEncodedData // ignore: cast_nullable_to_non_nullable
+as List<FormDataItem>,
   ));
 }
 

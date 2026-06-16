@@ -92,7 +92,9 @@ class _TextListViewState extends ConsumerState<TextListView> {
                   else
                     ...filteredDocs.map((doc) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
+                        padding: const EdgeInsets.only(
+                          bottom: SqaTokens.spacingMedium,
+                        ),
                         child: SqaCard(
                           onTap: () => notifier.viewDocument(doc),
                           child: Row(
@@ -112,7 +114,9 @@ class _TextListViewState extends ConsumerState<TextListView> {
                                           ),
                                         ),
                                         if (doc.isPinned) ...[
-                                          const SizedBox(width: SqaTokens.spacingSmall),
+                                          const SizedBox(
+                                            width: SqaTokens.spacingSmall,
+                                          ),
                                           Icon(
                                             Symbols.keep,
                                             size: SqaTokens.spacingLarge,
@@ -122,7 +126,9 @@ class _TextListViewState extends ConsumerState<TextListView> {
                                         ],
                                       ],
                                     ),
-                                    const SizedBox(height: SqaTokens.spacingXSmall),
+                                    const SizedBox(
+                                      height: SqaTokens.spacingXSmall,
+                                    ),
                                     Text(
                                       'Last modified: ${DateFormat.yMMMd().add_Hm().format(doc.lastModified)}',
                                       style: theme.textTheme.labelSmall
@@ -341,7 +347,9 @@ class _TextListViewState extends ConsumerState<TextListView> {
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.all(SqaTokens.spacingXSmall),
+        ),
         elevation: WidgetStateProperty.all(8.0),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
@@ -423,7 +431,11 @@ class _TextListViewState extends ConsumerState<TextListView> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny, color: color),
+          Icon(
+            icon,
+            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+            color: color,
+          ),
           const SizedBox(width: SqaTokens.spacingMedium),
           Text(
             label,

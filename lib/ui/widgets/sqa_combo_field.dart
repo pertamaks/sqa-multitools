@@ -5,7 +5,7 @@ import 'sqa_field.dart';
 import 'sqa_popup_menu.dart';
 
 /// A hybrid input field that allows both direct text entry and selection from a dropdown.
-/// 
+///
 /// Perfect for Faker-style inputs where the user can type a custom value or pick a generator.
 class SqaComboField extends StatelessWidget {
   final String label;
@@ -20,13 +20,13 @@ class SqaComboField extends StatelessWidget {
   final bool isTransparent;
   final String? hintText;
   final ValueChanged<String>? onChanged;
-  
+
   /// The list of items to show in the dropdown picker.
   final List<SqaPopupMenuItem> items;
-  
+
   /// Tooltip for the dropdown chevron.
   final String pickerTooltip;
-  
+
   /// Icon for the dropdown chevron.
   final IconData pickerIcon;
 
@@ -64,13 +64,13 @@ class SqaComboField extends StatelessWidget {
       isTransparent: isTransparent,
       hintText: hintText,
       onChanged: onChanged,
-      trailing: items.isEmpty 
-        ? null 
-        : SqaPopupMenu(
-            icon: pickerIcon,
-            tooltip: pickerTooltip,
-            children: items,
-          ),
+      trailing: items.isEmpty
+          ? null
+          : SqaPopupMenu(
+              icon: pickerIcon,
+              tooltip: pickerTooltip,
+              children: items,
+            ),
     );
   }
 }

@@ -150,7 +150,8 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
     return SqaPluginLayout(
       icon: Symbols.casino,
       title: 'QA Oracle',
-      description: 'Get randomized, sarcastic but honest answers to your toughest QA questions.',
+      description:
+          'Get randomized, sarcastic but honest answers to your toughest QA questions.',
       child: Container(
         padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         alignment: Alignment.center,
@@ -163,7 +164,8 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
-                  final offset = sin(_controller.value * pi * 4) * SqaTokens.spacingSmall;
+                  final offset =
+                      sin(_controller.value * pi * 4) * SqaTokens.spacingSmall;
                   return Transform.translate(
                     offset: Offset(offset, 0),
                     child: child,
@@ -185,10 +187,10 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
                   _currentResponse,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
             ),
@@ -196,8 +198,8 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
             Text(
               'Tap the 8-Ball to consult or text to copy',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),

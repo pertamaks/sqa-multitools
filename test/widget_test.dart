@@ -30,13 +30,13 @@ class MockFfmpeg extends Ffmpeg {
 
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
-  
+
   // Ensure test directories exist before running tests to prevent I/O errors
   // from Ffmpeg or LoggingService when writing files
   Directory('./test_temp').createSync(recursive: true);
   Directory('./test_docs').createSync(recursive: true);
   Directory('./test_support').createSync(recursive: true);
-  
+
   testWidgets('App smoke test', (WidgetTester tester) async {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),

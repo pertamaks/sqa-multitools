@@ -23,7 +23,7 @@ flutter test
 We use structured templates for bug reports and feature requests. Avoid opening blank issues. Ensure you provide:
 - **Reproducible steps** for bugs.
 - **Expected vs Actual** behavior.
-- **System context** (Windows version, app version).
+- **System context** (OS version, app version).
 
 ---
 
@@ -163,7 +163,7 @@ All plugins consume a shared widget library in `lib/ui/widgets/`. This ensures a
 
 - **Never** pre-load large assets (audio, images, JSON) during app startup.
 - **Always** use the plugin's `initialize()` method for lazy loading.
-- **Audio warm-up:** Use `preLoad(path)` with `preload: true` inside `initialize()` to prevent cold-start silence on Windows.
+- **Audio warm-up:** Use `preLoad(path)` with `preload: true` inside `initialize()` to prevent cold-start silence on desktop.
 
 ---
 
@@ -182,9 +182,9 @@ The SQA-Multitools release pipeline is automated but guarded by a manual verific
 
 ## 9. Contribution Agreement
 
-SQA-Multitools is a **Proprietary** project. By submitting a Pull Request, you agree to grant the project owner a non-exclusive, royalty-free, perpetual license to use, modify, and distribute your contribution as part of the project.
+SQA-Multitools is a **Proprietary Freeware** project. By submitting a Pull Request, you agree to grant the project owner a non-exclusive, royalty-free, perpetual license to use, modify, and distribute your contribution as part of the project.
 
-You retain the copyright to your individual contribution, but you grant SQA-Multitools the right to include it in both the free and paid tiers of the application.
+You retain the copyright to your individual contribution, but you grant SQA-Multitools the right to include it in the application.
 
 ---
 

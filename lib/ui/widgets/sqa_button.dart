@@ -148,7 +148,10 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                icon: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                icon: Icon(
+                  icon,
+                  size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                ),
                 label: child,
               )
             : FilledButton(
@@ -158,7 +161,12 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                child: isIconOnly ? Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall) : child,
+                child: isIconOnly
+                    ? Icon(
+                        icon,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                      )
+                    : child,
               );
         break;
       case SqaButtonType.tonal:
@@ -175,7 +183,10 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                icon: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                icon: Icon(
+                  icon,
+                  size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                ),
                 label: child,
               )
             : FilledButton.tonal(
@@ -190,7 +201,12 @@ class SqaButton extends StatelessWidget {
                       ? WidgetStateProperty.all(localColor)
                       : null,
                 ),
-                child: isIconOnly ? Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall) : child,
+                child: isIconOnly
+                    ? Icon(
+                        icon,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                      )
+                    : child,
               );
         break;
       case SqaButtonType.outlined:
@@ -207,7 +223,10 @@ class SqaButton extends StatelessWidget {
                         )
                       : null,
                 ),
-                icon: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                icon: Icon(
+                  icon,
+                  size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                ),
                 label: child,
               )
             : OutlinedButton(
@@ -222,7 +241,12 @@ class SqaButton extends StatelessWidget {
                         )
                       : null,
                 ),
-                child: isIconOnly ? Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall) : child,
+                child: isIconOnly
+                    ? Icon(
+                        icon,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                      )
+                    : child,
               );
         break;
     }
@@ -234,35 +258,39 @@ class SqaButton extends StatelessWidget {
     );
 
     if (tooltip != null) {
-      return Tooltip(
-        message: tooltip!,
-        child: result,
-      );
+      return Tooltip(message: tooltip!, child: result);
     }
 
     return result;
   }
 
   Widget _buildContent(BuildContext context) {
-    return Text(
-      label,
-      style: SqaTextStyles.labelBold(context),
-    );
+    return Text(label, style: SqaTextStyles.labelBold(context));
   }
 
   ButtonStyle _getButtonStyle(BuildContext context) {
     return ButtonStyle(
-      minimumSize: WidgetStateProperty.all(Size(width ?? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall), SqaTokens.spacingXXLarge)),
+      minimumSize: WidgetStateProperty.all(
+        Size(
+          width ?? (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
+          SqaTokens.spacingXXLarge,
+        ),
+      ),
       padding: WidgetStateProperty.all(
         label.isEmpty
             ? EdgeInsets.zero
-            : const EdgeInsets.symmetric(horizontal: SqaTokens.spacingMedium, vertical: 0),
+            : const EdgeInsets.symmetric(
+                horizontal: SqaTokens.spacingMedium,
+                vertical: 0,
+              ),
       ),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusLarge),
       ),
       mouseCursor: WidgetStateProperty.resolveWith<MouseCursor?>((states) {
-        if (states.contains(WidgetState.disabled)) return SystemMouseCursors.basic;
+        if (states.contains(WidgetState.disabled)) {
+          return SystemMouseCursors.basic;
+        }
         return SystemMouseCursors.click;
       }),
     );

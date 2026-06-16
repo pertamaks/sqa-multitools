@@ -104,7 +104,8 @@ class WindowTransitionCoordinator extends WindowListener {
     // 3. Setup Frame render sync
     if (frame) {
       final frameCompleter = Completer<void>();
-      SchedulerBinding.instance.scheduleFrame(); // Force Flutter to schedule a frame
+      SchedulerBinding.instance
+          .scheduleFrame(); // Force Flutter to schedule a frame
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (!frameCompleter.isCompleted) frameCompleter.complete();
       });

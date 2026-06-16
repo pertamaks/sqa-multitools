@@ -9,8 +9,6 @@ import '../../plugins/settings/providers/settings_debug_provider.dart';
 import '../../core/providers/plugin_provider.dart';
 import '../widgets/sqa_design_tokens.dart';
 
-
-
 class SquashTheBugOverlay extends ConsumerStatefulWidget {
   static final GlobalKey<SquashTheBugOverlayState> bugKey = GlobalKey();
   const SquashTheBugOverlay({super.key});
@@ -60,7 +58,8 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
   static const double kSplatSize = SqaTokens.spacingXXLarge;
 
   /// Off-screen buffer for spawn/despawn.
-  static const double kSpawnOffset = SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
+  static const double kSpawnOffset =
+      SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall;
 
   void triggerBug(int side) {
     if (!mounted) return;
@@ -135,7 +134,9 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
         final bool isToolbar = !effectiveHasPlugin || isTopOrLeft;
         final isMovingRight = _random.nextBool();
         _moveDirection = isMovingRight ? 1 : -1;
-        _bugPositionY = isToolbar ? kToolbarHeight - (kBugSize / 2 + 3) : height - (kBugSize / 2 + 3);
+        _bugPositionY = isToolbar
+            ? kToolbarHeight - (kBugSize / 2 + 3)
+            : height - (kBugSize / 2 + 3);
         _bugPositionX = isMovingRight ? -kSpawnOffset : width + kSpawnOffset;
 
         // GIF default orientation: head-left (←), tail-right (→)
@@ -246,8 +247,6 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
     final count = prefs.getBugsSquashed();
     await prefs.setBugsSquashed(count + 1);
 
-
-
     // Trigger Splat Animation
     setState(() {
       _splatPositionX = _bugPositionX;
@@ -351,6 +350,4 @@ class SquashTheBugOverlayState extends ConsumerState<SquashTheBugOverlay>
       ],
     );
   }
-
-
 }

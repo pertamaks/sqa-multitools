@@ -8,11 +8,16 @@ enum GlyphsCategory { specials, japanese, chinese, arabic, vietnamese }
 extension GlyphsCategoryExtension on GlyphsCategory {
   String get label {
     switch (this) {
-      case GlyphsCategory.specials: return 'Specials';
-      case GlyphsCategory.japanese: return 'Japanese';
-      case GlyphsCategory.chinese: return 'Chinese';
-      case GlyphsCategory.arabic: return 'Arabic';
-      case GlyphsCategory.vietnamese: return 'Vietnamese';
+      case GlyphsCategory.specials:
+        return 'Specials';
+      case GlyphsCategory.japanese:
+        return 'Japanese';
+      case GlyphsCategory.chinese:
+        return 'Chinese';
+      case GlyphsCategory.arabic:
+        return 'Arabic';
+      case GlyphsCategory.vietnamese:
+        return 'Vietnamese';
     }
   }
 }

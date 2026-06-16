@@ -288,7 +288,6 @@ class _RecorderDelegate implements CaptureOverlayDelegate {
   void setTextHasBackground(bool value) =>
       _notifier.setTextHasBackground(value);
 
-
   @override
   Future<void> setIgnoreMouseEvents(bool ignore) =>
       _notifier.setIgnoreMouseEvents(ignore);

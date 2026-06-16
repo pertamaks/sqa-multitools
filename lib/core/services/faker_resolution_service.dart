@@ -9,7 +9,10 @@ class FakerResolutionService {
   static const _uuid = Uuid();
 
   /// Resolves all placeholders in a CurlCommand.
-  static CurlCommand resolveCommand(CurlCommand command, PreferencesService prefs) {
+  static CurlCommand resolveCommand(
+    CurlCommand command,
+    PreferencesService prefs,
+  ) {
     // Sync locale from preferences
     final localeName = prefs.getFakerLocale();
     final locale = FakerLocaleType.values.firstWhere(
@@ -21,13 +24,13 @@ class FakerResolutionService {
     final resolvedUrl = resolve(command.url);
     final resolvedBody = resolve(command.body);
 
-    final resolvedHeaders = Map<String, String>.from(command.headers).map(
-      (k, v) => MapEntry(k, resolve(v)),
-    );
+    final resolvedHeaders = Map<String, String>.from(
+      command.headers,
+    ).map((k, v) => MapEntry(k, resolve(v)));
 
-    final resolvedParams = Map<String, String>.from(command.queryParameters).map(
-      (k, v) => MapEntry(k, resolve(v)),
-    );
+    final resolvedParams = Map<String, String>.from(
+      command.queryParameters,
+    ).map((k, v) => MapEntry(k, resolve(v)));
 
     return command.copyWith(
       url: resolvedUrl,
@@ -38,11 +41,13 @@ class FakerResolutionService {
   }
 
   /// Regex supporting {{type}} and {{faker.type}}
-  static final RegExp _placeholderRegex = RegExp(r'\{\{(?:faker\.)?([a-zA-Z0-9_]+)\}\}');
+  static final RegExp _placeholderRegex = RegExp(
+    r'\{\{(?:faker\.)?([a-zA-Z0-9_]+)\}\}',
+  );
 
   static String resolve(String input) {
     if (input.isEmpty) return input;
-    
+
     return input.replaceAllMapped(_placeholderRegex, (match) {
       final type = match.group(1) ?? '';
       return _generateValue(type);
@@ -111,21 +116,27 @@ class FakerResolutionService {
         case 'creditCard':
           // Manual implementation as faker_dart 0.2.3 lacks finance
           final rand = _faker.datatype;
-          result = '${rand.number(min: 4000, max: 4999)}-${rand.number(min: 1000, max: 9999)}-${rand.number(min: 1000, max: 9999)}-${rand.number(min: 1000, max: 9999)}';
+          result =
+              '${rand.number(min: 4000, max: 4999)}-${rand.number(min: 1000, max: 9999)}-${rand.number(min: 1000, max: 9999)}-${rand.number(min: 1000, max: 9999)}';
           break;
         case 'currency':
           final currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'IDR'];
-          result = currencies[_faker.datatype.number(max: currencies.length - 1)];
+          result =
+              currencies[_faker.datatype.number(max: currencies.length - 1)];
           break;
         case 'amount':
           result = _faker.commerce.price(symbol: '');
           break;
         case 'account':
-          result = _faker.datatype.number(min: 10000000, max: 99999999).toString();
+          result = _faker.datatype
+              .number(min: 10000000, max: 99999999)
+              .toString();
           break;
         case 'pastDate':
           final days = _faker.datatype.number(min: 1, max: 3650);
-          result = DateTime.now().subtract(Duration(days: days)).toIso8601String();
+          result = DateTime.now()
+              .subtract(Duration(days: days))
+              .toIso8601String();
           break;
         case 'futureDate':
           final days = _faker.datatype.number(min: 1, max: 3650);
@@ -133,7 +144,9 @@ class FakerResolutionService {
           break;
         case 'recentDate':
           final days = _faker.datatype.number(min: 1, max: 30);
-          result = DateTime.now().subtract(Duration(days: days)).toIso8601String();
+          result = DateTime.now()
+              .subtract(Duration(days: days))
+              .toIso8601String();
           break;
         case 'month':
           result = _faker.date.month();

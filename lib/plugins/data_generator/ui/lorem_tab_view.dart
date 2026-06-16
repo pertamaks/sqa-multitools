@@ -35,7 +35,7 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
 
   void _showResult(List<String> session, String title) {
     final text = session.join('\n');
-    
+
     showDialog<void>(
       context: context,
       builder: (context) => SqaModal<void>.custom(
@@ -48,7 +48,11 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
             icon: Symbols.content_copy,
             onPressed: () {
               Clipboard.setData(ClipboardData(text: text));
-              SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+              SqaToast.show(
+                context,
+                'Copied to clipboard',
+                type: SqaToastType.success,
+              );
             },
           ),
           const SizedBox(width: SqaTokens.spacingXXSmall),
@@ -100,7 +104,7 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
           const SizedBox(height: SqaTokens.spacingXLarge),
           const TextConfigPanel(),
           const SizedBox(height: SqaTokens.spacingXLarge),
-          
+
           SqaHistoryList<List<String>>(
             items: history,
             title: 'History',
@@ -109,7 +113,8 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
               final index = history.indexOf(item);
               final displayIndex = history.length - index;
               return DataHistoryTile(
-                title: '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
+                title:
+                    '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
                 subtitle: item.first,
                 icon: Symbols.notes,
                 onTap: () => _showResult(item, 'Lorem Result'),
@@ -120,7 +125,11 @@ class _LoremTabViewState extends ConsumerState<LoremTabView> {
                     tooltip: 'Copy all',
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: item.join('\n')));
-                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                      SqaToast.show(
+                        context,
+                        'Copied to clipboard',
+                        type: SqaToastType.success,
+                      );
                     },
                   ),
                 ],

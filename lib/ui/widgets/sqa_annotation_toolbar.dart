@@ -32,6 +32,12 @@ class SqaAnnotationToolbar extends StatelessWidget {
   /// Optional list of colors to display.
   final List<Color> availableColors;
 
+  /// Optional widgets to anchor to the left side of the toolbar.
+  final List<Widget>? leading;
+
+  /// Optional widgets to anchor to the right side of the toolbar.
+  final List<Widget>? trailing;
+
   const SqaAnnotationToolbar({
     super.key,
     required this.enabledTools,
@@ -46,14 +52,18 @@ class SqaAnnotationToolbar extends StatelessWidget {
       Colors.red,
       Colors.green,
       Colors.blue,
+      Colors.blue,
       Colors.white,
     ],
+    this.leading,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return SqaFloatingBar(
+      leading: leading,
+      trailing: trailing,
       children: [
         // Tools Section
         ...enabledTools.expand((tool) {

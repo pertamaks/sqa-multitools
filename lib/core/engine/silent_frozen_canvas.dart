@@ -37,7 +37,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
-
+import 'package:screen_capturer/screen_capturer.dart';
+import 'package:dbus/dbus.dart';
 // ---------------------------------------------------------------------------
 // Result type — every operation returns this, never a raw throw
 // ---------------------------------------------------------------------------
@@ -61,7 +62,8 @@ final class CaptureFailure<T> extends CaptureResult<T> {
   const CaptureFailure(this.message, {this.cause, this.stack});
 
   @override
-  String toString() => 'CaptureFailure: $message${cause != null ? ' ($cause)' : ''}';
+  String toString() =>
+      'CaptureFailure: $message${cause != null ? ' ($cause)' : ''}';
 }
 
 // ---------------------------------------------------------------------------
@@ -145,8 +147,9 @@ class CaptureRegion {
   bool get isFullscreen => width == 0 && height == 0;
 
   @override
-  String toString() =>
-      isFullscreen ? 'CaptureRegion.fullscreen' : 'CaptureRegion($x,$y ${width}x$height)';
+  String toString() => isFullscreen
+      ? 'CaptureRegion.fullscreen'
+      : 'CaptureRegion($x,$y ${width}x$height)';
 }
 
 // ---------------------------------------------------------------------------
@@ -169,8 +172,6 @@ abstract class _CaptureStrategy {
   Future<CaptureResult<Uint8List>> capture(CaptureRegion region);
 }
 
-
-
 // ============================================================================
 // STRATEGY 1: screen_capturer (Flutter plugin — macOS/Linux fast path)
 // ============================================================================
@@ -187,6 +188,7 @@ class _ScreenCapturerStrategy implements _CaptureStrategy {
   Future<bool> isAvailable() async {
     if (Platform.isWindows) return false; // Force FFI fallback on Windows
     try {
+      // The screen_capturer package is available on macOS and Linux
       return true;
     } catch (_) {
       return false;
@@ -195,7 +197,130 @@ class _ScreenCapturerStrategy implements _CaptureStrategy {
 
   @override
   Future<CaptureResult<Uint8List>> capture(CaptureRegion region) async {
-    return CaptureFailure('screen_capturer not wired in this version');
+    try {
+      final tempDir = Directory.systemTemp;
+      final outPath =
+          '${tempDir.path}${Platform.pathSeparator}sqa_frozen_sc_${DateTime.now().microsecondsSinceEpoch}.png';
+
+      final capturedData = await screenCapturer.capture(
+        mode: region.isFullscreen ? CaptureMode.screen : CaptureMode.region,
+        imagePath: outPath,
+        silent: !Platform.isLinux,
+      );
+
+      if (capturedData == null || capturedData.imagePath == null) {
+        return CaptureFailure('screen_capturer returned null or user canceled');
+      }
+
+      final outFile = File(capturedData.imagePath!);
+      if (!await outFile.exists()) {
+        return CaptureFailure(
+          'screen_capturer reported success but file is missing',
+        );
+      }
+
+      final bytes = await outFile.readAsBytes();
+
+      // Cleanup
+      try {
+        await outFile.delete();
+      } catch (_) {}
+
+      if (bytes.isEmpty) {
+        return CaptureFailure('screen_capturer produced empty bytes');
+      }
+
+      return CaptureSuccess(bytes);
+    } catch (e, st) {
+      return CaptureFailure('screen_capturer exception', cause: e, stack: st);
+    }
+  }
+}
+
+// ============================================================================
+// STRATEGY 1.2: Wayland DBus Portal (Linux Interactive)
+// ============================================================================
+
+class _WaylandPortalStrategy implements _CaptureStrategy {
+  @override
+  String get name => 'wayland_portal';
+
+  @override
+  Future<bool> isAvailable() async {
+    if (!Platform.isLinux) return false;
+    final waylandDisplay = Platform.environment['WAYLAND_DISPLAY'];
+    return waylandDisplay != null && waylandDisplay.isNotEmpty;
+  }
+
+  @override
+  Future<CaptureResult<Uint8List>> capture(CaptureRegion region) async {
+    try {
+      final client = DBusClient.session();
+      final object = DBusRemoteObject(
+        client,
+        name: 'org.freedesktop.portal.Desktop',
+        path: DBusObjectPath('/org/freedesktop/portal/desktop'),
+      );
+
+      final response = await object.callMethod(
+        'org.freedesktop.portal.Screenshot',
+        'Screenshot',
+        [
+          DBusString(''),
+          DBusDict.stringVariant({'interactive': DBusBoolean(true)}),
+        ],
+      );
+
+      final requestPath = response.returnValues[0].asObjectPath();
+
+      final requestObject = DBusRemoteObject(
+        client,
+        name: 'org.freedesktop.portal.Desktop',
+        path: requestPath,
+      );
+
+      final completer = Completer<String?>();
+      final sub =
+          DBusRemoteObjectSignalStream(
+            object: requestObject,
+            interface: 'org.freedesktop.portal.Request',
+            name: 'Response',
+          ).listen((signal) {
+            if (signal.values.length >= 2) {
+              final code = signal.values[0].asUint32();
+              if (code == 0) {
+                final results = signal.values[1].asStringVariantDict();
+                for (var key in results.keys) {
+                  if (key == 'uri') {
+                    completer.complete(results[key]!.asString());
+                    return;
+                  }
+                }
+              }
+            }
+            completer.complete(null);
+          });
+
+      final uri = await completer.future;
+      await sub.cancel();
+      await client.close();
+
+      if (uri != null && uri.startsWith('file://')) {
+        final filePath = Uri.parse(uri).toFilePath();
+        final file = File(filePath);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          try {
+            await file.delete();
+          } catch (_) {}
+          return CaptureSuccess(bytes);
+        }
+      }
+
+      return CaptureFailure('User cancelled Wayland portal screenshot');
+    } catch (e, st) {
+      return CaptureFailure('Wayland DBus exception', cause: e, stack: st);
+    }
   }
 }
 
@@ -213,21 +338,21 @@ class _Win32FfiStrategy implements _CaptureStrategy {
   @override
   Future<CaptureResult<Uint8List>> capture(CaptureRegion region) async {
     if (!Platform.isWindows) return CaptureFailure('Not Windows');
-    
+
     try {
       final point = calloc<POINT>();
       GetCursorPos(point);
       final hMonitor = MonitorFromPoint(point.ref, MONITOR_DEFAULTTONEAREST);
-      
+
       final monitorInfo = calloc<MONITORINFO>();
       monitorInfo.ref.cbSize = sizeOf<MONITORINFO>();
       GetMonitorInfo(hMonitor, monitorInfo);
-      
+
       final left = monitorInfo.ref.rcMonitor.left;
       final top = monitorInfo.ref.rcMonitor.top;
       final width = monitorInfo.ref.rcMonitor.right - left;
       final height = monitorInfo.ref.rcMonitor.bottom - top;
-      
+
       free(point);
       free(monitorInfo);
 
@@ -237,7 +362,17 @@ class _Win32FfiStrategy implements _CaptureStrategy {
       final hOld = SelectObject(hdcMem, hBitmap);
 
       // CAPTUREBLT flag (0x40000000) captures layered windows as well
-      BitBlt(hdcMem, 0, 0, width, height, hdcScreen, left, top, SRCCOPY | 0x40000000);
+      BitBlt(
+        hdcMem,
+        0,
+        0,
+        width,
+        height,
+        hdcScreen,
+        left,
+        top,
+        SRCCOPY | 0x40000000,
+      );
 
       final bmi = calloc<BITMAPINFO>();
       bmi.ref.bmiHeader.biSize = sizeOf<BITMAPINFOHEADER>();
@@ -311,9 +446,9 @@ class _FfmpegStrategy implements _CaptureStrategy {
     required String resolvedExecutable,
     required String inputFormat,
     required String inputDevice,
-  })  : _resolvedExecutable = resolvedExecutable,
-        _inputFormat = inputFormat,
-        _inputDevice = inputDevice;
+  }) : _resolvedExecutable = resolvedExecutable,
+       _inputFormat = inputFormat,
+       _inputDevice = inputDevice;
 
   @override
   String get name => 'ffmpeg:$_inputFormat';
@@ -321,10 +456,9 @@ class _FfmpegStrategy implements _CaptureStrategy {
   @override
   Future<bool> isAvailable() async {
     try {
-      final result = await Process.run(
-        _resolvedExecutable,
-        ['-version'],
-      ).timeout(const Duration(seconds: 3));
+      final result = await Process.run(_resolvedExecutable, [
+        '-version',
+      ]).timeout(const Duration(seconds: 3));
       return result.exitCode == 0;
     } catch (_) {
       return false;
@@ -338,7 +472,7 @@ class _FfmpegStrategy implements _CaptureStrategy {
         '${tempDir.path}${Platform.pathSeparator}sqa_frozen_${DateTime.now().microsecondsSinceEpoch}.png';
 
     final args = <String>[
-      '-y',            // overwrite output without asking
+      '-y', // overwrite output without asking
       '-loglevel', 'quiet', // silence stderr
     ];
 
@@ -349,9 +483,12 @@ class _FfmpegStrategy implements _CaptureStrategy {
       // Windows: gdigrab supports offset + video_size inline
       if (!region.isFullscreen) {
         args.addAll([
-          '-offset_x', '${region.x}',
-          '-offset_y', '${region.y}',
-          '-video_size', '${region.width}x${region.height}',
+          '-offset_x',
+          '${region.x}',
+          '-offset_y',
+          '${region.y}',
+          '-video_size',
+          '${region.width}x${region.height}',
         ]);
       }
       args.addAll(['-i', _inputDevice]);
@@ -369,10 +506,7 @@ class _FfmpegStrategy implements _CaptureStrategy {
       final offset = region.isFullscreen ? '' : '+${region.x},${region.y}';
       args.addAll(['-i', '$_inputDevice$offset']);
       if (!region.isFullscreen) {
-        args.addAll([
-          '-vf',
-          'crop=${region.width}:${region.height}',
-        ]);
+        args.addAll(['-vf', 'crop=${region.width}:${region.height}']);
       }
     }
 
@@ -394,7 +528,9 @@ class _FfmpegStrategy implements _CaptureStrategy {
 
       outFile = File(outPath);
       if (!await outFile.exists()) {
-        return CaptureFailure('FFmpeg succeeded but output file is missing: $outPath');
+        return CaptureFailure(
+          'FFmpeg succeeded but output file is missing: $outPath',
+        );
       }
 
       final bytes = await outFile.readAsBytes();
@@ -472,27 +608,34 @@ class _NativeCliStrategy implements _CaptureStrategy {
 
   // -- Windows: PowerShell + .NET -------------------------------------------------
 
-  Future<CaptureResult<Uint8List>> _captureWindowsPowerShell(CaptureRegion region) async {
+  Future<CaptureResult<Uint8List>> _captureWindowsPowerShell(
+    CaptureRegion region,
+  ) async {
     return CaptureFailure('PowerShell fallback disabled in favor of Win32 FFI');
   }
 
   // -- macOS: screencapture CLI ---------------------------------------------------
 
-  Future<CaptureResult<Uint8List>> _captureMacOSScreencapture(CaptureRegion region) async {
+  Future<CaptureResult<Uint8List>> _captureMacOSScreencapture(
+    CaptureRegion region,
+  ) async {
     final tempDir = Directory.systemTemp;
     final outPath =
         '${tempDir.path}${Platform.pathSeparator}sqa_frozen_native_${DateTime.now().microsecondsSinceEpoch}.png';
 
     final args = <String>[
-      '-x',            // no shutter sound  ← THIS IS THE KEY "SILENT" FLAG
-      '-m',            // only main display (or omit for all)
-      '-tpng',         // force PNG output
+      '-x', // no shutter sound  ← THIS IS THE KEY "SILENT" FLAG
+      '-m', // only main display (or omit for all)
+      '-tpng', // force PNG output
       outPath,
     ];
 
     if (!region.isFullscreen) {
       // screencapture -R{x,y,w,h} uses absolute coordinates
-      args.insertAll(0, ['-R', '${region.x},${region.y},${region.width},${region.height}']);
+      args.insertAll(0, [
+        '-R',
+        '${region.x},${region.y},${region.width},${region.height}',
+      ]);
     }
 
     File? outFile;
@@ -546,21 +689,24 @@ class _NativeCliStrategy implements _CaptureStrategy {
     return _captureLinuxPortal(region);
   }
 
-  Future<CaptureResult<Uint8List>> _captureLinuxImport(CaptureRegion region) async {
+  Future<CaptureResult<Uint8List>> _captureLinuxImport(
+    CaptureRegion region,
+  ) async {
     final tempDir = Directory.systemTemp;
     final outPath =
         '${tempDir.path}${Platform.pathSeparator}sqa_frozen_native_${DateTime.now().microsecondsSinceEpoch}.png';
 
     final args = <String>[
-      '-window', 'root',   // capture the root window (whole screen)
-      '-silent',           // no bell / beep
+      '-window', 'root', // capture the root window (whole screen)
+      '-silent', // no bell / beep
       outPath,
     ];
 
     if (!region.isFullscreen) {
       // Crop after capture — import doesn't do region natively
       args.insertAll(0, [
-        '-crop', '${region.width}x${region.height}+${region.x}+${region.y}',
+        '-crop',
+        '${region.width}x${region.height}+${region.x}+${region.y}',
       ]);
     }
 
@@ -593,7 +739,9 @@ class _NativeCliStrategy implements _CaptureStrategy {
     }
   }
 
-  Future<CaptureResult<Uint8List>> _captureLinuxPortal(CaptureRegion region) async {
+  Future<CaptureResult<Uint8List>> _captureLinuxPortal(
+    CaptureRegion region,
+  ) async {
     // Freedesktop ScreenCast / Screenshot portal via dbus.
     // This is the standard Wayland path (works on GNOME, KDE, wlroots).
     //
@@ -660,6 +808,12 @@ class SilentFrozenCanvasEngine {
   Future<void> initialize() async {
     if (_initialized) return;
 
+    // Try Wayland DBus Portal first (Linux).
+    final waylandPortal = _WaylandPortalStrategy();
+    if (await waylandPortal.isAvailable()) {
+      _strategies.add(waylandPortal);
+    }
+
     // Always register the native CLI strategy — it has no external deps.
     final nativeCli = _NativeCliStrategy();
     if (await nativeCli.isAvailable()) {
@@ -697,8 +851,7 @@ class SilentFrozenCanvasEngine {
 
   /// Human-readable names of backends that passed [isAvailable], in priority
   /// order (first = preferred).
-  List<String> get availableBackends =>
-      _strategies.map((s) => s.name).toList();
+  List<String> get availableBackends => _strategies.map((s) => s.name).toList();
 
   /// Capture a region of the screen silently.
   ///
@@ -758,8 +911,10 @@ class SilentFrozenCanvasEngine {
   /// Synchronous sugar: capture fullscreen, write to a file.
   ///
   /// Intended for quick one-liners in scripts or tests.
-  Future<CaptureResult<FrozenCanvas>> captureToFile(String outputPath,
-      [CaptureRegion region = const CaptureRegion.fullscreen()]) async {
+  Future<CaptureResult<FrozenCanvas>> captureToFile(
+    String outputPath, [
+    CaptureRegion region = const CaptureRegion.fullscreen(),
+  ]) async {
     final result = await capture(region);
     switch (result) {
       case CaptureSuccess(:final data):
@@ -791,10 +946,9 @@ class SilentFrozenCanvasEngine {
 
     // 2. System PATH
     try {
-      final result = await Process.run(
-        Platform.isWindows ? 'where' : 'which',
-        [exeName],
-      );
+      final result = await Process.run(Platform.isWindows ? 'where' : 'which', [
+        exeName,
+      ]);
       if (result.exitCode == 0) {
         final path = (result.stdout as String).trim().split('\n').first.trim();
         if (path.isNotEmpty && await File(path).exists()) return path;

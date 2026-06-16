@@ -122,7 +122,8 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                         children: [
                           Icon(
                             Symbols.calendar_today,
-                            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                            size:
+                                SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                             color: colorScheme.primary,
                           ),
                           const SizedBox(width: SqaTokens.spacingSmall),
@@ -149,9 +150,11 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                                 vertical: SqaTokens.spacingXXSmall,
                               ),
                               decoration: BoxDecoration(
-                                  color: colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(SqaTokens.spacingSmall),
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(
+                                  SqaTokens.spacingSmall,
                                 ),
+                              ),
                               child: Text(
                                 lateCount > 0
                                     ? '${items.length} ${items.length == 1 ? 'task' : 'tasks'} · $lateCount late'
@@ -168,7 +171,9 @@ class _TodoHistoryViewState extends ConsumerState<TodoHistoryView> {
                       ),
                       children: items.map((item) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall),
+                          padding: const EdgeInsets.only(
+                            bottom: SqaTokens.spacingSmall,
+                          ),
                           child: TodoListItem(item: item, isReadOnly: true),
                         );
                       }).toList(),

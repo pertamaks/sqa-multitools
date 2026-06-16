@@ -71,7 +71,9 @@ class DataGeneratorSettingsPanel extends ConsumerWidget {
           subtitle: 'Prefix UUID results with a bullet point (•)',
           trailing: SqaSwitch(
             value: ref.watch(devGeneratorProvider).includeFormatting,
-            onChanged: (val) => ref.read(devGeneratorProvider.notifier).setIncludeFormatting(val),
+            onChanged: (val) => ref
+                .read(devGeneratorProvider.notifier)
+                .setIncludeFormatting(val),
           ),
         ),
         SqaSettingsTile(

@@ -9,7 +9,6 @@ import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
 
-
 class TimerTabView extends ConsumerWidget {
   const TimerTabView({super.key});
 
@@ -41,10 +40,9 @@ class TimerTabView extends ConsumerWidget {
                 key: ValueKey(
                   '${state.initialDuration == Duration.zero}_${state.isRunning}',
                 ),
-                style: SqaTextStyles.bodySecondary(context).copyWith(
-                  letterSpacing: 2.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: SqaTextStyles.bodySecondary(
+                  context,
+                ).copyWith(letterSpacing: 2.0, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -99,16 +97,18 @@ class TimerTabView extends ConsumerWidget {
                 children: [
                   const SizedBox(height: SqaTokens.spacingXLarge),
                   Padding(
-                    padding: const EdgeInsets.only(left: SqaTokens.spacingXSmall),
+                    padding: const EdgeInsets.only(
+                      left: SqaTokens.spacingXSmall,
+                    ),
                     child: Text(
                       '.${ms.toString().padLeft(3, '0')}',
-                        style: SqaTextStyles.mono(
-                          context,
-                          fontSize: SqaTokens.spacingXLarge,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                        ).copyWith(
-                          fontWeight: FontWeight.w400,
+                      style: SqaTextStyles.mono(
+                        context,
+                        fontSize: SqaTokens.spacingXLarge,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
                         ),
+                      ).copyWith(fontWeight: FontWeight.w400),
                     ),
                   ),
                   const SizedBox(height: SqaTokens.spacingXLarge),
@@ -160,7 +160,8 @@ class TimerTabView extends ConsumerWidget {
                         ? Symbols.timer
                         : Symbols.restart_alt,
                     label: showStopwatchMode ? 'Stopwatch' : 'Reset',
-                    width: SqaTokens.spacingXXXLarge * 2.5, // 120px standardized
+                    width:
+                        SqaTokens.spacingXXXLarge * 2.5, // 120px standardized
                   );
                 },
               ),
@@ -185,12 +186,16 @@ class TimerTabView extends ConsumerWidget {
           ),
           child: Text(
             ':',
-            style: SqaTextStyles.mono(context, fontSize: SqaTokens.spacingXXLarge).copyWith(
-              color: isRunning
-                  ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
-                  : theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+            style:
+                SqaTextStyles.mono(
+                  context,
+                  fontSize: SqaTokens.spacingXXLarge,
+                ).copyWith(
+                  color: isRunning
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
+                      : theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ),
         const SizedBox(height: SqaTokens.spacingXLarge),

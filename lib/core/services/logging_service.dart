@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 part 'logging_service.g.dart';
 
 /// A centralized service for application-wide logging.
-/// This service captures structured logs and can eventually be configured 
+/// This service captures structured logs and can eventually be configured
 /// to persist them to a file or send them to an external observability tool.
 @Riverpod(keepAlive: true)
 class LoggingService extends _$LoggingService {
@@ -23,7 +23,7 @@ class LoggingService extends _$LoggingService {
     Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
 
     _initFileLogging();
-    
+
     Logger.root.onRecord.listen((record) {
       _logs.add(record);
       if (_logs.length > _maxLogs) {
@@ -48,14 +48,18 @@ class LoggingService extends _$LoggingService {
       if (kDebugMode) {
         final name = record.loggerName.toLowerCase();
         // Skip highly verbose internal AppFlowy or editing framework logs to prevent terminal flooding
-        if (name.contains('appflowy') || name.contains('editor') || record.level < Level.INFO) {
+        if (name.contains('appflowy') ||
+            name.contains('editor') ||
+            record.level < Level.INFO) {
           if (record.level < Level.WARNING) {
             return;
           }
         }
 
         // ignore: avoid_print
-        print('${record.time} [${record.level.name}] ${record.loggerName}: ${record.message}');
+        print(
+          '${record.time} [${record.level.name}] ${record.loggerName}: ${record.message}',
+        );
         if (record.error != null) {
           // ignore: avoid_print
           print('Error: ${record.error}');
@@ -79,7 +83,7 @@ class LoggingService extends _$LoggingService {
       }
 
       final file = File(p.join(logDir.path, 'app.log'));
-      
+
       // If file exists and is > 5MB, clear it (simple rotation)
       if (await file.exists()) {
         final size = await file.length();
@@ -107,7 +111,7 @@ class LoggingService extends _$LoggingService {
     final stack = record.stackTrace != null ? '\n${record.stackTrace}' : '';
 
     final logLine = '$timestamp [$level] $name: $message$error$stack\n';
-    
+
     try {
       _logFile?.writeAsStringSync(logLine, mode: FileMode.append);
     } catch (e) {
@@ -130,11 +134,21 @@ class LoggingService extends _$LoggingService {
     Logger(name ?? 'App').info(message);
   }
 
-  void logWarning(String message, [String? name, Object? error, StackTrace? stackTrace]) {
+  void logWarning(
+    String message, [
+    String? name,
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
     Logger(name ?? 'App').warning(message, error, stackTrace);
   }
 
-  void logError(String message, [String? name, Object? error, StackTrace? stackTrace]) {
+  void logError(
+    String message, [
+    String? name,
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
     Logger(name ?? 'App').severe(message, error, stackTrace);
   }
 

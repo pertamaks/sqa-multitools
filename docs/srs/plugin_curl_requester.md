@@ -23,7 +23,12 @@ The **cURL Requester** is a high-speed HTTP client plugin for SQA-Multitools. It
 * **Unified Mode**: A toggleable view that transforms the raw cURL into a structured list of parameters and headers.
 * **Faker Integration (Magic Wand)**: A hierarchical, categorized submenu for injecting dynamic data (Personal, Technical, Business, etc.) directly into grid values.
 
-### 2.4 Persistence
+### 2.4 Environments & Variable Validation
+* **Environment Profiles**: Ability to switch between different environments (e.g., Local, Staging, Prod) loaded from the `environmentsProvider`.
+* **Live Variable Tooltips**: Fields that accept variables (Command Deck, Grid rows, Form Data, Raw Body) automatically detect `{{variable}}` syntax. A floating Info `(i)` button appears, providing a live tooltip that resolves all variables against the active environment, highlighting them in blue if valid or red if `(Undefined)`.
+* **Binary File Uploads**: Natively supports `--data-binary` parsing and generation. Users can select "Binary File" as the body type to upload raw binary files via a dedicated file picker UI.
+
+### 2.5 Persistence
 * **State Recovery**: The last active cURL command and full 50-item history are persisted across sessions using local storage.
 
 ## 3. UI/UX Design
@@ -40,3 +45,8 @@ The **cURL Requester** is a high-speed HTTP client plugin for SQA-Multitools. It
 2. [DONE] **Faker Expansion**: Implement hierarchical categorized data generation.
 3. [DONE] **Persistence**: Implement history and state restoration.
 4. [PENDING] **Dio Migration**: Switch from `http` to `dio` for advanced networking features.
+5. [PENDING] **Multipart Form Data**: Allow users to construct `multipart/form-data` requests and upload files from their local system.
+6. [PENDING] **Dedicated Authentication Tab**: Support Bearer, Basic Auth, and API Key with automatic header injection.
+7. [PENDING] **Environment Variables & Workspaces**: Allow users to define custom variables (e.g., `{{BASE_URL}}`) and switch environments.
+8. [PENDING] **Collections / Saved Requests**: Persist and organize frequently used requests beyond the history tab.
+9. [PENDING] **x-www-form-urlencoded**: Better handling of non-JSON payloads with a dedicated grid editor.

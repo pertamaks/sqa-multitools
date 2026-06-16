@@ -16,9 +16,7 @@ void main() {
 
     test('initial state is correct', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 
@@ -30,9 +28,7 @@ void main() {
 
     test('toggle includeFormatting updates state', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 
@@ -47,9 +43,7 @@ void main() {
 
     test('setting quantity does not trigger generation (manual)', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 
@@ -62,16 +56,18 @@ void main() {
 
       notifier.generate();
       expect(
-        container.read(identityProvider).resultsMap[IdentityType.email]?.first.length,
+        container
+            .read(identityProvider)
+            .resultsMap[IdentityType.email]
+            ?.first
+            .length,
         5,
       );
     });
 
     test('setting type does not trigger generation (manual)', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 
@@ -87,16 +83,15 @@ void main() {
         container
             .read(identityProvider)
             .resultsMap[IdentityType.address]
-            ?.first.length,
+            ?.first
+            .length,
         1,
       );
     });
 
     test('phone numbers do not contain placeholders', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 
@@ -118,9 +113,7 @@ void main() {
 
     test('phone extensions can be toggled', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       addTearDown(container.dispose);
 
@@ -151,7 +144,9 @@ void main() {
       final results2 =
           container.read(identityProvider).resultsMap[IdentityType.phone] ??
           <List<String>>[];
-      final hasExtension = results2.first.any((String phone) => phone.contains(' x'));
+      final hasExtension = results2.first.any(
+        (String phone) => phone.contains(' x'),
+      );
       expect(
         hasExtension,
         isTrue,

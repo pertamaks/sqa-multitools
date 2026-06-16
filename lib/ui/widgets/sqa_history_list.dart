@@ -49,13 +49,17 @@ class SqaHistoryList<T> extends StatelessWidget {
               Icon(
                 emptyIcon,
                 size: SqaTokens.spacingXXXLarge * 1.5,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.2,
+                ),
               ),
               const SizedBox(height: SqaTokens.spacingLarge),
               Text(
                 emptyLabel,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.5,
+                  ),
                 ),
               ),
             ],
@@ -86,7 +90,8 @@ class SqaHistoryList<T> extends StatelessWidget {
                   final confirmed = await SqaModal.showDanger(
                     context,
                     title: 'Clear $title',
-                    message: 'Are you sure you want to clear all items from this list?',
+                    message:
+                        'Are you sure you want to clear all items from this list?',
                     confirmLabel: 'Clear All',
                   );
                   if (confirmed == true) {

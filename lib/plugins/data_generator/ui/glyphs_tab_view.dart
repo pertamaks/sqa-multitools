@@ -36,7 +36,7 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
   void _showResult(List<String> session, String title) {
     final text = session.join('\n');
     final state = ref.read(glyphsGeneratorProvider);
-    
+
     showDialog<void>(
       context: context,
       builder: (context) => SqaModal<void>.custom(
@@ -49,7 +49,11 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
             icon: Symbols.content_copy,
             onPressed: () {
               Clipboard.setData(ClipboardData(text: text));
-              SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+              SqaToast.show(
+                context,
+                'Copied to clipboard',
+                type: SqaToastType.success,
+              );
             },
           ),
           const SizedBox(width: SqaTokens.spacingXXSmall),
@@ -101,7 +105,7 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
           const SizedBox(height: SqaTokens.spacingXLarge),
           const GlyphsConfigPanel(),
           const SizedBox(height: SqaTokens.spacingXLarge),
-          
+
           SqaHistoryList<List<String>>(
             items: history,
             title: 'History',
@@ -110,7 +114,8 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
               final index = history.indexOf(item);
               final displayIndex = history.length - index;
               return DataHistoryTile(
-                title: '${state.selectedCategory.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
+                title:
+                    '${state.selectedCategory.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
                 subtitle: item.first,
                 icon: Symbols.glyphs,
                 onTap: () => _showResult(item, 'Glyphs Result'),
@@ -121,7 +126,11 @@ class _GlyphsTabViewState extends ConsumerState<GlyphsTabView> {
                     tooltip: 'Copy all',
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: item.join('\n')));
-                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                      SqaToast.show(
+                        context,
+                        'Copied to clipboard',
+                        type: SqaToastType.success,
+                      );
                     },
                   ),
                 ],

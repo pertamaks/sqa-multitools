@@ -31,7 +31,11 @@ class SqaInfoBanner extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: SqaTokens.spacingLarge, color: effectiveColor),
+                  Icon(
+                    icon,
+                    size: SqaTokens.spacingLarge,
+                    color: effectiveColor,
+                  ),
                   const SizedBox(width: SqaTokens.spacingSmall),
                 ],
                 if (title != null)
@@ -47,7 +51,13 @@ class SqaInfoBanner extends StatelessWidget {
             ),
             const SizedBox(height: SqaTokens.spacingSmall),
           ],
-          Text(text, style: const TextStyle(fontSize: SqaTokens.fontSizeSmall, height: 1.4)),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: SqaTokens.fontSizeSmall,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );

@@ -3,8 +3,9 @@
 A modular desktop utility suite built for QA Engineers and Developers. SQA-Multitools brings together everyday testing tools into a single, lightweight toolbar that floats on your desktop.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)
-![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
-[![License](https://img.shields.io/badge/License-Proprietary-gray)](LICENSE)
+![Platform Windows](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)
+![Platform Linux](https://img.shields.io/badge/Platform-Linux-FCC624?logo=linux&logoColor=black)
+[![License: Freeware](https://img.shields.io/badge/License-Freeware-blue.svg)](LICENSE)
 
 ---
 
@@ -19,11 +20,12 @@ A modular desktop utility suite built for QA Engineers and Developers. SQA-Multi
 | **Text Editor** | Premium Markdown editor for bug reports and dev tickets with "Smart Paste" support |
 | **cURL Requester** | Simplified HTTP client with history and "Mini-Postman" transaction inspection |
 | **Screen Recorder** | Record your screen with a draggable floating control bar |
-| **Screenshot** | Capture full-screen or region-select screenshots |
+| **Screenshot** | Capture full-screen or region-select screenshots with integrated Media Annotator |
 | **TODO & Tasks** | Lightweight task management for development sprints |
 | **QA Cheatsheet** | Quick access to standard QA checklists and project-specific guides |
 | **Security Payloads** | Quick-access XSS/SQL injection test strings |
-| **Settings** | Theme selection, preferences, and Coffee Shop license manager |
+| **Swagger Explorer** | Parse and explore Swagger/OpenAPI documentation |
+| **Settings** | Theme selection, preferences, Coffee Shop manager, Auto Run on Startup, and Taskbar/Dock Visibility |
 | **QA Oracle** | The essential QA decision-making tool 🎱 |
 
 ## Architecture
@@ -39,7 +41,7 @@ lib/
 │   ├── utils/         # Utilities (locale, formatting)
 │   └── window/        # Frameless window handling
 ├── ui/                # Shared component library (SqaButton, SqaField, etc.)
-│   └── widgets/       # 18 standardized Material 3 widgets
+│   └── widgets/       # Standardized Material 3 widgets
 └── plugins/           # Feature modules (each self-contained)
     ├── beautifier/
     ├── curl_requester/
@@ -51,6 +53,7 @@ lib/
     ├── screenshot/
     ├── security_payloads/
     ├── settings/
+    ├── swagger_explorer/
     ├── text_editor/
     ├── timer/
     └── todo/
@@ -63,15 +66,42 @@ lib/
 - **Immutability:** Freezed
 - **UI:** Material 3 with custom frameless window chrome
 - **Native:** Windows Mutex for single-instance enforcement
-- **CI/CD:** GitHub Actions — automated Windows release builds on version tags with manual approval gate
+- **CI/CD:** GitHub Actions — automated Windows and Linux release builds on version tags with manual approval gate
 
-## Getting Started
+## Installation
 
-### Prerequisites
+### Windows
+Download the latest release `.zip` from GitHub Releases, extract it anywhere, and run `sqa-multitools.exe`.
+
+### Linux (AppImage)
+SQA-Multitools is distributed as a portable AppImage for Linux. You can download and run it directly from your terminal:
+
+```bash
+# Download the latest AppImage
+wget https://github.com/pertamaks/sqa-multitools/releases/latest/download/sqa-multitools-x86_64.AppImage
+
+# Make it executable
+chmod +x sqa-multitools-x86_64.AppImage
+
+# Run it
+./sqa-multitools-x86_64.AppImage
+```
+
+> **Tip:** If you enable "Auto Run on Startup" in the app's Settings, SQA-Multitools will automatically create the necessary `.desktop` file in your `~/.config/autostart/` folder, ensuring the AppImage runs seamlessly every time you log in.
+
+## Getting Started (Development)
+
+### Windows Prerequisites
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (stable channel, Dart ≥ 3.11.3)
 - Windows 10/11
 - [Rust toolchain](https://rustup.rs/) (required by `super_native_extensions`)
+
+### Linux Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
+- Standard GTK/development headers (`libgtk-3-dev`, `pkg-config`, `cmake`, `ninja-build`)
+- Linux-specific plugin dependencies: `libsecret-1-dev`, `libmpv-dev`, `libkeybinder-3.0-dev`, `libayatana-appindicator3-dev`
 
 ### Setup
 
@@ -105,7 +135,7 @@ flutter build windows --release
 The compiled bundle will be at `build/windows/x64/runner/Release/`.
 
 ### Automated Pipeline
-Releases are automatically triggered by pushing a version tag (e.g., `v0.1.0`). This process is guarded by a manual approval gate in GitHub Actions. 
+Releases are automatically triggered by pushing a version tag (e.g., `v1.0.0`). This process is guarded by a manual approval gate in GitHub Actions. 
 
 For full details on the release workflow and branching strategy, see **[RELEASE.md](RELEASE.md)**.
 

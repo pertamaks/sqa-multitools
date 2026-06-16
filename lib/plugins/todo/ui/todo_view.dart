@@ -104,7 +104,9 @@ class _TodoViewState extends ConsumerState<TodoView>
               icon: Symbols.blur_on,
               onPressed: () => _showAddTodoDialog(context),
               type: SqaButtonType.primary,
-              tooltip: _tabController.index == 1 ? 'Add Recurring Focus' : 'Add Focus',
+              tooltip: _tabController.index == 1
+                  ? 'Add Recurring Focus'
+                  : 'Add Focus',
             ),
       searchController: _searchController,
       onSearchChanged: (val) =>
@@ -297,7 +299,8 @@ class _TodoViewState extends ConsumerState<TodoView>
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: active.length,
-                separatorBuilder: (_, _) => const SizedBox(height: SqaTokens.spacingMedium),
+                separatorBuilder: (_, _) =>
+                    const SizedBox(height: SqaTokens.spacingMedium),
                 itemBuilder: (context, index) {
                   final item = active[index];
                   return TodoListItem(
@@ -349,7 +352,8 @@ class _TodoViewState extends ConsumerState<TodoView>
               ),
             ],
             if (timesUp.isNotEmpty) ...[
-              if (active.isNotEmpty) const SizedBox(height: SqaTokens.spacingLarge),
+              if (active.isNotEmpty)
+                const SizedBox(height: SqaTokens.spacingLarge),
               TodoExpansionGroup(
                 icon: Symbols.alarm_off,
                 title: "Time's Up — How did it go?",
@@ -648,7 +652,8 @@ class _TodoViewState extends ConsumerState<TodoView>
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: recurring.length,
-              separatorBuilder: (_, _) => const SizedBox(height: SqaTokens.spacingMedium),
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: SqaTokens.spacingMedium),
               itemBuilder: (context, index) {
                 return RecurringTodoItem(item: recurring[index]);
               },

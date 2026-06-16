@@ -10,7 +10,10 @@ class SqaStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall + 4, vertical: SqaTokens.spacingXSmall),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SqaTokens.spacingSmall + 4,
+        vertical: SqaTokens.spacingXSmall,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: SqaTokens.borderRadiusSmall,

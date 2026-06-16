@@ -17,7 +17,9 @@ void main() {
 
   setUp(() {
     mockPrefs = MockSharedPreferences();
-    when(mockPrefs.getString(PreferencesService.keyCurlHistory)).thenReturn(null);
+    when(
+      mockPrefs.getString(PreferencesService.keyCurlHistory),
+    ).thenReturn(null);
     when(mockPrefs.setString(any, any)).thenAnswer((_) async => true);
     when(mockPrefs.getStringList(any)).thenReturn(null);
     when(mockPrefs.getInt(any)).thenReturn(null);
@@ -29,9 +31,7 @@ void main() {
       sharedPreferencesProvider.overrideWithValue(mockPrefs),
       ...overrides,
     ];
-    final container = ProviderContainer(
-      overrides: allOverrides.cast(),
-    );
+    final container = ProviderContainer(overrides: allOverrides.cast());
     addTearDown(container.dispose);
     return container;
   }
@@ -40,13 +40,16 @@ void main() {
     test('Initializes with empty state when no history exists', () {
       final container = createContainer();
       final state = container.read(curlRequesterProvider);
-      
+
       expect(state.history, isEmpty);
       expect(state.currentCommand.url, isEmpty);
     });
 
     test('Loads history and sets last command on build', () {
-      final lastRequest = const CurlCommand(url: 'https://google.com', method: 'GET');
+      final lastRequest = const CurlCommand(
+        url: 'https://google.com',
+        method: 'GET',
+      );
       final transaction = CurlTransaction(
         id: '1',
         request: lastRequest,
@@ -56,13 +59,15 @@ void main() {
         responseSize: 2,
         timestamp: DateTime.now(),
       );
-      
+
       final historyJson = jsonEncode([transaction.toJson()]);
-      when(mockPrefs.getString(PreferencesService.keyCurlHistory)).thenReturn(historyJson);
+      when(
+        mockPrefs.getString(PreferencesService.keyCurlHistory),
+      ).thenReturn(historyJson);
 
       final container = createContainer();
       final state = container.read(curlRequesterProvider);
-      
+
       expect(state.history.length, 1);
       expect(state.history.first.id, '1');
       expect(state.currentCommand.url, 'https://google.com');
@@ -71,23 +76,27 @@ void main() {
     test('Saves history when it updates', () {
       final container = createContainer();
       final notifier = container.read(curlRequesterProvider.notifier);
-      
+
       // Access state to trigger build
       container.read(curlRequesterProvider);
-      
+
       // Update history via internal method (testing indirectly via clearHistory since execute is async and complex)
       notifier.clearHistory();
-      
-      verify(mockPrefs.setString(PreferencesService.keyCurlHistory, any)).called(1);
+
+      verify(
+        mockPrefs.setString(PreferencesService.keyCurlHistory, any),
+      ).called(1);
     });
 
     test('Clear history persists changes', () async {
       final container = createContainer();
       final notifier = container.read(curlRequesterProvider.notifier);
-      
+
       notifier.clearHistory();
-      
-      verify(mockPrefs.setString(PreferencesService.keyCurlHistory, '[]')).called(1);
+
+      verify(
+        mockPrefs.setString(PreferencesService.keyCurlHistory, '[]'),
+      ).called(1);
       expect(container.read(curlRequesterProvider).history, isEmpty);
     });
 
@@ -95,10 +104,10 @@ void main() {
       final container = createContainer();
       // Manually trigger build
       container.read(curlRequesterProvider);
-      
-      // We need to use execute or find a way to add many items. 
-      // Since _updateHistory is private, we'll test the logic via execute if possible, 
-      // but execute does real HTTP calls. 
+
+      // We need to use execute or find a way to add many items.
+      // Since _updateHistory is private, we'll test the logic via execute if possible,
+      // but execute does real HTTP calls.
       // For this test, we can assume the logic in _updateHistory is correct if we verified it in the provider.
     });
   });

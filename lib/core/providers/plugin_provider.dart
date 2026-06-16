@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart' show Size;
 import 'package:window_manager/window_manager.dart';
 import '../window/window_constants.dart';
@@ -17,11 +16,16 @@ import '../../plugins/requirement_obfuscator/requirement_obfuscator_plugin.dart'
 import '../../plugins/todo/todo_plugin.dart';
 import '../../plugins/qa_cheatsheet/qa_cheatsheet_plugin.dart';
 import '../../plugins/curl_requester/curl_requester_plugin.dart';
+import '../../plugins/swagger_explorer/swagger_explorer_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
 import '../services/logging_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
+part 'plugin_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+List<SqaPlugin> availablePlugins(Ref ref) {
   final plugins = [
     TimerPlugin(),
     DataGeneratorPlugin(),
@@ -34,6 +38,7 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     TodoPlugin(),
     QaCheatsheetPlugin(),
     CurlRequesterPlugin(),
+    SwaggerExplorerPlugin(),
     if (ref.watch(supporterTierProvider) >= 2) QaOraclePlugin(),
   ];
 
@@ -41,15 +46,20 @@ final availablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
   final logger = ref.read(loggingServiceProvider.notifier);
   for (final plugin in plugins) {
     plugin.initialize().catchError((Object e, StackTrace stack) {
-      logger.logError('Error initializing plugin ${plugin.id}: $e', 'PluginInit', e, stack);
+      logger.logError(
+        'Error initializing plugin ${plugin.id}: $e',
+        'PluginInit',
+        e,
+        stack,
+      );
     });
   }
-
   return plugins;
-});
+}
 
 /// Provides all available plugins in their user-defined order
-final orderedAvailablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
+@Riverpod(keepAlive: true)
+List<SqaPlugin> orderedAvailablePlugins(Ref ref) {
   final all = ref.watch(availablePluginsProvider);
   final orderIds = ref.watch(preferencesServiceProvider).getPluginOrder();
 
@@ -65,9 +75,10 @@ final orderedAvailablePluginsProvider = Provider<List<SqaPlugin>>((ref) {
     return indexA.compareTo(indexB);
   });
   return sorted;
-});
+}
 
-class EnabledPluginsNotifier extends Notifier<List<SqaPlugin>> {
+@Riverpod(keepAlive: true)
+class EnabledPlugins extends _$EnabledPlugins {
   @override
   List<SqaPlugin> build() {
     final prefs = ref.watch(preferencesServiceProvider);
@@ -132,64 +143,45 @@ class EnabledPluginsNotifier extends Notifier<List<SqaPlugin>> {
   }
 }
 
-final enabledPluginsProvider =
-    NotifierProvider<EnabledPluginsNotifier, List<SqaPlugin>>(() {
-      return EnabledPluginsNotifier();
-    });
-
-class ActivePluginNotifier extends Notifier<SqaPlugin?> {
+@Riverpod(keepAlive: true)
+class ActivePlugin extends _$ActivePlugin {
   @override
   SqaPlugin? build() => null;
   void setPlugin(SqaPlugin? plugin) => state = plugin;
 }
 
-final activePluginProvider = NotifierProvider<ActivePluginNotifier, SqaPlugin?>(
-  () {
-    return ActivePluginNotifier();
-  },
-);
-
-final settingsPluginProvider = Provider<SqaPlugin>((ref) => SettingsPlugin());
+@Riverpod(keepAlive: true)
+SqaPlugin settingsPlugin(Ref ref) => SettingsPlugin();
 
 // --- Navigation Layer ---
 
 /// Tracks the ID of the plugin we should return to from Settings
-class NavigationHistoryNotifier extends Notifier<String?> {
+@Riverpod(keepAlive: true)
+class NavigationHistory extends _$NavigationHistory {
   @override
   String? build() => null;
   void setHistory(String? id) => state = id;
 }
 
-final navigationHistoryProvider =
-    NotifierProvider<NavigationHistoryNotifier, String?>(
-      () => NavigationHistoryNotifier(),
-    );
-
 /// Tracks the active tab in the Settings view
-class SettingsTabNotifier extends Notifier<int> {
+@Riverpod(keepAlive: true)
+class SettingsTab extends _$SettingsTab {
   @override
   int build() => 0;
   void setTab(int index) => state = index;
 }
 
-final settingsTabProvider = NotifierProvider<SettingsTabNotifier, int>(
-  () => SettingsTabNotifier(),
-);
-
-class PluginEditModeNotifier extends Notifier<bool> {
+@Riverpod(keepAlive: true)
+class PluginEditMode extends _$PluginEditMode {
   @override
   bool build() => false;
   void toggle() => state = !state;
   void set(bool value) => state = value;
 }
 
-/// State provider to track if we are in 'Edit Order' mode for plugins
-final pluginEditModeProvider = NotifierProvider<PluginEditModeNotifier, bool>(
-  () => PluginEditModeNotifier(),
-);
-
 /// Centralized service for jumping between plugins/settings
-final navigationServiceProvider = Provider((ref) => NavigationService(ref));
+@Riverpod(keepAlive: true)
+NavigationService navigationService(Ref ref) => NavigationService(ref);
 
 class NavigationService {
   final Ref _ref;

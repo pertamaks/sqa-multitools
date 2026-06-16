@@ -96,24 +96,29 @@ class SqaSpacing {
   static const double verticalPadding = SqaTokens.contentPaddingVertical;
 }
 
-
 /// Centralized Typography system for SQA-Multitools.
 class SqaTextStyles {
   /// Standard headline style
-  static TextStyle headline(BuildContext context) => SqaTokens.headline(context);
+  static TextStyle headline(BuildContext context) =>
+      SqaTokens.headline(context);
 
   /// Standard body style
   static TextStyle body(BuildContext context) => SqaTokens.body(context);
 
   /// Secondary body style
-  static TextStyle bodySecondary(BuildContext context) => SqaTokens.bodySecondary(context);
+  static TextStyle bodySecondary(BuildContext context) =>
+      SqaTokens.bodySecondary(context);
 
   /// Standard label style
-  static TextStyle labelBold(BuildContext context) => SqaTokens.labelBold(context);
+  static TextStyle labelBold(BuildContext context) =>
+      SqaTokens.labelBold(context);
 
   /// Monospace style
-  static TextStyle mono(BuildContext context, {double? fontSize, Color? color}) =>
-      SqaTokens.mono(context, fontSize: fontSize, color: color);
+  static TextStyle mono(
+    BuildContext context, {
+    double? fontSize,
+    Color? color,
+  }) => SqaTokens.mono(context, fontSize: fontSize, color: color);
 }
 
 /// A custom scroll behavior that enables mouse dragging (click and drag) on desktop.

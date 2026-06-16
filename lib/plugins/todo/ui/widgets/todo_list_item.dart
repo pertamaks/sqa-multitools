@@ -187,13 +187,17 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
               child: Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: SqaTokens.spacingLarge),
+                    padding: const EdgeInsets.only(
+                      left: SqaTokens.spacingLarge,
+                    ),
                     child: _buildActionIcons(context, ref),
                   ),
                   const SizedBox(width: SqaTokens.spacingLarge),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: SqaTokens.spacingLarge),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: SqaTokens.spacingLarge,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -242,7 +246,9 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                               isDelegated ||
                               completionBadgeText != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: SqaTokens.spacingSmall),
+                              padding: const EdgeInsets.only(
+                                top: SqaTokens.spacingSmall,
+                              ),
                               child: TodoItemBadges(
                                 item: widget.item,
                                 isReadOnly: widget.isReadOnly,
@@ -261,9 +267,14 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                   ),
                   if (widget.onDelete != null && !widget.isReadOnly)
                     Padding(
-                      padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
+                      padding: const EdgeInsets.only(
+                        right: SqaTokens.spacingSmall,
+                      ),
                       child: SqaPopupMenu(
-                        alignmentOffset: Offset(-SqaTokens.spacingXXXLarge * 2, SqaTokens.spacingXSmall),
+                        alignmentOffset: Offset(
+                          -SqaTokens.spacingXXXLarge * 2,
+                          SqaTokens.spacingXSmall,
+                        ),
                         icon: Symbols.more_vert,
                         children: [
                           if (widget.item.recurringTodoId == null) ...[
@@ -312,19 +323,19 @@ class _TodoListItemState extends ConsumerState<TodoListItem>
                             icon: const Icon(Symbols.report_problem),
                             label: 'Mark as Exception',
                             onPressed: () => TodoItemDialogs.showException(
-                                context,
-                                ref,
-                                widget.item,
-                              ),
+                              context,
+                              ref,
+                              widget.item,
+                            ),
                           ),
                           SqaPopupMenuItem(
                             icon: const Icon(Symbols.cancel),
                             label: 'Cancel Focus',
                             onPressed: () => TodoItemDialogs.showCancel(
-                                context,
-                                ref,
-                                widget.item,
-                              ),
+                              context,
+                              ref,
+                              widget.item,
+                            ),
                           ),
                           Divider(
                             height: 1,

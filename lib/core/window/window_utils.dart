@@ -22,18 +22,14 @@ class WindowUtils {
   /// which can pause the Flutter engine.
   static Future<void> safeHide() async {
     final wm = window_manager.windowManager;
-    await wm.setOpacity(0.0);
-    await wm.setSkipTaskbar(true);
-    await wm.setIgnoreMouseEvents(true);
+    await wm.hide();
   }
 
   /// Restores the window from its "safe hide" state.
   static Future<void> safeShow() async {
     final wm = window_manager.windowManager;
-    await wm.show(); // Ensure OS window is visible
     await wm.setOpacity(1.0);
-    await wm.setSkipTaskbar(false);
-    await wm.setIgnoreMouseEvents(false);
+    await wm.show();
     await wm.focus();
   }
 
@@ -58,8 +54,7 @@ class WindowUtils {
   static bool isLeftMouseDown() => WindowNativeApi.instance.isLeftMouseDown();
 
   /// Checks if the right mouse button is currently pressed.
-  static bool isRightMouseDown() =>
-      WindowNativeApi.instance.isRightMouseDown();
+  static bool isRightMouseDown() => WindowNativeApi.instance.isRightMouseDown();
 
   /// Brings the given window to the front and focuses it.
   static void focusWindow(int hwnd) =>

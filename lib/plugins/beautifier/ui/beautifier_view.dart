@@ -59,10 +59,8 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
   void _showOutputModal(String output, BeautifierLanguage language) {
     showDialog<void>(
       context: context,
-      builder: (context) => BeautifierOutputModal(
-        output: output,
-        language: language,
-      ),
+      builder: (context) =>
+          BeautifierOutputModal(output: output, language: language),
     );
   }
 
@@ -92,9 +90,9 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
       trailing: SqaButton.primary(
         icon: Symbols.auto_fix,
         label: '',
-        onPressed: state.input.isEmpty 
-          ? null 
-          : () => ref.read(beautifierProvider.notifier).format(),
+        onPressed: state.input.isEmpty
+            ? null
+            : () => ref.read(beautifierProvider.notifier).format(),
       ),
       secondaryHeader: Padding(
         padding: const EdgeInsets.symmetric(
@@ -154,7 +152,7 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
 
   Widget _buildToolbar(BuildContext context, BeautifierState state) {
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: SqaTokens.spacingXSmall,
@@ -180,7 +178,9 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
           SqaHoverIconButton(
             icon: Symbols.tune,
             onPressed: () {
-              ref.read(navigationServiceProvider).jumpToPluginSettings('com.sqa.beautifier');
+              ref
+                  .read(navigationServiceProvider)
+                  .jumpToPluginSettings('com.sqa.beautifier');
             },
             tooltip: 'Plugin Settings',
             iconSize: SqaTokens.spacingXLarge,
@@ -203,7 +203,8 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
           // Wrap Toggle
           _buildWrapToggle(
             state.inputWrapText,
-            (val) => ref.read(beautifierProvider.notifier).setInputWrapText(val),
+            (val) =>
+                ref.read(beautifierProvider.notifier).setInputWrapText(val),
           ),
           const SizedBox(width: SqaTokens.spacingSmall),
         ],
@@ -268,7 +269,11 @@ class BeautifierOutputModal extends StatelessWidget {
           icon: Symbols.content_copy,
           onPressed: () {
             Clipboard.setData(ClipboardData(text: output));
-            SqaToast.show(context, 'Output copied to clipboard', type: SqaToastType.success);
+            SqaToast.show(
+              context,
+              'Output copied to clipboard',
+              type: SqaToastType.success,
+            );
           },
         ),
         const SizedBox(width: SqaTokens.spacingSmall),

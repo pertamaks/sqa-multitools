@@ -147,7 +147,9 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
               vertical: 0,
             ),
             minimumSize: Size(maxWidth - SqaTokens.spacingSmall, 36),
-            shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
+            shape: RoundedRectangleBorder(
+              borderRadius: SqaTokens.borderRadiusMedium,
+            ),
             backgroundColor: isSelected
                 ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
                 : null,
@@ -180,7 +182,9 @@ class _SqaDropdownState<T> extends State<SqaDropdown<T>>
                     }
                   }
                 : null,
-            mouseCursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            mouseCursor: isEnabled
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
             borderRadius: SqaTokens.borderRadiusSmall,
             overlayColor: SqaStyles.buttonOverlay(context),
             child: ConstrainedBox(

@@ -91,14 +91,16 @@ jobs:
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           wget https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh
           chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh
-          
+          # Prepare Icon
+          cp assets/app_icon_linux.png sqa_multitools.png
+
           # Run linuxdeploy
           export OUTPUT=sqa-multitools-${{ github.ref_name }}-linux.AppImage
           ./linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             --executable AppDir/usr/bin/sqa_multitools \
             --desktop-file linux/sqa_multitools.desktop \
-            --icon-file assets/app_icon_linux.png \
+            --icon-file sqa_multitools.png \
             --plugin gtk \
             --output appimage
 

@@ -87,7 +87,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
     if (!ref.mounted) return;
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
     final saveDir = Directory(saveDirPath);
 
     if (!await saveDir.exists()) {
@@ -148,10 +149,11 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
   void _setupDirectoryWatcher() async {
     await _watchSubscription?.cancel();
     _watchSubscription = null;
-    
+
     final documentsDir = await getApplicationDocumentsDirectory();
     if (!ref.mounted) return;
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
     final saveDir = Directory(saveDirPath);
 
     if (!await saveDir.exists()) {
@@ -263,7 +265,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     final displays = await screenRetriever.getAllDisplays();
 
     Display activeDisplay = await screenRetriever.getPrimaryDisplay();
-    
+
     final overlayRect = Rect.fromLTWH(
       activeDisplay.visiblePosition?.dx ?? 0,
       activeDisplay.visiblePosition?.dy ?? 0,
@@ -279,15 +281,24 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (!Platform.isLinux) await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
 
-    final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
-    final savedPos = state.isOverlayVisible ? state.previousWindowPos : currentPos;
+    final savedSize = state.isOverlayVisible
+        ? state.previousWindowSize
+        : currentSize;
+    final savedPos = state.isOverlayVisible
+        ? state.previousWindowPos
+        : currentPos;
 
     state = state.copyWith(
       previousWindowSize: savedSize,
       previousWindowPos: savedPos,
       isOverlayVisible: true,
       annotations: [],
-      selectionRect: Rect.fromLTWH(0, 0, activeDisplay.size.width, activeDisplay.size.height), // Provide full area for annotation
+      selectionRect: Rect.fromLTWH(
+        0,
+        0,
+        activeDisplay.size.width,
+        activeDisplay.size.height,
+      ), // Provide full area for annotation
       availableDisplays: displays,
       frozenBackgroundBytes: bytes,
       captureMode: CaptureMode.area,
@@ -296,7 +307,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await coordinator.waitForSync(resize: false, move: false, frame: true);
     await windowManager.setBounds(overlayRect);
     await windowManager.setAlwaysOnTop(true);
-    try { await windowManager.setIgnoreMouseEvents(false); } catch (_) {}
+    try {
+      await windowManager.setIgnoreMouseEvents(false);
+    } catch (_) {}
     await coordinator.waitForSync(
       resize: true,
       move: true,
@@ -332,7 +345,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       }
     }
     activeDisplay ??= await screenRetriever.getPrimaryDisplay();
-    
+
     final overlayRect = Rect.fromLTWH(
       activeDisplay.visiblePosition?.dx ?? 0,
       activeDisplay.visiblePosition?.dy ?? 0,
@@ -349,13 +362,19 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await coordinator.waitForSync(resize: false, move: false);
 
     // 1.5 Capture the clean desktop while our app is invisible
-    
+
     Uint8List? frozenBytes;
     final result = await freezeScreen();
     if (result is CaptureSuccess<FrozenCanvas>) {
       frozenBytes = Uint8List.fromList(result.data.bytes);
     } else if (result is CaptureFailure<FrozenCanvas>) {
-      ref.read(loggingServiceProvider.notifier).logError('[Screenshot] Frozen background snapshot failed: ${result.message}', 'ScreenshotProvider', result.cause);
+      ref
+          .read(loggingServiceProvider.notifier)
+          .logError(
+            '[Screenshot] Frozen background snapshot failed: ${result.message}',
+            'ScreenshotProvider',
+            result.cause,
+          );
     }
 
     // 2. Prepare the background state while invisible
@@ -365,13 +384,22 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     Rect? initialSelection;
     if (state.captureMode == CaptureMode.fullScreen && frozenBytes != null) {
-      initialSelection = Rect.fromLTWH(0, 0, activeDisplay.size.width, activeDisplay.size.height);
+      initialSelection = Rect.fromLTWH(
+        0,
+        0,
+        activeDisplay.size.width,
+        activeDisplay.size.height,
+      );
     }
 
     // Only save previous bounds if we aren't already in the overlay state
     // (startMonitorSelection already saved the true app bounds before spanning)
-    final savedSize = state.isOverlayVisible ? state.previousWindowSize : currentSize;
-    final savedPos = state.isOverlayVisible ? state.previousWindowPos : currentPos;
+    final savedSize = state.isOverlayVisible
+        ? state.previousWindowSize
+        : currentSize;
+    final savedPos = state.isOverlayVisible
+        ? state.previousWindowPos
+        : currentPos;
 
     // 3. Update state early so Flutter starts building the transparent overlay UI
     state = state.copyWith(
@@ -392,7 +420,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     await windowManager.setAlwaysOnTop(true);
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
-    try { await windowManager.setIgnoreMouseEvents(false); } catch (_) {}
+    try {
+      await windowManager.setIgnoreMouseEvents(false);
+    } catch (_) {}
 
     // 5. Robust sync delay for Windows DWM buffer allocation
     await coordinator.waitForSync(
@@ -450,7 +480,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     ]);
 
     await windowManager.setOpacity(1.0);
-    
+
     // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
     // when returning from frameless mode on Windows.
     final s = await windowManager.getSize();
@@ -543,7 +573,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     }
 
     final documentsDir = await getApplicationDocumentsDirectory();
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
     final saveDir = Directory(saveDirPath);
     if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
@@ -568,7 +599,11 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
           annotationImage = await boundary.toImage(pixelRatio: ratio);
         }
       } catch (e) {
-        logger.logError('[Screenshot] Annotation capture failed', 'ScreenshotProvider', e);
+        logger.logError(
+          '[Screenshot] Annotation capture failed',
+          'ScreenshotProvider',
+          e,
+        );
       }
 
       // 2. UNMOUNT heavy UI
@@ -576,10 +611,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       await coordinator.waitForSync(resize: false, move: false, frame: true);
 
       // 3. Background Capture via screen_capturer
-      
+
       final frozenBytes = state.frozenBackgroundBytes;
       if (frozenBytes != null) {
-        
         // Find target display for cropping logic
         Display? targetDisplay;
         double maxOverlap = -1.0;
@@ -604,7 +638,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         double cropY = (finalRect.top - displayOrigin.dy) * ratio;
         double cropW = finalRect.width * ratio;
         double cropH = finalRect.height * ratio;
-        
+
         final srcBgRect = Rect.fromLTWH(cropX, cropY, cropW, cropH);
         final dstRect = Rect.fromLTWH(0, 0, cropW, cropH);
 
@@ -620,9 +654,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
         // Draw foreground annotations if any
         if (annotationImage != null) {
-          // foreground was captured from the UI window. 
+          // foreground was captured from the UI window.
           // Extract just the selected region.
-          final rect = state.selectionRect ??
+          final rect =
+              state.selectionRect ??
               Rect.fromLTWH(
                 0,
                 0,
@@ -636,37 +671,50 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
           final height = (rect.height * ratio).roundToDouble();
 
           final srcFgRect = Rect.fromLTWH(offX, offY, width, height);
-          
+
           canvas.drawImageRect(annotationImage, srcFgRect, dstRect, ui.Paint());
         }
 
         // Export Final Image
         final picture = recorder.endRecording();
         final finalImage = await picture.toImage(cropW.toInt(), cropH.toInt());
-        final byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
-        
+        final byteData = await finalImage.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
+
         if (byteData != null) {
           final pngBytes = byteData.buffer.asUint8List();
-          
+
           if (state.format.toLowerCase() == 'png') {
             await File(savePath).writeAsBytes(pngBytes);
           } else {
             final tempDir = await getTemporaryDirectory();
-            final tempFile = File(p.join(tempDir.path, 'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png'));
+            final tempFile = File(
+              p.join(
+                tempDir.path,
+                'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png',
+              ),
+            );
             await tempFile.writeAsBytes(pngBytes);
-            
+
             final success = await FfmpegEngine.convertImage(
               inputPath: tempFile.path,
               outputPath: savePath,
             );
-            
+
             if (await tempFile.exists()) await tempFile.delete();
-            
+
             if (!success) {
               // Fallback to saving as PNG if conversion fails
-              final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+              final fallbackPath = savePath.replaceAll(
+                RegExp(r'\.[^.]+$'),
+                '.png',
+              );
               await File(fallbackPath).writeAsBytes(pngBytes);
-              logger.logWarning('[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.', 'ScreenshotProvider');
+              logger.logWarning(
+                '[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.',
+                'ScreenshotProvider',
+              );
             }
           }
 
@@ -680,11 +728,18 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
           }
         }
       } else {
-        logger.logError('[Screenshot] Frozen background is missing', 'ScreenshotProvider');
+        logger.logError(
+          '[Screenshot] Frozen background is missing',
+          'ScreenshotProvider',
+        );
       }
-
     } catch (e, stack) {
-      logger.logError('[Screenshot] Finalize Error', 'ScreenshotProvider', e, stack);
+      logger.logError(
+        '[Screenshot] Finalize Error',
+        'ScreenshotProvider',
+        e,
+        stack,
+      );
     } finally {
       // Restore UI State
       await windowManager.setOpacity(0.01);
@@ -714,7 +769,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
-      
+
       // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
       // when returning from frameless mode on Windows.
       final s = await windowManager.getSize();
@@ -743,7 +798,9 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
         if (result is CaptureSuccess<FrozenCanvas>) {
           final documentsDir = await getApplicationDocumentsDirectory();
-          final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+          final saveDirPath =
+              state.saveDirectory ??
+              p.join(documentsDir.path, 'SQA_Screenshots');
           final saveDir = Directory(saveDirPath);
           if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
@@ -760,20 +817,31 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
             await File(savePath).writeAsBytes(pngBytes);
           } else {
             final tempDir = await getTemporaryDirectory();
-            final tempFile = File(p.join(tempDir.path, 'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png'));
+            final tempFile = File(
+              p.join(
+                tempDir.path,
+                'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png',
+              ),
+            );
             await tempFile.writeAsBytes(pngBytes);
-            
+
             final success = await FfmpegEngine.convertImage(
               inputPath: tempFile.path,
               outputPath: savePath,
             );
-            
+
             if (await tempFile.exists()) await tempFile.delete();
-            
+
             if (!success) {
-              final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+              final fallbackPath = savePath.replaceAll(
+                RegExp(r'\.[^.]+$'),
+                '.png',
+              );
               await File(fallbackPath).writeAsBytes(pngBytes);
-              logger.logWarning('[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.', 'ScreenshotProvider');
+              logger.logWarning(
+                '[Screenshot] Image conversion to ${state.format} failed. Saved as PNG instead.',
+                'ScreenshotProvider',
+              );
             }
           }
 
@@ -786,10 +854,19 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
           refreshRecentCaptures();
         } else if (result is CaptureFailure) {
-          logger.logError('[Screenshot] Linux capture failed: ${(result as CaptureFailure).message}', 'ScreenshotProvider', (result as CaptureFailure).cause);
+          logger.logError(
+            '[Screenshot] Linux capture failed: ${(result as CaptureFailure).message}',
+            'ScreenshotProvider',
+            (result as CaptureFailure).cause,
+          );
         }
       } catch (e, st) {
-        logger.logError('[Screenshot] Linux capture crashed', 'ScreenshotProvider', e, st);
+        logger.logError(
+          '[Screenshot] Linux capture crashed',
+          'ScreenshotProvider',
+          e,
+          st,
+        );
       } finally {
         ref.read(isScreenshotProcessingProvider.notifier).set(false);
         await WindowUtils.safeShow();
@@ -802,7 +879,8 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
   Future<void> openSaveDirectory() async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Screenshots');
     final saveDir = Directory(saveDirPath);
 
     if (await saveDir.exists()) {
@@ -819,7 +897,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         await refreshRecentCaptures();
       }
     } catch (e) {
-      ref.read(loggingServiceProvider.notifier).logError('[Screenshot] Failed to delete capture', 'ScreenshotProvider', e);
+      ref
+          .read(loggingServiceProvider.notifier)
+          .logError(
+            '[Screenshot] Failed to delete capture',
+            'ScreenshotProvider',
+            e,
+          );
     }
   }
 
@@ -834,7 +918,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         await refreshRecentCaptures();
       }
     } catch (e) {
-      ref.read(loggingServiceProvider.notifier).logError('[Screenshot] Failed to rename capture', 'ScreenshotProvider', e);
+      ref
+          .read(loggingServiceProvider.notifier)
+          .logError(
+            '[Screenshot] Failed to rename capture',
+            'ScreenshotProvider',
+            e,
+          );
     }
   }
 
@@ -872,28 +962,25 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (state.frozenBackgroundBytes == null && title.startsWith('Display ')) {
       // We are in "Select Monitor" spanning mode!
       final displayIndex = int.tryParse(title.split(' ').last) ?? 1;
-      final display = state.availableDisplays.length >= displayIndex 
-          ? state.availableDisplays[displayIndex - 1] 
+      final display = state.availableDisplays.length >= displayIndex
+          ? state.availableDisplays[displayIndex - 1]
           : state.availableDisplays.first;
-      
+
       // Launch the real capture on that monitor
       _restartOverlayForMonitor(display);
       return;
     }
 
-    state = state.copyWith(
-      selectionRect: rect,
-    );
+    state = state.copyWith(selectionRect: rect);
   }
 
   Future<void> _restartOverlayForMonitor(Display display) async {
     // Hide spanning window instantly
     await windowManager.setOpacity(0.01);
-    
+
     // Start real overlay on that display
     await startOverlay(display);
   }
-
 
   Future<void> _safeSetIgnoreMouseEvents(bool ignore) async {
     if (Platform.isLinux) return;

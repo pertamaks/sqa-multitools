@@ -44,9 +44,18 @@ class SqaTextController extends TextEditingController {
           // Headers: Map # to larger, bold primary colored text
           final int level = matchText.indexOf(' ');
           double fontSize = style?.fontSize ?? 14.0;
-          if (level == 1) fontSize *= 1.75; // SqaTokens.fontSizeXXLarge / SqaTokens.fontSizeMedium approx
-          if (level == 2) fontSize *= 1.5;  // SqaTokens.fontSizeLarge / SqaTokens.fontSizeMedium approx
-          if (level == 3) fontSize *= 1.25; // SqaTokens.fontSizeMedium / SqaTokens.fontSizeMedium approx
+          if (level == 1) {
+            fontSize *=
+                1.75; // SqaTokens.fontSizeXXLarge / SqaTokens.fontSizeMedium approx
+          }
+          if (level == 2) {
+            fontSize *=
+                1.5; // SqaTokens.fontSizeLarge / SqaTokens.fontSizeMedium approx
+          }
+          if (level == 3) {
+            fontSize *=
+                1.25; // SqaTokens.fontSizeMedium / SqaTokens.fontSizeMedium approx
+          }
 
           matchStyle = style?.copyWith(
             fontWeight: FontWeight.bold,
@@ -125,11 +134,16 @@ class SqaVariableController extends TextEditingController {
         }
 
         final varName = matchText.substring(2, matchText.length - 2).trim();
-        final isKnown = getKnownVariables == null || varName.startsWith('faker.') || knownVars.contains(varName);
+        final isKnown =
+            getKnownVariables == null ||
+            varName.startsWith('faker.') ||
+            knownVars.contains(varName);
 
         // Distinct styling for variables
         final matchStyle = style?.copyWith(
-          color: isKnown ? const Color(0xFF1E90FF) : theme.colorScheme.error, // Blue if known, Red if unknown
+          color: isKnown
+              ? const Color(0xFF1E90FF)
+              : theme.colorScheme.error, // Blue if known, Red if unknown
           fontWeight: FontWeight.bold,
         );
 

@@ -331,7 +331,9 @@ class _PromptDialogState extends State<_PromptDialog> {
                 horizontal: SqaTokens.spacingSmall + 4,
               ),
               errorText: error,
-              errorStyle: const TextStyle(fontSize: SqaTokens.fontSizeSmall - 2),
+              errorStyle: const TextStyle(
+                fontSize: SqaTokens.fontSizeSmall - 2,
+              ),
             ),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -361,7 +363,7 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
       titlePadding: const EdgeInsets.fromLTRB(
         SqaTokens.spacingXLarge, // 24px - Aligns with content
         SqaTokens.spacingXXSmall + SqaTokens.spacingMedium,
-        SqaTokens.spacingSmall,  // 8px - Pushes X to the edge
+        SqaTokens.spacingSmall, // 8px - Pushes X to the edge
         SqaTokens.spacingXXSmall + SqaTokens.spacingMedium,
       ),
       title: Row(
@@ -422,84 +424,103 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               : (widget.isConfirmMode
-                  ? Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, SqaTokens.spacingXLarge),
-                      child: widget.message != null
-                          ? Text(
-                              widget.message!,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                height: 1.5,
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          24,
+                          8,
+                          24,
+                          SqaTokens.spacingXLarge,
+                        ),
+                        child: widget.message != null
+                            ? Text(
+                                widget.message!,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  height: 1.5,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (widget.topBar != null) ...[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                SqaTokens.spacingLarge,
+                                0,
+                                SqaTokens.spacingLarge,
+                                SqaTokens.spacingMedium,
                               ),
-                            )
-                          : const SizedBox.shrink(),
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (widget.topBar != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              SqaTokens.spacingLarge,
-                              0,
-                              SqaTokens.spacingLarge,
-                              SqaTokens.spacingMedium,
+                              child: widget.topBar!,
                             ),
-                            child: widget.topBar!,
-                          ),
-                        ],
-                        Expanded(
-                          child: widget.scrollable
-                              ? ScrollConfiguration(
-                                  behavior: const _NoScrollbarBehavior(),
-                                  child: Scrollbar(
-                                    controller: _scrollController,
-                                    thumbVisibility: true,
-                                    thickness: 6.0,
-                                    radius: const Radius.circular(3),
-                                    child: SqaFadeWrapper(
-                                      depth: 0.08,
-                                      threshold: 20.0,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            right: SqaTokens.spacingMedium),
-                                        child: widget.child != null
-                                            ? SingleChildScrollView(
-                                                controller: _scrollController,
-                                                padding: const EdgeInsets.only(
-                                                  left: 24,
-                                                  right: 12,
-                                                  bottom: SqaTokens.spacingXLarge,
-                                                ),
-                                                child: widget.child!,
-                                              )
-                                            : (widget.items.isEmpty
-                                                ? Padding(
-                                                    padding: const EdgeInsets.only(
-                                                      left: SqaTokens.spacingLarge,
-                                                      right: SqaTokens.spacingSmall +
-                                                          4,
-                                                    ),
-                                                    child: _buildEmpty(theme),
-                                                  )
-                                                : (widget.isTileMode
-                                                    ? _buildTileContent(
-                                                        context, theme)
-                                                    : _buildListContent(
-                                                        context, theme))),
+                          ],
+                          Expanded(
+                            child: widget.scrollable
+                                ? ScrollConfiguration(
+                                    behavior: const _NoScrollbarBehavior(),
+                                    child: Scrollbar(
+                                      controller: _scrollController,
+                                      thumbVisibility: true,
+                                      thickness: 6.0,
+                                      radius: const Radius.circular(3),
+                                      child: SqaFadeWrapper(
+                                        depth: 0.08,
+                                        threshold: 20.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: SqaTokens.spacingMedium,
+                                          ),
+                                          child: widget.child != null
+                                              ? SingleChildScrollView(
+                                                  controller: _scrollController,
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 24,
+                                                        right: 12,
+                                                        bottom: SqaTokens
+                                                            .spacingXLarge,
+                                                      ),
+                                                  child: widget.child!,
+                                                )
+                                              : (widget.items.isEmpty
+                                                    ? Padding(
+                                                        padding:
+                                                            const EdgeInsets.only(
+                                                              left: SqaTokens
+                                                                  .spacingLarge,
+                                                              right:
+                                                                  SqaTokens
+                                                                      .spacingSmall +
+                                                                  4,
+                                                            ),
+                                                        child: _buildEmpty(
+                                                          theme,
+                                                        ),
+                                                      )
+                                                    : (widget.isTileMode
+                                                          ? _buildTileContent(
+                                                              context,
+                                                              theme,
+                                                            )
+                                                          : _buildListContent(
+                                                              context,
+                                                              theme,
+                                                            ))),
+                                        ),
                                       ),
                                     ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    child: widget.child!,
                                   ),
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24),
-                                  child: widget.child!,
-                                ),
-                        ),
-                      ],
-                    )),
+                          ),
+                        ],
+                      )),
         ),
       ),
       actionsPadding: const EdgeInsets.symmetric(
@@ -555,7 +576,11 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(widget.emptyIcon, size: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge, color: Colors.grey),
+          Icon(
+            widget.emptyIcon,
+            size: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
+            color: Colors.grey,
+          ),
           const SizedBox(height: SqaTokens.spacingMedium),
           Text(
             widget.emptyLabel,
@@ -588,7 +613,9 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                  ),
                   child: AspectRatio(
                     aspectRatio: 32 / 9,
                     child: tile.imagePath != null
@@ -603,7 +630,8 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                               child: Icon(
                                 Symbols.desktop_windows,
                                 size: SqaTokens.spacingXXLarge,
-                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
                           ),
@@ -619,7 +647,9 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                     children: [
                       Text(
                         tile.label,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       if (tile.badge != null)
                         Container(
@@ -628,8 +658,11 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
+                            color: theme.colorScheme.primaryContainer
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(
+                              SqaTokens.spacingXSmall,
+                            ),
                           ),
                           child: Text(
                             tile.badge!,
@@ -664,7 +697,9 @@ class _SqaModalState<T> extends State<SqaModal<T>> {
 
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index == widget.items.length - 1 ? 0 : SqaTokens.spacingSmall,
+              bottom: index == widget.items.length - 1
+                  ? 0
+                  : SqaTokens.spacingSmall,
             ),
             child: SqaCard(
               padding: EdgeInsets.zero,

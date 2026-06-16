@@ -9,12 +9,8 @@ class WindowNativeApiStub implements WindowNativeApi {
   @override
   bool get supportsGlobalMousePolling => false;
 
-
-
   @override
   Offset getAppWindowPosition() => Offset.zero;
-
-
 
   @override
   Future<List<String>> getFriendlyMonitorNames() async => [];

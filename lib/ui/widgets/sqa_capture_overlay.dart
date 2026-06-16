@@ -71,7 +71,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     _startMousePolling();
 
     _focusNode.requestFocus();
-    
+
     // Teleport bar initially if selection is already set
     if (widget.delegate.selectionRect != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -163,11 +163,13 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 !_leftMouseDownLast &&
                 _hoveredMonitorRect != null &&
                 _hoveredDisplay != null) {
-                
-                widget.delegate.setSelection(_hoveredMonitorRect!, _hoveredDisplay!);
-                // Call cancel to trigger the capture process on the delegate (Screenshot overrides this to take a shot, Recorder ignores or handles separately if it had monitor selection)
-                // Actually, wait, Screenshot needs to know which monitor was selected to restart the overlay!
-                // Let's add `confirmMonitorSelection` to delegate.
+              widget.delegate.setSelection(
+                _hoveredMonitorRect!,
+                _hoveredDisplay!,
+              );
+              // Call cancel to trigger the capture process on the delegate (Screenshot overrides this to take a shot, Recorder ignores or handles separately if it had monitor selection)
+              // Actually, wait, Screenshot needs to know which monitor was selected to restart the overlay!
+              // Let's add `confirmMonitorSelection` to delegate.
             }
 
             if (widget.delegate.enableClickFeedback) {
@@ -202,7 +204,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
           final nowMs = DateTime.now().millisecondsSinceEpoch;
           if (nowMs % 150 < 50) {
-            if ((widget.delegate.captureMode == CaptureMode.fullScreen || widget.delegate.isSelectingMonitor) &&
+            if ((widget.delegate.captureMode == CaptureMode.fullScreen ||
+                    widget.delegate.isSelectingMonitor) &&
                 widget.delegate.selectionRect == null) {
               final cursor = await screenRetriever.getCursorScreenPoint();
               if (!mounted || !widget.delegate.isOverlayVisible) return;
@@ -279,9 +282,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
     final delegate = widget.delegate;
-    if (!delegate.isRecording ||
-        !delegate.isOverlayVisible ||
-        !mounted) {
+    if (!delegate.isRecording || !delegate.isOverlayVisible || !mounted) {
       if (_isIgnoring) {
         _isIgnoring = false;
         await delegate.setIgnoreMouseEvents(false);
@@ -329,7 +330,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   Offset _clampOffset(Offset offset, Size screenSize) {
-    final double barWidth = _estimatedBarWidth + SqaTokens.spacingXXLarge; // Allow slight buffer
+    final double barWidth =
+        _estimatedBarWidth + SqaTokens.spacingXXLarge; // Allow slight buffer
     const double padding = SqaTokens.spacingMedium;
 
     return Offset(
@@ -339,7 +341,10 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       ),
       offset.dy.clamp(
         padding,
-        math.max(padding, screenSize.height - SqaTokens.floatingBarHeight - padding),
+        math.max(
+          padding,
+          screenSize.height - SqaTokens.floatingBarHeight - padding,
+        ),
       ),
     );
   }
@@ -401,12 +406,16 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
           final spaceBelow = localDisplayBottom - targetRect.bottom;
           final spaceAbove = targetRect.top - localDisplayTop;
           targetY = spaceBelow >= spaceAbove
-              ? (localDisplayBottom - barHeight).clamp(localDisplayTop, localDisplayBottom)
+              ? (localDisplayBottom - barHeight).clamp(
+                  localDisplayTop,
+                  localDisplayBottom,
+                )
               : localDisplayTop;
         }
       } else {
         // Fullscreen: anchor to bottom-center of the display
-        targetX = localDisplayLeft + (activeDisplay.size.width / 2) - (barWidth / 2);
+        targetX =
+            localDisplayLeft + (activeDisplay.size.width / 2) - (barWidth / 2);
         targetY = localDisplayBottom - barHeight - SqaTokens.spacingXXXLarge;
       }
 
@@ -419,8 +428,12 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragStart(DragStartDetails details) {
-    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) return;
-    if ((widget.delegate.captureMode == CaptureMode.area || widget.delegate.captureMode == CaptureMode.scrolling) && !widget.delegate.isSelectingMonitor) {
+    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) {
+      return;
+    }
+    if ((widget.delegate.captureMode == CaptureMode.area ||
+            widget.delegate.captureMode == CaptureMode.scrolling) &&
+        !widget.delegate.isSelectingMonitor) {
       final startPos = details.localPosition;
       final windowPos = WindowUtils.getAppWindowPosition();
       final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
@@ -451,8 +464,12 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragUpdate(DragUpdateDetails details) {
-    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) return;
-    if ((widget.delegate.captureMode == CaptureMode.area || widget.delegate.captureMode == CaptureMode.scrolling) && !widget.delegate.isSelectingMonitor) {
+    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) {
+      return;
+    }
+    if ((widget.delegate.captureMode == CaptureMode.area ||
+            widget.delegate.captureMode == CaptureMode.scrolling) &&
+        !widget.delegate.isSelectingMonitor) {
       var currentPos = details.localPosition;
 
       // Logical Clamping Constraint
@@ -483,7 +500,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
   }
 
   void _onAreaDragEnd(DragEndDetails details) {
-    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) return;
+    if (widget.delegate.isRecording || widget.delegate.countdownSeconds > 0) {
+      return;
+    }
     if (widget.delegate.selectionRect == null &&
         _startPos != null &&
         _currentPos != null &&
@@ -542,7 +561,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
               Positioned.fill(
                 child: Image.memory(
                   delegate.frozenBackgroundBytes!,
-                  fit: BoxFit.fill, // Stretches perfectly across the spanning virtual desktop window
+                  fit: BoxFit
+                      .fill, // Stretches perfectly across the spanning virtual desktop window
                   gaplessPlayback: true,
                 ),
               ),
@@ -619,7 +639,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                               children: [
                                 Icon(
                                   switch (delegate.captureMode) {
-                                    CaptureMode.fullScreen => Symbols.desktop_windows,
+                                    CaptureMode.fullScreen =>
+                                      Symbols.desktop_windows,
                                     CaptureMode.area => Symbols.crop_free,
                                     CaptureMode.scrolling => Symbols.swipe_down,
                                   },
@@ -651,7 +672,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                         ),
 
                         // Timer & Status (if recording or countdown)
-                        if ((delegate.isRecording || delegate.countdownSeconds > 0) &&
+                        if ((delegate.isRecording ||
+                                delegate.countdownSeconds > 0) &&
                             delegate.captureMode != CaptureMode.scrolling) ...[
                           _buildTimerDisplay(delegate),
                           const SqaFloatingBarDivider(),
@@ -760,7 +782,10 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
         child: IgnorePointer(
           child: Center(
             child:
-                widget.instructionBuilder?.call(context, delegate.captureMode) ??
+                widget.instructionBuilder?.call(
+                  context,
+                  delegate.captureMode,
+                ) ??
                 _DefaultInstruction(
                   mode: delegate.captureMode,
                   isSelectingMonitor: delegate.isSelectingMonitor,
@@ -777,20 +802,20 @@ class _DefaultInstruction extends StatelessWidget {
   final bool isSelectingMonitor;
 
   const _DefaultInstruction({
-    required this.mode, 
+    required this.mode,
     this.isSelectingMonitor = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final icon = isSelectingMonitor 
+    final icon = isSelectingMonitor
         ? Symbols.monitor
         : switch (mode) {
             CaptureMode.fullScreen => Symbols.fullscreen,
             CaptureMode.area => Symbols.crop_free,
             CaptureMode.scrolling => Symbols.swipe_down,
           };
-          
+
     final text = isSelectingMonitor
         ? 'Click a monitor to select'
         : switch (mode) {
@@ -802,7 +827,11 @@ class _DefaultInstruction extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: SqaTokens.spacingXXXLarge * 2, color: Colors.white.withValues(alpha: 0.8)),
+        Icon(
+          icon,
+          size: SqaTokens.spacingXXXLarge * 2,
+          color: Colors.white.withValues(alpha: 0.8),
+        ),
         const SizedBox(height: SqaTokens.spacingLarge),
         Text(
           text,

@@ -25,7 +25,9 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         secureStorageProvider.overrideWithValue(mockSecure),
-        supporterTierProvider.overrideWith(() => MockSupporterTier()), // Ensure all features unlocked
+        supporterTierProvider.overrideWith(
+          () => MockSupporterTier(),
+        ), // Ensure all features unlocked
       ],
     );
 
@@ -43,7 +45,10 @@ void main() {
 
     // Toggle transparency
     container.read(themeSettingsProvider.notifier).toggleTransparencyMode(true);
-    expect(container.read(themeSettingsProvider).isTransparencyModeEnabled, true);
+    expect(
+      container.read(themeSettingsProvider).isTransparencyModeEnabled,
+      true,
+    );
     expect(container.read(themeSettingsProvider).opacity, 0.85);
   });
 }

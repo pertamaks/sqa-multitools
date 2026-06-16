@@ -32,7 +32,7 @@ final class AutoStartProvider extends $AsyncNotifierProvider<AutoStart, bool> {
   AutoStart create() => AutoStart();
 }
 
-String _$autoStartHash() => r'a0761e2bfc70e4e7527807f14fe25fde02d445b2';
+String _$autoStartHash() => r'c28e4091f99dbd858dc06e87cfca2772d734602c';
 
 abstract class _$AutoStart extends $AsyncNotifier<bool> {
   FutureOr<bool> build();

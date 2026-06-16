@@ -50,7 +50,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 ),
                 if (ref.watch(ffmpegProvider).isReady &&
                     state.microphoneEnabled) ...[
-                const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+                  const Divider(
+                    height: 1,
+                    indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+                  ),
                   SqaSettingsTile(
                     icon: Symbols.settings_input_component,
                     title: 'Microphone Device',
@@ -100,7 +103,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                   onChanged: (bool v) => notifier.setShowCursor(v),
                 ),
               ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+              const Divider(
+                height: 1,
+                indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+              ),
               // Left Click Color
               SqaSettingsTile(
                 icon: Symbols.left_click,
@@ -113,7 +119,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                   items: _buildColorItems(),
                 ),
               ),
-              const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+              const Divider(
+                height: 1,
+                indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+              ),
               // Right Click Color
               SqaSettingsTile(
                 icon: Symbols.right_click,
@@ -150,7 +159,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
                         .toList(),
                   ),
                 ),
-                const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+                ),
                 SqaSettingsTile(
                   icon: Symbols.speed,
                   title: 'Framerate',
@@ -160,13 +172,18 @@ class ScreenRecorderSettings extends ConsumerWidget {
                     onChanged: (int? val) => notifier.setFramerate(val!),
                     items: [60, 30, 15, 10]
                         .map(
-                          (e) =>
-                              DropdownMenuItem(value: e, child: Text('${e}fps')),
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text('${e}fps'),
+                          ),
                         )
                         .toList(),
                   ),
                 ),
-                const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+                ),
                 SqaSettingsTile(
                   icon: Symbols.schedule,
                   title: 'Start Delay',
@@ -176,12 +193,16 @@ class ScreenRecorderSettings extends ConsumerWidget {
                     onChanged: (int? val) => notifier.setDelay(val!),
                     items: [0, 2, 5, 10]
                         .map(
-                          (e) => DropdownMenuItem(value: e, child: Text('${e}s')),
+                          (e) =>
+                              DropdownMenuItem(value: e, child: Text('${e}s')),
                         )
                         .toList(),
                   ),
                 ),
-                const Divider(height: 1, indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingXXXLarge + SqaTokens.spacingSmall,
+                ),
                 SqaSettingsTile(
                   icon: Symbols.movie_filter,
                   title: 'Export Format',
@@ -252,7 +273,10 @@ class ScreenRecorderSettings extends ConsumerWidget {
           ),
         ),
         SqaCard(
-          padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
+          padding: const EdgeInsets.symmetric(
+            horizontal: SqaTokens.spacingLarge,
+            vertical: SqaTokens.spacingSmall,
+          ),
           child: Column(
             children: [
               SqaHotkeyField(
@@ -261,11 +285,18 @@ class ScreenRecorderSettings extends ConsumerWidget {
                 onSave: (info) {
                   final error = ref
                       .read(hotkeySettingsProvider.notifier)
-                      .updateHotkey(PreferencesService.keyHotkeyRecFullscreen, info);
+                      .updateHotkey(
+                        PreferencesService.keyHotkeyRecFullscreen,
+                        info,
+                      );
                   if (error != null) {
                     SqaToast.show(context, error, type: SqaToastType.error);
                   } else {
-                    SqaToast.show(context, 'Full Screen Record hotkey updated!', type: SqaToastType.success);
+                    SqaToast.show(
+                      context,
+                      'Full Screen Record hotkey updated!',
+                      type: SqaToastType.success,
+                    );
                   }
                 },
               ),

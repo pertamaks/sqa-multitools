@@ -28,19 +28,23 @@ class AuthEditor extends ConsumerWidget {
             Text(
               'AUTHORIZATION',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: SqaTokens.fontSizeSmall,
-                  ),
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.1,
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: SqaTokens.fontSizeSmall,
+              ),
             ),
             SqaPopupMenu(
               icon: Symbols.arrow_drop_down,
               builder: (context, controller, child) {
                 String label = command.authMethod.name;
                 if (command.authMethod == AuthMethod.none) label = 'No Auth';
-                if (command.authMethod == AuthMethod.bearerToken) label = 'Bearer Token';
-                if (command.authMethod == AuthMethod.basicAuth) label = 'Basic Auth';
+                if (command.authMethod == AuthMethod.bearerToken) {
+                  label = 'Bearer Token';
+                }
+                if (command.authMethod == AuthMethod.basicAuth) {
+                  label = 'Basic Auth';
+                }
                 if (command.authMethod == AuthMethod.apiKey) label = 'API Key';
                 return InkWell(
                   onTap: () {
@@ -52,11 +56,18 @@ class AuthEditor extends ConsumerWidget {
                   },
                   borderRadius: SqaTokens.borderRadiusSmall,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: SqaTokens.spacingXSmall,
+                      vertical: 2,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          label,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(width: 4),
                         const Icon(Symbols.arrow_drop_down, size: 16),
                       ],
@@ -89,7 +100,9 @@ class AuthEditor extends ConsumerWidget {
               if (command.authMethod == AuthMethod.none)
                 const Padding(
                   padding: EdgeInsets.all(SqaTokens.spacingXXLarge),
-                  child: Center(child: Text('This request does not use any authorization.')),
+                  child: Center(
+                    child: Text('This request does not use any authorization.'),
+                  ),
                 ),
               if (command.authMethod == AuthMethod.bearerToken)
                 CurlRequesterGridRow(
@@ -117,7 +130,11 @@ class AuthEditor extends ConsumerWidget {
                     onSyncRaw();
                   },
                 ),
-                const Divider(height: 1, indent: SqaTokens.spacingLarge, endIndent: SqaTokens.spacingLarge),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingLarge,
+                  endIndent: SqaTokens.spacingLarge,
+                ),
                 CurlRequesterGridRow(
                   label: 'Password',
                   value: command.authData['password'] ?? '',
@@ -144,7 +161,11 @@ class AuthEditor extends ConsumerWidget {
                     onSyncRaw();
                   },
                 ),
-                const Divider(height: 1, indent: SqaTokens.spacingLarge, endIndent: SqaTokens.spacingLarge),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingLarge,
+                  endIndent: SqaTokens.spacingLarge,
+                ),
                 CurlRequesterGridRow(
                   label: 'Value',
                   value: command.authData['value'] ?? '',
@@ -157,12 +178,25 @@ class AuthEditor extends ConsumerWidget {
                     onSyncRaw();
                   },
                 ),
-                const Divider(height: 1, indent: SqaTokens.spacingLarge, endIndent: SqaTokens.spacingLarge),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingLarge,
+                  endIndent: SqaTokens.spacingLarge,
+                ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingLarge, vertical: SqaTokens.spacingSmall),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: SqaTokens.spacingLarge,
+                    vertical: SqaTokens.spacingSmall,
+                  ),
                   child: Row(
                     children: [
-                      const Expanded(flex: 2, child: Text('Add To', style: TextStyle(fontWeight: FontWeight.bold))),
+                      const Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Add To',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                       Expanded(
                         flex: 3,
                         child: SqaPopupMenu(
@@ -178,13 +212,27 @@ class AuthEditor extends ConsumerWidget {
                               },
                               borderRadius: SqaTokens.borderRadiusSmall,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: SqaTokens.spacingXSmall,
+                                  vertical: 2,
+                                ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(command.authData['addTo'] ?? 'Header', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                    Text(
+                                      command.authData['addTo'] ?? 'Header',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
                                     const SizedBox(width: 4),
-                                    const Icon(Symbols.arrow_drop_down, size: 16),
+                                    const Icon(
+                                      Symbols.arrow_drop_down,
+                                      size: 16,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -193,9 +241,13 @@ class AuthEditor extends ConsumerWidget {
                           children: ['Header', 'Query Parameter'].map((m) {
                             return SqaPopupMenuItem(
                               onPressed: () {
-                                final data = Map<String, String>.from(command.authData);
+                                final data = Map<String, String>.from(
+                                  command.authData,
+                                );
                                 data['addTo'] = m;
-                                notifier.updateCommand(command.copyWith(authData: data));
+                                notifier.updateCommand(
+                                  command.copyWith(authData: data),
+                                );
                                 onSyncRaw();
                               },
                               icon: const Icon(Symbols.list, size: 16),

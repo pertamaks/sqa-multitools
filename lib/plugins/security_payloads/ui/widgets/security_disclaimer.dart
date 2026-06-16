@@ -35,7 +35,11 @@ class SecurityDisclaimer extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Icon(Symbols.warning, color: colorScheme.error, size: SqaTokens.spacingXLarge),
+                  Icon(
+                    Symbols.warning,
+                    color: colorScheme.error,
+                    size: SqaTokens.spacingXLarge,
+                  ),
                   const SizedBox(width: SqaTokens.spacingMedium),
                   const Expanded(
                     child: Text(

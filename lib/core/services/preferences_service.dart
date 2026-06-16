@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../models/hotkey_info.dart';
 import 'coffee_shop_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'linux_integration_service.dart';
 
 part 'preferences_service.g.dart';
 
@@ -35,7 +36,8 @@ class PreferencesService {
   static const String keyPluginOrder = 'plugin_order';
   static const String keyAppVersion = 'app_version';
   static const String keyPrefsVersion = 'prefs_version';
-  static const int currentPrefsVersion = 2; // Incremented for encryption migration
+  static const int currentPrefsVersion =
+      2; // Incremented for encryption migration
 
   static const String keyThemeMode = 'theme_mode';
   static const String keySeedColor = 'seed_color';
@@ -63,6 +65,8 @@ class PreferencesService {
   static const String keyHotkeyRecFullscreen = 'hotkey_rec_fullscreen';
   static const String keyAppOpacity = 'app_opacity';
   static const String keyTransparencyMode = 'transparency_mode';
+  static const String keyShowTaskbarIcon = 'show_taskbar_icon';
+  static const String keyLinuxSystemIntegration = 'linux_system_integration';
 
   static const String keyScreenshotSaveDir = 'screenshot_save_dir';
   static const String keyScreenshotFormat = 'screenshot_format';
@@ -70,7 +74,8 @@ class PreferencesService {
   static const String keyTextEditorSaveDir = 'text_editor_save_dir';
   static const String keyFakerLocale = 'faker_locale';
   static const String keyCurlHistory = 'plugin_curl_requester_history_v1';
-  static const String keyCurlEnvironments = 'plugin_curl_requester_environments_v1';
+  static const String keyCurlEnvironments =
+      'plugin_curl_requester_environments_v1';
 
   List<String>? getEnabledPluginIds() {
     return _prefs.getStringList(keyEnabledPlugins);
@@ -180,6 +185,22 @@ class PreferencesService {
     await _prefs.setBool(keyTransparencyMode, enabled);
   }
 
+  bool getShowTaskbarIcon() {
+    return _prefs.getBool(keyShowTaskbarIcon) ?? true;
+  }
+
+  Future<void> setShowTaskbarIcon(bool value) async {
+    await _prefs.setBool(keyShowTaskbarIcon, value);
+  }
+
+  bool getLinuxSystemIntegration() {
+    return _prefs.getBool(keyLinuxSystemIntegration) ?? false;
+  }
+
+  Future<void> setLinuxSystemIntegration(bool value) async {
+    await _prefs.setBool(keyLinuxSystemIntegration, value);
+  }
+
   Future<void> setBeautifierAutoFormat(bool autoFormat) async {
     await _prefs.setBool(keyBeautifierAutoFormat, autoFormat);
   }
@@ -253,7 +274,7 @@ class PreferencesService {
   Future<void> setTextEditorSaveDir(String path) async {
     await _prefs.setString(keyTextEditorSaveDir, path);
   }
-  
+
   String getFakerLocale() {
     return _prefs.getString(keyFakerLocale) ?? 'en_US';
   }
@@ -307,6 +328,8 @@ class ThemeSettingsData {
   final bool alwaysOnTop;
   final double opacity;
   final bool isTransparencyModeEnabled;
+  final bool showTaskbarIcon;
+  final bool linuxSystemIntegration;
 
   const ThemeSettingsData({
     required this.modeIndex,
@@ -315,6 +338,8 @@ class ThemeSettingsData {
     required this.alwaysOnTop,
     required this.opacity,
     required this.isTransparencyModeEnabled,
+    required this.showTaskbarIcon,
+    required this.linuxSystemIntegration,
   });
 
   ThemeSettingsData copyWith({
@@ -324,6 +349,8 @@ class ThemeSettingsData {
     bool? alwaysOnTop,
     double? opacity,
     bool? isTransparencyModeEnabled,
+    bool? showTaskbarIcon,
+    bool? linuxSystemIntegration,
   }) {
     return ThemeSettingsData(
       modeIndex: modeIndex ?? this.modeIndex,
@@ -333,6 +360,9 @@ class ThemeSettingsData {
       opacity: opacity ?? this.opacity,
       isTransparencyModeEnabled:
           isTransparencyModeEnabled ?? this.isTransparencyModeEnabled,
+      showTaskbarIcon: showTaskbarIcon ?? this.showTaskbarIcon,
+      linuxSystemIntegration:
+          linuxSystemIntegration ?? this.linuxSystemIntegration,
     );
   }
 }
@@ -342,7 +372,7 @@ class ThemeSettings extends _$ThemeSettings {
   @override
   ThemeSettingsData build() {
     final service = ref.watch(preferencesServiceProvider);
-    
+
     final initialSettings = ThemeSettingsData(
       modeIndex: service.getThemeModeIndex(),
       seedColorValue: service.getSeedColorValue(),
@@ -350,6 +380,8 @@ class ThemeSettings extends _$ThemeSettings {
       alwaysOnTop: service.getAlwaysOnTop(),
       opacity: service.getAppOpacity(),
       isTransparencyModeEnabled: service.getTransparencyMode(),
+      showTaskbarIcon: service.getShowTaskbarIcon(),
+      linuxSystemIntegration: service.getLinuxSystemIntegration(),
     );
 
     return _applyTierConstraints(initialSettings);
@@ -357,7 +389,7 @@ class ThemeSettings extends _$ThemeSettings {
 
   ThemeSettingsData _applyTierConstraints(ThemeSettingsData settings) {
     final tier = ref.read(supporterTierProvider);
-    
+
     int seedColorValue = settings.seedColorValue;
     bool useDynamicColor = settings.useDynamicColor;
     bool isTransparencyEnabled = settings.isTransparencyModeEnabled;
@@ -413,11 +445,29 @@ class ThemeSettings extends _$ThemeSettings {
     windowManager.setAlwaysOnTop(value);
   }
 
+  void setShowTaskbarIcon(bool value) {
+    state = state.copyWith(showTaskbarIcon: value);
+    ref.read(preferencesServiceProvider).setShowTaskbarIcon(value);
+    windowManager.setSkipTaskbar(!value);
+  }
+
+  Future<void> setLinuxSystemIntegration(bool value) async {
+    state = state.copyWith(linuxSystemIntegration: value);
+    ref.read(preferencesServiceProvider).setLinuxSystemIntegration(value);
+    final integrationService = ref.read(linuxIntegrationServiceProvider);
+    if (value) {
+      await integrationService.integrate();
+    } else {
+      await integrationService.removeIntegration();
+    }
+  }
+
   void setOpacity(double value) {
     // Clamping logic: if transparency is enabled, we cap it at 0.85
     // If not, it should generally be 1.0 (opaque)
-    double effectiveValue =
-        state.isTransparencyModeEnabled ? value.clamp(0.2, 0.85) : 1.0;
+    double effectiveValue = state.isTransparencyModeEnabled
+        ? value.clamp(0.2, 0.85)
+        : 1.0;
 
     // Round to 2 decimal places to avoid floating point drift that can break Sliders
     effectiveValue = double.parse(effectiveValue.toStringAsFixed(2));
@@ -448,7 +498,7 @@ class ThemeSettings extends _$ThemeSettings {
   }
 
   // Temporary preview methods (not saved to prefs)
-  
+
   void previewSeedColor(int colorValue) {
     state = state.copyWith(seedColorValue: colorValue);
   }
@@ -474,8 +524,10 @@ class ThemeSettings extends _$ThemeSettings {
       alwaysOnTop: service.getAlwaysOnTop(),
       opacity: service.getAppOpacity(),
       isTransparencyModeEnabled: service.getTransparencyMode(),
+      showTaskbarIcon: service.getShowTaskbarIcon(),
+      linuxSystemIntegration: service.getLinuxSystemIntegration(),
     );
-    
+
     state = _applyTierConstraints(savedSettings);
   }
 }

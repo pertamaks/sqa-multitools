@@ -39,7 +39,9 @@ class CurlTransaction {
       id: json['id'] as String,
       request: CurlCommand.fromJson(json['request'] as Map<String, dynamic>),
       resolvedRequest: json['resolvedRequest'] != null
-          ? CurlCommand.fromJson(json['resolvedRequest'] as Map<String, dynamic>)
+          ? CurlCommand.fromJson(
+              json['resolvedRequest'] as Map<String, dynamic>,
+            )
           : null,
       statusCode: json['statusCode'] as int,
       responseBody: json['responseBody'] as String,

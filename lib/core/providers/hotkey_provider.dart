@@ -45,18 +45,19 @@ class HotkeySettings {
     bool clearAreaRecordToggle = false,
   }) {
     return HotkeySettings(
-      showToolbar:
-          clearShowToolbar ? null : (showToolbar ?? this.showToolbar),
-      recordToggle:
-          clearRecordToggle ? null : (recordToggle ?? this.recordToggle),
+      showToolbar: clearShowToolbar ? null : (showToolbar ?? this.showToolbar),
+      recordToggle: clearRecordToggle
+          ? null
+          : (recordToggle ?? this.recordToggle),
       screenshotToggle: clearScreenshotToggle
           ? null
           : (screenshotToggle ?? this.screenshotToggle),
       areaRecordToggle: clearAreaRecordToggle
           ? null
           : (areaRecordToggle ?? this.areaRecordToggle),
-      ssFullscreen:
-          clearSsFullscreen ? null : (ssFullscreen ?? this.ssFullscreen),
+      ssFullscreen: clearSsFullscreen
+          ? null
+          : (ssFullscreen ?? this.ssFullscreen),
       ssArea: clearSsArea ? null : (ssArea ?? this.ssArea),
       ssLong: clearSsLong ? null : (ssLong ?? this.ssLong),
       recFullscreen: clearRecFullscreen
@@ -67,15 +68,15 @@ class HotkeySettings {
 
   /// All hotkey entries as (prefKey, hotkeyInfo) pairs for iteration.
   List<(String, HotkeyInfo?)> get entries => [
-        (PreferencesService.keyHotkeyShowToolbar, showToolbar),
-        (PreferencesService.keyHotkeyRecordToggle, recordToggle),
-        (PreferencesService.keyHotkeyScreenshotToggle, screenshotToggle),
-        (PreferencesService.keyHotkeyAreaRecord, areaRecordToggle),
-        (PreferencesService.keyHotkeySsFullscreen, ssFullscreen),
-        (PreferencesService.keyHotkeySsArea, ssArea),
-        (PreferencesService.keyHotkeySsLong, ssLong),
-        (PreferencesService.keyHotkeyRecFullscreen, recFullscreen),
-      ];
+    (PreferencesService.keyHotkeyShowToolbar, showToolbar),
+    (PreferencesService.keyHotkeyRecordToggle, recordToggle),
+    (PreferencesService.keyHotkeyScreenshotToggle, screenshotToggle),
+    (PreferencesService.keyHotkeyAreaRecord, areaRecordToggle),
+    (PreferencesService.keyHotkeySsFullscreen, ssFullscreen),
+    (PreferencesService.keyHotkeySsArea, ssArea),
+    (PreferencesService.keyHotkeySsLong, ssLong),
+    (PreferencesService.keyHotkeyRecFullscreen, recFullscreen),
+  ];
 }
 
 class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
@@ -94,18 +95,15 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
 
     final settings = HotkeySettings(
       showToolbar: prefs.getHotkey(PreferencesService.keyHotkeyShowToolbar),
-      recordToggle:
-          prefs.getHotkey(PreferencesService.keyHotkeyRecordToggle),
-      screenshotToggle:
-          prefs.getHotkey(PreferencesService.keyHotkeyScreenshotToggle),
-      areaRecordToggle:
-          prefs.getHotkey(PreferencesService.keyHotkeyAreaRecord),
-      ssFullscreen:
-          prefs.getHotkey(PreferencesService.keyHotkeySsFullscreen),
+      recordToggle: prefs.getHotkey(PreferencesService.keyHotkeyRecordToggle),
+      screenshotToggle: prefs.getHotkey(
+        PreferencesService.keyHotkeyScreenshotToggle,
+      ),
+      areaRecordToggle: prefs.getHotkey(PreferencesService.keyHotkeyAreaRecord),
+      ssFullscreen: prefs.getHotkey(PreferencesService.keyHotkeySsFullscreen),
       ssArea: prefs.getHotkey(PreferencesService.keyHotkeySsArea),
       ssLong: prefs.getHotkey(PreferencesService.keyHotkeySsLong),
-      recFullscreen:
-          prefs.getHotkey(PreferencesService.keyHotkeyRecFullscreen),
+      recFullscreen: prefs.getHotkey(PreferencesService.keyHotkeyRecFullscreen),
     );
 
     Future.microtask(() => _registerAll(settings));
@@ -153,7 +151,9 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
   }
 
   Future<void> _registerAll(HotkeySettings settings) async {
-    if (Platform.isLinux) return; // Prevent Wayland crashes from X11 hotkey bindings
+    if (Platform.isLinux) {
+      return; // Prevent Wayland crashes from X11 hotkey bindings
+    }
     await hotKeyManager.unregisterAll();
 
     final registrations = [

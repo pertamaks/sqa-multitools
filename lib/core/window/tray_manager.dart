@@ -39,16 +39,25 @@ class TrayManager {
     });
   }
 
-  static Future<void> _updateMenu(List<SqaPlugin> plugins, ProviderContainer container) async {
+  static Future<void> _updateMenu(
+    List<SqaPlugin> plugins,
+    ProviderContainer container,
+  ) async {
     final Menu menu = Menu();
 
-    final pluginItems = plugins.map((p) => MenuItemLabel(
-      label: p.name,
-      onClicked: (menuItem) async {
-        await WindowUtils.safeShow();
-        container.read(navigationServiceProvider).togglePlugin(p, forceOpen: true);
-      },
-    )).toList();
+    final pluginItems = plugins
+        .map(
+          (p) => MenuItemLabel(
+            label: p.name,
+            onClicked: (menuItem) async {
+              await WindowUtils.safeShow();
+              container
+                  .read(navigationServiceProvider)
+                  .togglePlugin(p, forceOpen: true);
+            },
+          ),
+        )
+        .toList();
 
     await menu.buildFrom([
       MenuItemLabel(
@@ -65,7 +74,9 @@ class TrayManager {
         onClicked: (menuItem) async {
           await WindowUtils.safeShow();
           final settingsPlugin = container.read(settingsPluginProvider);
-          container.read(navigationServiceProvider).togglePlugin(settingsPlugin, forceOpen: true);
+          container
+              .read(navigationServiceProvider)
+              .togglePlugin(settingsPlugin, forceOpen: true);
         },
       ),
       MenuSeparator(),

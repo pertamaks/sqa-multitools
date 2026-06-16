@@ -105,7 +105,9 @@ void main() {
             'get': {
               'tags': ['System'],
               'summary': 'Health check',
-              'responses': {'200': {'description': 'OK'}},
+              'responses': {
+                '200': {'description': 'OK'},
+              },
             },
           },
         },
@@ -123,7 +125,9 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'Secured API', 'version': '1.0'},
-        'servers': [{'url': 'https://api.example.com'}],
+        'servers': [
+          {'url': 'https://api.example.com'},
+        ],
         'paths': {
           '/me': {
             'get': {
@@ -132,7 +136,9 @@ void main() {
               'security': [
                 {'ApiKeyAuth': <String>[]},
               ],
-              'responses': {'200': {'description': 'Profile'}},
+              'responses': {
+                '200': {'description': 'Profile'},
+              },
             },
           },
         },
@@ -171,9 +177,13 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'Global Security', 'version': '1.0'},
-        'servers': [{'url': 'https://api.example.com'}],
+        'servers': [
+          {'url': 'https://api.example.com'},
+        ],
         'security': [
-          {'BearerAuth': ['read', 'write']},
+          {
+            'BearerAuth': ['read', 'write'],
+          },
           {'ApiKeyAuth': <String>[]},
         ],
         'paths': {
@@ -181,7 +191,9 @@ void main() {
             'get': {
               'tags': ['Items'],
               'summary': 'List items',
-              'responses': {'200': {'description': 'Items'}},
+              'responses': {
+                '200': {'description': 'Items'},
+              },
             },
           },
         },
@@ -215,7 +227,9 @@ void main() {
             'get': {
               'tags': ['Users'],
               'summary': 'List users',
-              'responses': {'200': {'description': 'Users'}},
+              'responses': {
+                '200': {'description': 'Users'},
+              },
             },
           },
         },
@@ -252,7 +266,9 @@ void main() {
                   },
                 },
               ],
-              'responses': {'201': {'description': 'Created'}},
+              'responses': {
+                '201': {'description': 'Created'},
+              },
             },
           },
         },
@@ -274,18 +290,16 @@ void main() {
         'info': {'title': 'Legacy Auth', 'version': '1.0'},
         'host': 'api.example.com',
         'securityDefinitions': {
-          'api_key': {
-            'type': 'apiKey',
-            'in': 'query',
-            'name': 'api_key',
-          },
+          'api_key': {'type': 'apiKey', 'in': 'query', 'name': 'api_key'},
         },
         'paths': {
           '/data': {
             'get': {
               'tags': ['Data'],
               'summary': 'Get data',
-              'responses': {'200': {'description': 'OK'}},
+              'responses': {
+                '200': {'description': 'OK'},
+              },
             },
           },
         },
@@ -304,7 +318,9 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'Empty', 'version': '1.0'},
-        'servers': [{'url': 'http://localhost'}],
+        'servers': [
+          {'url': 'http://localhost'},
+        ],
         'paths': <String, dynamic>{},
       };
 
@@ -338,13 +354,17 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'Filtered', 'version': '1.0'},
-        'servers': [{'url': 'http://localhost'}],
+        'servers': [
+          {'url': 'http://localhost'},
+        ],
         'paths': {
           '/valid': {
             'get': {
               'tags': ['Test'],
               'summary': 'Valid endpoint',
-              'responses': {'200': {'description': 'OK'}},
+              'responses': {
+                '200': {'description': 'OK'},
+              },
             },
           },
           '/invalid': 'not a map',
@@ -360,13 +380,17 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'OpId', 'version': '1.0'},
-        'servers': [{'url': 'http://localhost'}],
+        'servers': [
+          {'url': 'http://localhost'},
+        ],
         'paths': {
           '/items': {
             'get': {
               'tags': ['Items'],
               'operationId': 'listItems',
-              'responses': {'200': {'description': 'OK'}},
+              'responses': {
+                '200': {'description': 'OK'},
+              },
             },
           },
         },
@@ -380,12 +404,16 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'No Tags', 'version': '1.0'},
-        'servers': [{'url': 'http://localhost'}],
+        'servers': [
+          {'url': 'http://localhost'},
+        ],
         'paths': {
           '/ping': {
             'get': {
               'summary': 'Ping',
-              'responses': {'200': {'description': 'OK'}},
+              'responses': {
+                '200': {'description': 'OK'},
+              },
             },
           },
         },
@@ -399,13 +427,17 @@ void main() {
       final json = <String, dynamic>{
         'openapi': '3.0.0',
         'info': {'title': 'Case Test', 'version': '1.0'},
-        'servers': [{'url': 'http://localhost'}],
+        'servers': [
+          {'url': 'http://localhost'},
+        ],
         'paths': {
           '/item': {
             'patch': {
               'tags': ['Items'],
               'summary': 'Patch item',
-              'responses': {'200': {'description': 'OK'}},
+              'responses': {
+                '200': {'description': 'OK'},
+              },
             },
           },
         },
@@ -431,10 +463,9 @@ void main() {
         },
       };
 
-      final result = SwaggerParserService.resolveRefs(
-        {'\$ref': '#/components/schemas/Error'},
-        root,
-      );
+      final result = SwaggerParserService.resolveRefs({
+        '\$ref': '#/components/schemas/Error',
+      }, root);
 
       expect(result, isA<Map<String, dynamic>>());
       expect(result['type'], 'object');
@@ -455,24 +486,22 @@ void main() {
         },
       };
 
-      final result = SwaggerParserService.resolveRefs(
-        {'\$ref': '#/components/schemas/Node'},
-        root,
-      );
+      final result = SwaggerParserService.resolveRefs({
+        '\$ref': '#/components/schemas/Node',
+      }, root);
 
       // Should resolve without stack overflow and return the ref stub
       expect(result, isA<Map<String, dynamic>>());
       expect(result['type'], 'object');
-      expect(result['properties']['next']['\$ref'],
-          '#/components/schemas/Node');
+      expect(
+        result['properties']['next']['\$ref'],
+        '#/components/schemas/Node',
+      );
     });
 
     test('preserves non-ref nodes as-is', () {
       final root = <String, dynamic>{};
-      final result = SwaggerParserService.resolveRefs(
-        {'type': 'string'},
-        root,
-      );
+      final result = SwaggerParserService.resolveRefs({'type': 'string'}, root);
 
       expect(result['type'], 'string');
     });
@@ -482,18 +511,17 @@ void main() {
         'definitions': {
           'Tag': {
             'type': 'object',
-            'properties': {'name': {'type': 'string'}},
+            'properties': {
+              'name': {'type': 'string'},
+            },
           },
         },
       };
 
-      final result = SwaggerParserService.resolveRefs(
-        [
-          {'type': 'string'},
-          {'\$ref': '#/definitions/Tag'},
-        ],
-        root,
-      );
+      final result = SwaggerParserService.resolveRefs([
+        {'type': 'string'},
+        {'\$ref': '#/definitions/Tag'},
+      ], root);
 
       expect(result, hasLength(2));
       expect(result[0]['type'], 'string');

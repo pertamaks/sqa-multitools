@@ -51,50 +51,53 @@ void main() {
     late ProviderContainer container;
 
     setUp(() async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-        const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),
-        (MethodCall call) async => null,
-      );
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-        const MethodChannel('dev.leanflutter.plugins/hotkey_manager_event'),
-        (MethodCall call) async => null,
-      );
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-        const MethodChannel('dev.leanflutter.plugins/screen_retriever'),
-        (MethodCall call) async {
-          if (call.method == 'getAllDisplays') {
-            return {
-              'displays': [
-                {
-                  'id': '1',
-                  'name': 'Screen 1',
-                  'size': {'width': 1920.0, 'height': 1080.0},
-                  'scaleFactor': 1.0,
-                },
-              ],
-            };
-          }
-          if (call.method == 'getCursorScreenPoint') {
-            return {'dx': 0.0, 'dy': 0.0};
-          }
-          return null;
-        },
-      );
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-        const MethodChannel('window_manager'),
-        (MethodCall call) async {
-          if (call.method == 'getBounds') {
-            return {'x': 0.0, 'y': 0.0, 'width': 800.0, 'height': 600.0};
-          }
-          if (call.method == 'getSize') {
-            return {'width': 800.0, 'height': 600.0};
-          }
-          if (call.method == 'getPosition') {
-            return {'x': 0.0, 'y': 0.0};
-          }
-          return true;
-        },
-      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('dev.leanflutter.plugins/hotkey_manager'),
+            (MethodCall call) async => null,
+          );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('dev.leanflutter.plugins/hotkey_manager_event'),
+            (MethodCall call) async => null,
+          );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('dev.leanflutter.plugins/screen_retriever'),
+            (MethodCall call) async {
+              if (call.method == 'getAllDisplays') {
+                return {
+                  'displays': [
+                    {
+                      'id': '1',
+                      'name': 'Screen 1',
+                      'size': {'width': 1920.0, 'height': 1080.0},
+                      'scaleFactor': 1.0,
+                    },
+                  ],
+                };
+              }
+              if (call.method == 'getCursorScreenPoint') {
+                return {'dx': 0.0, 'dy': 0.0};
+              }
+              return null;
+            },
+          );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('window_manager'), (
+            MethodCall call,
+          ) async {
+            if (call.method == 'getBounds') {
+              return {'x': 0.0, 'y': 0.0, 'width': 800.0, 'height': 600.0};
+            }
+            if (call.method == 'getSize') {
+              return {'width': 800.0, 'height': 600.0};
+            }
+            if (call.method == 'getPosition') {
+              return {'x': 0.0, 'y': 0.0};
+            }
+            return true;
+          });
       SharedPreferences.setMockInitialValues({});
       PathProviderPlatform.instance = MockPathProvider();
       final prefs = await SharedPreferences.getInstance();

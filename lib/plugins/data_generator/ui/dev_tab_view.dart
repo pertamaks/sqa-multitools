@@ -37,7 +37,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
   void _showResult(List<String> session, String title) {
     final state = ref.read(devGeneratorProvider);
     String text = '';
-    
+
     if (state.selectedType == DevType.date && session.length == 5) {
       final labels = [
         'ISO 8601',
@@ -46,10 +46,13 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
         'UNIX TIMESTAMP',
         'HUMAN READABLE',
       ];
-      text = List.generate(5, (index) => '${labels[index]}:\n${session[index]}').join('\n\n');
+      text = List.generate(
+        5,
+        (index) => '${labels[index]}:\n${session[index]}',
+      ).join('\n\n');
     } else {
-      text = state.includeFormatting 
-          ? session.map((e) => '• $e').join('\n') 
+      text = state.includeFormatting
+          ? session.map((e) => '• $e').join('\n')
           : session.join('\n');
     }
 
@@ -65,7 +68,11 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
             icon: Symbols.content_copy,
             onPressed: () {
               Clipboard.setData(ClipboardData(text: text));
-              SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+              SqaToast.show(
+                context,
+                'Copied to clipboard',
+                type: SqaToastType.success,
+              );
             },
           ),
           const SizedBox(width: SqaTokens.spacingXXSmall),
@@ -117,7 +124,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
           const SizedBox(height: SqaTokens.spacingXLarge),
           const DevConfigPanel(),
           const SizedBox(height: SqaTokens.spacingXLarge),
-          
+
           SqaHistoryList<List<String>>(
             items: history,
             title: 'History',
@@ -129,7 +136,7 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
                 title: state.selectedType == DevType.uuid
                     ? '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} • ${identityState.quantity} items ($displayIndex)'
                     : '${state.selectedType.label} • ${LocaleNames.getDisplayName(identityState.locale.name)} ($displayIndex)',
-                subtitle: state.selectedType == DevType.uuid 
+                subtitle: state.selectedType == DevType.uuid
                     ? item.join(', ')
                     : item.first,
                 icon: _getDevIcon(state.selectedType),
@@ -140,11 +147,17 @@ class _DevTabViewState extends ConsumerState<DevTabView> {
                     icon: Symbols.content_copy,
                     tooltip: 'Copy all',
                     onPressed: () {
-                      final text = (state.selectedType == DevType.uuid && state.includeFormatting)
+                      final text =
+                          (state.selectedType == DevType.uuid &&
+                              state.includeFormatting)
                           ? item.map((e) => '• $e').join('\n')
                           : item.join('\n');
                       Clipboard.setData(ClipboardData(text: text));
-                      SqaToast.show(context, 'Copied to clipboard', type: SqaToastType.success);
+                      SqaToast.show(
+                        context,
+                        'Copied to clipboard',
+                        type: SqaToastType.success,
+                      );
                     },
                   ),
                 ],

@@ -101,8 +101,7 @@ class SwaggerParserService {
 
       final result = <String, dynamic>{};
       for (final entry in node.entries) {
-        result[entry.key as String] =
-            resolveRefs(entry.value, root, visited);
+        result[entry.key as String] = resolveRefs(entry.value, root, visited);
       }
       return result;
     } else if (node is List) {
@@ -113,10 +112,7 @@ class SwaggerParserService {
 
   // ── Private helpers ──────────────────────────────────────────────────
 
-  static String? _extractBaseUrl(
-    Map<String, dynamic> json,
-    String? sourceUrl,
-  ) {
+  static String? _extractBaseUrl(Map<String, dynamic> json, String? sourceUrl) {
     // OpenAPI 3.0: servers[0].url
     if (json.containsKey('servers') &&
         json['servers'] is List &&
@@ -125,10 +121,9 @@ class SwaggerParserService {
       if (baseUrl != null && baseUrl.startsWith('/') && sourceUrl != null) {
         try {
           final uri = Uri.parse(sourceUrl);
-          final portString =
-              (uri.hasPort && uri.port != 80 && uri.port != 443)
-                  ? ':${uri.port}'
-                  : '';
+          final portString = (uri.hasPort && uri.port != 80 && uri.port != 443)
+              ? ':${uri.port}'
+              : '';
           baseUrl = '${uri.scheme}://${uri.host}$portString$baseUrl';
         } catch (_) {
           // Malformed source URL — leave baseUrl as-is
@@ -141,8 +136,8 @@ class SwaggerParserService {
     if (json.containsKey('host')) {
       final scheme =
           (json['schemes'] is List && (json['schemes'] as List).isNotEmpty)
-              ? (json['schemes'] as List).first
-              : 'http';
+          ? (json['schemes'] as List).first
+          : 'http';
       final host = json['host'];
       final basePath = json['basePath'] ?? '';
       return '$scheme://$host$basePath';
@@ -198,8 +193,9 @@ class SwaggerParserService {
           final mappedSec = <String, List<String>>{};
           sec.forEach((key, value) {
             if (value is List) {
-              mappedSec[key.toString()] =
-                  value.map((e) => e.toString()).toList();
+              mappedSec[key.toString()] = value
+                  .map((e) => e.toString())
+                  .toList();
             } else if (value == null || value is String) {
               mappedSec[key.toString()] = [];
             }
@@ -217,9 +213,10 @@ class SwaggerParserService {
     Map<String, dynamic> details,
     Map<String, dynamic> root,
   ) {
-    final summary =
-        (details['summary'] ?? details['operationId'] ?? '').toString();
-    final tags = (details['tags'] as List<dynamic>?)
+    final summary = (details['summary'] ?? details['operationId'] ?? '')
+        .toString();
+    final tags =
+        (details['tags'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
         <String>['default'];
@@ -249,7 +246,7 @@ class SwaggerParserService {
     // Cast to List<Map> for type-safe access in consumers.
     final resolvedParams = details['parameters'] != null
         ? (resolveRefs(details['parameters'], root) as List<dynamic>?)
-            ?.cast<Map<String, dynamic>>()
+              ?.cast<Map<String, dynamic>>()
         : null;
 
     return SwaggerEndpoint(
@@ -258,8 +255,7 @@ class SwaggerParserService {
       summary: summary,
       tags: tags,
       parameters: resolvedParams,
-      requestBody:
-          resolveRefs(requestBody, root) as Map<String, dynamic>?,
+      requestBody: resolveRefs(requestBody, root) as Map<String, dynamic>?,
       responses:
           resolveRefs(details['responses'], root) as Map<String, dynamic>?,
       security: endpointSecurity,

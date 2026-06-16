@@ -51,7 +51,9 @@ class DevGenerator extends _$DevGenerator {
   void generate() {
     final List<String> currentGeneration = [];
     final identityState = ref.read(identityProvider);
-    final count = state.selectedType == DevType.uuid ? identityState.quantity : 1;
+    final count = state.selectedType == DevType.uuid
+        ? identityState.quantity
+        : 1;
 
     if (state.selectedType == DevType.date) {
       currentGeneration.addAll(_generateDateFormats());
@@ -61,7 +63,9 @@ class DevGenerator extends _$DevGenerator {
       }
     }
 
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedType] ?? [],
+    );
     final newHistory = [currentGeneration, ...currentHistory];
 
     if (newHistory.length > 10) {
@@ -77,7 +81,9 @@ class DevGenerator extends _$DevGenerator {
   }
 
   void removeHistory(List<String> session) {
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedType] ?? [],
+    );
     currentHistory.remove(session);
     state = state.copyWith(
       resultsMap: <DevType, List<List<String>>>{

@@ -59,10 +59,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        constraints: const BoxConstraints(
-          minHeight: 40,
-          maxHeight: 40,
-        ),
+        constraints: const BoxConstraints(minHeight: 40, maxHeight: 40),
         decoration: BoxDecoration(
           color: _isFocused
               ? colorScheme.primaryContainer.withValues(alpha: 0.15)
@@ -114,7 +111,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       key: const ValueKey('search_mode'),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: SqaTokens.spacingMedium, right: SqaTokens.spacingSmall),
+          padding: const EdgeInsets.only(
+            left: SqaTokens.spacingMedium,
+            right: SqaTokens.spacingSmall,
+          ),
           child: Icon(
             Symbols.search,
             size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
@@ -152,7 +152,9 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
         if (_effectiveController.text.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(
-              right: widget.filterOptions != null ? SqaTokens.spacingXSmall : SqaTokens.spacingSmall,
+              right: widget.filterOptions != null
+                  ? SqaTokens.spacingXSmall
+                  : SqaTokens.spacingSmall,
             ),
             child: SqaHoverIconButton(
               icon: Symbols.close,
@@ -190,7 +192,10 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
       key: const ValueKey('filter_mode'),
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: SqaTokens.spacingSmall + 4, right: SqaTokens.spacingSmall),
+          padding: const EdgeInsets.only(
+            left: SqaTokens.spacingSmall + 4,
+            right: SqaTokens.spacingSmall,
+          ),
           child: SqaHoverIconButton(
             icon: Symbols.search,
             iconSize: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
@@ -206,9 +211,7 @@ class _SqaSearchFilterBarState extends State<SqaSearchFilterBar> {
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
           margin: const EdgeInsets.only(right: SqaTokens.spacingXSmall),
         ),
-        Expanded(
-          child: widget.filterOptions!,
-        ),
+        Expanded(child: widget.filterOptions!),
         const SizedBox(width: SqaTokens.spacingSmall),
       ],
     );

@@ -17,9 +17,7 @@ void main() {
 
     test('generate chinese returns CJK characters', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       final notifier = container.read(glyphsGeneratorProvider.notifier);
 
@@ -29,7 +27,8 @@ void main() {
       notifier.generate();
 
       final state = container.read(glyphsGeneratorProvider);
-      final results = state.resultsMap[GlyphsCategory.chinese] ?? <List<String>>[];
+      final results =
+          state.resultsMap[GlyphsCategory.chinese] ?? <List<String>>[];
       // Chinese characters should have high code units
       expect(results.first.first.codeUnits.any((int u) => u > 0x4E00), isTrue);
       // Should NOT contain spaces for Chinese sentences
@@ -38,9 +37,7 @@ void main() {
 
     test('generate arabic returns Arabic characters', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       final notifier = container.read(glyphsGeneratorProvider.notifier);
 
@@ -50,10 +47,13 @@ void main() {
       notifier.generate();
 
       final state = container.read(glyphsGeneratorProvider);
-      final results = state.resultsMap[GlyphsCategory.arabic] ?? <List<String>>[];
+      final results =
+          state.resultsMap[GlyphsCategory.arabic] ?? <List<String>>[];
       // Arabic characters are in the 0x0600 range
       expect(
-        results.first.first.codeUnits.any((int u) => u >= 0x0600 && u <= 0x06FF),
+        results.first.first.codeUnits.any(
+          (int u) => u >= 0x0600 && u <= 0x06FF,
+        ),
         isTrue,
       );
       expect(results.first.first.contains(' '), isTrue);
@@ -61,9 +61,7 @@ void main() {
 
     test('generate japanese still works (from faker)', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       final notifier = container.read(glyphsGeneratorProvider.notifier);
 
@@ -73,7 +71,8 @@ void main() {
       notifier.generate();
 
       final state = container.read(glyphsGeneratorProvider);
-      final results = state.resultsMap[GlyphsCategory.japanese] ?? <List<String>>[];
+      final results =
+          state.resultsMap[GlyphsCategory.japanese] ?? <List<String>>[];
       expect(results.first.first.codeUnits.any((int u) => u > 127), isTrue);
     });
   });

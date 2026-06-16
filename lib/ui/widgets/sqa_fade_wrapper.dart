@@ -88,9 +88,7 @@ class _SqaFadeWrapperState extends State<SqaFadeWrapper> {
 
           return LinearGradient(
             begin: isVertical ? Alignment.topCenter : Alignment.centerLeft,
-            end: isVertical
-                ? Alignment.bottomCenter
-                : Alignment.centerRight,
+            end: isVertical ? Alignment.bottomCenter : Alignment.centerRight,
             colors: [
               Colors.black.withValues(
                 alpha: 1.0 - (widget.showStart ? _startIntensity : 0),

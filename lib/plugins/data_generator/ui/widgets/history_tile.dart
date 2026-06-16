@@ -34,7 +34,7 @@ class _DataHistoryTileState extends State<DataHistoryTile> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return NotificationListener<SqaMenuOpenNotification>(
       onNotification: (notification) {
         setState(() {
@@ -63,7 +63,7 @@ class _DataHistoryTileState extends State<DataHistoryTile> {
                 duration: const Duration(milliseconds: 150),
                 decoration: BoxDecoration(
                   color: _isHovered && !isAnyMenuOpen
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.04) 
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
                       : Colors.transparent,
                   borderRadius: SqaStyles.radiusMedium,
                 ),
@@ -105,7 +105,8 @@ class _DataHistoryTileState extends State<DataHistoryTile> {
                         Text(
                           widget.subtitle,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -126,7 +127,8 @@ class _DataHistoryTileState extends State<DataHistoryTile> {
                           final confirmed = await SqaModal.showDanger(
                             context,
                             title: 'Delete History?',
-                            message: 'Are you sure you want to delete this specific generation entry?',
+                            message:
+                                'Are you sure you want to delete this specific generation entry?',
                             confirmLabel: 'Delete',
                           );
                           if (confirmed == true) {

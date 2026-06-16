@@ -16,9 +16,7 @@ void main() {
 
     test('initial state is empty', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       final state = container.read(textGeneratorProvider);
       expect(state.resultsMap[TextType.bytes], isNull);
@@ -26,9 +24,7 @@ void main() {
 
     test('generate bytes returns correct length', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       final notifier = container.read(textGeneratorProvider.notifier);
 
@@ -43,9 +39,7 @@ void main() {
 
     test('generate chapter starts with CHAPTER', () {
       final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-        ],
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       );
       final notifier = container.read(textGeneratorProvider.notifier);
 

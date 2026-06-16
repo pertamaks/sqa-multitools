@@ -14,10 +14,12 @@ part 'swagger_provider.g.dart';
 class SwaggerNotifier extends _$SwaggerNotifier {
   /// Shared Dio instance with sensible timeouts.
   /// Not made top-level to avoid issues with Riverpod code generation.
-  final _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 30),
-  ));
+  final _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 30),
+    ),
+  );
 
   @override
   SwaggerState build() => const SwaggerState();
@@ -56,8 +58,12 @@ class SwaggerNotifier extends _$SwaggerNotifier {
     } catch (e, stack) {
       ref
           .read(loggingServiceProvider.notifier)
-          .logError('Failed to fetch Swagger JSON from URL: $e',
-              'SwaggerExplorer', e, stack);
+          .logError(
+            'Failed to fetch Swagger JSON from URL: $e',
+            'SwaggerExplorer',
+            e,
+            stack,
+          );
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Failed to fetch Swagger JSON: $e',
@@ -73,8 +79,9 @@ class SwaggerNotifier extends _$SwaggerNotifier {
 
       final Map<String, dynamic> jsonMap =
           jsonDecode(content) as Map<String, dynamic>;
-      final schemaInfo =
-          await compute(parseSwaggerJsonIsolate, {'json': jsonMap});
+      final schemaInfo = await compute(parseSwaggerJsonIsolate, {
+        'json': jsonMap,
+      });
 
       _addToHistory(schemaInfo, filePath: filePath);
       state = state.copyWith(
@@ -85,8 +92,12 @@ class SwaggerNotifier extends _$SwaggerNotifier {
     } catch (e, stack) {
       ref
           .read(loggingServiceProvider.notifier)
-          .logError('Failed to parse Swagger JSON from file: $e',
-              'SwaggerExplorer', e, stack);
+          .logError(
+            'Failed to parse Swagger JSON from file: $e',
+            'SwaggerExplorer',
+            e,
+            stack,
+          );
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Failed to parse Swagger JSON from file: $e',
@@ -95,8 +106,7 @@ class SwaggerNotifier extends _$SwaggerNotifier {
   }
 
   void deleteFromHistory(String id) {
-    final newHistory =
-        state.history.where((item) => item.id != id).toList();
+    final newHistory = state.history.where((item) => item.id != id).toList();
     state = state.copyWith(history: newHistory);
   }
 
@@ -105,15 +115,13 @@ class SwaggerNotifier extends _$SwaggerNotifier {
   }
 
   void setSecurityValue(String key, String value) {
-    final newValues =
-        Map<String, String>.from(state.activeSecurityValues);
+    final newValues = Map<String, String>.from(state.activeSecurityValues);
     newValues[key] = value;
     state = state.copyWith(activeSecurityValues: newValues);
   }
 
   void removeSecurityValue(String key) {
-    final newValues =
-        Map<String, String>.from(state.activeSecurityValues);
+    final newValues = Map<String, String>.from(state.activeSecurityValues);
     newValues.remove(key);
     state = state.copyWith(activeSecurityValues: newValues);
   }
@@ -135,8 +143,9 @@ class SwaggerNotifier extends _$SwaggerNotifier {
     state = state.copyWith(
       history: [
         historyItem,
-        ...state.history.where((item) =>
-            item.url != url && item.filePath != filePath),
+        ...state.history.where(
+          (item) => item.url != url && item.filePath != filePath,
+        ),
       ],
     );
   }

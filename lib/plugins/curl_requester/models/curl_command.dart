@@ -5,6 +5,7 @@ part 'curl_command.freezed.dart';
 part 'curl_command.g.dart';
 
 enum BodyType { none, raw, json, urlEncoded, multipartFormData, binaryFile }
+
 enum AuthMethod { none, bearerToken, basicAuth, apiKey }
 
 @freezed
@@ -26,5 +27,6 @@ abstract class CurlCommand with _$CurlCommand {
     @Default([]) List<FormDataItem> urlEncodedData,
   }) = _CurlCommand;
 
-  factory CurlCommand.fromJson(Map<String, dynamic> json) => _$CurlCommandFromJson(json);
+  factory CurlCommand.fromJson(Map<String, dynamic> json) =>
+      _$CurlCommandFromJson(json);
 }

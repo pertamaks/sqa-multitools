@@ -42,7 +42,11 @@ class SwaggerDetailView extends ConsumerWidget {
   ) {
     final command = ref
         .read(swaggerCurlServiceProvider)
-        .generateCommand(endpoint, schema, ref.read(swaggerProvider).activeSecurityValues);
+        .generateCommand(
+          endpoint,
+          schema,
+          ref.read(swaggerProvider).activeSecurityValues,
+        );
 
     // 1. Send to Curl Requester Provider
     ref.read(curlRequesterProvider.notifier).updateCommand(command);
@@ -51,17 +55,21 @@ class SwaggerDetailView extends ConsumerWidget {
     ref
         .read(navigationHistoryProvider.notifier)
         .setHistory('com.sqa.plugin.swagger_explorer');
-        
+
     final allPlugins = ref.read(availablePluginsProvider);
-    final curlPlugin = allPlugins.where(
-      (p) => p.id == 'com.sqa.plugin.curl_requester',
-    ).firstOrNull;
+    final curlPlugin = allPlugins
+        .where((p) => p.id == 'com.sqa.plugin.curl_requester')
+        .firstOrNull;
     if (curlPlugin == null) return;
 
     ref.read(activePluginProvider.notifier).setPlugin(curlPlugin);
   }
 
-  bool _isEndpointAuthorized(SwaggerEndpoint endpoint, SwaggerSchemaInfo schema, Map<String, String> activeValues) {
+  bool _isEndpointAuthorized(
+    SwaggerEndpoint endpoint,
+    SwaggerSchemaInfo schema,
+    Map<String, String> activeValues,
+  ) {
     final securityList = endpoint.security ?? schema.security;
     if (securityList.isEmpty) return true;
 
@@ -83,7 +91,8 @@ class SwaggerDetailView extends ConsumerWidget {
     final name = (param['name'] ?? '').toString();
     final inLoc = (param['in'] ?? '').toString();
     final required = param['required'] == true;
-    final schema = param['schema'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final schema =
+        param['schema'] as Map<String, dynamic>? ?? <String, dynamic>{};
     final type = (schema['type'] ?? 'string').toString();
     final desc = (param['description'] ?? '').toString();
 
@@ -163,7 +172,9 @@ class SwaggerDetailView extends ConsumerWidget {
     final content = body['content'] as Map<String, dynamic>?;
     if (content == null || content.isEmpty) return const SizedBox.shrink();
     final type = content.keys.first;
-    final schema = content[type]?['schema'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final schema =
+        content[type]?['schema'] as Map<String, dynamic>? ??
+        <String, dynamic>{};
 
     // Attempt to generate a clean example payload instead of raw schema dump
     final parsedExample = ref
@@ -239,7 +250,9 @@ class SwaggerDetailView extends ConsumerWidget {
                 ),
                 Expanded(
                   child: Text(
-                    ((entry.value as Map<String, dynamic>?)?['description'] ?? '').toString(),
+                    ((entry.value as Map<String, dynamic>?)?['description'] ??
+                            '')
+                        .toString(),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),
@@ -275,7 +288,9 @@ class SwaggerDetailView extends ConsumerWidget {
       trailing: schema.securitySchemes.isNotEmpty
           ? SqaButton(
               label: 'Authorize',
-              icon: state.activeSecurityValues.isNotEmpty ? Symbols.lock : Symbols.lock_open,
+              icon: state.activeSecurityValues.isNotEmpty
+                  ? Symbols.lock
+                  : Symbols.lock_open,
               type: state.activeSecurityValues.isNotEmpty
                   ? SqaButtonType.primary
                   : SqaButtonType.tonal,
@@ -297,11 +312,9 @@ class SwaggerDetailView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (schema.description != null && schema.description!.isNotEmpty) ...[
-              Text(
-                schema.description!,
-                style: theme.textTheme.bodyMedium,
-              ),
+            if (schema.description != null &&
+                schema.description!.isNotEmpty) ...[
+              Text(schema.description!, style: theme.textTheme.bodyMedium),
               const SizedBox(height: SqaTokens.spacingLarge),
             ],
             for (final tag in grouped.keys)
@@ -330,7 +343,9 @@ class SwaggerDetailView extends ConsumerWidget {
                       child: Theme(
                         data: theme.copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
-                          key: PageStorageKey('swagger_ep_${ep.method}_${ep.path}'),
+                          key: PageStorageKey(
+                            'swagger_ep_${ep.method}_${ep.path}',
+                          ),
                           title: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -373,9 +388,12 @@ class SwaggerDetailView extends ConsumerWidget {
                                       const SizedBox(height: 4),
                                       Text(
                                         ep.summary,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
                                       ),
                                     ],
                                   ],
@@ -386,19 +404,33 @@ class SwaggerDetailView extends ConsumerWidget {
                                 tooltip: 'Send to cURL Requester',
                                 icon: Symbols.rocket_launch,
                                 type: SqaButtonType.tonal,
-                                onPressed: () => _sendToCurl(context, ref, ep, schema),
+                                onPressed: () =>
+                                    _sendToCurl(context, ref, ep, schema),
                               ),
                               const SizedBox(width: SqaTokens.spacingSmall),
-                              if ((ep.security ?? schema.security).isNotEmpty && 
-                                  !(ep.security ?? schema.security).any((req) => req.isEmpty))
+                              if ((ep.security ?? schema.security).isNotEmpty &&
+                                  !(ep.security ?? schema.security).any(
+                                    (req) => req.isEmpty,
+                                  ))
                                 Padding(
-                                  padding: const EdgeInsets.only(right: SqaTokens.spacingMedium),
+                                  padding: const EdgeInsets.only(
+                                    right: SqaTokens.spacingMedium,
+                                  ),
                                   child: Icon(
-                                    _isEndpointAuthorized(ep, schema, state.activeSecurityValues)
+                                    _isEndpointAuthorized(
+                                          ep,
+                                          schema,
+                                          state.activeSecurityValues,
+                                        )
                                         ? Symbols.lock
                                         : Symbols.lock_open,
                                     size: 16,
-                                    color: _isEndpointAuthorized(ep, schema, state.activeSecurityValues)
+                                    color:
+                                        _isEndpointAuthorized(
+                                          ep,
+                                          schema,
+                                          state.activeSecurityValues,
+                                        )
                                         ? theme.colorScheme.primary
                                         : theme.colorScheme.onSurfaceVariant,
                                   ),

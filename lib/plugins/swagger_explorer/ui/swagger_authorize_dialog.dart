@@ -81,16 +81,32 @@ class SwaggerAuthorizeDialog extends ConsumerWidget {
                     ),
                     const SizedBox(height: SqaTokens.spacingSmall),
                     if (scheme.type.isNotEmpty)
-                      Text('Type: ${scheme.type}', style: theme.textTheme.bodySmall),
+                      Text(
+                        'Type: ${scheme.type}',
+                        style: theme.textTheme.bodySmall,
+                      ),
                     if (scheme.inLocation != null)
-                      Text('In: ${scheme.inLocation}', style: theme.textTheme.bodySmall),
+                      Text(
+                        'In: ${scheme.inLocation}',
+                        style: theme.textTheme.bodySmall,
+                      ),
                     if (scheme.name != null)
-                      Text('Name: ${scheme.name}', style: theme.textTheme.bodySmall),
+                      Text(
+                        'Name: ${scheme.name}',
+                        style: theme.textTheme.bodySmall,
+                      ),
                     if (scheme.scheme != null)
-                      Text('Scheme: ${scheme.scheme}', style: theme.textTheme.bodySmall),
-                    if (scheme.description != null && scheme.description!.isNotEmpty) ...[
+                      Text(
+                        'Scheme: ${scheme.scheme}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    if (scheme.description != null &&
+                        scheme.description!.isNotEmpty) ...[
                       const SizedBox(height: SqaTokens.spacingSmall),
-                      Text(scheme.description!, style: theme.textTheme.bodyMedium),
+                      Text(
+                        scheme.description!,
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     ],
                     const SizedBox(height: SqaTokens.spacingMedium),
                     SqaField(
@@ -98,9 +114,13 @@ class SwaggerAuthorizeDialog extends ConsumerWidget {
                       initialValue: currentValue,
                       onChanged: (val) {
                         if (val.trim().isEmpty) {
-                          ref.read(swaggerProvider.notifier).removeSecurityValue(key);
+                          ref
+                              .read(swaggerProvider.notifier)
+                              .removeSecurityValue(key);
                         } else {
-                          ref.read(swaggerProvider.notifier).setSecurityValue(key, val.trim());
+                          ref
+                              .read(swaggerProvider.notifier)
+                              .setSecurityValue(key, val.trim());
                         }
                       },
                     ),
@@ -110,7 +130,9 @@ class SwaggerAuthorizeDialog extends ConsumerWidget {
                         label: 'Logout',
                         type: SqaButtonType.tonal,
                         onPressed: () {
-                          ref.read(swaggerProvider.notifier).removeSecurityValue(key);
+                          ref
+                              .read(swaggerProvider.notifier)
+                              .removeSecurityValue(key);
                         },
                       ),
                     ],

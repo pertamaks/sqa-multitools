@@ -59,6 +59,18 @@ A ledger of foundational technical decisions to provide context for future devel
 * **Decision:** We use a dynamic `pixelRatio` to capture the UI canvas at 2.5K+, and scale/composite it perfectly onto the source video using FFmpeg in a decoupled background task.
 * **Reasoning:** Aspect ratio locking (`StackFit.expand`) guarantees perfect coordinate translation. Running FFmpeg on the global provider container allows the user to instantly exit the annotator while a root-level `GlobalProcessingNotifier` frosts the application, creating a seamless UX without blocking loading screens.
 
+### ADR-006: Self-Healing Linux Desktop Integration
+**Date:** 2026-06-16 (Documented)
+* **Context:** The app is distributed as a portable binary on Linux. This causes issues with Wayland recognizing the app icon and the app appearing in the desktop launcher.
+* **Decision:** We implemented a "self-healing" `.desktop` integration service. If enabled, the app ensures `~/.local/share/applications/com.sqa.sqa_multitools.desktop` and the icon asset exist. On startup, it checks if the `.desktop` file points to the current binary path and dynamically updates it if the user moved the folder.
+* **Reasoning:** This allows the app to maintain native desktop integration while retaining the convenience of a portable installation. It eliminates the need for a global installer like `.deb` or `Flatpak` for core usability.
+
+### ADR-007: Background Daemon Window Hiding vs Opacity
+**Date:** 2026-06-16 (Documented)
+* **Context:** Originally, the app used `opacity = 0.0` to "hide" the window when dismissed, preserving the GPU surface for zero-latency reopening and bypassing Windows focus-stealing prevention. However, this caused Z-order focus stealing bugs where closing other unrelated apps would forcefully give keyboard focus to the transparent SQA window. It also caused Wayland docks to constantly show the app as running.
+* **Decision:** We migrated `WindowUtils.safeHide()` to use a true `windowManager.hide()` command across all platforms.
+* **Reasoning:** Unmapping the window (`hide()`) completely removes it from the OS Z-order stack, guaranteeing it will never intercept focus when the user is working in other apps. It also perfectly satisfies Linux/GNOME dock restrictions, allowing the app to act as a true, invisible background system daemon without being pinned to the dock.
+
 ---
 
 ## 📜 Resolved Improvements Log

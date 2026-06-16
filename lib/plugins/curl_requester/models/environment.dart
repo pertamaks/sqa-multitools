@@ -11,5 +11,6 @@ abstract class Environment with _$Environment {
     @Default({}) Map<String, String> variables,
   }) = _Environment;
 
-  factory Environment.fromJson(Map<String, dynamic> json) => _$EnvironmentFromJson(json);
+  factory Environment.fromJson(Map<String, dynamic> json) =>
+      _$EnvironmentFromJson(json);
 }

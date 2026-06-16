@@ -25,7 +25,8 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, constraints) {
         // Account for the standardized 24px horizontal padding from SqaPluginLayout
         const double horizontalPadding = 48.0; // 24 * 2
-        final double effectiveMaxWidth = constraints.maxWidth - horizontalPadding;
+        final double effectiveMaxWidth =
+            constraints.maxWidth - horizontalPadding;
 
         // 1. Measure Tab Widths (Zero-visual-impact measurement)
         final List<double> tabWidths = tabs.map((tab) {
@@ -46,9 +47,12 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
           return contentWidth + 32; // Standard labelPadding (16*2)
         }).toList();
 
-        final double maxTabWidth = tabWidths.reduce((a, b) => a > b ? a : b).ceilToDouble() + 1.0;
+        final double maxTabWidth =
+            tabWidths.reduce((a, b) => a > b ? a : b).ceilToDouble() + 1.0;
         final double totalUniformWidth = maxTabWidth * tabs.length;
-        final double totalIntrinsicWidth = tabWidths.reduce((a, b) => a + b).ceilToDouble() + (tabs.length * 1.0);
+        final double totalIntrinsicWidth =
+            tabWidths.reduce((a, b) => a + b).ceilToDouble() +
+            (tabs.length * 1.0);
 
         // 2. Determine State & Build
         Widget tabBar;
@@ -60,15 +64,27 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
           tabBar = Center(
             child: SizedBox(
               width: totalUniformWidth,
-              child: _buildTabBar(context, isScrollable: false, alignment: TabAlignment.fill),
+              child: _buildTabBar(
+                context,
+                isScrollable: false,
+                alignment: TabAlignment.fill,
+              ),
             ),
           );
         } else if (fitsIntrinsic) {
           // State 2: Elastic Symmetry (Fill width, but all same width/equivalent)
-          tabBar = _buildTabBar(context, isScrollable: false, alignment: TabAlignment.fill);
+          tabBar = _buildTabBar(
+            context,
+            isScrollable: false,
+            alignment: TabAlignment.fill,
+          );
         } else {
           // State 3: Overflow Scroll
-          tabBar = _buildTabBar(context, isScrollable: true, alignment: TabAlignment.center);
+          tabBar = _buildTabBar(
+            context,
+            isScrollable: true,
+            alignment: TabAlignment.center,
+          );
         }
 
         final bool needsFade = !fitsIntrinsic;
@@ -92,7 +108,11 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _buildTabBar(BuildContext context, {required bool isScrollable, required TabAlignment alignment}) {
+  Widget _buildTabBar(
+    BuildContext context, {
+    required bool isScrollable,
+    required TabAlignment alignment,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return TabBar(
       controller: controller,
@@ -105,10 +125,7 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
       indicatorSize: TabBarIndicatorSize.label,
       overlayColor: SqaStyles.buttonOverlay(context),
       mouseCursor: SystemMouseCursors.click,
-      labelStyle: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-      ),
+      labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       unselectedLabelStyle: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
@@ -120,7 +137,9 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
           key: tab.key,
           icon: tab.icon != null
               ? IconTheme.merge(
-                  data: IconThemeData(size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
+                  data: IconThemeData(
+                    size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
+                  ),
                   child: tab.icon!,
                 )
               : null,

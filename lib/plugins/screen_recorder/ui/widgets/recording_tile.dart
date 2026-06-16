@@ -80,7 +80,7 @@ class _RecordingTileState extends State<RecordingTile> {
                 duration: const Duration(milliseconds: 150),
                 decoration: BoxDecoration(
                   color: _isHovered && !isAnyMenuOpen
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.04) 
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(SqaTokens.radiusMedium),
                 ),
@@ -117,7 +117,8 @@ class _RecordingTileState extends State<RecordingTile> {
                         Text(
                           '${_formatSize(widget.info.size)} • ${DateFormat('dd/MM/yyyy HH:mm').format(widget.info.modified)}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                       ],

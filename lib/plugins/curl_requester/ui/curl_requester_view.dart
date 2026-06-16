@@ -22,6 +22,7 @@ import '../providers/environments_provider.dart';
 import '../models/environment.dart';
 import 'modals/environment_editor_modal.dart';
 import '../../../ui/widgets/sqa_text_controller.dart';
+
 class CurlRequesterView extends ConsumerStatefulWidget {
   const CurlRequesterView({super.key});
 
@@ -48,7 +49,11 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     Set<String> getVars() {
       final envs = ref.read(environmentsProvider);
       final activeId = ref.read(activeEnvironmentIdProvider);
-      return envs.firstWhere((e) => e.id == activeId, orElse: () => envs.first).variables.keys.toSet();
+      return envs
+          .firstWhere((e) => e.id == activeId, orElse: () => envs.first)
+          .variables
+          .keys
+          .toSet();
     }
 
     _urlController = SqaVariableController(
@@ -56,7 +61,9 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       getKnownVariables: getVars,
     );
     _curlController = SqaVariableController(
-      text: CurlParserService.stringify(ref.read(curlRequesterProvider).currentCommand),
+      text: CurlParserService.stringify(
+        ref.read(curlRequesterProvider).currentCommand,
+      ),
       getKnownVariables: getVars,
     );
 
@@ -78,7 +85,8 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         final currentCommand = ref.read(curlRequesterProvider).currentCommand;
         if (currentCommand.url != _urlController.text) {
           notifier.updateCommand(
-              currentCommand.copyWith(url: _urlController.text));
+            currentCommand.copyWith(url: _urlController.text),
+          );
         }
       }
     });
@@ -135,7 +143,10 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     }
   }
 
-  void _showResponseModal({bool isHistory = false, CurlTransaction? transaction}) {
+  void _showResponseModal({
+    bool isHistory = false,
+    CurlTransaction? transaction,
+  }) {
     TransactionInspectorModal.show(
       context,
       transaction: transaction,
@@ -147,7 +158,7 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         } else {
           await notifier.execute();
         }
-        
+
         final history = ref.read(curlRequesterProvider).history;
         if (history.isNotEmpty) {
           _showResponseModal(transaction: history.first);
@@ -160,8 +171,11 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     final theme = Theme.of(context);
     final envs = ref.watch(environmentsProvider);
     final activeId = ref.watch(activeEnvironmentIdProvider);
-    
-    final activeEnv = envs.firstWhere((e) => e.id == activeId, orElse: () => envs.first);
+
+    final activeEnv = envs.firstWhere(
+      (e) => e.id == activeId,
+      orElse: () => envs.first,
+    );
 
     return SqaPopupMenu(
       icon: Symbols.language,
@@ -209,7 +223,9 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
         ...envs.map((env) {
           final isSelected = env.id == activeId;
           return SqaPopupMenuItem(
-            onPressed: () => ref.read(activeEnvironmentIdProvider.notifier).setActiveId(env.id),
+            onPressed: () => ref
+                .read(activeEnvironmentIdProvider.notifier)
+                .setActiveId(env.id),
             icon: Icon(
               Symbols.language,
               color: isSelected ? theme.colorScheme.primary : null,
@@ -235,9 +251,15 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
               icon: Symbols.add,
             );
             if (name != null && name.isNotEmpty) {
-              final newEnv = Environment(id: const Uuid().v4(), name: name, variables: {});
+              final newEnv = Environment(
+                id: const Uuid().v4(),
+                name: name,
+                variables: {},
+              );
               ref.read(environmentsProvider.notifier).addEnvironment(newEnv);
-              ref.read(activeEnvironmentIdProvider.notifier).setActiveId(newEnv.id);
+              ref
+                  .read(activeEnvironmentIdProvider.notifier)
+                  .setActiveId(newEnv.id);
               if (context.mounted) {
                 EnvironmentEditorModal.show(context, newEnv);
               }
@@ -286,9 +308,11 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
             ],
           ),
           description: 'Transform and execute cURL commands',
-          onBack: ref.watch(navigationHistoryProvider) != null ? () {
-            ref.read(navigationServiceProvider).goBack();
-          } : null,
+          onBack: ref.watch(navigationHistoryProvider) != null
+              ? () {
+                  ref.read(navigationServiceProvider).goBack();
+                }
+              : null,
           tabController: _tabController,
           trailing: _tabController.index == 0
               ? SqaButton.primary(
@@ -311,11 +335,19 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                   onPressed: _handleClearHistory,
                   tooltip: 'Clear History',
                   iconSize: SqaTokens.spacingXLarge,
-                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.8),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.error.withValues(alpha: 0.8),
                 ),
           tabs: const [
-            Tab(text: 'Request', icon: Icon(Symbols.send, size: SqaTokens.spacingLarge)),
-            Tab(text: 'History', icon: Icon(Symbols.history, size: SqaTokens.spacingLarge)),
+            Tab(
+              text: 'Request',
+              icon: Icon(Symbols.send, size: SqaTokens.spacingLarge),
+            ),
+            Tab(
+              text: 'History',
+              icon: Icon(Symbols.history, size: SqaTokens.spacingLarge),
+            ),
           ],
           child: TabBarView(
             controller: _tabController,

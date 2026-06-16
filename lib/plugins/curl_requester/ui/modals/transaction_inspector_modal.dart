@@ -41,7 +41,8 @@ class TransactionInspectorModal extends StatefulWidget {
   }
 
   @override
-  State<TransactionInspectorModal> createState() => _TransactionInspectorModalState();
+  State<TransactionInspectorModal> createState() =>
+      _TransactionInspectorModalState();
 }
 
 class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
@@ -52,18 +53,20 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
     final transaction = widget.transaction;
     final statusColor = transaction != null
         ? (transaction.statusCode >= 200 && transaction.statusCode < 300
-            ? Colors.green
-            : (transaction.statusCode >= 400 || transaction.statusCode == 0 
-                ? Colors.red 
-                : Colors.orange))
+              ? Colors.green
+              : (transaction.statusCode >= 400 || transaction.statusCode == 0
+                    ? Colors.red
+                    : Colors.orange))
         : Colors.green;
 
     return SqaModal<bool>.custom(
       title: widget.isHistory ? 'Transaction Inspector' : 'Response',
       scrollable: false,
       leading: SqaStatusBadge(
-        text: transaction != null 
-            ? (transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}') 
+        text: transaction != null
+            ? (transaction.statusCode == 0
+                  ? 'ERR'
+                  : '${transaction.statusCode}')
             : '...',
         color: statusColor,
       ),
@@ -140,7 +143,10 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
     );
   }
 
-  Widget _buildRequestModalContent(BuildContext context, CurlTransaction? transaction) {
+  Widget _buildRequestModalContent(
+    BuildContext context,
+    CurlTransaction? transaction,
+  ) {
     return SqaField(
       label: 'cURL Command',
       showLabel: false,
@@ -153,12 +159,17 @@ class _TransactionInspectorModalState extends State<TransactionInspectorModal> {
       showCopyButton: false,
       showLineNumbers: true,
       initialValue: transaction != null
-          ? CurlParserService.stringify(transaction.resolvedRequest ?? transaction.request)
+          ? CurlParserService.stringify(
+              transaction.resolvedRequest ?? transaction.request,
+            )
           : 'No request data available',
     );
   }
 
-  Widget _buildResponseContent(BuildContext context, CurlTransaction? transaction) {
+  Widget _buildResponseContent(
+    BuildContext context,
+    CurlTransaction? transaction,
+  ) {
     return SqaField(
       label: 'Response Output',
       showLabel: false,

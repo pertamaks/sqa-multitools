@@ -3,7 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors, Alignment;
+import 'package:flutter/material.dart'
+    show Color, Rect, Size, Offset, Colors, Alignment;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -86,10 +87,11 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   void _setupDirectoryWatcher() async {
     await _watchSubscription?.cancel();
     _watchSubscription = null;
-    
+
     final documentsDir = await getApplicationDocumentsDirectory();
     if (!ref.mounted) return;
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     final saveDir = Directory(saveDirPath);
 
     if (!await saveDir.exists()) {
@@ -213,38 +215,35 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       );
 
       final documentsDir = await getApplicationDocumentsDirectory();
-      final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+      final saveDirPath =
+          state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
       final saveDir = Directory(saveDirPath);
       if (!await saveDir.exists()) {
         await saveDir.create(recursive: true);
       }
-      final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[:.-]'), '').replaceAll(' ', '_');
+      final timestamp = DateTime.now()
+          .toString()
+          .replaceAll(RegExp(r'[:.-]'), '')
+          .replaceAll(' ', '_');
       final outPath = p.join(saveDirPath, 'sqa_rec_$timestamp.webm');
 
       if (monitor != null) {
         final pos = monitor.visiblePosition ?? Offset.zero;
         final size = monitor.size;
-        await object.callMethod(
-          'org.gnome.Shell.Screencast',
-          'ScreencastArea',
-          [
-            DBusInt32(pos.dx.toInt()),
-            DBusInt32(pos.dy.toInt()),
-            DBusInt32(size.width.toInt()),
-            DBusInt32(size.height.toInt()),
-            DBusString(outPath),
-            DBusDict.stringVariant({}),
-          ],
-        );
+        await object
+            .callMethod('org.gnome.Shell.Screencast', 'ScreencastArea', [
+              DBusInt32(pos.dx.toInt()),
+              DBusInt32(pos.dy.toInt()),
+              DBusInt32(size.width.toInt()),
+              DBusInt32(size.height.toInt()),
+              DBusString(outPath),
+              DBusDict.stringVariant({}),
+            ]);
       } else {
-        await object.callMethod(
-          'org.gnome.Shell.Screencast',
-          'Screencast',
-          [
-            DBusString(outPath),
-            DBusDict.stringVariant({}),
-          ],
-        );
+        await object.callMethod('org.gnome.Shell.Screencast', 'Screencast', [
+          DBusString(outPath),
+          DBusDict.stringVariant({}),
+        ]);
       }
       final currentSize = await windowManager.getSize();
       final currentPos = await windowManager.getPosition();
@@ -430,7 +429,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     Rect? finalRect;
     final windowPos = await windowManager.getPosition();
 
-    if ((state.captureMode == CaptureMode.area || state.captureMode == CaptureMode.scrolling) && state.selectionRect != null) {
+    if ((state.captureMode == CaptureMode.area ||
+            state.captureMode == CaptureMode.scrolling) &&
+        state.selectionRect != null) {
       // selectionRect is in LOCAL overlay coordinates.
       // Shift by the window's actual position to get global logical coords.
       finalRect = state.selectionRect!.shift(
@@ -480,7 +481,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       savePath = p.join(tempDir.path, 'capture.${state.format.toLowerCase()}');
     } else {
       final documentsDir = await getApplicationDocumentsDirectory();
-      final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+      final saveDirPath =
+          state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
       final saveDir = Directory(saveDirPath);
       if (!await saveDir.exists()) await saveDir.create(recursive: true);
 
@@ -501,11 +503,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
         selectedAudioDevice: state.selectedAudioDevice,
       );
 
-      _ffmpegProcess = await ref.read(ffmpegEngineProvider).startRecording(
-        config: config,
-        savePath: savePath,
-        displays: state.availableDisplays,
-      );
+      _ffmpegProcess = await ref
+          .read(ffmpegEngineProvider)
+          .startRecording(
+            config: config,
+            savePath: savePath,
+            displays: state.availableDisplays,
+          );
 
       // Listener for unexpected exit
       _ffmpegProcess!.exitCode.then((code) {
@@ -549,13 +553,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       }
     } finally {
       _isStopping = false;
-      
+
       final wasLongScreenshot = state.isLongScreenshotSession;
       final videoPath = _currentSavePath;
-      
+
       // Use the hardened Ghost-First sequence for a clean transition back to toolbar
       await cancelOverlay();
-      
+
       if (wasLongScreenshot && videoPath != null) {
         _processLongScreenshot(videoPath);
       } else {
@@ -568,7 +572,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     if (!ref.mounted) return;
     final documentsDir = await getApplicationDocumentsDirectory();
     if (!ref.mounted) return;
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     final saveDir = Directory(saveDirPath);
     if (!await saveDir.exists()) {
       if (!ref.mounted) return;
@@ -668,7 +673,8 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
   Future<void> openSaveDirectory() async {
     final documentsDir = await getApplicationDocumentsDirectory();
-    final saveDirPath = state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
+    final saveDirPath =
+        state.saveDirectory ?? p.join(documentsDir.path, 'SQA_Recordings');
     final saveDir = Directory(saveDirPath);
 
     if (await saveDir.exists()) {
@@ -789,6 +795,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     _setupDirectoryWatcher();
     refreshRecentRecordings();
   }
+
   void setCaptureMode(CaptureMode mode) =>
       state = state.copyWith(captureMode: mode);
 
@@ -898,7 +905,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   void setTextHasBackground(bool value) =>
       state = state.copyWith(textHasBackground: value);
 
-
   void startAreaSelection() {
     startOverlay().catchError((e) {
       // Intentionally ignore for now, UI handles error.
@@ -994,57 +1000,74 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   Future<void> _processLongScreenshot(String videoPath) async {
     // We are back to the main UI. Show a "Stitching..." dialog.
     debugPrint('Long Screenshot: Started stitching video $videoPath');
-    
+
     state = state.copyWith(isStitching: true);
 
     try {
-      final Uint8List? finalImage =
-            await LongScreenshotStitcher.stitch(videoPath, direction: state.scrollDirection);
-      
+      final Uint8List? finalImage = await LongScreenshotStitcher.stitch(
+        videoPath,
+        direction: state.scrollDirection,
+      );
+
       if (finalImage != null) {
         debugPrint('Long Screenshot: Stitching complete! Saving to disk...');
-        
+
         final documentsDir = await getApplicationDocumentsDirectory();
-        final dir = ref.read(preferencesServiceProvider).rawPrefs.getString(PreferencesService.keyScreenshotSaveDir);
+        final dir = ref
+            .read(preferencesServiceProvider)
+            .rawPrefs
+            .getString(PreferencesService.keyScreenshotSaveDir);
         final saveDirPath = dir ?? p.join(documentsDir.path, 'SQA_Screenshots');
         final saveDir = Directory(saveDirPath);
         if (!await saveDir.exists()) {
           await saveDir.create(recursive: true);
         }
 
-        final format = ref.read(preferencesServiceProvider).rawPrefs.getString(PreferencesService.keyScreenshotFormat) ?? 'PNG';
-        
+        final format =
+            ref
+                .read(preferencesServiceProvider)
+                .rawPrefs
+                .getString(PreferencesService.keyScreenshotFormat) ??
+            'PNG';
+
         final timestamp = DateTime.now()
             .toString()
             .replaceAll(RegExp(r'[:.-]'), '')
             .replaceAll(' ', '_');
         final filename = 'SQA_LONG_SS_$timestamp.${format.toLowerCase()}';
         final savePath = p.join(saveDir.path, filename);
-        
+
         if (format.toLowerCase() == 'png') {
           await File(savePath).writeAsBytes(finalImage);
           debugPrint('Long Screenshot: Saved to $savePath');
         } else {
           final tempDir = await getTemporaryDirectory();
-          final tempFile = File(p.join(tempDir.path, 'sqa_long_ss_temp_$timestamp.png'));
+          final tempFile = File(
+            p.join(tempDir.path, 'sqa_long_ss_temp_$timestamp.png'),
+          );
           await tempFile.writeAsBytes(finalImage);
-          
+
           final success = await FfmpegEngine.convertImage(
             inputPath: tempFile.path,
             outputPath: savePath,
           );
-          
+
           if (await tempFile.exists()) await tempFile.delete();
-          
+
           if (success) {
             debugPrint('Long Screenshot: Converted and saved to $savePath');
           } else {
-            final fallbackPath = savePath.replaceAll(RegExp(r'\.[^.]+$'), '.png');
+            final fallbackPath = savePath.replaceAll(
+              RegExp(r'\.[^.]+$'),
+              '.png',
+            );
             await File(fallbackPath).writeAsBytes(finalImage);
-            debugPrint('Long Screenshot: Conversion to $format failed. Saved as PNG instead: $fallbackPath');
+            debugPrint(
+              'Long Screenshot: Conversion to $format failed. Saved as PNG instead: $fallbackPath',
+            );
           }
         }
-        
+
         // We don't hand off to the overlay since a long screenshot is usually much taller
         // than the screen and would be distorted. Just refresh the recordings/screenshots view.
         ref.read(screenshotProvider.notifier).refreshRecentCaptures();

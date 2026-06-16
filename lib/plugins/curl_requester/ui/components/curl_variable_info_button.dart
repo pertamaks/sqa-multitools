@@ -11,10 +11,12 @@ class CurlVariableInfoButton extends ConsumerStatefulWidget {
   const CurlVariableInfoButton({super.key, required this.controller});
 
   @override
-  ConsumerState<CurlVariableInfoButton> createState() => _CurlVariableInfoButtonState();
+  ConsumerState<CurlVariableInfoButton> createState() =>
+      _CurlVariableInfoButtonState();
 }
 
-class _CurlVariableInfoButtonState extends ConsumerState<CurlVariableInfoButton> {
+class _CurlVariableInfoButtonState
+    extends ConsumerState<CurlVariableInfoButton> {
   @override
   void initState() {
     super.initState();
@@ -53,9 +55,9 @@ class _CurlVariableInfoButtonState extends ConsumerState<CurlVariableInfoButton>
     final envs = ref.watch(environmentsProvider);
     final activeId = ref.watch(activeEnvironmentIdProvider);
     final activeEnv = envs.firstWhere(
-          (e) => e.id == activeId,
-          orElse: () => envs.first,
-        );
+      (e) => e.id == activeId,
+      orElse: () => envs.first,
+    );
 
     final List<String> lines = [];
     final Set<String> processedVars = {};

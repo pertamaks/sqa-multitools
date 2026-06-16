@@ -7,10 +7,14 @@ enum TextType { bytes, sentence, paragraph, chapter }
 extension TextTypeExtension on TextType {
   String get label {
     switch (this) {
-      case TextType.bytes: return 'Bytes';
-      case TextType.sentence: return 'Sentences';
-      case TextType.paragraph: return 'Paragraphs';
-      case TextType.chapter: return 'Chapters';
+      case TextType.bytes:
+        return 'Bytes';
+      case TextType.sentence:
+        return 'Sentences';
+      case TextType.paragraph:
+        return 'Paragraphs';
+      case TextType.chapter:
+        return 'Chapters';
     }
   }
 }

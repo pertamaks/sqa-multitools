@@ -27,12 +27,12 @@ void main() {
     // Verify plugins register correctly
     final plugins = container.read(availablePluginsProvider);
     expect(plugins.isNotEmpty, true);
-    
+
     // Check specific known plugins are registered
     final pluginIds = plugins.map((p) => p.id).toList();
     expect(pluginIds.contains('com.sqa.timer'), true);
     expect(pluginIds.contains('com.sqa.data_generator'), true);
-    
+
     // Verify ThemeSettings initializes without exceptions
     final theme = container.read(themeSettingsProvider);
     expect(theme.modeIndex, 0);

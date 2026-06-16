@@ -16,8 +16,6 @@ import '../sqa_design_tokens.dart';
 import '../sqa_styles.dart';
 import 'providers/annotator_provider.dart';
 
-
-
 class MediaAnnotatorView extends ConsumerStatefulWidget {
   final String filePath;
   final String format;
@@ -34,13 +32,13 @@ class MediaAnnotatorView extends ConsumerStatefulWidget {
 
 class _MediaAnnotatorViewState extends ConsumerState<MediaAnnotatorView> {
   final GlobalKey _boundaryKey = GlobalKey();
-  
+
   Player? _player;
   VideoController? _videoController;
   bool _isVideo = false;
   bool _isClosing = false;
   double? _mediaAspectRatio;
-  
+
   bool _isPlaying = true;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
@@ -64,7 +62,11 @@ class _MediaAnnotatorViewState extends ConsumerState<MediaAnnotatorView> {
       _player!.open(Media(widget.filePath));
       _player!.setPlaylistMode(PlaylistMode.loop);
       _player!.stream.videoParams.listen((params) {
-        if (mounted && params.w != null && params.h != null && params.w! > 0 && params.h! > 0) {
+        if (mounted &&
+            params.w != null &&
+            params.h != null &&
+            params.w! > 0 &&
+            params.h! > 0) {
           final ratio = params.w! / params.h!;
           if (_mediaAspectRatio != ratio) {
             setState(() {
@@ -96,7 +98,8 @@ class _MediaAnnotatorViewState extends ConsumerState<MediaAnnotatorView> {
   @override
   void didUpdateWidget(MediaAnnotatorView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filePath != widget.filePath || oldWidget.format != widget.format) {
+    if (oldWidget.filePath != widget.filePath ||
+        oldWidget.format != widget.format) {
       _reinitMedia();
     }
   }
@@ -128,16 +131,16 @@ class _MediaAnnotatorViewState extends ConsumerState<MediaAnnotatorView> {
 
   Future<void> _closeSafely() async {
     if (!mounted || _isClosing) return;
-    
+
     setState(() {
       _isClosing = true;
     });
-    
+
     if (mounted) {
       ref.read(isWindowExpandedProvider.notifier).setExpanded(false);
       Navigator.of(context).pop();
     }
-    
+
     if (!Platform.isLinux) {
       await windowManager.setMinimumSize(const Size(450, 500));
       await windowManager.setSize(const Size(450, 500));
@@ -186,8 +189,15 @@ class _MediaAnnotatorViewState extends ConsumerState<MediaAnnotatorView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(annotatorProvider(filePath: widget.filePath, format: widget.format));
-    final notifier = ref.read(annotatorProvider(filePath: widget.filePath, format: widget.format).notifier);
+    final state = ref.watch(
+      annotatorProvider(filePath: widget.filePath, format: widget.format),
+    );
+    final notifier = ref.read(
+      annotatorProvider(
+        filePath: widget.filePath,
+        format: widget.format,
+      ).notifier,
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -238,7 +248,7 @@ class _MediaAnnotatorViewState extends ConsumerState<MediaAnnotatorView> {
                 ),
               ),
             ),
-          
+
           // Toolbar Layer
           Positioned(
             left: 0,

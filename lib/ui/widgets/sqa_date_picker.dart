@@ -74,7 +74,9 @@ class SqaDatePicker {
                 letterSpacing: 0,
               ),
               dayShape: WidgetStateProperty.all(
-                RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
+                RoundedRectangleBorder(
+                  borderRadius: SqaTokens.borderRadiusMedium,
+                ),
               ),
               headerHelpStyle: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -169,13 +171,18 @@ class SqaDatePicker {
                 letterSpacing: 0,
               ),
               dayShape: WidgetStateProperty.all(
-                RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
+                RoundedRectangleBorder(
+                  borderRadius: SqaTokens.borderRadiusMedium,
+                ),
               ),
               rangePickerHeaderHelpStyle: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
               rangePickerHeaderHeadlineStyle: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold, fontSize: SqaTokens.fontSizeXXLarge),
+                  ?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: SqaTokens.fontSizeXXLarge,
+                  ),
             ),
           ),
           child: Center(

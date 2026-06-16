@@ -14,14 +14,13 @@ void main() {
     String baseUrl = 'http://localhost:8080',
     Map<String, SwaggerSecurityScheme> securitySchemes = const {},
     List<Map<String, List<String>>> security = const [],
-  }) =>
-      SwaggerSchemaInfo(
-        title: 'Test API',
-        version: '1.0',
-        baseUrl: baseUrl,
-        securitySchemes: securitySchemes,
-        security: security,
-      );
+  }) => SwaggerSchemaInfo(
+    title: 'Test API',
+    version: '1.0',
+    baseUrl: baseUrl,
+    securitySchemes: securitySchemes,
+    security: security,
+  );
 
   /// Helper: build an endpoint.
   SwaggerEndpoint createEndpoint({
@@ -32,17 +31,16 @@ void main() {
     Map<String, dynamic>? requestBody,
     Map<String, dynamic>? responses,
     List<Map<String, List<String>>>? security,
-  }) =>
-      SwaggerEndpoint(
-        path: path,
-        method: method,
-        summary: summary,
-        tags: const ['default'],
-        parameters: parameters,
-        requestBody: requestBody,
-        responses: responses,
-        security: security,
-      );
+  }) => SwaggerEndpoint(
+    path: path,
+    method: method,
+    summary: summary,
+    tags: const ['default'],
+    parameters: parameters,
+    requestBody: requestBody,
+    responses: responses,
+    security: security,
+  );
 
   group('SwaggerCurlService.generateCommand()', () {
     test('generates a simple GET command', () {
@@ -62,18 +60,8 @@ void main() {
         path: '/users/{userId}/posts/{postId}',
         method: 'GET',
         parameters: [
-          {
-            'name': 'userId',
-            'in': 'path',
-            'required': true,
-            'type': 'integer',
-          },
-          {
-            'name': 'postId',
-            'in': 'path',
-            'required': true,
-            'type': 'integer',
-          },
+          {'name': 'userId', 'in': 'path', 'required': true, 'type': 'integer'},
+          {'name': 'postId', 'in': 'path', 'required': true, 'type': 'integer'},
         ],
       );
       final cmd = service.generateCommand(ep, schema, {});
@@ -91,16 +79,8 @@ void main() {
         path: '/search',
         method: 'GET',
         parameters: [
-          {
-            'name': 'q',
-            'in': 'query',
-            'type': 'string',
-          },
-          {
-            'name': 'limit',
-            'in': 'query',
-            'type': 'integer',
-          },
+          {'name': 'q', 'in': 'query', 'type': 'string'},
+          {'name': 'limit', 'in': 'query', 'type': 'integer'},
         ],
       );
       final cmd = service.generateCommand(ep, schema, {});
@@ -117,11 +97,7 @@ void main() {
         path: '/data',
         method: 'GET',
         parameters: [
-          {
-            'name': 'X-Request-ID',
-            'in': 'header',
-            'type': 'string',
-          },
+          {'name': 'X-Request-ID', 'in': 'header', 'type': 'string'},
         ],
       );
       final cmd = service.generateCommand(ep, schema, {});
@@ -193,10 +169,7 @@ void main() {
     test('injects Bearer token from http/bearer security scheme', () {
       final schema = createSchema(
         securitySchemes: {
-          'BearerAuth': SwaggerSecurityScheme(
-            type: 'http',
-            scheme: 'bearer',
-          ),
+          'BearerAuth': SwaggerSecurityScheme(type: 'http', scheme: 'bearer'),
         },
       );
       final ep = createEndpoint(
@@ -205,11 +178,9 @@ void main() {
           {'BearerAuth': []},
         ],
       );
-      final cmd = service.generateCommand(
-        ep,
-        schema,
-        {'BearerAuth': 'my-jwt-token'},
-      );
+      final cmd = service.generateCommand(ep, schema, {
+        'BearerAuth': 'my-jwt-token',
+      });
 
       expect(cmd.headers, containsPair('Authorization', 'Bearer my-jwt-token'));
     });
@@ -230,11 +201,7 @@ void main() {
           {'ApiKeyAuth': []},
         ],
       );
-      final cmd = service.generateCommand(
-        ep,
-        schema,
-        {'ApiKeyAuth': 'abc123'},
-      );
+      final cmd = service.generateCommand(ep, schema, {'ApiKeyAuth': 'abc123'});
 
       expect(cmd.headers, containsPair('X-API-Key', 'abc123'));
     });
@@ -255,11 +222,7 @@ void main() {
           {'ApiKeyAuth': []},
         ],
       );
-      final cmd = service.generateCommand(
-        ep,
-        schema,
-        {'ApiKeyAuth': 'secret'},
-      );
+      final cmd = service.generateCommand(ep, schema, {'ApiKeyAuth': 'secret'});
 
       expect(cmd.queryParameters, containsPair('api_key', 'secret'));
     });
@@ -267,10 +230,7 @@ void main() {
     test('injects Basic auth token', () {
       final schema = createSchema(
         securitySchemes: {
-          'BasicAuth': SwaggerSecurityScheme(
-            type: 'http',
-            scheme: 'basic',
-          ),
+          'BasicAuth': SwaggerSecurityScheme(type: 'http', scheme: 'basic'),
         },
       );
       final ep = createEndpoint(
@@ -279,11 +239,9 @@ void main() {
           {'BasicAuth': []},
         ],
       );
-      final cmd = service.generateCommand(
-        ep,
-        schema,
-        {'BasicAuth': 'base64encodedcreds'},
-      );
+      final cmd = service.generateCommand(ep, schema, {
+        'BasicAuth': 'base64encodedcreds',
+      });
 
       expect(
         cmd.headers,
@@ -294,10 +252,7 @@ void main() {
     test('skips security when no values provided', () {
       final schema = createSchema(
         securitySchemes: {
-          'BearerAuth': SwaggerSecurityScheme(
-            type: 'http',
-            scheme: 'bearer',
-          ),
+          'BearerAuth': SwaggerSecurityScheme(type: 'http', scheme: 'bearer'),
         },
       );
       final ep = createEndpoint(
@@ -315,10 +270,7 @@ void main() {
     test('uses endpoint-level security before global schema security', () {
       final schema = createSchema(
         securitySchemes: {
-          'EndpointAuth': SwaggerSecurityScheme(
-            type: 'http',
-            scheme: 'bearer',
-          ),
+          'EndpointAuth': SwaggerSecurityScheme(type: 'http', scheme: 'bearer'),
           'GlobalAuth': SwaggerSecurityScheme(
             type: 'apiKey',
             inLocation: 'header',
@@ -335,14 +287,10 @@ void main() {
           {'EndpointAuth': []},
         ],
       );
-      final cmd = service.generateCommand(
-        ep,
-        schema,
-        {
-          'EndpointAuth': 'ep-token',
-          'GlobalAuth': 'global-key',
-        },
-      );
+      final cmd = service.generateCommand(ep, schema, {
+        'EndpointAuth': 'ep-token',
+        'GlobalAuth': 'global-key',
+      });
 
       // Should use endpoint-level BearerAuth, not global
       expect(cmd.headers, containsPair('Authorization', 'Bearer ep-token'));
@@ -352,21 +300,16 @@ void main() {
     test('falls back to global security when endpoint has none', () {
       final schema = createSchema(
         securitySchemes: {
-          'GlobalAuth': SwaggerSecurityScheme(
-            type: 'http',
-            scheme: 'bearer',
-          ),
+          'GlobalAuth': SwaggerSecurityScheme(type: 'http', scheme: 'bearer'),
         },
         security: [
           {'GlobalAuth': []},
         ],
       );
       final ep = createEndpoint(method: 'GET'); // no endpoint security
-      final cmd = service.generateCommand(
-        ep,
-        schema,
-        {'GlobalAuth': 'global-token'},
-      );
+      final cmd = service.generateCommand(ep, schema, {
+        'GlobalAuth': 'global-token',
+      });
 
       expect(cmd.headers, containsPair('Authorization', 'Bearer global-token'));
     });
@@ -377,24 +320,13 @@ void main() {
         path: '/upload',
         method: 'POST',
         parameters: [
-          {
-            'name': 'file',
-            'in': 'formData',
-            'type': 'file',
-          },
-          {
-            'name': 'description',
-            'in': 'formData',
-            'type': 'string',
-          },
+          {'name': 'file', 'in': 'formData', 'type': 'file'},
+          {'name': 'description', 'in': 'formData', 'type': 'string'},
         ],
       );
       final cmd = service.generateCommand(ep, schema, {});
 
-      expect(
-        cmd.headers['Content-Type'],
-        'multipart/form-data',
-      );
+      expect(cmd.headers['Content-Type'], 'multipart/form-data');
       // For multipart, form fields are kept in the body as URL-encoded pairs
       expect(cmd.body, contains('file=@dummy_file.txt'));
       expect(cmd.body, contains('description=string'));

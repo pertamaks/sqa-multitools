@@ -103,8 +103,13 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                   .map(
                     (c) => Tab(
                       text: c.name,
-                      icon: Icon(c.icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                      iconMargin: const EdgeInsets.only(bottom: SqaTokens.spacingXSmall),
+                      icon: Icon(
+                        c.icon,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                      ),
+                      iconMargin: const EdgeInsets.only(
+                        bottom: SqaTokens.spacingXSmall,
+                      ),
                     ),
                   )
                   .toList(),

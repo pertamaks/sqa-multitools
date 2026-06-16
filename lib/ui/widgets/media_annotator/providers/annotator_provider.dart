@@ -23,20 +23,24 @@ class AnnotatorNotifier extends _$AnnotatorNotifier {
     return AnnotatorState(filePath: filePath, format: format);
   }
 
-  void setTool(ScreenshotTool tool) => state = state.copyWith(currentTool: tool);
+  void setTool(ScreenshotTool tool) =>
+      state = state.copyWith(currentTool: tool);
   void setColor(Color color) => state = state.copyWith(annotationColor: color);
-  void setTextHasBackground(bool hasBg) => state = state.copyWith(textHasBackground: hasBg);
+  void setTextHasBackground(bool hasBg) =>
+      state = state.copyWith(textHasBackground: hasBg);
   void addAnnotation(Annotation ann) {
     final list = state.annotations.toList();
     list.add(ann);
     state = state.copyWith(annotations: list);
   }
+
   void updateLastAnnotation(Annotation ann) {
     if (state.annotations.isEmpty) return;
     final list = state.annotations.toList();
     list[list.length - 1] = ann;
     state = state.copyWith(annotations: list);
   }
+
   void removeAnnotation(Annotation ann) => state = state.copyWith(
     annotations: state.annotations.where((a) => a != ann).toList(),
   );
@@ -45,7 +49,9 @@ class AnnotatorNotifier extends _$AnnotatorNotifier {
   Future<void> save(GlobalKey boundaryKey, {required bool isVideo}) async {
     state = state.copyWith(isProcessing: true);
     try {
-      final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final boundary =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       // Calculate a dynamic pixelRatio to guarantee at least a 2K resolution export.
@@ -54,31 +60,44 @@ class AnnotatorNotifier extends _$AnnotatorNotifier {
       final double pixelRatio = (2560.0 / logicalWidth).clamp(1.0, 4.0);
 
       final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
-      
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       final dir = p.dirname(state.filePath);
       final base = p.basenameWithoutExtension(state.filePath);
       final ext = p.extension(state.filePath);
       final outputPath = p.join(dir, '${base}_annotated$ext');
-      
+
       // Fire background task so the annotator window can close immediately
       _processSaveInBackground(pngBytes, state.filePath, outputPath, isVideo);
-      
     } catch (e) {
-      ref.read(loggingServiceProvider.notifier).logError('Media annotator failed to save: $e');
+      ref
+          .read(loggingServiceProvider.notifier)
+          .logError('Media annotator failed to save: $e');
     }
-    // We intentionally DO NOT set isProcessing=false here, because the save method 
+    // We intentionally DO NOT set isProcessing=false here, because the save method
     // finishes immediately, and the background task handles its own global state.
   }
 
-  Future<void> _processSaveInBackground(Uint8List pngBytes, String inputPath, String outputPath, bool isVideo) async {
+  Future<void> _processSaveInBackground(
+    Uint8List pngBytes,
+    String inputPath,
+    String outputPath,
+    bool isVideo,
+  ) async {
     // Show the global blur loading indicator over the main app
-    globalProviderContainer.read(globalProcessingProvider.notifier).setProcessing(true);
+    globalProviderContainer
+        .read(globalProcessingProvider.notifier)
+        .setProcessing(true);
 
     try {
-      final tempPngPath = p.join(p.dirname(inputPath), '${p.basenameWithoutExtension(inputPath)}_temp_overlay.png');
+      final tempPngPath = p.join(
+        p.dirname(inputPath),
+        '${p.basenameWithoutExtension(inputPath)}_temp_overlay.png',
+      );
       await File(tempPngPath).writeAsBytes(pngBytes);
 
       final exe = await FfmpegEngine.getExecutablePath();
@@ -87,33 +106,46 @@ class AnnotatorNotifier extends _$AnnotatorNotifier {
         if (isVideo) {
           result = await Process.run(exe, [
             '-y',
-            '-i', state.filePath,
-            '-i', tempPngPath,
-            '-filter_complex', '[1:v][0:v]scale2ref[ovrl][main];[main][ovrl]overlay=0:0',
-            '-c:a', 'copy',
-            outputPath
+            '-i',
+            state.filePath,
+            '-i',
+            tempPngPath,
+            '-filter_complex',
+            '[1:v][0:v]scale2ref[ovrl][main];[main][ovrl]overlay=0:0',
+            '-c:a',
+            'copy',
+            outputPath,
           ]);
         } else {
           result = await Process.run(exe, [
             '-y',
-            '-i', state.filePath,
-            '-i', tempPngPath,
-            '-filter_complex', '[1:v][0:v]scale2ref[ovrl][main];[main][ovrl]overlay=0:0',
-            outputPath
+            '-i',
+            state.filePath,
+            '-i',
+            tempPngPath,
+            '-filter_complex',
+            '[1:v][0:v]scale2ref[ovrl][main];[main][ovrl]overlay=0:0',
+            outputPath,
           ]);
         }
-        
+
         if (result.exitCode != 0) {
-          globalProviderContainer.read(loggingServiceProvider.notifier).logError('Media annotator FFmpeg failed: ${result.stderr}');
+          globalProviderContainer
+              .read(loggingServiceProvider.notifier)
+              .logError('Media annotator FFmpeg failed: ${result.stderr}');
         }
       }
-      
+
       await File(tempPngPath).delete();
     } catch (e) {
-      globalProviderContainer.read(loggingServiceProvider.notifier).logError('Media annotator background process failed: $e');
+      globalProviderContainer
+          .read(loggingServiceProvider.notifier)
+          .logError('Media annotator background process failed: $e');
     } finally {
       // Hide the global blur loading indicator
-      globalProviderContainer.read(globalProcessingProvider.notifier).setProcessing(false);
+      globalProviderContainer
+          .read(globalProcessingProvider.notifier)
+          .setProcessing(false);
     }
   }
 }

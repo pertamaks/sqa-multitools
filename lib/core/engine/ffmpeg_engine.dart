@@ -214,7 +214,10 @@ class FfmpegEngine {
       throw Exception('Cannot read archive header.');
     }
     final magic = header.first;
-    if (magic[0] != 0x50 || magic[1] != 0x4B || magic[2] != 0x03 || magic[3] != 0x04) {
+    if (magic[0] != 0x50 ||
+        magic[1] != 0x4B ||
+        magic[2] != 0x03 ||
+        magic[3] != 0x04) {
       throw Exception('Downloaded file is not a valid ZIP archive.');
     }
 
@@ -233,7 +236,9 @@ class FfmpegEngine {
       }
     }
     if (!foundEocd) {
-      throw Exception('ZIP central directory not found — archive may be truncated.');
+      throw Exception(
+        'ZIP central directory not found — archive may be truncated.',
+      );
     }
   }
 
@@ -242,7 +247,10 @@ class FfmpegEngine {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return [];
 
     try {
-      final result = await Process.run(_resolvedExecutable!, _config.buildListAudioDevicesArgs());
+      final result = await Process.run(
+        _resolvedExecutable!,
+        _config.buildListAudioDevicesArgs(),
+      );
 
       final output = result.stderr as String;
       final lines = output.split('\n');
@@ -273,11 +281,9 @@ class FfmpegEngine {
   }) {
     final args = <String>[];
     args.addAll(['-y']);
-    
+
     // Platform-specific input args
-    args.addAll(_config.buildVideoArgs(
-      config: config,
-    ));
+    args.addAll(_config.buildVideoArgs(config: config));
 
     final filters = <String>[];
     if (config.captureRect != null) {
@@ -467,8 +473,10 @@ class FfmpegEngine {
         w: w,
         h: h,
       ),
-      '-i', _config.videoInputName,
-      '-frames:v', '1',
+      '-i',
+      _config.videoInputName,
+      '-frames:v',
+      '1',
       '-vf',
       'scale=320:-2',
       '-y',
@@ -552,8 +560,10 @@ class FfmpegEngine {
         w: w,
         h: h,
       ),
-      '-i', _config.videoInputName,
-      '-frames:v', '1',
+      '-i',
+      _config.videoInputName,
+      '-frames:v',
+      '1',
       '-y',
       savePath,
     ];
@@ -615,6 +625,7 @@ class FfmpegEngine {
       return false;
     }
   }
+
   /// Converts an image file to another format using FFmpeg.
   static Future<bool> convertImage({
     required String inputPath,
@@ -622,12 +633,7 @@ class FfmpegEngine {
   }) async {
     if (!await isEngineAvailable() || _resolvedExecutable == null) return false;
 
-    final args = [
-      '-y',
-      '-i',
-      inputPath,
-      outputPath,
-    ];
+    final args = ['-y', '-i', inputPath, outputPath];
 
     try {
       final result = await Process.run(

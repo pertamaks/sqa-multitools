@@ -18,12 +18,15 @@ void main() {
         frame1[i] = _hash(i);
       }
       for (int i = 0; i < dim; i++) {
-        frame2[i] =
-            (i < dim - scrollAmount) ? frame1[i + scrollAmount] : _hash(i + 500);
+        frame2[i] = (i < dim - scrollAmount)
+            ? frame1[i + scrollAmount]
+            : _hash(i + 500);
       }
 
-      final result =
-          LongScreenshotStitcher.computeOffsets1D([frame1, frame2], dim);
+      final result = LongScreenshotStitcher.computeOffsets1D([
+        frame1,
+        frame2,
+      ], dim);
 
       final offsets = result['offsets'] as List<int>;
       // First offset is always 0
@@ -41,8 +44,10 @@ void main() {
       for (int i = 0; i < dim; i++) {
         frame[i] = _hash(i);
       }
-      final result = LongScreenshotStitcher.computeOffsets1D(
-          [frame, Float32List.fromList(frame.toList())], dim);
+      final result = LongScreenshotStitcher.computeOffsets1D([
+        frame,
+        Float32List.fromList(frame.toList()),
+      ], dim);
 
       final offsets = result['offsets'] as List<int>;
       expect(offsets, [0, 0]);
@@ -62,8 +67,10 @@ void main() {
         frame2[i] = (i >= 20) ? frame1[i - 20] : _hash(i + 300);
       }
 
-      final result =
-          LongScreenshotStitcher.computeOffsets1D([frame1, frame2], dim);
+      final result = LongScreenshotStitcher.computeOffsets1D([
+        frame1,
+        frame2,
+      ], dim);
 
       final offsets = result['offsets'] as List<int>;
       expect(offsets[1], greaterThanOrEqualTo(0));
@@ -74,8 +81,7 @@ void main() {
       for (int i = 0; i < 50; i++) {
         frame[i] = 128.0;
       }
-      final result =
-          LongScreenshotStitcher.computeOffsets1D([frame], 50);
+      final result = LongScreenshotStitcher.computeOffsets1D([frame], 50);
 
       final offsets = result['offsets'] as List<int>;
       expect(offsets, [0]);
@@ -83,8 +89,10 @@ void main() {
     });
 
     test('handles empty projections list', () {
-      final result =
-          LongScreenshotStitcher.computeOffsets1D(<Float32List>[], 100);
+      final result = LongScreenshotStitcher.computeOffsets1D(
+        <Float32List>[],
+        100,
+      );
 
       final offsets = result['offsets'] as List<int>;
       expect(offsets, isEmpty);
@@ -112,14 +120,19 @@ void main() {
         colProjs[0][i] = _hash(i);
       }
       for (int i = 0; i < colDim; i++) {
-        colProjs[1][i] =
-            (i < colDim - shift) ? colProjs[0][i + shift] : _hash(i + 500);
+        colProjs[1][i] = (i < colDim - shift)
+            ? colProjs[0][i + shift]
+            : _hash(i + 500);
       }
 
-      final vertResult =
-          LongScreenshotStitcher.computeOffsets1D(rowProjs, rowDim);
-      final horizResult =
-          LongScreenshotStitcher.computeOffsets1D(colProjs, colDim);
+      final vertResult = LongScreenshotStitcher.computeOffsets1D(
+        rowProjs,
+        rowDim,
+      );
+      final horizResult = LongScreenshotStitcher.computeOffsets1D(
+        colProjs,
+        colDim,
+      );
 
       final horizNcc = horizResult['avgNcc'] as double;
       final vertNcc = vertResult['avgNcc'] as double;
@@ -141,8 +154,9 @@ void main() {
         rowProjs[0][i] = _hash(i);
       }
       for (int i = 0; i < rowDim; i++) {
-        rowProjs[1][i] =
-            (i < rowDim - shift) ? rowProjs[0][i + shift] : _hash(i + 500);
+        rowProjs[1][i] = (i < rowDim - shift)
+            ? rowProjs[0][i + shift]
+            : _hash(i + 500);
       }
 
       // Column projections: uncorrelated noise
@@ -151,10 +165,14 @@ void main() {
         colProjs[1][i] = _hash(i + 1000);
       }
 
-      final vertResult =
-          LongScreenshotStitcher.computeOffsets1D(rowProjs, rowDim);
-      final horizResult =
-          LongScreenshotStitcher.computeOffsets1D(colProjs, colDim);
+      final vertResult = LongScreenshotStitcher.computeOffsets1D(
+        rowProjs,
+        rowDim,
+      );
+      final horizResult = LongScreenshotStitcher.computeOffsets1D(
+        colProjs,
+        colDim,
+      );
 
       final vertNcc = vertResult['avgNcc'] as double;
       final horizNcc = horizResult['avgNcc'] as double;

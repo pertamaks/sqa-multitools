@@ -64,11 +64,13 @@ class Identity extends _$Identity {
       currentGeneration.add(_generateSingle());
     }
 
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
-    
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedType] ?? [],
+    );
+
     // Add to top of history (FIFO)
     final newHistory = [currentGeneration, ...currentHistory];
-    
+
     // Truncate to 10
     if (newHistory.length > 10) {
       newHistory.removeRange(10, newHistory.length);
@@ -120,8 +122,11 @@ class Identity extends _$Identity {
 
     return FakerFix.fix(result, includeExtension: state.includeExtension);
   }
+
   void removeHistory(List<String> session) {
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedType] ?? [],
+    );
     currentHistory.remove(session);
     state = state.copyWith(
       resultsMap: <IdentityType, List<List<String>>>{

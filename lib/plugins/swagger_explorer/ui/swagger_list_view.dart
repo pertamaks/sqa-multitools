@@ -153,52 +153,52 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
                     horizontal: SqaTokens.spacingMedium,
                   ),
                   child: Row(
-                      children: [
-                        SqaIconContainer(
-                          icon: Symbols.data_object,
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                        ),
-                        const SizedBox(width: SqaTokens.spacingMedium),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (item.url != null)
-                                Text(
-                                  item.url!,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
-                          ),
-                        ),
-                        SqaPopupMenu(
-                          icon: Symbols.more_vert,
-                          tooltip: 'Options',
+                    children: [
+                      SqaIconContainer(
+                        icon: Symbols.data_object,
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                      ),
+                      const SizedBox(width: SqaTokens.spacingMedium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SqaPopupMenuItem(
-                              icon: const Icon(Symbols.delete),
-                              label: 'Remove',
-                              isDestructive: true,
-                              onPressed: () {
-                                ref
-                                    .read(swaggerProvider.notifier)
-                                    .deleteFromHistory(item.id);
-                              },
+                            Text(
+                              item.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                            if (item.url != null)
+                              Text(
+                                item.url!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      SqaPopupMenu(
+                        icon: Symbols.more_vert,
+                        tooltip: 'Options',
+                        children: [
+                          SqaPopupMenuItem(
+                            icon: const Icon(Symbols.delete),
+                            label: 'Remove',
+                            isDestructive: true,
+                            onPressed: () {
+                              ref
+                                  .read(swaggerProvider.notifier)
+                                  .deleteFromHistory(item.id);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

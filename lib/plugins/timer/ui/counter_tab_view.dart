@@ -75,7 +75,10 @@ class CounterTabView extends ConsumerWidget {
                     label: 'Reset',
                     width: SqaTokens.spacingXXXLarge * 2.5,
                   )
-                : const SizedBox(height: SqaTokens.spacingXXLarge, key: ValueKey('empty')),
+                : const SizedBox(
+                    height: SqaTokens.spacingXXLarge,
+                    key: ValueKey('empty'),
+                  ),
           ),
         ],
       ),

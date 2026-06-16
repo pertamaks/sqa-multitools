@@ -28,7 +28,10 @@ class SqaPopupMenu extends StatelessWidget {
     required this.icon,
     required this.children,
     this.tooltip,
-    this.alignmentOffset = const Offset(-SqaTokens.spacingSmall, SqaTokens.spacingTiny),
+    this.alignmentOffset = const Offset(
+      -SqaTokens.spacingSmall,
+      SqaTokens.spacingTiny,
+    ),
     this.builder,
   });
 
@@ -49,7 +52,9 @@ class SqaPopupMenu extends StatelessWidget {
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(theme.colorScheme.surface),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.all(SqaTokens.spacingXSmall),
+        ),
         elevation: WidgetStateProperty.all(SqaTokens.spacingSmall),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
@@ -61,19 +66,21 @@ class SqaPopupMenu extends StatelessWidget {
         ),
       ),
       menuChildren: children,
-      builder: builder ?? (context, controller, child) {
-        return SqaHoverIconButton(
-          icon: icon,
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
+      builder:
+          builder ??
+          (context, controller, child) {
+            return SqaHoverIconButton(
+              icon: icon,
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            );
           },
-          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-        );
-      },
     );
   }
 }
@@ -107,8 +114,13 @@ class SqaPopupMenuItem extends StatelessWidget {
           horizontal: SqaTokens.spacingSmall + 4,
           vertical: 0,
         ),
-        minimumSize: const Size(120, SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
-        shape: RoundedRectangleBorder(borderRadius: SqaTokens.borderRadiusMedium),
+        minimumSize: const Size(
+          120,
+          SqaTokens.spacingXXLarge + SqaTokens.spacingSmall,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: SqaTokens.borderRadiusMedium,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -123,10 +135,9 @@ class SqaPopupMenuItem extends StatelessWidget {
           const SizedBox(width: SqaTokens.spacingSmall + 4),
           Text(
             label,
-            style: SqaTextStyles.labelBold(context).copyWith(
-              color: color,
-              fontSize: SqaTokens.fontSizeTiny,
-            ),
+            style: SqaTextStyles.labelBold(
+              context,
+            ).copyWith(color: color, fontSize: SqaTokens.fontSizeTiny),
           ),
         ],
       ),

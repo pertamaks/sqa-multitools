@@ -22,10 +22,12 @@ class EnvironmentEditorModal extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<EnvironmentEditorModal> createState() => _EnvironmentEditorModalState();
+  ConsumerState<EnvironmentEditorModal> createState() =>
+      _EnvironmentEditorModalState();
 }
 
-class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal> {
+class _EnvironmentEditorModalState
+    extends ConsumerState<EnvironmentEditorModal> {
   late TextEditingController _nameController;
   late List<MapEntry<TextEditingController, TextEditingController>> _variables;
 
@@ -33,9 +35,14 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.environment.name);
-    _variables = widget.environment.variables.entries.map((e) => 
-      MapEntry(TextEditingController(text: e.key), TextEditingController(text: e.value))
-    ).toList();
+    _variables = widget.environment.variables.entries
+        .map(
+          (e) => MapEntry(
+            TextEditingController(text: e.key),
+            TextEditingController(text: e.value),
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -58,7 +65,9 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
     }
 
     final newEnv = widget.environment.copyWith(
-      name: _nameController.text.trim().isEmpty ? 'Unnamed' : _nameController.text.trim(),
+      name: _nameController.text.trim().isEmpty
+          ? 'Unnamed'
+          : _nameController.text.trim(),
       variables: newVars,
     );
 
@@ -77,7 +86,9 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
       icon: Symbols.delete_forever,
     );
     if (confirm == true) {
-      ref.read(environmentsProvider.notifier).removeEnvironment(widget.environment.id);
+      ref
+          .read(environmentsProvider.notifier)
+          .removeEnvironment(widget.environment.id);
       if (mounted) Navigator.of(context).pop();
     }
   }
@@ -94,17 +105,17 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
           TextButton.icon(
             onPressed: _delete,
             icon: Icon(Symbols.delete, color: theme.colorScheme.error),
-            label: Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
+            label: Text(
+              'Delete',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
           ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         const SizedBox(width: SqaTokens.spacingSmall),
-        SqaButton.primary(
-          label: 'Save',
-          onPressed: _save,
-        ),
+        SqaButton.primary(label: 'Save', onPressed: _save),
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +130,9 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
           const SizedBox(height: SqaTokens.spacingLarge),
           Text(
             'Variables',
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: SqaTokens.spacingSmall),
           ConstrainedBox(
@@ -131,11 +144,13 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
                     final index = entry.key;
                     final row = entry.value;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall),
+                      padding: const EdgeInsets.only(
+                        bottom: SqaTokens.spacingSmall,
+                      ),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           final isCompact = constraints.maxWidth < 450;
-                          
+
                           final keyField = SqaField(
                             label: '',
                             showLabel: false,
@@ -170,16 +185,28 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
                                 Row(
                                   children: [
                                     Expanded(child: keyField),
-                                    const SizedBox(width: SqaTokens.spacingSmall),
+                                    const SizedBox(
+                                      width: SqaTokens.spacingSmall,
+                                    ),
                                     deleteBtn,
                                   ],
                                 ),
-                                const SizedBox(height: SqaTokens.spacingXXSmall),
+                                const SizedBox(
+                                  height: SqaTokens.spacingXXSmall,
+                                ),
                                 Row(
                                   children: [
-                                    const SizedBox(width: SqaTokens.spacingXLarge),
-                                    const Icon(Symbols.subdirectory_arrow_right, size: 16, color: Colors.grey),
-                                    const SizedBox(width: SqaTokens.spacingSmall),
+                                    const SizedBox(
+                                      width: SqaTokens.spacingXLarge,
+                                    ),
+                                    const Icon(
+                                      Symbols.subdirectory_arrow_right,
+                                      size: 16,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(
+                                      width: SqaTokens.spacingSmall,
+                                    ),
                                     Expanded(child: valueField),
                                   ],
                                 ),
@@ -206,7 +233,12 @@ class _EnvironmentEditorModalState extends ConsumerState<EnvironmentEditorModal>
                     icon: Symbols.add,
                     onPressed: () {
                       setState(() {
-                        _variables.add(MapEntry(TextEditingController(), TextEditingController()));
+                        _variables.add(
+                          MapEntry(
+                            TextEditingController(),
+                            TextEditingController(),
+                          ),
+                        );
                       });
                     },
                   ),

@@ -14,5 +14,6 @@ abstract class FormDataItem with _$FormDataItem {
     @Default(true) bool isActive,
   }) = _FormDataItem;
 
-  factory FormDataItem.fromJson(Map<String, dynamic> json) => _$FormDataItemFromJson(json);
+  factory FormDataItem.fromJson(Map<String, dynamic> json) =>
+      _$FormDataItemFromJson(json);
 }

@@ -133,7 +133,9 @@ class _SqaHotkeyFieldState extends State<SqaHotkeyField> {
             onTap: _startRecording,
             child: Container(
               height: SqaTokens.spacingXXLarge,
-              padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall + 2),
+              padding: const EdgeInsets.symmetric(
+                horizontal: SqaTokens.spacingSmall + 2,
+              ),
               decoration: BoxDecoration(
                 color: _isRecording
                     ? colorScheme.primary.withValues(alpha: 0.1)

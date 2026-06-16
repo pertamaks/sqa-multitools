@@ -23,8 +23,6 @@ class WindowNativeApiWindows implements WindowNativeApi {
   // Window discovery
   // ---------------------------------------------------------------------------
 
-
-
   @override
   Offset getAppWindowPosition() {
     if (!Platform.isWindows) return Offset.zero;
@@ -74,8 +72,6 @@ class WindowNativeApiWindows implements WindowNativeApi {
       calloc.free(lpdwProcessId);
     }
   }
-
-
 
   @override
   Future<List<String>> getFriendlyMonitorNames() async {

@@ -135,8 +135,12 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
                         child: _buildTail(colorScheme, isLeading: true),
                       ),
                     Container(
-                      constraints: const BoxConstraints(maxWidth: SqaTokens.spacingXXXLarge * 6),
-                      padding: EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
+                      constraints: const BoxConstraints(
+                        maxWidth: SqaTokens.spacingXXXLarge * 6,
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: SqaTokens.spacingSmall,
+                      ),
                       color:
                           (widget.backgroundColor ??
                           colorScheme.surfaceContainerLow),
@@ -147,11 +151,12 @@ class _SqaInlineTooltipOverlayState extends State<SqaInlineTooltip> {
                           _hoveredTooltip!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.bold,
-                            fontSize: SqaTokens.fontSizeSmall,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.bold,
+                                fontSize: SqaTokens.fontSizeSmall,
+                              ),
                         ),
                       ),
                     ),

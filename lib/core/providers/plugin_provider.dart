@@ -46,7 +46,12 @@ List<SqaPlugin> availablePlugins(Ref ref) {
   final logger = ref.read(loggingServiceProvider.notifier);
   for (final plugin in plugins) {
     plugin.initialize().catchError((Object e, StackTrace stack) {
-      logger.logError('Error initializing plugin ${plugin.id}: $e', 'PluginInit', e, stack);
+      logger.logError(
+        'Error initializing plugin ${plugin.id}: $e',
+        'PluginInit',
+        e,
+        stack,
+      );
     });
   }
   return plugins;

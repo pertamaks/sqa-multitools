@@ -7,9 +7,12 @@ enum DevType { uuid, json, date }
 extension DevTypeExtension on DevType {
   String get label {
     switch (this) {
-      case DevType.uuid: return 'UUID';
-      case DevType.json: return 'JSON';
-      case DevType.date: return 'Date';
+      case DevType.uuid:
+        return 'UUID';
+      case DevType.json:
+        return 'JSON';
+      case DevType.date:
+        return 'Date';
     }
   }
 }

@@ -5,15 +5,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqa_multitools/core/services/logging_service.dart';
 import 'package:sqa_multitools/plugins/swagger_explorer/providers/swagger_provider.dart';
 import 'package:sqa_multitools/plugins/swagger_explorer/models/swagger_state.dart';
+
 class MockLoggingService extends LoggingService {
   @override
   void build() {}
   @override
   void logInfo(String message, [String? name]) {}
   @override
-  void logError(String message, [String? name, Object? error, StackTrace? stackTrace]) {}
+  void logError(
+    String message, [
+    String? name,
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {}
   @override
-  void logWarning(String message, [String? name, Object? error, StackTrace? stackTrace]) {}
+  void logWarning(
+    String message, [
+    String? name,
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {}
   @override
   void logDebug(String message, [String? name]) {}
 }
@@ -128,7 +139,10 @@ void main() {
 
       // Remove one
       notifier.removeSecurityValue('ApiKey');
-      expect(container.read(swaggerProvider).activeSecurityValues, hasLength(2));
+      expect(
+        container.read(swaggerProvider).activeSecurityValues,
+        hasLength(2),
+      );
     });
   });
 
@@ -149,20 +163,26 @@ void main() {
 
     test('loads a valid OpenAPI JSON file and updates state', () async {
       final file = File('${tmpDir.path}/api.json');
-      file.writeAsStringSync(jsonEncode({
-        'openapi': '3.0.0',
-        'info': {'title': 'Test File API', 'version': '1.0.0'},
-        'servers': [{'url': 'http://localhost'}],
-        'paths': {
-          '/ping': {
-            'get': {
-              'tags': ['System'],
-              'summary': 'Ping',
-              'responses': {'200': {'description': 'OK'}},
+      file.writeAsStringSync(
+        jsonEncode({
+          'openapi': '3.0.0',
+          'info': {'title': 'Test File API', 'version': '1.0.0'},
+          'servers': [
+            {'url': 'http://localhost'},
+          ],
+          'paths': {
+            '/ping': {
+              'get': {
+                'tags': ['System'],
+                'summary': 'Ping',
+                'responses': {
+                  '200': {'description': 'OK'},
+                },
+              },
             },
           },
-        },
-      }));
+        }),
+      );
 
       final notifier = container.read(swaggerProvider.notifier);
       await notifier.fetchFromFile(file.path);
@@ -203,12 +223,16 @@ void main() {
 
     test('deduplicates history by file path', () async {
       final file = File('${tmpDir.path}/dedup.json');
-      file.writeAsStringSync(jsonEncode({
-        'openapi': '3.0.0',
-        'info': {'title': 'Dedup Test', 'version': '1.0'},
-        'servers': [{'url': 'http://localhost'}],
-        'paths': <String, dynamic>{},
-      }));
+      file.writeAsStringSync(
+        jsonEncode({
+          'openapi': '3.0.0',
+          'info': {'title': 'Dedup Test', 'version': '1.0'},
+          'servers': [
+            {'url': 'http://localhost'},
+          ],
+          'paths': <String, dynamic>{},
+        }),
+      );
 
       final notifier = container.read(swaggerProvider.notifier);
 

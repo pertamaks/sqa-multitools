@@ -10,7 +10,7 @@ class PlatformUtils {
   /// shell commands if [url_launcher] is unavailable.
   static Future<void> openPath(String path) async {
     final uri = Uri.file(path);
-    
+
     // 1. Try url_launcher (cross-platform primary)
     try {
       if (await canLaunchUrl(uri)) {
@@ -49,7 +49,7 @@ class PlatformUtils {
       return RegExp(r'[/]');
     }
   }
-  
+
   /// Checks if a filename is valid for the current platform.
   static bool isValidFilename(String name) {
     if (name.isEmpty || name.length > 255) return false;

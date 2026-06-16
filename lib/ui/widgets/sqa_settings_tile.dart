@@ -84,7 +84,10 @@ class SqaSettingsTile extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) ...[const SizedBox(width: SqaTokens.spacingSmall + 4), trailing!],
+          if (trailing != null) ...[
+            const SizedBox(width: SqaTokens.spacingSmall + 4),
+            trailing!,
+          ],
         ],
       ),
     );

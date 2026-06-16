@@ -14,6 +14,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
+import 'core/services/linux_integration_service.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:media_kit/media_kit.dart';
 import 'core/services/audio_service.dart';
@@ -43,8 +44,13 @@ class GlobalProcessingNotifier extends Notifier<bool> {
 
 final navigatorKey = GlobalKey<NavigatorState>();
 late final ProviderContainer globalProviderContainer;
-final isWindowExpandedProvider = NotifierProvider<WindowExpandedNotifier, bool>(() => WindowExpandedNotifier());
-final globalProcessingProvider = NotifierProvider<GlobalProcessingNotifier, bool>(() => GlobalProcessingNotifier());
+final isWindowExpandedProvider = NotifierProvider<WindowExpandedNotifier, bool>(
+  () => WindowExpandedNotifier(),
+);
+final globalProcessingProvider =
+    NotifierProvider<GlobalProcessingNotifier, bool>(
+      () => GlobalProcessingNotifier(),
+    );
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,30 +59,27 @@ void main(List<String> args) async {
 
   // Create the shared container for all providers
   globalProviderContainer = ProviderContainer(
-    overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
-    ],
+    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
   );
 
   // Setup Global Error Handling using the shared container
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    globalProviderContainer.read(loggingServiceProvider.notifier).logError(
-      'Flutter Error: ${details.exception}',
-      'FlutterFramework',
-      details.exception,
-      details.stack,
-    );
+    globalProviderContainer
+        .read(loggingServiceProvider.notifier)
+        .logError(
+          'Flutter Error: ${details.exception}',
+          'FlutterFramework',
+          details.exception,
+          details.stack,
+        );
     _showGlobalErrorToast('Framework Error: ${details.exception}');
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    globalProviderContainer.read(loggingServiceProvider.notifier).logError(
-      'Async Error: $error',
-      'AsyncDispatcher',
-      error,
-      stack,
-    );
+    globalProviderContainer
+        .read(loggingServiceProvider.notifier)
+        .logError('Async Error: $error', 'AsyncDispatcher', error, stack);
     _showGlobalErrorToast('Runtime Error: $error');
     return true;
   };
@@ -108,7 +111,8 @@ void main(List<String> args) async {
   // Self-heal the startup path for portable versions
   final intendsToAutoStart = prefs.getBool('auto_start_intent') ?? false;
   if (intendsToAutoStart) {
-    await launchAtStartup.enable(); // Overwrites OS registry/autostart with current executable path
+    await launchAtStartup
+        .enable(); // Overwrites OS registry/autostart with current executable path
   } else {
     await launchAtStartup.disable(); // Cleans up if they disabled it
   }
@@ -116,7 +120,19 @@ void main(List<String> args) async {
   // Run migrations
   await globalProviderContainer.read(preferencesServiceProvider).migrate();
 
-  final alwaysOnTop = prefs.getBool('always_on_top') ?? true;
+  if (Platform.isLinux) {
+    final linuxSystemIntegration =
+        prefs.getBool(PreferencesService.keyLinuxSystemIntegration) ?? false;
+    if (linuxSystemIntegration) {
+      await globalProviderContainer
+          .read(linuxIntegrationServiceProvider)
+          .selfHeal();
+    }
+  }
+
+  final alwaysOnTop = prefs.getBool(PreferencesService.keyAlwaysOnTop) ?? true;
+  final showTaskbarIcon =
+      prefs.getBool(PreferencesService.keyShowTaskbarIcon) ?? true;
 
   final windowOptions = WindowOptions(
     size: const Size(
@@ -125,8 +141,10 @@ void main(List<String> args) async {
     ),
     center: true,
     backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: Platform.isLinux ? TitleBarStyle.normal : TitleBarStyle.hidden,
+    skipTaskbar: !showTaskbarIcon,
+    titleBarStyle: Platform.isLinux
+        ? TitleBarStyle.normal
+        : TitleBarStyle.hidden,
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -150,8 +168,6 @@ void main(List<String> args) async {
 
   await TrayManager.init(globalProviderContainer);
 
-
-
   runApp(
     UncontrolledProviderScope(
       container: globalProviderContainer,
@@ -162,7 +178,9 @@ void main(List<String> args) async {
 
 void _showGlobalErrorToast(String message) {
   // Use the overlay context if available to guarantee that an Overlay widget ancestor exists
-  final context = navigatorKey.currentState?.overlay?.context ?? navigatorKey.currentContext;
+  final context =
+      navigatorKey.currentState?.overlay?.context ??
+      navigatorKey.currentContext;
   if (context != null) {
     try {
       SqaToast.show(context, message, type: SqaToastType.error);
@@ -180,7 +198,7 @@ class SqaMultitoolsApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Initialize logging service early
     ref.read(loggingServiceProvider);
-    
+
     final settings = ref.watch(themeSettingsProvider);
     final themeMode = ThemeMode.values[settings.modeIndex];
 
@@ -218,12 +236,15 @@ class SqaMultitoolsApp extends ConsumerWidget {
             Locale('en', ''), // English, no country code
           ],
           builder: (context, child) {
-            final isScreenshotVisible =
-                ref.watch(screenshotProvider).isOverlayVisible;
-            final isRecorderVisible =
-                ref.watch(screenRecorderProvider).isOverlayVisible;
+            final isScreenshotVisible = ref
+                .watch(screenshotProvider)
+                .isOverlayVisible;
+            final isRecorderVisible = ref
+                .watch(screenRecorderProvider)
+                .isOverlayVisible;
             final isExpanded = ref.watch(isWindowExpandedProvider);
-            final isOverlayActive = isScreenshotVisible || isRecorderVisible || isExpanded;
+            final isOverlayActive =
+                isScreenshotVisible || isRecorderVisible || isExpanded;
 
             final settings = ref.watch(themeSettingsProvider);
 
@@ -233,8 +254,8 @@ class SqaMultitoolsApp extends ConsumerWidget {
                   opacity: isOverlayActive
                       ? 1.0
                       : (settings.isTransparencyModeEnabled
-                          ? settings.opacity
-                          : 1.0),
+                            ? settings.opacity
+                            : 1.0),
                   child: ClipRRect(
                     borderRadius: isOverlayActive
                         ? BorderRadius.zero
@@ -246,7 +267,7 @@ class SqaMultitoolsApp extends ConsumerWidget {
                     ),
                   ),
                 ),
-                
+
                 // Global Processing Overlay
                 if (ref.watch(globalProcessingProvider))
                   Positioned.fill(
@@ -261,9 +282,13 @@ class SqaMultitoolsApp extends ConsumerWidget {
                               fit: StackFit.expand,
                               children: [
                                 BackdropFilter(
-                                  filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                  filter: ui.ImageFilter.blur(
+                                    sigmaX: 8,
+                                    sigmaY: 8,
+                                  ),
                                   child: Container(
-                                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+                                    color: Theme.of(context).colorScheme.surface
+                                        .withValues(alpha: 0.5),
                                   ),
                                 ),
                                 Center(
@@ -275,16 +300,27 @@ class SqaMultitoolsApp extends ConsumerWidget {
                                         vertical: SqaTokens.spacingLarge,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surface,
-                                        borderRadius: SqaTokens.borderRadiusLarge,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.surface,
+                                        borderRadius:
+                                            SqaTokens.borderRadiusLarge,
                                         border: Border.all(
-                                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .outlineVariant
+                                              .withValues(alpha: 0.5),
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.15),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.15,
+                                            ),
                                             blurRadius: SqaTokens.spacingLarge,
-                                            offset: Offset(0, SqaTokens.spacingSmall),
+                                            offset: Offset(
+                                              0,
+                                              SqaTokens.spacingSmall,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -292,13 +328,21 @@ class SqaMultitoolsApp extends ConsumerWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           const CircularProgressIndicator(),
-                                          SizedBox(width: SqaTokens.spacingLarge),
+                                          SizedBox(
+                                            width: SqaTokens.spacingLarge,
+                                          ),
                                           Text(
                                             'Processing Media...',
-                                            style: SqaTextStyles.labelBold(context).copyWith(
-                                              fontSize: SqaTokens.fontSizeMedium,
-                                              color: Theme.of(context).colorScheme.onSurface,
-                                            ),
+                                            style:
+                                                SqaTextStyles.labelBold(
+                                                  context,
+                                                ).copyWith(
+                                                  fontSize:
+                                                      SqaTokens.fontSizeMedium,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface,
+                                                ),
                                           ),
                                         ],
                                       ),

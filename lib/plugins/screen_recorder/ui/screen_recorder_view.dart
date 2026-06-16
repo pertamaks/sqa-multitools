@@ -88,7 +88,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
         builder: (ctx) => SqaModal<bool>.confirm(
           title: 'Engine Required',
           message:
-                            'The Screen Recorder requires a lightweight video encoding engine (FFmpeg${engineStatus.formattedRemoteSize != null ? ', ~${engineStatus.formattedRemoteSize}' : ''}) to function fully.\n\nDo you want to download and install it now?',
+              'The Screen Recorder requires a lightweight video encoding engine (FFmpeg${engineStatus.formattedRemoteSize != null ? ', ~${engineStatus.formattedRemoteSize}' : ''}) to function fully.\n\nDo you want to download and install it now?',
           confirmLabel: 'Download',
           cancelLabel: 'Cancel',
           icon: Symbols.download,
@@ -140,9 +140,13 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
     final theme = Theme.of(context);
 
     // Auto-scroll to newly added recordings
-    ref.listen(screenRecorderProvider.select((s) => s.recentRecordings), (previous, next) {
+    ref.listen(screenRecorderProvider.select((s) => s.recentRecordings), (
+      previous,
+      next,
+    ) {
       if (previous != null && next.isNotEmpty) {
-        if (previous.isEmpty || next.first.file.path != previous.first.file.path) {
+        if (previous.isEmpty ||
+            next.first.file.path != previous.first.file.path) {
           Future.delayed(const Duration(milliseconds: 150), () {
             if (!mounted) return;
             final contextToScroll = _historyListKey.currentContext;
@@ -219,7 +223,9 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                 if (Platform.isLinux)
                                   ConfigSnippet(
                                     icon: Symbols.desktop_windows,
-                                    label: _displays.length > 1 && _selectedDisplay != null
+                                    label:
+                                        _displays.length > 1 &&
+                                            _selectedDisplay != null
                                         ? 'Monitor ${_displays.indexOf(_selectedDisplay!) + 1}'
                                         : 'Full Screen',
                                   )
@@ -229,7 +235,8 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                       CaptureMode.fullScreen =>
                                         Symbols.desktop_windows,
                                       CaptureMode.area => Symbols.crop_free,
-                                      CaptureMode.scrolling => Symbols.swipe_down,
+                                      CaptureMode.scrolling =>
+                                        Symbols.swipe_down,
                                     },
                                     label: switch (state.captureMode) {
                                       CaptureMode.fullScreen => 'Full Screen',
@@ -237,16 +244,21 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                                       CaptureMode.scrolling => 'Scrolling Area',
                                     },
                                   ),
-                                  const SizedBox(height: SqaTokens.spacingSmall),
+                                  const SizedBox(
+                                    height: SqaTokens.spacingSmall,
+                                  ),
                                   ConfigSnippet(
                                     icon: state.microphoneEnabled
                                         ? Symbols.mic
                                         : Symbols.mic_off,
                                     label: state.microphoneEnabled
-                                        ? (state.selectedAudioDevice ?? 'Mic On')
+                                        ? (state.selectedAudioDevice ??
+                                              'Mic On')
                                         : 'No Audio',
                                   ),
-                                  const SizedBox(height: SqaTokens.spacingSmall),
+                                  const SizedBox(
+                                    height: SqaTokens.spacingSmall,
+                                  ),
                                   ConfigSnippet(
                                     icon: Symbols.photo_size_select_large,
                                     label:
@@ -263,12 +275,11 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                         onPressed: () {
                           ref
                               .read(navigationServiceProvider)
-                              .jumpToPluginSettings(
-                                ScreenRecorderPlugin().id,
-                              );
+                              .jumpToPluginSettings(ScreenRecorderPlugin().id);
                         },
                         tooltip: 'Recording Settings',
-                        iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                        iconSize:
+                            SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                         color: theme.colorScheme.primary,
                       ),
                     ],
@@ -284,15 +295,15 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                           icon: state.isRecording
                               ? Symbols.stop
                               : (state.isOverlayVisible
-                                  ? Symbols.close
-                                  : Symbols.play_arrow),
+                                    ? Symbols.close
+                                    : Symbols.play_arrow),
                           label: ffmpegStatus.isDownloading
                               ? 'Downloading Engine...'
                               : (state.isRecording
-                                  ? 'Stop Recording'
-                                  : (state.isOverlayVisible
-                                      ? 'Cancel Overlay'
-                                      : Platform.isLinux
+                                    ? 'Stop Recording'
+                                    : (state.isOverlayVisible
+                                          ? 'Cancel Overlay'
+                                          : Platform.isLinux
                                           ? 'Start Recording'
                                           : 'Enter Overlay')),
                           color: state.isOverlayVisible || state.isRecording
@@ -329,12 +340,17 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   final index = _displays.indexOf(d);
                   return ButtonSegment<int>(
                     value: index,
-                    icon: const Icon(Symbols.monitor, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    icon: const Icon(
+                      Symbols.monitor,
+                      size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                    ),
                     label: Text('Monitor ${index + 1}'),
                     tooltip: '${d.size.width.toInt()}x${d.size.height.toInt()}',
                   );
                 }).toList(),
-                selected: {_displays.indexOf(_selectedDisplay ?? _displays.first)},
+                selected: {
+                  _displays.indexOf(_selectedDisplay ?? _displays.first),
+                },
                 onSelectionChanged: (Set<int> set) {
                   setState(() {
                     _selectedDisplay = _displays[set.first];
@@ -365,7 +381,10 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                 segments: [
                   ButtonSegment(
                     value: CaptureMode.fullScreen,
-                    icon: const Icon(Symbols.desktop_windows, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    icon: const Icon(
+                      Symbols.desktop_windows,
+                      size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                    ),
                     label: const Text('Full Screen'),
                     tooltip: hotkeys.recFullscreen != null
                         ? 'Full Screen (${hotkeys.recFullscreen})'
@@ -373,14 +392,21 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   ),
                   ButtonSegment(
                     value: CaptureMode.area,
-                    icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                    icon: const Icon(
+                      Symbols.crop_free,
+                      size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                    ),
                     label: const Text('Select Area'),
                     tooltip: hotkeys.areaRecordToggle != null
                         ? 'Select Area (${hotkeys.areaRecordToggle})'
                         : 'Select Area — no hotkey assigned',
                   ),
                 ],
-                selected: {state.captureMode == CaptureMode.scrolling ? CaptureMode.area : state.captureMode},
+                selected: {
+                  state.captureMode == CaptureMode.scrolling
+                      ? CaptureMode.area
+                      : state.captureMode,
+                },
                 onSelectionChanged: (Set<CaptureMode> set) =>
                     notifier.setCaptureMode(set.first),
               ),
@@ -420,8 +446,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                   onDelete: () => notifier.deleteRecording(info),
                   onRename: (newName) =>
                       notifier.renameRecording(info, newName),
-                  onValidate: (name) =>
-                      notifier.validateNewName(name, info),
+                  onValidate: (name) => notifier.validateNewName(name, info),
                   onOpen: () => PlatformUtils.openPath(info.file.path),
                   onAnnotate: () async {
                     if (!Platform.isLinux) {
@@ -433,7 +458,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                       await windowManager.setSize(const Size(1280, 720));
                       await windowManager.center();
                     }
-                    
+
                     if (context.mounted) {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -445,8 +470,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                       );
                     }
                   },
-                  onOpenFolder: () =>
-                      notifier.openSaveDirectory(),
+                  onOpenFolder: () => notifier.openSaveDirectory(),
                 );
               },
             ),

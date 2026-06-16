@@ -6,7 +6,7 @@ class HotkeyInfo {
   final List<int> modifierIndices;
 
   HotkeyInfo({required this.keyCode, required List<int> modifierIndices})
-      : modifierIndices = List<int>.from(modifierIndices)..sort();
+    : modifierIndices = List<int>.from(modifierIndices)..sort();
 
   /// Converts this info to a hotkey_manager HotKey object.
   HotKey toHotKey({

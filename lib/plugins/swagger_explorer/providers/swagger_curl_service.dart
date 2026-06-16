@@ -55,10 +55,11 @@ class SwaggerCurlService {
               } else {
                 tempHeaders['Authorization'] = token;
               }
-            } else if (schemeDef.type == 'oauth2' || schemeDef.type == 'openIdConnect') {
-               tempHeaders['Authorization'] = 'Bearer $token';
+            } else if (schemeDef.type == 'oauth2' ||
+                schemeDef.type == 'openIdConnect') {
+              tempHeaders['Authorization'] = 'Bearer $token';
             } else if (schemeDef.type == 'basic') {
-               tempHeaders['Authorization'] = 'Basic $token';
+              tempHeaders['Authorization'] = 'Basic $token';
             }
           }
         }
@@ -117,8 +118,11 @@ class SwaggerCurlService {
       if (content != null) {
         if (content.containsKey('application/json')) {
           headers['Content-Type'] = 'application/json';
-          final bodySchema = content['application/json']['schema'] as Map<String, dynamic>?;
-          final parsedExample = generateExampleFromSchema(bodySchema ?? <String, dynamic>{});
+          final bodySchema =
+              content['application/json']['schema'] as Map<String, dynamic>?;
+          final parsedExample = generateExampleFromSchema(
+            bodySchema ?? <String, dynamic>{},
+          );
           if ((parsedExample is Map && parsedExample.isNotEmpty) ||
               (parsedExample is List && parsedExample.isNotEmpty)) {
             rawBody = const JsonEncoder.withIndent('  ').convert(parsedExample);
@@ -126,15 +130,23 @@ class SwaggerCurlService {
         } else if (content.containsKey('application/x-www-form-urlencoded')) {
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
           final bodySchema =
-              content['application/x-www-form-urlencoded']['schema'] as Map<String, dynamic>?;
-          final parsedExample = generateExampleFromSchema(bodySchema ?? <String, dynamic>{});
+              content['application/x-www-form-urlencoded']['schema']
+                  as Map<String, dynamic>?;
+          final parsedExample = generateExampleFromSchema(
+            bodySchema ?? <String, dynamic>{},
+          );
           if (parsedExample is Map) {
-            parsedExample.forEach((k, v) => formFields[k as String] = v.toString());
+            parsedExample.forEach(
+              (k, v) => formFields[k as String] = v.toString(),
+            );
           }
         } else if (content.containsKey('multipart/form-data')) {
           headers['Content-Type'] = 'multipart/form-data';
-          final bodySchema = content['multipart/form-data']['schema'] as Map<String, dynamic>?;
-          final parsedExample = generateExampleFromSchema(bodySchema ?? <String, dynamic>{});
+          final bodySchema =
+              content['multipart/form-data']['schema'] as Map<String, dynamic>?;
+          final parsedExample = generateExampleFromSchema(
+            bodySchema ?? <String, dynamic>{},
+          );
           if (parsedExample is Map) {
             parsedExample.forEach((k, v) {
               final key = k as String;
@@ -146,8 +158,13 @@ class SwaggerCurlService {
               }
             });
           }
-        } else if (content.containsKey('application/octet-stream') || content.containsKey('*/*') || content.containsKey('image/*')) {
-          final matchedType = content.keys.firstWhere((k) => k == 'application/octet-stream' || k == '*/*' || k == 'image/*');
+        } else if (content.containsKey('application/octet-stream') ||
+            content.containsKey('*/*') ||
+            content.containsKey('image/*')) {
+          final matchedType = content.keys.firstWhere(
+            (k) =>
+                k == 'application/octet-stream' || k == '*/*' || k == 'image/*',
+          );
           headers['Content-Type'] = matchedType;
           rawBody = '@dummy_file.ext';
         }
@@ -182,7 +199,9 @@ class SwaggerCurlService {
         if (isMultipart) {
           parts.add('${f.key}=${f.value}');
         } else {
-          parts.add('${Uri.encodeComponent(f.key)}=${Uri.encodeComponent(f.value)}');
+          parts.add(
+            '${Uri.encodeComponent(f.key)}=${Uri.encodeComponent(f.value)}',
+          );
         }
       }
       rawBody = parts.join('&');
@@ -192,11 +211,20 @@ class SwaggerCurlService {
     if (rawBody.isNotEmpty || formFields.isNotEmpty) {
       if (headers['Content-Type']?.contains('application/json') == true) {
         bodyType = BodyType.json;
-      } else if (headers['Content-Type']?.contains('multipart/form-data') == true) {
+      } else if (headers['Content-Type']?.contains('multipart/form-data') ==
+          true) {
         bodyType = BodyType.multipartFormData;
-      } else if (headers['Content-Type']?.contains('application/x-www-form-urlencoded') == true) {
+      } else if (headers['Content-Type']?.contains(
+            'application/x-www-form-urlencoded',
+          ) ==
+          true) {
         bodyType = BodyType.urlEncoded;
-      } else if (headers['Content-Type']?.contains('application/octet-stream') == true || headers['Content-Type']?.contains('*/*') == true || headers['Content-Type']?.contains('image/*') == true) {
+      } else if (headers['Content-Type']?.contains(
+                'application/octet-stream',
+              ) ==
+              true ||
+          headers['Content-Type']?.contains('*/*') == true ||
+          headers['Content-Type']?.contains('image/*') == true) {
         bodyType = BodyType.binaryFile;
       } else {
         bodyType = BodyType.raw;

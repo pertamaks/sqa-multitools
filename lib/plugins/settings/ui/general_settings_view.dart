@@ -60,7 +60,11 @@ class GeneralSettingsView extends ConsumerWidget {
 
     return Tooltip(
       message: label,
-      child: Icon(icon, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny, color: colorScheme.outlineVariant),
+      child: Icon(
+        icon,
+        size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+        color: colorScheme.outlineVariant,
+      ),
     );
   }
 
@@ -83,7 +87,11 @@ class GeneralSettingsView extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Icon(Symbols.info, size: SqaTokens.spacingLarge, color: colorScheme.primary),
+            Icon(
+              Symbols.info,
+              size: SqaTokens.spacingLarge,
+              color: colorScheme.primary,
+            ),
             const SizedBox(width: SqaTokens.spacingMedium),
             Expanded(
               child: Text(
@@ -158,7 +166,10 @@ class GeneralSettingsView extends ConsumerWidget {
                 const SizedBox(height: SqaTokens.spacingLarge),
                 const Text(
                   'Theme Mode',
-                  style: TextStyle(fontSize: SqaTokens.spacingMedium, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: SqaTokens.spacingMedium,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: SqaTokens.spacingSmall),
                 SqaSegmentedButton<int>(
@@ -193,7 +204,11 @@ class GeneralSettingsView extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Symbols.coffee, size: SqaTokens.spacingMedium, color: colorScheme.primary),
+                        Icon(
+                          Symbols.coffee,
+                          size: SqaTokens.spacingMedium,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: SqaTokens.spacingSmall),
                         Text(
                           'Coffee Shop Amenities',
@@ -248,8 +263,12 @@ class GeneralSettingsView extends ConsumerWidget {
                           child: Tooltip(
                             message: isLocked ? '$name (Preview)' : name,
                             child: Container(
-                              width: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
-                              height: SqaTokens.spacingXXLarge + SqaTokens.spacingLarge,
+                              width:
+                                  SqaTokens.spacingXXLarge +
+                                  SqaTokens.spacingLarge,
+                              height:
+                                  SqaTokens.spacingXXLarge +
+                                  SqaTokens.spacingLarge,
                               decoration: BoxDecoration(
                                 color: color,
                                 shape: BoxShape.circle,
@@ -278,7 +297,9 @@ class GeneralSettingsView extends ConsumerWidget {
                                         ? const Icon(
                                             Symbols.check,
                                             color: Colors.white,
-                                            size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                                            size:
+                                                SqaTokens.spacingLarge +
+                                                SqaTokens.spacingTiny,
                                           )
                                         : null),
                             ),
@@ -286,16 +307,21 @@ class GeneralSettingsView extends ConsumerWidget {
                         );
                       }).toList(),
                     ),
-                    
+
                     const SizedBox(height: SqaTokens.spacingXLarge),
-                    
+
                     // Dynamic Color Sync
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: supporterTier < 2 ? () {
-                        final isCurrentlyPreviewing = themeSettings.useDynamicColor;
-                        ref.read(themeSettingsProvider.notifier).previewDynamicColor(!isCurrentlyPreviewing);
-                      } : null,
+                      onTap: supporterTier < 2
+                          ? () {
+                              final isCurrentlyPreviewing =
+                                  themeSettings.useDynamicColor;
+                              ref
+                                  .read(themeSettingsProvider.notifier)
+                                  .previewDynamicColor(!isCurrentlyPreviewing);
+                            }
+                          : null,
                       child: Row(
                         children: [
                           Expanded(
@@ -312,15 +338,21 @@ class GeneralSettingsView extends ConsumerWidget {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    if (supporterTier < 2 && themeSettings.useDynamicColor) ...[
-                                      const SizedBox(width: SqaTokens.spacingSmall),
+                                    if (supporterTier < 2 &&
+                                        themeSettings.useDynamicColor) ...[
+                                      const SizedBox(
+                                        width: SqaTokens.spacingSmall,
+                                      ),
                                       _buildPreviewBadge(colorScheme),
                                     ],
                                   ],
                                 ),
                                 const Text(
                                   'Use your system colors as the app theme.',
-                                  style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: SqaTokens.fontSizeSmall,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ],
                             ),
@@ -338,7 +370,7 @@ class GeneralSettingsView extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: SqaTokens.spacingLarge),
 
                     // Transparency Mode
@@ -348,10 +380,17 @@ class GeneralSettingsView extends ConsumerWidget {
                       children: [
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: supporterTier < 3 ? () {
-                            final isCurrentlyPreviewing = themeSettings.isTransparencyModeEnabled;
-                            ref.read(themeSettingsProvider.notifier).previewTransparency(!isCurrentlyPreviewing);
-                          } : null,
+                          onTap: supporterTier < 3
+                              ? () {
+                                  final isCurrentlyPreviewing =
+                                      themeSettings.isTransparencyModeEnabled;
+                                  ref
+                                      .read(themeSettingsProvider.notifier)
+                                      .previewTransparency(
+                                        !isCurrentlyPreviewing,
+                                      );
+                                }
+                              : null,
                           child: Row(
                             children: [
                               Expanded(
@@ -367,22 +406,32 @@ class GeneralSettingsView extends ConsumerWidget {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        if (supporterTier < 3 && themeSettings.isTransparencyModeEnabled) ...[
-                                          const SizedBox(width: SqaTokens.spacingSmall),
+                                        if (supporterTier < 3 &&
+                                            themeSettings
+                                                .isTransparencyModeEnabled) ...[
+                                          const SizedBox(
+                                            width: SqaTokens.spacingSmall,
+                                          ),
                                           _buildPreviewBadge(colorScheme),
                                         ],
                                       ],
                                     ),
                                     const Text(
                                       'Enable premium transparency effects for a cleaner look.',
-                                      style: TextStyle(fontSize: SqaTokens.spacingSmall + 3, color: Colors.grey),
+                                      style: TextStyle(
+                                        fontSize: SqaTokens.spacingSmall + 3,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                     if (Platform.isLinux)
                                       const Padding(
                                         padding: EdgeInsets.only(top: 4.0),
                                         child: Text(
                                           'Note: Wayland compositors may block window transparency.',
-                                          style: TextStyle(fontSize: 11, color: Colors.orangeAccent),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.orangeAccent,
+                                          ),
                                         ),
                                       ),
                                   ],
@@ -391,7 +440,8 @@ class GeneralSettingsView extends ConsumerWidget {
                               _buildTierBadge(3, supporterTier, colorScheme),
                               if (supporterTier >= 3)
                                 SqaSwitch(
-                                  value: themeSettings.isTransparencyModeEnabled,
+                                  value:
+                                      themeSettings.isTransparencyModeEnabled,
                                   onChanged: (v) {
                                     ref
                                         .read(themeSettingsProvider.notifier)
@@ -401,7 +451,8 @@ class GeneralSettingsView extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        if (themeSettings.isTransparencyModeEnabled && supporterTier >= 3) ...[
+                        if (themeSettings.isTransparencyModeEnabled &&
+                            supporterTier >= 3) ...[
                           const SizedBox(height: SqaTokens.spacingLarge),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -418,7 +469,10 @@ class GeneralSettingsView extends ConsumerWidget {
                                   ),
                                   Text(
                                     'Capped at 20% for readability.',
-                                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -458,15 +512,19 @@ class GeneralSettingsView extends ConsumerWidget {
                         ],
                       ],
                     ),
-                    
+
                     // Premium Group Taster Banner
                     _buildTasterBanner(
                       context,
                       ref,
                       colorScheme,
-                      (supporterTier < 1 && themeSettings.seedColorValue != curatedColors[0]['color'].toARGB32()) ||
-                      (supporterTier < 2 && themeSettings.useDynamicColor) ||
-                      (supporterTier < 3 && themeSettings.isTransparencyModeEnabled),
+                      (supporterTier < 1 &&
+                              themeSettings.seedColorValue !=
+                                  curatedColors[0]['color'].toARGB32()) ||
+                          (supporterTier < 2 &&
+                              themeSettings.useDynamicColor) ||
+                          (supporterTier < 3 &&
+                              themeSettings.isTransparencyModeEnabled),
                     ),
                   ],
                 ),
@@ -512,14 +570,20 @@ class GeneralSettingsView extends ConsumerWidget {
                           ),
                           const Text(
                             'Keep the toolbar above all other windows.',
-                            style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: SqaTokens.fontSizeSmall,
+                              color: Colors.grey,
+                            ),
                           ),
                           if (Platform.isLinux)
                             const Padding(
                               padding: EdgeInsets.only(top: 4.0),
                               child: Text(
                                 'Note: Wayland strictly blocks Always on Top requests for security. Run with GDK_BACKEND=x11 if needed.',
-                                style: TextStyle(fontSize: 11, color: Colors.orangeAccent),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.orangeAccent,
+                                ),
                               ),
                             ),
                         ],
@@ -539,7 +603,7 @@ class GeneralSettingsView extends ConsumerWidget {
                 Consumer(
                   builder: (context, ref, child) {
                     final autoStartAsync = ref.watch(autoStartProvider);
-                    
+
                     return Row(
                       children: [
                         Expanded(
@@ -556,7 +620,10 @@ class GeneralSettingsView extends ConsumerWidget {
                               ),
                               const Text(
                                 'Automatically start SQA-Multitools when you log in.',
-                                style: TextStyle(fontSize: SqaTokens.fontSizeSmall, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: SqaTokens.fontSizeSmall,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ],
                           ),
@@ -576,12 +643,85 @@ class GeneralSettingsView extends ConsumerWidget {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           ),
-                          error: (_, _) => const Icon(Symbols.error, color: Colors.red),
+                          error: (_, _) =>
+                              const Icon(Symbols.error, color: Colors.red),
                         ),
                       ],
                     );
                   },
                 ),
+                const SizedBox(height: SqaTokens.spacingLarge),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Show App in Taskbar / Dock',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Text(
+                            'When disabled, the app only appears in the system tray.',
+                            style: TextStyle(
+                              fontSize: SqaTokens.fontSizeSmall,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SqaSwitch(
+                      value: themeSettings.showTaskbarIcon,
+                      onChanged: (v) {
+                        ref
+                            .read(themeSettingsProvider.notifier)
+                            .setShowTaskbarIcon(v);
+                      },
+                    ),
+                  ],
+                ),
+                if (Platform.isLinux) ...[
+                  const SizedBox(height: SqaTokens.spacingLarge),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Integrate with Linux System',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'Ensure the app icon appears correctly in your dock and launcher.',
+                              style: TextStyle(
+                                fontSize: SqaTokens.fontSizeSmall,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SqaSwitch(
+                        value: themeSettings.linuxSystemIntegration,
+                        onChanged: (v) {
+                          ref
+                              .read(themeSettingsProvider.notifier)
+                              .setLinuxSystemIntegration(v);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -616,7 +756,10 @@ class GeneralSettingsView extends ConsumerWidget {
                     padding: EdgeInsets.only(top: 4.0),
                     child: Text(
                       'Note: Wayland prevents apps from reading global hotkeys when out of focus.',
-                      style: TextStyle(fontSize: 11, color: Colors.orangeAccent),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.orangeAccent,
+                      ),
                     ),
                   ),
                 const SizedBox(height: SqaTokens.spacingLarge),

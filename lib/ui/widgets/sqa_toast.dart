@@ -18,7 +18,8 @@ class SqaToast {
   }) {
     // Prevent rapid-fire duplicate toasts
     final now = DateTime.now();
-    if (_lastShown != null && now.difference(_lastShown!) < const Duration(milliseconds: 300)) {
+    if (_lastShown != null &&
+        now.difference(_lastShown!) < const Duration(milliseconds: 300)) {
       return;
     }
     _lastShown = now;
@@ -53,10 +54,9 @@ class SqaToast {
         break;
     }
 
-    final textStyle = SqaTextStyles.labelBold(context).copyWith(
-      color: colorScheme.onSurface,
-      fontSize: SqaTokens.fontSizeTiny,
-    );
+    final textStyle = SqaTextStyles.labelBold(
+      context,
+    ).copyWith(color: colorScheme.onSurface, fontSize: SqaTokens.fontSizeTiny);
 
     _currentEntry = OverlayEntry(
       builder: (context) => _SqaToastWidget(
@@ -64,7 +64,9 @@ class SqaToast {
         icon: icon,
         iconColor: iconColor,
         style: textStyle,
-        backgroundColor: colorScheme.surfaceContainerHigh.withValues(alpha: 0.95),
+        backgroundColor: colorScheme.surfaceContainerHigh.withValues(
+          alpha: 0.95,
+        ),
         borderColor: colorScheme.outlineVariant.withValues(alpha: 0.5),
         duration: duration,
         onDismissed: () {
@@ -103,7 +105,8 @@ class _SqaToastWidget extends StatefulWidget {
   State<_SqaToastWidget> createState() => _SqaToastWidgetState();
 }
 
-class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProviderStateMixin {
+class _SqaToastWidgetState extends State<_SqaToastWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacity;
   late Animation<Offset> _offset;
@@ -117,18 +120,12 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
       duration: SqaTokens.durationSlow,
     );
 
-    _opacity = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    );
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
 
     _offset = Tween<Offset>(
       begin: const Offset(0, 0.5),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutBack,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _show();
   }
@@ -190,17 +187,14 @@ class _SqaToastWidgetState extends State<_SqaToastWidget> with SingleTickerProvi
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 1.0),
-                      child: Icon(widget.icon,
-                          color: widget.iconColor,
-                          size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall),
-                    ),
-                    const SizedBox(width: SqaTokens.spacingSmall + 2),
-                    Flexible(
-                      child: Text(
-                        widget.message,
-                        style: widget.style,
+                      child: Icon(
+                        widget.icon,
+                        color: widget.iconColor,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingXXSmall,
                       ),
                     ),
+                    const SizedBox(width: SqaTokens.spacingSmall + 2),
+                    Flexible(child: Text(widget.message, style: widget.style)),
                   ],
                 ),
               ),

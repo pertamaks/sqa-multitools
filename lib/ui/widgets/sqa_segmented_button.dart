@@ -121,30 +121,37 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       onSelectionChanged: widget.onSelectionChanged,
       showSelectedIcon: widget.showSelectedIcon,
       expandedInsets: shouldStretch ? EdgeInsets.zero : null,
-      style: SegmentedButton.styleFrom(
-        visualDensity: widget.visualDensity ?? VisualDensity.compact,
-        textStyle: TextStyle(
-          fontSize: widget.fontSize,
-          fontWeight: FontWeight.w600,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall + 4),
-        backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.5,
-        ),
-        selectedBackgroundColor: colorScheme.primaryContainer,
-        side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
-      ).copyWith(
-        shape: SqaStyles.buttonShape,
-        overlayColor: SqaStyles.buttonOverlay(context),
-        mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
-      ),
+      style:
+          SegmentedButton.styleFrom(
+            visualDensity: widget.visualDensity ?? VisualDensity.compact,
+            textStyle: TextStyle(
+              fontSize: widget.fontSize,
+              fontWeight: FontWeight.w600,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingSmall + 4,
+            ),
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            selectedBackgroundColor: colorScheme.primaryContainer,
+            side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+          ).copyWith(
+            shape: SqaStyles.buttonShape,
+            overlayColor: SqaStyles.buttonOverlay(context),
+            mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+          ),
     );
 
     final effectivePadding =
         widget.padding ??
         EdgeInsets.only(
-          top: widget.isChild ? SqaTokens.spacingXXSmall : SqaTokens.spacingXSmall,
-          bottom: widget.hasChild ? SqaTokens.spacingXXSmall : SqaTokens.spacingXSmall,
+          top: widget.isChild
+              ? SqaTokens.spacingXXSmall
+              : SqaTokens.spacingXSmall,
+          bottom: widget.hasChild
+              ? SqaTokens.spacingXXSmall
+              : SqaTokens.spacingXSmall,
           left: widget.isChild ? SqaTokens.spacingMedium : 0,
           right: widget.isChild ? SqaTokens.spacingMedium : 0,
         );
@@ -183,7 +190,9 @@ class _SqaSegmentedButtonState<T> extends State<SqaSegmentedButton<T>> {
       return Align(
         alignment: Alignment.centerRight,
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: SqaTokens.spacingXXLarge * widget.minScale),
+          constraints: BoxConstraints(
+            minHeight: SqaTokens.spacingXXLarge * widget.minScale,
+          ),
           child: SizedBox(
             height: SqaTokens.spacingXXLarge * widget.scale,
             child: FittedBox(

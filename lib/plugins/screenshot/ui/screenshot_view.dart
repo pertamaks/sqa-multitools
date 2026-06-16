@@ -75,10 +75,14 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
     final theme = Theme.of(context);
 
     // Auto-scroll to newly added captures
-    ref.listen(screenshotProvider.select((s) => s.recentCaptures), (previous, next) {
+    ref.listen(screenshotProvider.select((s) => s.recentCaptures), (
+      previous,
+      next,
+    ) {
       if (previous != null && next.isNotEmpty) {
         // If a new capture was added (either length increased or newest item changed)
-        if (previous.isEmpty || next.first.file.path != previous.first.file.path) {
+        if (previous.isEmpty ||
+            next.first.file.path != previous.first.file.path) {
           // Give the UI a brief moment to layout the new item
           Future.delayed(const Duration(milliseconds: 150), () {
             if (!mounted) return;
@@ -88,7 +92,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                 contextToScroll,
                 duration: const Duration(milliseconds: 600),
                 curve: Curves.easeOutCubic,
-                alignment: 0.0, // align top of the widget to top of the viewport
+                alignment:
+                    0.0, // align top of the widget to top of the viewport
               );
             }
           });
@@ -144,9 +149,11 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                   if (!Platform.isLinux) ...[
                                     ConfigSnippet(
                                       icon: switch (state.captureMode) {
-                                        CaptureMode.fullScreen => Symbols.desktop_windows,
+                                        CaptureMode.fullScreen =>
+                                          Symbols.desktop_windows,
                                         CaptureMode.area => Symbols.crop_free,
-                                        CaptureMode.scrolling => Symbols.swipe_down,
+                                        CaptureMode.scrolling =>
+                                          Symbols.swipe_down,
                                       },
                                       label: switch (state.captureMode) {
                                         CaptureMode.fullScreen => 'Full Screen',
@@ -154,7 +161,9 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                         CaptureMode.scrolling => 'Long SS',
                                       },
                                     ),
-                                    const SizedBox(height: SqaTokens.spacingSmall),
+                                    const SizedBox(
+                                      height: SqaTokens.spacingSmall,
+                                    ),
                                   ],
                                   ConfigSnippet(
                                     icon: Symbols.image,
@@ -173,7 +182,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                 .jumpToPluginSettings(ScreenshotPlugin().id);
                           },
                           tooltip: 'Screenshot Settings',
-                          iconSize: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                          iconSize:
+                              SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                           color: theme.colorScheme.primary,
                         ),
                       ],
@@ -192,8 +202,8 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                             label: state.isOverlayVisible
                                 ? 'Cancel Overlay'
                                 : Platform.isLinux
-                                    ? 'Take Screenshot'
-                                    : 'Enter Overlay',
+                                ? 'Take Screenshot'
+                                : 'Enter Overlay',
                             color: state.isOverlayVisible
                                 ? theme.colorScheme.error
                                 : null,
@@ -227,7 +237,10 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                   segments: [
                     ButtonSegment(
                       value: CaptureMode.fullScreen,
-                      icon: const Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      icon: const Icon(
+                        Symbols.fullscreen,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                      ),
                       label: const Text('Full Screen'),
                       tooltip: hotkeys.ssFullscreen != null
                           ? 'Full Screen (${hotkeys.ssFullscreen})'
@@ -235,7 +248,10 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     ),
                     ButtonSegment(
                       value: CaptureMode.area,
-                      icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      icon: const Icon(
+                        Symbols.crop_free,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                      ),
                       label: const Text('Area'),
                       tooltip: hotkeys.ssArea != null
                           ? 'Area (${hotkeys.ssArea})'
@@ -243,7 +259,10 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                     ),
                     ButtonSegment(
                       value: CaptureMode.scrolling,
-                      icon: const Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      icon: const Icon(
+                        Symbols.swipe_down,
+                        size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                      ),
                       label: const Text('Long SS'),
                       tooltip: hotkeys.ssLong != null
                           ? 'Long Screenshot (${hotkeys.ssLong})'
@@ -275,51 +294,51 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
 
               SqaHistoryList<CaptureInfo>(
                 key: _historyListKey,
-                  items: state.recentCaptures.where((info) {
-                    if (state.searchQuery.isEmpty) return true;
-                    final query = state.searchQuery.toLowerCase();
-                    final filename = p.basename(info.file.path).toLowerCase();
-                    return filename.contains(query);
-                  }).toList(),
-                  title: 'Recent Captures',
-                  emptyLabel: 'No captures found',
-                  emptyIcon: Symbols.image_not_supported,
-                  itemBuilder: (context, info, isLast) {
-                    return CaptureTile(
-                      info: info,
-                      onDelete: () => notifier.deleteCapture(info),
-                      onRename: (newName) =>
-                          notifier.renameCapture(info, newName),
-                      onValidate: (name) =>
-                          notifier.validateNewName(name, info),
-                      onOpen: () => PlatformUtils.openPath(info.file.path),
-                      onAnnotate: () async {
-                        if (!Platform.isLinux) {
-                          await windowManager.setMinimumSize(const Size(800, 600));
-                          await windowManager.setSize(const Size(1280, 720));
-                          await windowManager.center();
-                        } else {
-                          await windowManager.setMaximizable(true);
-                          await windowManager.setSize(const Size(1280, 720));
-                          await windowManager.center();
-                        }
-                        
-                        if (context.mounted) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (context) => MediaAnnotatorView(
-                                filePath: info.file.path,
-                                format: state.format,
-                              ),
+                items: state.recentCaptures.where((info) {
+                  if (state.searchQuery.isEmpty) return true;
+                  final query = state.searchQuery.toLowerCase();
+                  final filename = p.basename(info.file.path).toLowerCase();
+                  return filename.contains(query);
+                }).toList(),
+                title: 'Recent Captures',
+                emptyLabel: 'No captures found',
+                emptyIcon: Symbols.image_not_supported,
+                itemBuilder: (context, info, isLast) {
+                  return CaptureTile(
+                    info: info,
+                    onDelete: () => notifier.deleteCapture(info),
+                    onRename: (newName) =>
+                        notifier.renameCapture(info, newName),
+                    onValidate: (name) => notifier.validateNewName(name, info),
+                    onOpen: () => PlatformUtils.openPath(info.file.path),
+                    onAnnotate: () async {
+                      if (!Platform.isLinux) {
+                        await windowManager.setMinimumSize(
+                          const Size(800, 600),
+                        );
+                        await windowManager.setSize(const Size(1280, 720));
+                        await windowManager.center();
+                      } else {
+                        await windowManager.setMaximizable(true);
+                        await windowManager.setSize(const Size(1280, 720));
+                        await windowManager.center();
+                      }
+
+                      if (context.mounted) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => MediaAnnotatorView(
+                              filePath: info.file.path,
+                              format: state.format,
                             ),
-                          );
-                        }
-                      },
-                      onOpenFolder: () =>
-                          notifier.openSaveDirectory(),
-                    );
-                  },
-                ),
+                          ),
+                        );
+                      }
+                    },
+                    onOpenFolder: () => notifier.openSaveDirectory(),
+                  );
+                },
+              ),
             ],
           ),
         ),

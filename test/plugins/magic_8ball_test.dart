@@ -18,7 +18,9 @@ void main() {
     final mockSecure = MockSecureStorage();
     final container = ProviderContainer(
       overrides: [
-        preferencesServiceProvider.overrideWithValue(PreferencesService(prefs, mockSecure)),
+        preferencesServiceProvider.overrideWithValue(
+          PreferencesService(prefs, mockSecure),
+        ),
       ],
     );
 
@@ -29,7 +31,7 @@ void main() {
     // Change mode
     container.read(oracleSettingsProvider.notifier).setMode(OracleMode.savage);
     expect(container.read(oracleSettingsProvider).mode, OracleMode.savage);
-    
+
     // Verify responses match
     final responses = container.read(oracleResponsesProvider);
     expect(responses.isNotEmpty, true);

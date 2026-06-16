@@ -17,7 +17,11 @@ class FormDataEditor extends ConsumerWidget {
   final VoidCallback onSyncRaw;
   final bool isUrlEncoded;
 
-  const FormDataEditor({super.key, required this.onSyncRaw, this.isUrlEncoded = false});
+  const FormDataEditor({
+    super.key,
+    required this.onSyncRaw,
+    this.isUrlEncoded = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +43,11 @@ class FormDataEditor extends ConsumerWidget {
     Set<String> getVars() {
       final envs = ref.read(environmentsProvider);
       final activeId = ref.read(activeEnvironmentIdProvider);
-      return envs.firstWhere((e) => e.id == activeId, orElse: () => envs.first).variables.keys.toSet();
+      return envs
+          .firstWhere((e) => e.id == activeId, orElse: () => envs.first)
+          .variables
+          .keys
+          .toSet();
     }
 
     return SqaCard(
@@ -56,16 +64,26 @@ class FormDataEditor extends ConsumerWidget {
             return Column(
               key: ValueKey('form_data_${item.id}'),
               children: [
-                _buildFormDataRow(context, item, (FormDataItem newItem) {
-                  final newItems = List<FormDataItem>.from(items);
-                  newItems[index] = newItem;
-                  updateItems(newItems);
-                }, () {
-                  final newItems = List<FormDataItem>.from(items);
-                  newItems.removeAt(index);
-                  updateItems(newItems);
-                }, getVars),
-                const Divider(height: 1, indent: SqaTokens.spacingLarge, endIndent: SqaTokens.spacingLarge),
+                _buildFormDataRow(
+                  context,
+                  item,
+                  (FormDataItem newItem) {
+                    final newItems = List<FormDataItem>.from(items);
+                    newItems[index] = newItem;
+                    updateItems(newItems);
+                  },
+                  () {
+                    final newItems = List<FormDataItem>.from(items);
+                    newItems.removeAt(index);
+                    updateItems(newItems);
+                  },
+                  getVars,
+                ),
+                const Divider(
+                  height: 1,
+                  indent: SqaTokens.spacingLarge,
+                  endIndent: SqaTokens.spacingLarge,
+                ),
               ],
             );
           }),
@@ -89,13 +107,21 @@ class FormDataEditor extends ConsumerWidget {
     );
   }
 
-  Widget _buildFormDataRow(BuildContext context, FormDataItem item, void Function(FormDataItem) onChanged, VoidCallback onDelete, Set<String> Function() getKnownVariables) {
+  Widget _buildFormDataRow(
+    BuildContext context,
+    FormDataItem item,
+    void Function(FormDataItem) onChanged,
+    VoidCallback onDelete,
+    Set<String> Function() getKnownVariables,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 450;
-        
+
         final checkbox = SqaHoverIconButton(
-          icon: item.isActive ? Symbols.check_box : Symbols.check_box_outline_blank,
+          icon: item.isActive
+              ? Symbols.check_box
+              : Symbols.check_box_outline_blank,
           onPressed: () => onChanged(item.copyWith(isActive: !item.isActive)),
           tooltip: 'Toggle Active',
           iconSize: SqaTokens.spacingXLarge,
@@ -103,7 +129,7 @@ class FormDataEditor extends ConsumerWidget {
               ? Theme.of(context).colorScheme.primary
               : Theme.of(context).colorScheme.onSurfaceVariant,
         );
-        
+
         final keyField = SqaField(
           label: '',
           showLabel: false,
@@ -114,52 +140,72 @@ class FormDataEditor extends ConsumerWidget {
           fontSize: SqaTokens.spacingMedium,
           showCopyButton: false,
           onChanged: (v) => onChanged(item.copyWith(key: v)),
-          color: item.isActive ? Theme.of(context).colorScheme.onSurface : Colors.grey,
+          color: item.isActive
+              ? Theme.of(context).colorScheme.onSurface
+              : Colors.grey,
         );
 
-        final typeSelector = isUrlEncoded ? const SizedBox.shrink() : SqaPopupMenu(
-          icon: Symbols.arrow_drop_down,
-          builder: (context, controller, child) {
-            return InkWell(
-              onTap: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
-              },
-              borderRadius: SqaTokens.borderRadiusSmall,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingXSmall, vertical: 2),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(item.isFile ? 'File' : 'Text', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    const Icon(Symbols.arrow_drop_down, size: 16),
-                  ],
-                ),
-              ),
-            );
-          },
-          children: [false, true].map((isFile) {
-            return SqaPopupMenuItem(
-              onPressed: () => onChanged(item.copyWith(isFile: isFile)),
-              icon: Icon(isFile ? Symbols.file_present : Symbols.text_fields, size: 16),
-              label: isFile ? 'File' : 'Text',
-            );
-          }).toList(),
-        );
+        final typeSelector = isUrlEncoded
+            ? const SizedBox.shrink()
+            : SqaPopupMenu(
+                icon: Symbols.arrow_drop_down,
+                builder: (context, controller, child) {
+                  return InkWell(
+                    onTap: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                    borderRadius: SqaTokens.borderRadiusSmall,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: SqaTokens.spacingXSmall,
+                        vertical: 2,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item.isFile ? 'File' : 'Text',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Symbols.arrow_drop_down, size: 16),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                children: [false, true].map((isFile) {
+                  return SqaPopupMenuItem(
+                    onPressed: () => onChanged(item.copyWith(isFile: isFile)),
+                    icon: Icon(
+                      isFile ? Symbols.file_present : Symbols.text_fields,
+                      size: 16,
+                    ),
+                    label: isFile ? 'File' : 'Text',
+                  );
+                }).toList(),
+              );
 
         final valueField = item.isFile && !isUrlEncoded
             ? Row(
                 children: [
                   Expanded(
                     child: Text(
-                      item.filePath?.isNotEmpty == true ? item.filePath! : 'Select file...',
+                      item.filePath?.isNotEmpty == true
+                          ? item.filePath!
+                          : 'Select file...',
                       style: TextStyle(
-                        color: item.filePath?.isNotEmpty == true ? Theme.of(context).colorScheme.onSurface : Colors.grey,
-                        fontStyle: item.filePath?.isNotEmpty == true ? FontStyle.normal : FontStyle.italic,
+                        color: item.filePath?.isNotEmpty == true
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Colors.grey,
+                        fontStyle: item.filePath?.isNotEmpty == true
+                            ? FontStyle.normal
+                            : FontStyle.italic,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -186,9 +232,12 @@ class FormDataEditor extends ConsumerWidget {
                 getKnownVariables: getKnownVariables,
                 fontSize: SqaTokens.spacingMedium,
                 showCopyButton: false,
-                extraFloatingButtonBuilder: (ctrl) => CurlVariableInfoButton(controller: ctrl),
+                extraFloatingButtonBuilder: (ctrl) =>
+                    CurlVariableInfoButton(controller: ctrl),
                 onChanged: (v) => onChanged(item.copyWith(value: v)),
-                color: item.isActive ? Theme.of(context).colorScheme.onSurface : Colors.grey,
+                color: item.isActive
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Colors.grey,
               );
 
         final deleteBtn = SqaHoverIconButton(
@@ -206,46 +255,63 @@ class FormDataEditor extends ConsumerWidget {
             SqaTokens.spacingLarge,
             SqaTokens.spacingSmall,
           ),
-          child: isCompact ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  checkbox,
-                  const SizedBox(width: SqaTokens.spacingSmall),
-                  Expanded(child: keyField),
-                  deleteBtn,
-                ],
-              ),
-              const SizedBox(height: SqaTokens.spacingXXSmall),
-              Row(
-                children: [
-                  const SizedBox(width: SqaTokens.spacingXLarge + SqaTokens.spacingSmall),
-                  Icon(Symbols.subdirectory_arrow_right, size: 16, color: item.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5)),
-                  if (!isUrlEncoded) Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
-                    child: typeSelector,
-                  ),
-                  const SizedBox(width: SqaTokens.spacingSmall),
-                  Expanded(child: valueField),
-                ],
-              ),
-            ],
-          ) : Row(
-            children: [
-              checkbox,
-              const SizedBox(width: SqaTokens.spacingSmall),
-              Expanded(flex: 2, child: keyField),
-              if (!isUrlEncoded) Padding(
-                padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
-                child: typeSelector,
-              ),
-              const SizedBox(width: SqaTokens.spacingSmall),
-              Expanded(flex: 3, child: valueField),
-              const SizedBox(width: SqaTokens.spacingSmall),
-              deleteBtn,
-            ],
-          ),
+          child: isCompact
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        checkbox,
+                        const SizedBox(width: SqaTokens.spacingSmall),
+                        Expanded(child: keyField),
+                        deleteBtn,
+                      ],
+                    ),
+                    const SizedBox(height: SqaTokens.spacingXXSmall),
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width:
+                              SqaTokens.spacingXLarge + SqaTokens.spacingSmall,
+                        ),
+                        Icon(
+                          Symbols.subdirectory_arrow_right,
+                          size: 16,
+                          color: item.isActive
+                              ? Colors.grey
+                              : Colors.grey.withValues(alpha: 0.5),
+                        ),
+                        if (!isUrlEncoded)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: SqaTokens.spacingSmall,
+                            ),
+                            child: typeSelector,
+                          ),
+                        const SizedBox(width: SqaTokens.spacingSmall),
+                        Expanded(child: valueField),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    checkbox,
+                    const SizedBox(width: SqaTokens.spacingSmall),
+                    Expanded(flex: 2, child: keyField),
+                    if (!isUrlEncoded)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SqaTokens.spacingSmall,
+                        ),
+                        child: typeSelector,
+                      ),
+                    const SizedBox(width: SqaTokens.spacingSmall),
+                    Expanded(flex: 3, child: valueField),
+                    const SizedBox(width: SqaTokens.spacingSmall),
+                    deleteBtn,
+                  ],
+                ),
         );
       },
     );

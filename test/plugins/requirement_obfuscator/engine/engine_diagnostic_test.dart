@@ -42,7 +42,9 @@ Also REQ-101 and Espresso are used.
       }
 
       for (final entry in grouped.entries) {
-        print('--- ${entry.key.name.toUpperCase()} (${entry.value.length}) ---');
+        print(
+          '--- ${entry.key.name.toUpperCase()} (${entry.value.length}) ---',
+        );
         for (final c in entry.value) {
           print('  "${c.term}"');
         }
@@ -53,55 +55,105 @@ Also REQ-101 and Espresso are used.
       final termNames = candidates.map((c) => c.term.toLowerCase()).toSet();
 
       // REQ codes (Heuristic 1)
-      expect(candidates.any((c) => c.term.startsWith('REQ-')), isTrue,
-          reason: 'Should detect REQ-101, REQ-102, etc.');
-      expect(candidates.any((c) => c.term.startsWith('EPIC-')), isTrue,
-          reason: 'Should detect EPIC-01, EPIC-02');
-      expect(candidates.any((c) => c.term.startsWith('FR-')), isTrue,
-          reason: 'Should detect FR-1.1, FR-1.2, etc.');
+      expect(
+        candidates.any((c) => c.term.startsWith('REQ-')),
+        isTrue,
+        reason: 'Should detect REQ-101, REQ-102, etc.',
+      );
+      expect(
+        candidates.any((c) => c.term.startsWith('EPIC-')),
+        isTrue,
+        reason: 'Should detect EPIC-01, EPIC-02',
+      );
+      expect(
+        candidates.any((c) => c.term.startsWith('FR-')),
+        isTrue,
+        reason: 'Should detect FR-1.1, FR-1.2, etc.',
+      );
 
       // PascalCase product name (Heuristic 9)
-      expect(termNames.contains('pulsevibe'), isTrue,
-          reason: 'PulseVibe is the core product name and must be detected');
+      expect(
+        termNames.contains('pulsevibe'),
+        isTrue,
+        reason: 'PulseVibe is the core product name and must be detected',
+      );
 
       // Technical proper nouns (Heuristic 9/10)
-      expect(termNames.contains('graphql'), isTrue,
-          reason: 'GraphQL is a technical term with internal capitals');
-      expect(termNames.contains('postgresql'), isTrue,
-          reason: 'PostgreSQL is a technical name');
+      expect(
+        termNames.contains('graphql'),
+        isTrue,
+        reason: 'GraphQL is a technical term with internal capitals',
+      );
+      expect(
+        termNames.contains('postgresql'),
+        isTrue,
+        reason: 'PostgreSQL is a technical name',
+      );
 
       // Acronyms (Heuristic 11)
-      expect(termNames.contains('oidc'), isTrue,
-          reason: 'OIDC is a sensitive security acronym');
-      expect(termNames.contains('rbac'), isTrue,
-          reason: 'RBAC is a security acronym');
-      expect(termNames.contains('mfa'), isTrue,
-          reason: 'MFA is a security acronym');
+      expect(
+        termNames.contains('oidc'),
+        isTrue,
+        reason: 'OIDC is a sensitive security acronym',
+      );
+      expect(
+        termNames.contains('rbac'),
+        isTrue,
+        reason: 'RBAC is a security acronym',
+      );
+      expect(
+        termNames.contains('mfa'),
+        isTrue,
+        reason: 'MFA is a security acronym',
+      );
 
       // Config-style (Heuristic 4)
       // AES-256-GCM has a hyphen — check if "AES" alone is caught as acronym
-      expect(candidates.any((c) => c.term.contains('AES')), isTrue,
-          reason: 'AES encryption reference must be detected');
+      expect(
+        candidates.any((c) => c.term.contains('AES')),
+        isTrue,
+        reason: 'AES encryption reference must be detected',
+      );
 
       // Verify skip list is working — common terms should NOT appear
-      expect(termNames.contains('api'), isFalse,
-          reason: '"api" is in skip list and should be filtered');
-      expect(termNames.contains('json'), isFalse,
-          reason: '"json" is in skip list and should be filtered');
-      expect(termNames.contains('user'), isFalse,
-          reason: '"user" is in skip list and should be filtered');
-      expect(termNames.contains('database'), isFalse,
-          reason: '"database" is in skip list and should be filtered');
+      expect(
+        termNames.contains('api'),
+        isFalse,
+        reason: '"api" is in skip list and should be filtered',
+      );
+      expect(
+        termNames.contains('json'),
+        isFalse,
+        reason: '"json" is in skip list and should be filtered',
+      );
+      expect(
+        termNames.contains('user'),
+        isFalse,
+        reason: '"user" is in skip list and should be filtered',
+      );
+      expect(
+        termNames.contains('database'),
+        isFalse,
+        reason: '"database" is in skip list and should be filtered',
+      );
 
       // No duplicates
-      final allTermsLower = candidates.map((c) => c.term.toLowerCase()).toList();
-      expect(allTermsLower.length, equals(allTermsLower.toSet().length),
-          reason: 'No duplicate terms should exist');
+      final allTermsLower = candidates
+          .map((c) => c.term.toLowerCase())
+          .toList();
+      expect(
+        allTermsLower.length,
+        equals(allTermsLower.toSet().length),
+        reason: 'No duplicate terms should exist',
+      );
     });
 
     test('correctly handles Heuristic 1 — code format edge cases', () {
       // FR-1.1 has a dot — check if the prefix "FR" is extracted
-      final candidates = TermScanner.scan('See FR-1.1 and AES-256-GCM specs.', []);
+      final candidates = TermScanner.scan(
+        'See FR-1.1 and AES-256-GCM specs.',
+        [],
+      );
       final terms = candidates.map((c) => c.term).toList();
       print('Heuristic 1 edge cases: $terms');
 
@@ -112,7 +164,8 @@ Also REQ-101 and Espresso are used.
     });
 
     test('correctly skips sentence-initial capitals (Heuristic 10)', () {
-      const text = 'Processing is fast. Redis caches data. Use Redis for caching.';
+      const text =
+          'Processing is fast. Redis caches data. Use Redis for caching.';
       final candidates = TermScanner.scan(text, []);
       final terms = candidates.map((c) => c.term).toList();
       print('Heuristic 10 sentence-boundary: $terms');
@@ -122,8 +175,11 @@ Also REQ-101 and Espresso are used.
       // But the first "Redis" after ". " is sentence-initial, so it depends on
       // whether a later "Redis" mid-sentence gets caught.
       // Since "Use Redis" — "Redis" follows "Use" which is not punctuation — should detect
-      expect(candidates.any((c) => c.term == 'Redis'), isTrue,
-          reason: 'Redis mid-sentence should be detected');
+      expect(
+        candidates.any((c) => c.term == 'Redis'),
+        isTrue,
+        reason: 'Redis mid-sentence should be detected',
+      );
     });
   });
 
@@ -172,13 +228,19 @@ Also REQ-101 and Espresso are used.
         print('  attempt $i → "$alias"');
         expect(alias.isNotEmpty, isTrue);
         // Each codename should be Metal+Animal pattern
-        expect(RegExp(r'^[A-Z][a-z]+[A-Z][a-z]+$').hasMatch(alias), isTrue,
-            reason: 'Codename "$alias" should be PascalCase Metal+Animal');
+        expect(
+          RegExp(r'^[A-Z][a-z]+[A-Z][a-z]+$').hasMatch(alias),
+          isTrue,
+          reason: 'Codename "$alias" should be PascalCase Metal+Animal',
+        );
         aliases.add(alias);
       }
       // At least some variety expected (not all identical due to randomness)
-      expect(aliases.length, greaterThan(1),
-          reason: 'Codenames should have variety across 10 generations');
+      expect(
+        aliases.length,
+        greaterThan(1),
+        reason: 'Codenames should have variety across 10 generations',
+      );
     });
   });
 
@@ -193,20 +255,41 @@ Also REQ-101 and Espresso are used.
       variants.forEach((k, v) => print('  "$k" → "$v"'));
 
       // Expected variants from the plan:
-      expect(variants['customeraccount'], equals('memberprofile'),
-          reason: 'lowercase variant');
-      expect(variants['CUSTOMERACCOUNT'], equals('MEMBERPROFILE'),
-          reason: 'uppercase variant');
-      expect(variants['customerAccount'], equals('memberProfile'),
-          reason: 'camelCase variant');
-      expect(variants['customer_account'], equals('member_profile'),
-          reason: 'snake_case variant');
-      expect(variants['CUSTOMER_ACCOUNT'], equals('MEMBER_PROFILE'),
-          reason: 'SCREAMING_SNAKE variant');
-      expect(variants['customer-account'], equals('member-profile'),
-          reason: 'kebab-case variant');
-      expect(variants['customer account'], equals('member profile'),
-          reason: 'space-separated variant');
+      expect(
+        variants['customeraccount'],
+        equals('memberprofile'),
+        reason: 'lowercase variant',
+      );
+      expect(
+        variants['CUSTOMERACCOUNT'],
+        equals('MEMBERPROFILE'),
+        reason: 'uppercase variant',
+      );
+      expect(
+        variants['customerAccount'],
+        equals('memberProfile'),
+        reason: 'camelCase variant',
+      );
+      expect(
+        variants['customer_account'],
+        equals('member_profile'),
+        reason: 'snake_case variant',
+      );
+      expect(
+        variants['CUSTOMER_ACCOUNT'],
+        equals('MEMBER_PROFILE'),
+        reason: 'SCREAMING_SNAKE variant',
+      );
+      expect(
+        variants['customer-account'],
+        equals('member-profile'),
+        reason: 'kebab-case variant',
+      );
+      expect(
+        variants['customer account'],
+        equals('member profile'),
+        reason: 'space-separated variant',
+      );
     });
 
     test('handles single-word terms correctly', () {
@@ -228,12 +311,21 @@ Also REQ-101 and Espresso are used.
       print('=== VARIANT RESOLVER (snake_case input) ===');
       variants.forEach((k, v) => print('  "$k" → "$v"'));
 
-      expect(variants['PaymentGateway'], equals('TransferHub'),
-          reason: 'PascalCase variant from snake_case input');
-      expect(variants['paymentGateway'], equals('transferHub'),
-          reason: 'camelCase variant from snake_case input');
-      expect(variants['PAYMENT_GATEWAY'], equals('TRANSFER_HUB'),
-          reason: 'SCREAMING_SNAKE variant');
+      expect(
+        variants['PaymentGateway'],
+        equals('TransferHub'),
+        reason: 'PascalCase variant from snake_case input',
+      );
+      expect(
+        variants['paymentGateway'],
+        equals('transferHub'),
+        reason: 'camelCase variant from snake_case input',
+      );
+      expect(
+        variants['PAYMENT_GATEWAY'],
+        equals('TRANSFER_HUB'),
+        reason: 'SCREAMING_SNAKE variant',
+      );
     });
   });
 
@@ -304,7 +396,10 @@ Also REQ-101 and Espresso are used.
     });
 
     test('obfuscate replaces all terms correctly in requirement text', () {
-      final obfuscated = SubstitutionEngine.obfuscate(requirementText, dictionary);
+      final obfuscated = SubstitutionEngine.obfuscate(
+        requirementText,
+        dictionary,
+      );
 
       print('=== OBFUSCATE RESULT (excerpt) ===');
       // Print first 500 chars to verify
@@ -312,49 +407,94 @@ Also REQ-101 and Espresso are used.
       print('...');
 
       // Core substitutions
-      expect(obfuscated.contains('NovaSpark'), isTrue,
-          reason: 'PulseVibe should be replaced with NovaSpark');
-      expect(obfuscated.contains('PulseVibe'), isFalse,
-          reason: 'PulseVibe should NOT remain in obfuscated text');
+      expect(
+        obfuscated.contains('NovaSpark'),
+        isTrue,
+        reason: 'PulseVibe should be replaced with NovaSpark',
+      );
+      expect(
+        obfuscated.contains('PulseVibe'),
+        isFalse,
+        reason: 'PulseVibe should NOT remain in obfuscated text',
+      );
 
-      expect(obfuscated.contains('DataVault'), isTrue,
-          reason: 'PostgreSQL should be replaced with DataVault');
-      expect(obfuscated.contains('PostgreSQL'), isFalse,
-          reason: 'PostgreSQL should NOT remain');
+      expect(
+        obfuscated.contains('DataVault'),
+        isTrue,
+        reason: 'PostgreSQL should be replaced with DataVault',
+      );
+      expect(
+        obfuscated.contains('PostgreSQL'),
+        isFalse,
+        reason: 'PostgreSQL should NOT remain',
+      );
 
-      expect(obfuscated.contains('QueryNet'), isTrue,
-          reason: 'GraphQL should be replaced with QueryNet');
+      expect(
+        obfuscated.contains('QueryNet'),
+        isTrue,
+        reason: 'GraphQL should be replaced with QueryNet',
+      );
 
-      expect(obfuscated.contains('[SPEC-1]'), isTrue,
-          reason: 'REQ-101 should be replaced with [SPEC-1]');
+      expect(
+        obfuscated.contains('[SPEC-1]'),
+        isTrue,
+        reason: 'REQ-101 should be replaced with [SPEC-1]',
+      );
 
-      expect(obfuscated.contains('ACCESS_CTRL'), isTrue,
-          reason: 'RBAC should be replaced with ACCESS_CTRL');
+      expect(
+        obfuscated.contains('ACCESS_CTRL'),
+        isTrue,
+        reason: 'RBAC should be replaced with ACCESS_CTRL',
+      );
 
       // Verify markdown structure is preserved
-      expect(obfuscated.contains('# 🚀 Notion Workspace'), isTrue,
-          reason: 'Markdown heading structure must be preserved');
-      expect(obfuscated.contains('| Requirement ID'), isTrue,
-          reason: 'Markdown table structure must be preserved');
+      expect(
+        obfuscated.contains('# 🚀 Notion Workspace'),
+        isTrue,
+        reason: 'Markdown heading structure must be preserved',
+      );
+      expect(
+        obfuscated.contains('| Requirement ID'),
+        isTrue,
+        reason: 'Markdown table structure must be preserved',
+      );
     });
 
     test('deobfuscate perfectly reverses the obfuscation', () {
-      final obfuscated = SubstitutionEngine.obfuscate(requirementText, dictionary);
+      final obfuscated = SubstitutionEngine.obfuscate(
+        requirementText,
+        dictionary,
+      );
       final restored = SubstitutionEngine.deobfuscate(obfuscated, dictionary);
 
       print('=== ROUND-TRIP FIDELITY CHECK ===');
 
       // The round-trip should restore all original terms
-      expect(restored.contains('PulseVibe'), isTrue,
-          reason: 'PulseVibe should be restored after deobfuscation');
-      expect(restored.contains('PostgreSQL'), isTrue,
-          reason: 'PostgreSQL should be restored');
-      expect(restored.contains('GraphQL'), isTrue,
-          reason: 'GraphQL should be restored');
-      expect(restored.contains('REQ-101'), isTrue,
-          reason: 'REQ-101 should be restored');
-      expect(restored.contains('RBAC'), isTrue,
-          reason: 'RBAC should be restored');
+      expect(
+        restored.contains('PulseVibe'),
+        isTrue,
+        reason: 'PulseVibe should be restored after deobfuscation',
+      );
+      expect(
+        restored.contains('PostgreSQL'),
+        isTrue,
+        reason: 'PostgreSQL should be restored',
+      );
+      expect(
+        restored.contains('GraphQL'),
+        isTrue,
+        reason: 'GraphQL should be restored',
+      );
+      expect(
+        restored.contains('REQ-101'),
+        isTrue,
+        reason: 'REQ-101 should be restored',
+      );
+      expect(
+        restored.contains('RBAC'),
+        isTrue,
+        reason: 'RBAC should be restored',
+      );
 
       // Ideally the text should be identical to the original
       if (restored == requirementText) {
@@ -380,27 +520,40 @@ Also REQ-101 and Espresso are used.
     });
 
     test('findMatches returns correct positions and no overlaps', () {
-      final matches = SubstitutionEngine.findMatches(requirementText, dictionary);
+      final matches = SubstitutionEngine.findMatches(
+        requirementText,
+        dictionary,
+      );
 
       print('=== FIND MATCHES RESULTS ===');
       print('Total matches: ${matches.length}');
       for (final m in matches.take(15)) {
-        print('  [${m.start}:${m.end}] "${m.matchedText}" → "${m.replacementText}"');
+        print(
+          '  [${m.start}:${m.end}] "${m.matchedText}" → "${m.replacementText}"',
+        );
       }
       if (matches.length > 15) print('  ... and ${matches.length - 15} more');
 
       // Verify no overlapping ranges
       for (var i = 0; i < matches.length - 1; i++) {
-        expect(matches[i].end, lessThanOrEqualTo(matches[i + 1].start),
-            reason: 'Match ${matches[i].matchedText} [${matches[i].start}:${matches[i].end}] '
-                'overlaps with ${matches[i + 1].matchedText} [${matches[i + 1].start}:${matches[i + 1].end}]');
+        expect(
+          matches[i].end,
+          lessThanOrEqualTo(matches[i + 1].start),
+          reason:
+              'Match ${matches[i].matchedText} [${matches[i].start}:${matches[i].end}] '
+              'overlaps with ${matches[i + 1].matchedText} [${matches[i + 1].start}:${matches[i + 1].end}]',
+        );
       }
 
       // Verify matched text actually exists at the reported position
       for (final m in matches) {
         final actual = requirementText.substring(m.start, m.end);
-        expect(actual.toLowerCase(), equals(m.matchedText.toLowerCase()),
-            reason: 'Match at [${m.start}:${m.end}] claims "${m.matchedText}" but actual text is "$actual"');
+        expect(
+          actual.toLowerCase(),
+          equals(m.matchedText.toLowerCase()),
+          reason:
+              'Match at [${m.start}:${m.end}] claims "${m.matchedText}" but actual text is "$actual"',
+        );
       }
     });
 
@@ -412,12 +565,21 @@ Also REQ-101 and Espresso are used.
         return e;
       }).toList();
 
-      final obfuscated = SubstitutionEngine.obfuscate(requirementText, disabledDict);
+      final obfuscated = SubstitutionEngine.obfuscate(
+        requirementText,
+        disabledDict,
+      );
 
-      expect(obfuscated.contains('PulseVibe'), isTrue,
-          reason: 'Disabled entry PulseVibe should remain unchanged');
-      expect(obfuscated.contains('DataVault'), isTrue,
-          reason: 'Enabled entry PostgreSQL should still be replaced');
+      expect(
+        obfuscated.contains('PulseVibe'),
+        isTrue,
+        reason: 'Disabled entry PulseVibe should remain unchanged',
+      );
+      expect(
+        obfuscated.contains('DataVault'),
+        isTrue,
+        reason: 'Enabled entry PostgreSQL should still be replaced',
+      );
     });
 
     test('word boundary prevents partial matches', () {
@@ -440,8 +602,11 @@ Also REQ-101 and Espresso are used.
       // Actually \bRedis\b matches "Redis" in "RedisClient" — this is a known
       // issue where \b matches at the Redis/Client capital boundary.
       // Let's just verify the standalone one is replaced.
-      expect(obfuscated.contains('CacheLine for'), isTrue,
-          reason: 'Standalone "Redis" should be replaced');
+      expect(
+        obfuscated.contains('CacheLine for'),
+        isTrue,
+        reason: 'Standalone "Redis" should be replaced',
+      );
     });
   });
 
@@ -467,29 +632,38 @@ Also REQ-101 and Espresso are used.
           index: idx,
         );
 
-        dictionary.add(DictionaryEntry(
-          id: 'gen-$idx',
-          original: c.term,
-          replacement: replacement,
-          category: c.category,
-          variants: VariantResolver.generateVariants(c.term, replacement),
-        ));
+        dictionary.add(
+          DictionaryEntry(
+            id: 'gen-$idx',
+            original: c.term,
+            replacement: replacement,
+            category: c.category,
+            variants: VariantResolver.generateVariants(c.term, replacement),
+          ),
+        );
       }
       print('Step 2 — Generated ${dictionary.length} dictionary entries');
 
       // Step 3: Obfuscate
-      final obfuscated = SubstitutionEngine.obfuscate(requirementText, dictionary);
+      final obfuscated = SubstitutionEngine.obfuscate(
+        requirementText,
+        dictionary,
+      );
       print('Step 3 — Obfuscated (${obfuscated.length} chars)');
 
       // Step 4: Verify no original sensitive terms remain
       var leakedTerms = 0;
       for (final entry in dictionary) {
-        if (obfuscated.contains(RegExp(RegExp.escape(entry.original), caseSensitive: false))) {
+        if (obfuscated.contains(
+          RegExp(RegExp.escape(entry.original), caseSensitive: false),
+        )) {
           // Check if it's a word-boundary match (not a substring of another word)
           final escaped = RegExp.escape(entry.original);
           final wbRegex = RegExp('\\b$escaped\\b', caseSensitive: false);
           if (wbRegex.hasMatch(obfuscated)) {
-            print('  ⚠️ LEAK: "${entry.original}" still found in obfuscated text');
+            print(
+              '  ⚠️ LEAK: "${entry.original}" still found in obfuscated text',
+            );
             leakedTerms++;
           }
         }
@@ -526,12 +700,30 @@ Also REQ-101 and Espresso are used.
       print(obfuscated.substring(0, obfuscated.length.clamp(0, 1000)));
     });
 
-    test('SubstitutionEngine transferCasing handles capitalization formats correctly', () {
-      expect(SubstitutionEngine.transferCasing('Corn', 'dolor'), equals('Dolor'));
-      expect(SubstitutionEngine.transferCasing('deFiure', 'incidunt'), equals('inCidunt'));
-      expect(SubstitutionEngine.transferCasing('REDIS', 'pluto'), equals('PLUTO'));
-      expect(SubstitutionEngine.transferCasing('redis', 'PLUTO'), equals('pluto'));
-      expect(SubstitutionEngine.transferCasing('customerAccount', 'memberProfile'), equals('memberProfile'));
-    });
+    test(
+      'SubstitutionEngine transferCasing handles capitalization formats correctly',
+      () {
+        expect(
+          SubstitutionEngine.transferCasing('Corn', 'dolor'),
+          equals('Dolor'),
+        );
+        expect(
+          SubstitutionEngine.transferCasing('deFiure', 'incidunt'),
+          equals('inCidunt'),
+        );
+        expect(
+          SubstitutionEngine.transferCasing('REDIS', 'pluto'),
+          equals('PLUTO'),
+        );
+        expect(
+          SubstitutionEngine.transferCasing('redis', 'PLUTO'),
+          equals('pluto'),
+        );
+        expect(
+          SubstitutionEngine.transferCasing('customerAccount', 'memberProfile'),
+          equals('memberProfile'),
+        );
+      },
+    );
   });
 }

@@ -30,7 +30,11 @@ class HistoryTab extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Symbols.history, size: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge, color: Colors.grey.withValues(alpha: 0.2)),
+            Icon(
+              Symbols.history,
+              size: SqaTokens.spacingXXXLarge + SqaTokens.spacingLarge,
+              color: Colors.grey.withValues(alpha: 0.2),
+            ),
             const SizedBox(height: SqaTokens.spacingLarge),
             const Text(
               'No request history yet',
@@ -51,41 +55,47 @@ class HistoryTab extends ConsumerWidget {
             const SizedBox(height: SqaTokens.spacingMedium),
         itemBuilder: (context, index) {
           final transaction = history[index];
-          final displayRequest = transaction.resolvedRequest ?? transaction.request;
-          
+          final displayRequest =
+              transaction.resolvedRequest ?? transaction.request;
+
           // Better URI parsing that handles lack of scheme
           String url = displayRequest.url;
           if (!url.startsWith('http')) url = 'http://$url';
           final uri = Uri.tryParse(url);
-          
+
           String path = uri?.path ?? '/';
           if (path.isEmpty) path = '/';
-          
+
           // Append query params to path for the title if they exist
           final qParams = displayRequest.queryParameters.entries
-              .where((e) => !displayRequest.inactiveQueryParameters.contains(e.key))
+              .where(
+                (e) => !displayRequest.inactiveQueryParameters.contains(e.key),
+              )
               .map((e) => '${e.key}=${e.value}')
               .join('&');
           final displayPath = qParams.isNotEmpty ? '$path?$qParams' : path;
 
-          final statusColor = transaction.statusCode >= 200 && transaction.statusCode < 300
+          final statusColor =
+              transaction.statusCode >= 200 && transaction.statusCode < 300
               ? Colors.green
-              : (transaction.statusCode >= 400 || transaction.statusCode == 0 
-                  ? Colors.red 
-                  : Colors.orange);
+              : (transaction.statusCode >= 400 || transaction.statusCode == 0
+                    ? Colors.red
+                    : Colors.orange);
 
           return SqaCard(
             onTap: () {
               showTransactionModal(transaction);
             },
-                  padding: const EdgeInsets.all(SqaTokens.spacingMedium),
+            padding: const EdgeInsets.all(SqaTokens.spacingMedium),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     SqaStatusBadge(
-                      text: transaction.statusCode == 0 ? 'ERR' : '${transaction.statusCode}',
+                      text: transaction.statusCode == 0
+                          ? 'ERR'
+                          : '${transaction.statusCode}',
                       color: statusColor,
                     ),
                     const SizedBox(width: SqaTokens.spacingMedium),
@@ -95,18 +105,18 @@ class HistoryTab extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: SqaTokens.fontSizeSmall,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          fontSize: SqaTokens.fontSizeSmall,
+                        ),
                       ),
                     ),
                     const SizedBox(width: SqaTokens.spacingMedium),
                     Text(
                       _formatRelativeTime(transaction.timestamp),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Colors.grey,
-                      fontSize: SqaTokens.fontSizeSmall,
-                          ),
+                        color: Colors.grey,
+                        fontSize: SqaTokens.fontSizeSmall,
+                      ),
                     ),
                   ],
                 ),
@@ -115,11 +125,11 @@ class HistoryTab extends ConsumerWidget {
                   padding: const EdgeInsets.all(SqaTokens.spacingSmall),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(SqaTokens.spacingXSmall),
+                    borderRadius: BorderRadius.circular(
+                      SqaTokens.spacingXSmall,
+                    ),
                   ),
                   child: Text(
                     CurlParserService.stringify(displayRequest),

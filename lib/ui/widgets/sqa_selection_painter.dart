@@ -77,11 +77,17 @@ class SqaSelectionPainter extends CustomPainter {
         ..strokeWidth = SqaTokens.borderWidthThin * 2;
 
       canvas.drawRRect(
-        RRect.fromRectAndRadius(hoveredRect!, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(
+          hoveredRect!,
+          const Radius.circular(SqaTokens.radiusSmall),
+        ),
         targetPaint,
       );
       canvas.drawRRect(
-        RRect.fromRectAndRadius(hoveredRect!, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(
+          hoveredRect!,
+          const Radius.circular(SqaTokens.radiusSmall),
+        ),
         borderPaint,
       );
     } else if (!isCapturing && selectionRect != null) {
@@ -102,7 +108,10 @@ class SqaSelectionPainter extends CustomPainter {
         )
         ..style = PaintingStyle.stroke
         ..strokeWidth = SqaTokens.borderWidthThin;
-      canvas.drawRect(selectionRect!.inflate(SqaTokens.spacingXSmall), borderPaint);
+      canvas.drawRect(
+        selectionRect!.inflate(SqaTokens.spacingXSmall),
+        borderPaint,
+      );
 
       final bracketPaint = Paint()
         ..color = color
@@ -189,7 +198,11 @@ class SqaSelectionPainter extends CustomPainter {
             ? rightClickFeedbackColor.withValues(alpha: opacity * 0.8)
             : clickFeedbackColor.withValues(alpha: opacity * 0.8)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(ripple.position, SqaTokens.spacingXSmall * (1.0 - progress), corePaint);
+      canvas.drawCircle(
+        ripple.position,
+        SqaTokens.spacingXSmall * (1.0 - progress),
+        corePaint,
+      );
     }
 
     // 7. Draw Hover Highlight (Glow & Bolder)
@@ -212,7 +225,10 @@ class SqaSelectionPainter extends CustomPainter {
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
 
         canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(SqaTokens.radiusSmall)),
+          RRect.fromRectAndRadius(
+            rect,
+            const Radius.circular(SqaTokens.radiusSmall),
+          ),
           glowPaint,
         );
 
@@ -222,7 +238,10 @@ class SqaSelectionPainter extends CustomPainter {
           ..strokeWidth = SqaTokens.borderWidthThin * 2;
 
         canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(SqaTokens.radiusSmall)),
+          RRect.fromRectAndRadius(
+            rect,
+            const Radius.circular(SqaTokens.radiusSmall),
+          ),
           borderPaint,
         );
       } else {
@@ -274,7 +293,10 @@ class SqaSelectionPainter extends CustomPainter {
         ..style = PaintingStyle.fill;
 
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(
+          rect,
+          const Radius.circular(SqaTokens.radiusSmall),
+        ),
         dimPaint,
       );
 
@@ -283,7 +305,10 @@ class SqaSelectionPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(
+          rect,
+          const Radius.circular(SqaTokens.radiusSmall),
+        ),
         borderPaint,
       );
     }
@@ -338,8 +363,8 @@ class SqaSelectionPainter extends CustomPainter {
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
     final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
-    const double arrowSize = SqaTokens.spacingLarge + 4; 
-    const double arrowAngle = 0.4; 
+    const double arrowSize = SqaTokens.spacingLarge + 4;
+    const double arrowAngle = 0.4;
 
     final headPath = Path()
       ..moveTo(end.dx, end.dy)
@@ -367,7 +392,8 @@ class SqaSelectionPainter extends CustomPainter {
       ..color = ann.color
       ..style = PaintingStyle.stroke
       ..strokeWidth =
-          ann.tool == ScreenshotTool.marker && ann.strokeWidth <= SqaTokens.borderWidthThin * 2
+          ann.tool == ScreenshotTool.marker &&
+              ann.strokeWidth <= SqaTokens.borderWidthThin * 2
           ? SqaTokens.spacingXXLarge
           : ann.strokeWidth
       ..strokeCap = ann.tool == ScreenshotTool.marker
@@ -409,7 +435,10 @@ class SqaSelectionPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = SqaTokens.spacingXSmall
           ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, SqaTokens.borderWidthThin * 2);
+          ..maskFilter = const MaskFilter.blur(
+            BlurStyle.normal,
+            SqaTokens.borderWidthThin * 2,
+          );
         canvas.drawLine(p1, p2, laserPaint);
 
         // Draw Core
@@ -457,7 +486,7 @@ class SqaSelectionPainter extends CustomPainter {
     final dX = end.dx - start.dx;
     final dY = end.dy - start.dy;
     final angle = (dX == 0 && dY == 0) ? 0.0 : (Offset(dX, dY).direction);
-    const double arrowSize = SqaTokens.spacingLarge + 4; 
+    const double arrowSize = SqaTokens.spacingLarge + 4;
     const double arrowAngle = 0.4;
 
     // Shorten the main line slightly so the stroke doesn't bleed through the sharp tip
@@ -511,7 +540,9 @@ class SqaSelectionPainter extends CustomPainter {
     );
 
     if (maxWidth != null) {
-      final safeWidth = (maxWidth - SqaTokens.spacingLarge + 2) > 0 ? (maxWidth - SqaTokens.spacingLarge + 2) : 0.0;
+      final safeWidth = (maxWidth - SqaTokens.spacingLarge + 2) > 0
+          ? (maxWidth - SqaTokens.spacingLarge + 2)
+          : 0.0;
       textPainter.layout(maxWidth: safeWidth);
     } else {
       textPainter.layout();
@@ -536,16 +567,25 @@ class SqaSelectionPainter extends CustomPainter {
         ..strokeWidth = 1.0;
 
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(
+          rect,
+          const Radius.circular(SqaTokens.radiusSmall),
+        ),
         bgPaint,
       );
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(SqaTokens.radiusSmall)),
+        RRect.fromRectAndRadius(
+          rect,
+          const Radius.circular(SqaTokens.radiusSmall),
+        ),
         borderPaint,
       );
     }
 
-    textPainter.paint(canvas, const Offset(SqaTokens.spacingSmall + 1, SqaTokens.spacingSmall + 1));
+    textPainter.paint(
+      canvas,
+      const Offset(SqaTokens.spacingSmall + 1, SqaTokens.spacingSmall + 1),
+    );
     canvas.restore();
   }
 
@@ -556,7 +596,10 @@ class SqaSelectionPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: ann.text ?? '',
-        style: const TextStyle(fontSize: SqaTokens.fontSizeMedium, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: SqaTokens.fontSizeMedium,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       textDirection: TextDirection.ltr,
     );
@@ -569,7 +612,9 @@ class SqaSelectionPainter extends CustomPainter {
     }
 
     if (maxWidth != null) {
-      final safeWidth = (maxWidth - SqaTokens.spacingLarge + 2) > 0 ? (maxWidth - SqaTokens.spacingLarge + 2) : 0.0;
+      final safeWidth = (maxWidth - SqaTokens.spacingLarge + 2) > 0
+          ? (maxWidth - SqaTokens.spacingLarge + 2)
+          : 0.0;
       textPainter.layout(maxWidth: safeWidth);
     } else {
       textPainter.layout();

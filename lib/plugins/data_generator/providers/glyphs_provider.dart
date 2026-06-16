@@ -16,7 +16,9 @@ class GlyphsGenerator extends _$GlyphsGenerator {
   @override
   GlyphsState build() {
     _faker = Faker.instance;
-    return const GlyphsState(resultsMap: <GlyphsCategory, List<List<String>>>{});
+    return const GlyphsState(
+      resultsMap: <GlyphsCategory, List<List<String>>>{},
+    );
   }
 
   void setCategory(GlyphsCategory category) {
@@ -50,7 +52,9 @@ class GlyphsGenerator extends _$GlyphsGenerator {
       currentGeneration.add(_generateSingle());
     }
 
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedCategory] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedCategory] ?? [],
+    );
     final newHistory = [currentGeneration, ...currentHistory];
 
     if (newHistory.length > 10) {
@@ -66,7 +70,9 @@ class GlyphsGenerator extends _$GlyphsGenerator {
   }
 
   void removeHistory(List<String> session) {
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedCategory] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedCategory] ?? [],
+    );
     currentHistory.remove(session);
     state = state.copyWith(
       resultsMap: <GlyphsCategory, List<List<String>>>{

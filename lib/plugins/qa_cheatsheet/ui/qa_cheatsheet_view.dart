@@ -86,7 +86,9 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
                 (c) => Tab(
                   text: c.name,
                   icon: Icon(c.icon, size: SqaTokens.spacingLarge + 2),
-                  iconMargin: const EdgeInsets.only(bottom: SqaTokens.spacingXSmall),
+                  iconMargin: const EdgeInsets.only(
+                    bottom: SqaTokens.spacingXSmall,
+                  ),
                 ),
               )
               .toList(),

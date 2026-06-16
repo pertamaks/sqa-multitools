@@ -71,12 +71,14 @@ class SqaColorPicker extends StatelessWidget {
             ),
           ),
         ),
-        padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingMedium)),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.all(SqaTokens.spacingMedium),
+        ),
       ),
       menuChildren: [
         Padding(
           padding: const EdgeInsets.only(
-            bottom: SqaTokens.spacingSmall, 
+            bottom: SqaTokens.spacingSmall,
             left: SqaTokens.spacingXSmall,
           ),
           child: Text(

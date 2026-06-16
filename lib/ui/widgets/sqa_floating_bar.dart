@@ -156,7 +156,9 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
             padding: const EdgeInsets.all(SqaTokens.spacingSmall),
             constraints: BoxConstraints(
               maxWidth: 800,
-              minWidth: _isExpanded ? 100 : (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
+              minWidth: _isExpanded
+                  ? 100
+                  : (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
             ),
             child: SqaFloatingBarScope(
               child: Row(
@@ -206,7 +208,9 @@ class _SqaFloatingBarState extends State<SqaFloatingBar>
                                     ),
                                     child: Icon(
                                       Icons.more_horiz,
-                                      size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
+                                      size:
+                                          SqaTokens.spacingLarge +
+                                          SqaTokens.spacingTiny,
                                       color: theme.colorScheme.onSurfaceVariant
                                           .withValues(alpha: 0.5),
                                     ),
@@ -303,7 +307,9 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
     // Remove !_isHovered check so we can handle retraction deltas
     if (!mounted || !hasSecondary || !_expandToLeft) return;
 
-    final totalSecondaryWidth = widget.secondaryActions!.length * (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
+    final totalSecondaryWidth =
+        widget.secondaryActions!.length *
+        (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
     final currentWidth = _expansionAnimation.value * totalSecondaryWidth;
     final scrollable = Scrollable.maybeOf(context);
 
@@ -337,7 +343,9 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
     final barBox = barState?.context.findRenderObject() as RenderBox?;
 
     if (barBox != null) {
-      final totalSecondaryWidth = (widget.secondaryActions?.length ?? 0) * (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
+      final totalSecondaryWidth =
+          (widget.secondaryActions?.length ?? 0) *
+          (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
 
       // Calculate button position RELATIVE to the toolbar
       final localPos = renderBox.localToGlobal(Offset.zero, ancestor: barBox);
@@ -427,13 +435,17 @@ class _SqaFloatingBarButtonState extends State<SqaFloatingBarButton>
           child: AnimatedBuilder(
             animation: _expansionAnimation,
             builder: (context, child) {
-              final totalSecondaryWidth = secondaryActions.length * (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
+              final totalSecondaryWidth =
+                  secondaryActions.length *
+                  (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall);
               final animatedWidth = hasSecondary
                   ? (_expansionAnimation.value * totalSecondaryWidth)
                   : 0.0;
 
               return Container(
-                width: (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) + animatedWidth,
+                width:
+                    (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall) +
+                    animatedWidth,
                 height: (SqaTokens.spacingXXLarge + SqaTokens.spacingSmall),
                 decoration: BoxDecoration(
                   color: widget.isSelected
@@ -590,7 +602,9 @@ class _SqaFloatingBarDragHandleState extends State<SqaFloatingBarDragHandle> {
           onExit: (_) => setState(() => _isHovered = false),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingTiny),
+            margin: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingTiny,
+            ),
             padding: const EdgeInsets.symmetric(
               horizontal: SqaTokens.spacingXSmall,
               vertical: SqaTokens.spacingSmall,

@@ -59,7 +59,9 @@ class TextGenerator extends _$TextGenerator {
       currentGeneration.add(_generateSingle());
     }
 
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedType] ?? [],
+    );
     final newHistory = [currentGeneration, ...currentHistory];
 
     if (newHistory.length > 10) {
@@ -75,7 +77,9 @@ class TextGenerator extends _$TextGenerator {
   }
 
   void removeHistory(List<String> session) {
-    final currentHistory = List<List<String>>.from(state.resultsMap[state.selectedType] ?? []);
+    final currentHistory = List<List<String>>.from(
+      state.resultsMap[state.selectedType] ?? [],
+    );
     currentHistory.remove(session);
     state = state.copyWith(
       resultsMap: <TextType, List<List<String>>>{

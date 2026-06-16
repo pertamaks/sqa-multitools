@@ -95,8 +95,10 @@ class WindowsFfmpegConfig implements FfmpegPlatformConfig {
     int? h,
   }) {
     final args = <String>[
-      '-f', videoInputFormat,
-      '-framerate', '${config.framerate}',
+      '-f',
+      videoInputFormat,
+      '-framerate',
+      '${config.framerate}',
     ];
 
     if (x != null) args.addAll(['-offset_x', '$x']);
@@ -160,9 +162,12 @@ class MacOsFfmpegConfig implements FfmpegPlatformConfig {
     int? h,
   }) {
     return [
-      '-f', videoInputFormat,
-      '-framerate', '${config.framerate}',
-      '-capture_cursor', config.showCursor ? '1' : '0',
+      '-f',
+      videoInputFormat,
+      '-framerate',
+      '${config.framerate}',
+      '-capture_cursor',
+      config.showCursor ? '1' : '0',
     ];
   }
 
@@ -191,7 +196,8 @@ class MacOsFfmpegConfig implements FfmpegPlatformConfig {
 /// Linux implementation shell (x11grab/pulse).
 class LinuxFfmpegConfig implements FfmpegPlatformConfig {
   @override
-  String get downloadUrl => 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';
+  String get downloadUrl =>
+      'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz';
 
   @override
   String get executableName => 'ffmpeg';
@@ -203,7 +209,12 @@ class LinuxFfmpegConfig implements FfmpegPlatformConfig {
   Future<void> extractArchive(String archivePath, String destPath) async {
     // Linux archives are .tar.xz — use system tar for extraction
     // since the `archive` package may not handle .xz natively.
-    final result = await Process.run('tar', ['-xf', archivePath, '-C', destPath]);
+    final result = await Process.run('tar', [
+      '-xf',
+      archivePath,
+      '-C',
+      destPath,
+    ]);
     if (result.exitCode != 0) {
       throw Exception('tar extraction failed: ${result.stderr}');
     }
@@ -241,7 +252,14 @@ class LinuxFfmpegConfig implements FfmpegPlatformConfig {
 
   @override
   List<String> buildListAudioDevicesArgs() {
-    return ['-f', audioInputFormat, '-list_devices', 'true', '-i', 'dummy']; // Pulse might differ
+    return [
+      '-f',
+      audioInputFormat,
+      '-list_devices',
+      'true',
+      '-i',
+      'dummy',
+    ]; // Pulse might differ
   }
 
   @override

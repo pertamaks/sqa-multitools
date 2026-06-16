@@ -36,7 +36,7 @@ class _SqaCardState extends State<SqaCard> {
   Widget build(BuildContext context) {
     final effectiveRadius = widget.borderRadius ?? SqaTokens.borderRadiusLarge;
     final theme = Theme.of(context);
-    
+
     Widget content = Padding(
       padding: widget.padding ?? const EdgeInsets.all(SqaTokens.spacingLarge),
       child: widget.child,
@@ -72,7 +72,7 @@ class _SqaCardState extends State<SqaCard> {
                   duration: const Duration(milliseconds: 150),
                   decoration: BoxDecoration(
                     color: _isHovered && !isAnyMenuOpen
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.04) 
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
                         : Colors.transparent,
                     borderRadius: effectiveRadius,
                   ),
@@ -96,10 +96,7 @@ class _SqaCardState extends State<SqaCard> {
           widget.borderSide ?? const BorderSide(color: Colors.transparent),
         ),
       ),
-      child: ClipRRect(
-        borderRadius: effectiveRadius,
-        child: content,
-      ),
+      child: ClipRRect(borderRadius: effectiveRadius, child: content),
     );
   }
 }

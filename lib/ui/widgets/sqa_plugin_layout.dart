@@ -151,21 +151,26 @@ class SqaPluginLayout extends StatelessWidget {
             Positioned(
               bottom: SqaTokens.spacingTiny,
               right: SqaTokens.spacingTiny,
-              child: ListenableBuilder(
-                listenable: searchController ?? TextEditingController(),
-                builder: (context, _) {
-                  final bool hasSearchText =
-                      searchController != null &&
-                      searchController!.text.isNotEmpty;
-                  return SqaWindowSizeToggle(
-                    isSearchActive: hasSearchText,
-                    onClearSearch: () {
-                      searchController?.clear();
-                      onSearchChanged?.call('');
-                    },
-                  );
-                },
-              ),
+              child: searchController == null
+                  ? SqaWindowSizeToggle(
+                      isSearchActive: false,
+                      onClearSearch: () {},
+                    )
+                  : ListenableBuilder(
+                      listenable: searchController!,
+                      builder: (context, _) {
+                        final bool hasSearchText =
+                            searchController!.text.isNotEmpty;
+                        return SqaWindowSizeToggle(
+                          isSearchActive: hasSearchText,
+                          onClearSearch: () {
+                            searchController!.clear();
+                            onSearchChanged?.call('');
+                          },
+                        );
+                      },
+                    ),
+
             ),
           ],
         );

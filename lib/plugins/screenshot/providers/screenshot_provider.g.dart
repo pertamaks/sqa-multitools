@@ -9,6 +9,59 @@ part of 'screenshot_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(IsScreenshotProcessing)
+final isScreenshotProcessingProvider = IsScreenshotProcessingProvider._();
+
+final class IsScreenshotProcessingProvider
+    extends $NotifierProvider<IsScreenshotProcessing, bool> {
+  IsScreenshotProcessingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'isScreenshotProcessingProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$isScreenshotProcessingHash();
+
+  @$internal
+  @override
+  IsScreenshotProcessing create() => IsScreenshotProcessing();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$isScreenshotProcessingHash() =>
+    r'0f28aa5bb0f38cb6733c9335344808e2b3e750f3';
+
+abstract class _$IsScreenshotProcessing extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(ScreenshotNotifier)
 final screenshotProvider = ScreenshotNotifierProvider._();
 

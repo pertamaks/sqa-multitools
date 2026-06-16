@@ -1,10 +1,13 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'preferences_service.dart';
 import 'license_service.dart';
 
-final licenseServiceProvider = Provider<LicenseService>((ref) {
+part 'coffee_shop_service.g.dart';
+
+@Riverpod(keepAlive: true)
+LicenseService licenseService(Ref ref) {
   return LicenseService(ref.watch(preferencesServiceProvider));
-});
+}
 
 class CoffeeShopService {
   final PreferencesService _prefs;
@@ -33,14 +36,16 @@ class CoffeeShopService {
   }
 }
 
-final coffeeShopServiceProvider = Provider<CoffeeShopService>((ref) {
+@Riverpod(keepAlive: true)
+CoffeeShopService coffeeShopService(Ref ref) {
   return CoffeeShopService(
     ref.watch(preferencesServiceProvider),
     ref.watch(licenseServiceProvider),
   );
-});
+}
 
-class SupporterTierNotifier extends Notifier<int> {
+@Riverpod(keepAlive: true)
+class SupporterTier extends _$SupporterTier {
   @override
   int build() {
     // Initial state is what's in prefs, but we'll validate it asynchronously
@@ -77,10 +82,7 @@ class SupporterTierNotifier extends Notifier<int> {
   }
 }
 
-final supporterTierProvider = NotifierProvider<SupporterTierNotifier, int>(() {
-  return SupporterTierNotifier();
-});
-
-final supporterEmailProvider = FutureProvider<String?>((ref) {
+@Riverpod(keepAlive: true)
+Future<String?> supporterEmail(Ref ref) {
   return ref.watch(coffeeShopServiceProvider).supporterEmail;
-});
+}

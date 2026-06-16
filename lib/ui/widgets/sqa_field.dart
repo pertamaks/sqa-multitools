@@ -551,6 +551,14 @@ class _SqaFieldState extends State<SqaField> {
       textAlignVertical: TextAlignVertical.top,
     );
 
+    final wrappedTextField = Scrollbar(
+      controller: _verticalScrollController,
+      thumbVisibility: true,
+      thickness: SqaTokens.spacingXSmall,
+      radius: const Radius.circular(2),
+      child: textField,
+    );
+
     if (!widget.wrap) {
       final hController = widget.horizontalScrollController ??
           _internalHorizontalScrollController;
@@ -564,12 +572,12 @@ class _SqaFieldState extends State<SqaField> {
           scrollDirection: Axis.horizontal,
           controller: hController,
           child: IntrinsicWidth(
-            child: textField,
+            child: wrappedTextField,
           ),
         ),
       );
     }
-    return textField;
+    return wrappedTextField;
   }
 
   Widget _buildNativeGutter(ThemeData theme, double totalWidth) {

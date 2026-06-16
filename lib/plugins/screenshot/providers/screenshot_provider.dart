@@ -5,7 +5,6 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show debugPrint, Uint8List;
 import 'package:flutter/material.dart' show Color, Rect, Size, Offset, Colors;
 import 'package:flutter/rendering.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -29,16 +28,12 @@ import '../../screen_recorder/providers/screen_recorder_provider.dart';
 
 part 'screenshot_provider.g.dart';
 
-class IsScreenshotProcessingNotifier extends Notifier<bool> {
+@Riverpod(keepAlive: true)
+class IsScreenshotProcessing extends _$IsScreenshotProcessing {
   @override
   bool build() => false;
   void set(bool value) => state = value;
 }
-
-final isScreenshotProcessingProvider =
-    NotifierProvider<IsScreenshotProcessingNotifier, bool>(
-      IsScreenshotProcessingNotifier.new,
-    );
 
 @riverpod
 class ScreenshotNotifier extends _$ScreenshotNotifier {

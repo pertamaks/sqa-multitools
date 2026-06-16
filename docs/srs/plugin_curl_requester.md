@@ -45,3 +45,8 @@ The **cURL Requester** is a high-speed HTTP client plugin for SQA-Multitools. It
 2. [DONE] **Faker Expansion**: Implement hierarchical categorized data generation.
 3. [DONE] **Persistence**: Implement history and state restoration.
 4. [PENDING] **Dio Migration**: Switch from `http` to `dio` for advanced networking features.
+5. [PENDING] **Multipart Form Data**: Allow users to construct `multipart/form-data` requests and upload files from their local system.
+6. [PENDING] **Dedicated Authentication Tab**: Support Bearer, Basic Auth, and API Key with automatic header injection.
+7. [PENDING] **Environment Variables & Workspaces**: Allow users to define custom variables (e.g., `{{BASE_URL}}`) and switch environments.
+8. [PENDING] **Collections / Saved Requests**: Persist and organize frequently used requests beyond the history tab.
+9. [PENDING] **x-www-form-urlencoded**: Better handling of non-JSON payloads with a dedicated grid editor.

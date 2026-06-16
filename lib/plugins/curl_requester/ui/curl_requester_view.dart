@@ -13,8 +13,15 @@ import '../services/curl_parser_service.dart';
 import 'tabs/request_tab.dart';
 import 'tabs/history_tab.dart';
 import 'modals/transaction_inspector_modal.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:uuid/uuid.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
-
+import '../../../ui/widgets/sqa_popup_menu.dart';
+import '../../../core/providers/plugin_provider.dart';
+import '../providers/environments_provider.dart';
+import '../models/environment.dart';
+import 'modals/environment_editor_modal.dart';
+import '../../../ui/widgets/sqa_text_controller.dart';
 class CurlRequesterView extends ConsumerStatefulWidget {
   const CurlRequesterView({super.key});
 
@@ -38,13 +45,19 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     _tabController = TabController(length: 2, vsync: this);
     _requestScrollController = ScrollController();
     _historyScrollController = ScrollController();
+    Set<String> getVars() {
+      final envs = ref.read(environmentsProvider);
+      final activeId = ref.read(activeEnvironmentIdProvider);
+      return envs.firstWhere((e) => e.id == activeId, orElse: () => envs.first).variables.keys.toSet();
+    }
 
-    final initialState = ref.read(curlRequesterProvider);
-    _urlController = TextEditingController(
-      text: initialState.currentCommand.url,
+    _urlController = SqaVariableController(
+      text: ref.read(curlRequesterProvider).currentCommand.url,
+      getKnownVariables: getVars,
     );
-    _curlController = TextEditingController(
-      text: CurlParserService.stringify(initialState.currentCommand),
+    _curlController = SqaVariableController(
+      text: CurlParserService.stringify(ref.read(curlRequesterProvider).currentCommand),
+      getKnownVariables: getVars,
     );
 
     // Add listener to _curlController to parse changes into the provider state
@@ -143,6 +156,100 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
     );
   }
 
+  Widget _buildWorkspaceSelector(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final envs = ref.watch(environmentsProvider);
+    final activeId = ref.watch(activeEnvironmentIdProvider);
+    
+    final activeEnv = envs.firstWhere((e) => e.id == activeId, orElse: () => envs.first);
+
+    return SqaPopupMenu(
+      icon: Symbols.language,
+      tooltip: 'Switch Environment',
+      alignmentOffset: const Offset(0, SqaTokens.spacingSmall),
+      builder: (context, controller, child) {
+        return InkWell(
+          onTap: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          borderRadius: SqaTokens.borderRadiusSmall,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SqaTokens.spacingXSmall,
+              vertical: 2,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  activeEnv.name,
+                  style: GoogleFonts.dmSans(
+                    fontSize: SqaTokens.fontSizeSmall,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  Symbols.arrow_drop_down,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      children: [
+        ...envs.map((env) {
+          final isSelected = env.id == activeId;
+          return SqaPopupMenuItem(
+            onPressed: () => ref.read(activeEnvironmentIdProvider.notifier).setActiveId(env.id),
+            icon: Icon(
+              Symbols.language,
+              color: isSelected ? theme.colorScheme.primary : null,
+            ),
+            label: env.name,
+          );
+        }),
+        const Divider(height: 1),
+        SqaPopupMenuItem(
+          onPressed: () {
+            EnvironmentEditorModal.show(context, activeEnv);
+          },
+          icon: Icon(Symbols.edit, color: theme.colorScheme.primary),
+          label: 'Edit Active Environment',
+        ),
+        SqaPopupMenuItem(
+          onPressed: () async {
+            final name = await SqaModal.showPrompt(
+              context,
+              title: 'Create Environment',
+              message: 'Enter a name for the new environment:',
+              confirmLabel: 'Create',
+              icon: Symbols.add,
+            );
+            if (name != null && name.isNotEmpty) {
+              final newEnv = Environment(id: const Uuid().v4(), name: name, variables: {});
+              ref.read(environmentsProvider.notifier).addEnvironment(newEnv);
+              ref.read(activeEnvironmentIdProvider.notifier).setActiveId(newEnv.id);
+              if (context.mounted) {
+                EnvironmentEditorModal.show(context, newEnv);
+              }
+            }
+          },
+          icon: Icon(Symbols.add, color: theme.colorScheme.primary),
+          label: 'New Environment',
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(curlRequesterProvider);
@@ -152,8 +259,36 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
       builder: (context, _) {
         return SqaPluginLayout(
           icon: Symbols.terminal,
-          title: 'cURL Requester',
+          titleWidget: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'cURL Requester',
+                style: GoogleFonts.dmSans(
+                  fontSize: SqaTokens.fontSizeXLarge,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Environment: ',
+                    style: GoogleFonts.dmSans(
+                      fontSize: SqaTokens.fontSizeSmall,
+                      fontStyle: FontStyle.italic,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  _buildWorkspaceSelector(context, ref),
+                ],
+              ),
+            ],
+          ),
           description: 'Transform and execute cURL commands',
+          onBack: ref.watch(navigationHistoryProvider) != null ? () {
+            ref.read(navigationServiceProvider).goBack();
+          } : null,
           tabController: _tabController,
           trailing: _tabController.index == 0
               ? SqaButton.primary(

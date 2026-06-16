@@ -43,7 +43,7 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 
 ### Annotate Capture
 - **Description:** Allow users to draw shapes, lines, arrows, and text on the screen or preview.
-- **Tools:** Pen, Line, Arrow, Marker, Rectangle, Text.
+- **Tools:** Pen, Line, Arrow, Rectangle, Text, Eraser.
 - **Color Selection:** A palette or picker to choose annotation colors.
 - **Interactivity:** Real-time feedback during drawing.
 

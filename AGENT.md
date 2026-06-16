@@ -46,6 +46,7 @@ To ensure a consistent and premium experience across all plugins:
     - **Visibility**: Always set `thumbVisibility` to `true` via the global `ScrollbarThemeData` to ensure sliders are visible without hovering.
     - **Draggability**: Every scrollable region MUST be wrapped in a `Scrollbar` widget with an explicitly linked `ScrollController` to ensure the thumb is draggable.
 * **Submenu Artifacts**: To remove or replace the default black triangle from `SubmenuButton`, do NOT attempt to hide it via the `child` or `trailingIcon` properties (which results in double icons). Use the `submenuIcon` property with a `WidgetStatePropertyAll` (e.g., `submenuIcon: WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: 14))`) to correctly override the framework's default arrow.
+* **List Item Hover Bleed**: When rendering interactive list items (especially those containing an `SqaPopupMenu`), NEVER use a raw `InkWell`. You MUST use an `SqaCard` (passing your `onTap` and `padding` directly to it). `SqaCard` automatically listens to `sqaGlobalMenuOpenState` to suppress background hover highlights while popup menus are active, preventing visual bleed.
 
 ## 6. Asset & Audio Optimization
 * **Lazy Loading**: Never pre-load large assets during global app startup.
@@ -184,3 +185,10 @@ To ensure visual coherence and facilitate rapid branding updates:
 * **Shared Context**: Never create ad-hoc `ProviderContainer` instances. All global error handlers and background tasks must utilize the `globalProviderContainer` initialized in `main.dart`.
 * **Post-Mortem Readiness**: The application maintains a persistent `app.log` file on disk. When a feature fails in production, the first step is to instruct the user to provide this log via the "Diagnostic Logs" button in Settings.
 * **Atomic Integrity**: For plugins that persist user-generated content (like Todo or Text Editor), ensure data is saved atomically to prevent file corruption during unexpected application termination.
+
+## 25. Inline Field Validation & Variables
+To ensure a premium and uniform experience when fields support dynamic variables (e.g., `{{variable}}`):
+* **SqaVariableController**: Always use `SqaVariableController` (an extension of `TextEditingController`) instead of a basic controller. It natively parses the `{{...}}` syntax and applies syntax highlighting (e.g., blue for valid, red for invalid/undefined).
+* **Environment Context**: Hook the `SqaVariableController` up to a validation callback (like `getKnownVariables`) to provide live context.
+* **Floating Tooltips**: Use `SqaField`'s `extraFloatingButtonBuilder` property to inject a `CurlVariableInfoButton` (or similar component) when variables are detected. This floating action button MUST display an informative tooltip mapping the detected variables to their resolved values.
+* **Theme Adaptability**: Always use dynamic theme colors (`Theme.of(context).colorScheme.onInverseSurface`) for tooltip text to ensure readability across light and dark modes.

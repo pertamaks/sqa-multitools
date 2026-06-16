@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
@@ -152,6 +153,7 @@ class HotkeySettingsNotifier extends Notifier<HotkeySettings> {
   }
 
   Future<void> _registerAll(HotkeySettings settings) async {
+    if (Platform.isLinux) return; // Prevent Wayland crashes from X11 hotkey bindings
     await hotKeyManager.unregisterAll();
 
     final registrations = [

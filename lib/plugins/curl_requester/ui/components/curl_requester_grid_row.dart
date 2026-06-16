@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../../providers/environments_provider.dart';
+import 'curl_variable_info_button.dart';
 import '../../../../ui/widgets/sqa_field.dart';
+import '../../../../ui/widgets/sqa_text_controller.dart';
 import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
 
-class CurlRequesterGridRow extends StatefulWidget {
+class CurlRequesterGridRow extends ConsumerStatefulWidget {
   final String label;
   final String value;
   final bool isActive;
@@ -36,10 +40,10 @@ class CurlRequesterGridRow extends StatefulWidget {
   });
 
   @override
-  State<CurlRequesterGridRow> createState() => _CurlRequesterGridRowState();
+  ConsumerState<CurlRequesterGridRow> createState() => _CurlRequesterGridRowState();
 }
 
-class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
+class _CurlRequesterGridRowState extends ConsumerState<CurlRequesterGridRow> {
   late TextEditingController _labelController;
   late TextEditingController _valueController;
   late FocusNode _labelFocusNode;
@@ -49,7 +53,14 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
   void initState() {
     super.initState();
     _labelController = TextEditingController(text: widget.label);
-    _valueController = TextEditingController(text: widget.value);
+    _valueController = SqaVariableController(
+      text: widget.value,
+      getKnownVariables: () {
+        final envs = ref.read(environmentsProvider);
+        final activeId = ref.read(activeEnvironmentIdProvider);
+        return envs.firstWhere((e) => e.id == activeId, orElse: () => envs.first).variables.keys.toSet();
+      },
+    );
     _labelFocusNode = FocusNode();
     _valueFocusNode = FocusNode();
 
@@ -116,196 +127,230 @@ class _CurlRequesterGridRowState extends State<CurlRequesterGridRow> {
   @override
   Widget build(BuildContext context) {
     final showFaker = widget.hasFaker ?? !widget.isParent;
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: widget.isActive ? 1.0 : 0.4,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          SqaTokens.spacingLarge + (widget.depth * SqaTokens.spacingXLarge),
-          SqaTokens.spacingSmall,
-          SqaTokens.spacingLarge,
-          SqaTokens.spacingSmall,
-        ),
-        child: Row(
-          children: [
-            if (widget.showCheckbox) ...[
-              SqaHoverIconButton(
-                icon: widget.isActive ? Symbols.check_box : Symbols.check_box_outline_blank,
-                onPressed: () => widget.onToggle?.call(!widget.isActive),
-                tooltip: 'Toggle Active',
-                iconSize: SqaTokens.spacingXLarge,
-                color: widget.isActive
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: SqaTokens.spacingSmall),
-            ],
-            if (widget.isParent)
-              Icon(
-                Symbols.keyboard_arrow_down,
-                size: SqaTokens.spacingLarge,
-                color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5),
-              )
-            else
-              const SizedBox(width: SqaTokens.spacingXSmall),
-            const SizedBox(width: SqaTokens.spacingXSmall),
-            Expanded(
-              flex: 2,
-              child: SqaField(
-                label: '',
-                showLabel: false,
-                controller: _labelController,
-                focusNode: _labelFocusNode,
-                isMonospace: true,
-                fontSize: SqaTokens.spacingMedium,
-                showCopyButton: false,
-                onSubmitted: (_) => _commitChanges(),
-                onTapOutside: (_) => _commitChanges(),
-                fontWeight: widget.isParent ? FontWeight.bold : FontWeight.normal,
-                color: widget.isParent
-                    ? (widget.isActive ? Theme.of(context).colorScheme.primary : Colors.grey)
-                    : (widget.isActive ? Theme.of(context).colorScheme.onSurface : Colors.grey),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
-              child: Icon(
-                Symbols.chevron_right,
-                size: SqaTokens.spacingLarge,
-                color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SqaField(
-                      label: '',
-                      showLabel: false,
-                      controller: _valueController,
-                      focusNode: _valueFocusNode,
-                      isMonospace: true,
-                      fontSize: SqaTokens.spacingMedium,
-                      showCopyButton: false,
-                      readOnly: widget.readOnlyValue,
-                      onSubmitted: (_) => _commitChanges(),
-                      onTapOutside: (_) => _commitChanges(),
-                      color: widget.isActive
-                          ? Theme.of(context).colorScheme.onSurface
-                          : Colors.grey,
-                    ),
-                  ),
-                  if (showFaker) ...[
-                    const SizedBox(width: SqaTokens.spacingSmall),
-                    SqaPopupMenu(
-                      icon: (widget.key.hashCode % 2 == 0) ? Symbols.ifl : Symbols.casino,
-                      tooltip: 'Faker Data',
-                      children: [
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuStyle: MenuStyle(
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.all(SqaTokens.spacingXSmall),
-                            ),
-                          ),
-                          menuChildren: [
-                            _fakerItem(Symbols.person, 'Full Name', 'name'),
-                            _fakerItem(Symbols.person_outline, 'First Name', 'firstName'),
-                            _fakerItem(Symbols.person_outline, 'Last Name', 'lastName'),
-                            _fakerItem(Symbols.work, 'Job Title', 'jobTitle'),
-                          ],
-                          child: _categoryLabel(Symbols.person, 'Personal'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.mail, 'Email', 'email'),
-                            _fakerItem(Symbols.account_circle, 'Username', 'username'),
-                            _fakerItem(Symbols.password, 'Password', 'password'),
-                            _fakerItem(Symbols.phone, 'Phone Number', 'phone'),
-                          ],
-                          child: _categoryLabel(Symbols.contact_mail, 'Contact'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.location_on, 'City', 'city'),
-                            _fakerItem(Symbols.home, 'Street Address', 'street'),
-                            _fakerItem(Symbols.public, 'Country', 'country'),
-                          ],
-                          child: _categoryLabel(Symbols.map, 'Location'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.fingerprint, 'GUID / UUID', 'guid'),
-                            _fakerItem(Symbols.lan, 'IPv4 Address', 'ipv4'),
-                            _fakerItem(Symbols.link, 'URL', 'url'),
-                            _fakerItem(Symbols.palette, 'Color hex', 'color'),
-                          ],
-                          child: _categoryLabel(Symbols.terminal, 'Technical'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.business, 'Company Name', 'company'),
-                            _fakerItem(Symbols.shopping_cart, 'Product Name', 'product'),
-                            _fakerItem(Symbols.payments, 'Price', 'price'),
-                          ],
-                          child: _categoryLabel(Symbols.inventory_2, 'Business'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.credit_card, 'Credit Card', 'creditCard'),
-                            _fakerItem(Symbols.currency_exchange, 'Currency Code', 'currency'),
-                            _fakerItem(Symbols.payments, 'Amount', 'amount'),
-                            _fakerItem(Symbols.account_balance, 'Account Number', 'account'),
-                          ],
-                          child: _categoryLabel(Symbols.savings, 'Finance'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.history, 'Past Date', 'pastDate'),
-                            _fakerItem(Symbols.update, 'Future Date', 'futureDate'),
-                            _fakerItem(Symbols.today, 'Recent Date', 'recentDate'),
-                            _fakerItem(Symbols.calendar_month, 'Month', 'month'),
-                            _fakerItem(Symbols.calendar_view_day, 'Weekday', 'weekday'),
-                          ],
-                          child: _categoryLabel(Symbols.calendar_today, 'Date'),
-                        ),
-                        SubmenuButton(
-                          submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
-                          menuChildren: [
-                            _fakerItem(Symbols.title, 'Single Word', 'word'),
-                            _fakerItem(Symbols.notes, 'Sentence', 'sentence'),
-                            _fakerItem(Symbols.description, 'Paragraph', 'paragraph'),
-                          ],
-                          child: _categoryLabel(Symbols.article, 'Text'),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (!widget.isParent && widget.onDelete != null) ...[
-                    const SizedBox(width: SqaTokens.spacingSmall),
-                    SqaHoverIconButton(
-                      icon: Symbols.delete,
-                      onPressed: _handleDelete,
-                      tooltip: _isDeleting ? 'Click again to confirm' : 'Delete Row',
-                      iconSize: SqaTokens.spacingLarge + 2,
-                      color: _isDeleting
-                          ? Theme.of(context).colorScheme.error
-                          : Colors.grey.withValues(alpha: 0.5),
-                    ),
-                  ],
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 450;
+        
+        final checkbox = widget.showCheckbox ? Padding(
+          padding: const EdgeInsets.only(right: SqaTokens.spacingSmall),
+          child: SqaHoverIconButton(
+            icon: widget.isActive ? Symbols.check_box : Symbols.check_box_outline_blank,
+            onPressed: () => widget.onToggle?.call(!widget.isActive),
+            tooltip: 'Toggle Active',
+            iconSize: SqaTokens.spacingXLarge,
+            color: widget.isActive
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ) : const SizedBox.shrink();
+
+        final labelField = SqaField(
+          label: '',
+          showLabel: false,
+          controller: _labelController,
+          focusNode: _labelFocusNode,
+          isMonospace: true,
+          fontSize: SqaTokens.spacingMedium,
+          showCopyButton: false,
+          onSubmitted: (_) => _commitChanges(),
+          onTapOutside: (_) => _commitChanges(),
+          fontWeight: widget.isParent ? FontWeight.bold : FontWeight.normal,
+          color: widget.isParent
+              ? (widget.isActive ? Theme.of(context).colorScheme.primary : Colors.grey)
+              : (widget.isActive ? Theme.of(context).colorScheme.onSurface : Colors.grey),
+        );
+
+        final valueField = SqaField(
+          label: '',
+          showLabel: false,
+          controller: _valueController,
+          focusNode: _valueFocusNode,
+          isMonospace: true,
+          fontSize: SqaTokens.spacingMedium,
+          showCopyButton: false,
+          readOnly: widget.readOnlyValue,
+          onSubmitted: (_) => _commitChanges(),
+          onTapOutside: (_) => _commitChanges(),
+          color: widget.isActive
+              ? Theme.of(context).colorScheme.onSurface
+              : Colors.grey,
+          extraFloatingButtonBuilder: (ctrl) => CurlVariableInfoButton(controller: ctrl),
+          onChanged: (val) {
+            if (widget.onChanged != null) {
+              widget.onChanged!(_labelController.text, val);
+            }
+          },
+        );
+
+        final fakerMenu = showFaker ? Padding(
+          padding: const EdgeInsets.only(left: SqaTokens.spacingSmall),
+          child: SqaPopupMenu(
+            icon: (widget.key.hashCode % 2 == 0) ? Symbols.ifl : Symbols.casino,
+            tooltip: 'Faker Data',
+            children: [
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuStyle: MenuStyle(
+                  padding: WidgetStateProperty.all(const EdgeInsets.all(SqaTokens.spacingXSmall)),
+                ),
+                menuChildren: [
+                  _fakerItem(Symbols.person, 'Full Name', 'name'),
+                  _fakerItem(Symbols.person_outline, 'First Name', 'firstName'),
+                  _fakerItem(Symbols.person_outline, 'Last Name', 'lastName'),
+                  _fakerItem(Symbols.work, 'Job Title', 'jobTitle'),
                 ],
+                child: _categoryLabel(Symbols.person, 'Personal'),
               ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.mail, 'Email', 'email'),
+                  _fakerItem(Symbols.account_circle, 'Username', 'username'),
+                  _fakerItem(Symbols.password, 'Password', 'password'),
+                  _fakerItem(Symbols.phone, 'Phone Number', 'phone'),
+                ],
+                child: _categoryLabel(Symbols.contact_mail, 'Contact'),
+              ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.location_on, 'City', 'city'),
+                  _fakerItem(Symbols.home, 'Street Address', 'street'),
+                  _fakerItem(Symbols.public, 'Country', 'country'),
+                ],
+                child: _categoryLabel(Symbols.map, 'Location'),
+              ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.fingerprint, 'GUID / UUID', 'guid'),
+                  _fakerItem(Symbols.lan, 'IPv4 Address', 'ipv4'),
+                  _fakerItem(Symbols.link, 'URL', 'url'),
+                  _fakerItem(Symbols.palette, 'Color hex', 'color'),
+                ],
+                child: _categoryLabel(Symbols.terminal, 'Technical'),
+              ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.business, 'Company Name', 'company'),
+                  _fakerItem(Symbols.shopping_cart, 'Product Name', 'product'),
+                  _fakerItem(Symbols.payments, 'Price', 'price'),
+                ],
+                child: _categoryLabel(Symbols.inventory_2, 'Business'),
+              ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.credit_card, 'Credit Card', 'creditCard'),
+                  _fakerItem(Symbols.currency_exchange, 'Currency Code', 'currency'),
+                  _fakerItem(Symbols.payments, 'Amount', 'amount'),
+                  _fakerItem(Symbols.account_balance, 'Account Number', 'account'),
+                ],
+                child: _categoryLabel(Symbols.savings, 'Finance'),
+              ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.history, 'Past Date', 'pastDate'),
+                  _fakerItem(Symbols.update, 'Future Date', 'futureDate'),
+                  _fakerItem(Symbols.today, 'Recent Date', 'recentDate'),
+                  _fakerItem(Symbols.calendar_month, 'Month', 'month'),
+                  _fakerItem(Symbols.calendar_view_day, 'Weekday', 'weekday'),
+                ],
+                child: _categoryLabel(Symbols.calendar_today, 'Date'),
+              ),
+              SubmenuButton(
+                submenuIcon: const WidgetStatePropertyAll(Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge - 2, color: Colors.grey)),
+                menuChildren: [
+                  _fakerItem(Symbols.title, 'Single Word', 'word'),
+                  _fakerItem(Symbols.notes, 'Sentence', 'sentence'),
+                  _fakerItem(Symbols.description, 'Paragraph', 'paragraph'),
+                ],
+                child: _categoryLabel(Symbols.article, 'Text'),
+              ),
+            ],
+          ),
+        ) : const SizedBox.shrink();
+
+        final deleteBtn = (!widget.isParent && widget.onDelete != null) ? Padding(
+          padding: const EdgeInsets.only(left: SqaTokens.spacingSmall),
+          child: SqaHoverIconButton(
+            icon: Symbols.delete,
+            onPressed: _handleDelete,
+            tooltip: _isDeleting ? 'Click again to confirm' : 'Delete Row',
+            iconSize: SqaTokens.spacingLarge + 2,
+            color: _isDeleting
+                ? Theme.of(context).colorScheme.error
+                : Colors.grey.withValues(alpha: 0.5),
+          ),
+        ) : const SizedBox.shrink();
+
+        return AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: widget.isActive ? 1.0 : 0.4,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              SqaTokens.spacingLarge + (widget.depth * SqaTokens.spacingXLarge),
+              SqaTokens.spacingSmall,
+              SqaTokens.spacingLarge,
+              SqaTokens.spacingSmall,
             ),
-          ],
-        ),
-      ),
+            child: isCompact ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    checkbox,
+                    if (widget.isParent)
+                      Icon(Symbols.keyboard_arrow_down, size: SqaTokens.spacingLarge, color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5))
+                    else
+                      const SizedBox(width: SqaTokens.spacingXSmall),
+                    const SizedBox(width: SqaTokens.spacingXSmall),
+                    Expanded(child: labelField),
+                    deleteBtn,
+                  ],
+                ),
+                const SizedBox(height: SqaTokens.spacingXXSmall),
+                Row(
+                  children: [
+                    const SizedBox(width: SqaTokens.spacingXLarge + SqaTokens.spacingSmall),
+                    Icon(Symbols.subdirectory_arrow_right, size: 16, color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5)),
+                    const SizedBox(width: SqaTokens.spacingSmall),
+                    Expanded(child: valueField),
+                    fakerMenu,
+                  ],
+                ),
+              ],
+            ) : Row(
+              children: [
+                checkbox,
+                if (widget.isParent)
+                  Icon(Symbols.keyboard_arrow_down, size: SqaTokens.spacingLarge, color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5))
+                else
+                  const SizedBox(width: SqaTokens.spacingXSmall),
+                const SizedBox(width: SqaTokens.spacingXSmall),
+                Expanded(flex: 2, child: labelField),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: SqaTokens.spacingSmall),
+                  child: Icon(Symbols.chevron_right, size: SqaTokens.spacingLarge, color: widget.isActive ? Colors.grey : Colors.grey.withValues(alpha: 0.5)),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      Expanded(child: valueField),
+                      fakerMenu,
+                      deleteBtn,
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

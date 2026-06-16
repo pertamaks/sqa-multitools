@@ -58,6 +58,19 @@ static void my_application_activate(GApplication* application) {
   fl_dart_project_set_dart_entrypoint_arguments(
       project, self->dart_entrypoint_arguments);
 
+  // Load the app icon from Flutter assets
+  g_autoptr(GError) icon_error = nullptr;
+  g_autofree gchar* icon_path = g_build_filename(
+      fl_dart_project_get_assets_path(project), "assets", "app_icon.png", nullptr);
+  GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(icon_path, &icon_error);
+  if (pixbuf != nullptr) {
+    gtk_window_set_icon(window, pixbuf);
+    g_object_unref(pixbuf);
+  } else {
+    // Fallback to theme icon name if asset doesn't load
+    gtk_window_set_icon_name(window, "sqa_multitools");
+  }
+
   FlView* view = fl_view_new(project);
   GdkRGBA background_color;
   // Background defaults to black, override it here if necessary, e.g. #00000000

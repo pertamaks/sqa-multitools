@@ -10,6 +10,7 @@ import 'package:sqa_multitools/plugins/screen_recorder/providers/screen_recorder
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqa_multitools/core/services/preferences_service.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 
 class MockPathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -94,7 +95,7 @@ void main() {
     testDir = Directory.systemTemp.createTempSync('sqa_test');
     PathProviderPlatform.instance = MockPathProvider(testDir.path);
 
-    recordingsDir = Directory('${testDir.path}\\SQA_Recordings');
+    recordingsDir = Directory(p.join(testDir.path, 'SQA_Recordings'));
     if (!await recordingsDir.exists()) {
       await recordingsDir.create(recursive: true);
     }
@@ -109,13 +110,13 @@ void main() {
   test('ScreenRecorderNotifier - history logic listing and sorting', () async {
     final prefs = await SharedPreferences.getInstance();
     // 1. Create dummy files with staggered modification times (BEFORE provider init)
-    final file1 = File('${recordingsDir.path}\\SQA_REC_OLD.mp4');
+    final file1 = File(p.join(recordingsDir.path, 'SQA_REC_OLD.mp4'));
     await file1.writeAsString('old');
 
     // Ensure file system registers different modification times
     await Future<void>.delayed(const Duration(seconds: 1));
 
-    final file2 = File('${recordingsDir.path}\\SQA_REC_NEW.mp4');
+    final file2 = File(p.join(recordingsDir.path, 'SQA_REC_NEW.mp4'));
     await file2.writeAsString('new');
 
     // 2. Initialize provider (this triggers initial build and refresh)
@@ -168,7 +169,7 @@ void main() {
     expect(state.recentRecordings[0].file.path, contains('SQA_RENAMED.mp4'));
 
     // Verify physical file exists with new name
-    final renamedFile = File('${recordingsDir.path}/SQA_RENAMED.mp4');
+    final renamedFile = File(p.join(recordingsDir.path, 'SQA_RENAMED.mp4'));
     expect(await renamedFile.exists(), isTrue);
   });
 }

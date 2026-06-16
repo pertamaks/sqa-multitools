@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +12,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'core/window/tray_manager.dart';
 import 'core/services/preferences_service.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:media_kit/media_kit.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/logging_service.dart';
 import 'ui/main_toolbar.dart';
@@ -18,14 +22,29 @@ import 'plugins/screenshot/providers/screenshot_provider.dart';
 import 'core/providers/hotkey_provider.dart';
 import 'core/window/window_constants.dart';
 import 'ui/widgets/sqa_styles.dart';
+import 'ui/widgets/sqa_design_tokens.dart';
 import 'ui/widgets/sqa_scroll_behavior.dart';
 import 'ui/widgets/sqa_toast.dart';
 import 'core/ui/sqa_theme.dart';
 
+class WindowExpandedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setExpanded(bool value) => state = value;
+}
+
+class GlobalProcessingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setProcessing(bool value) => state = value;
+}
+
 final navigatorKey = GlobalKey<NavigatorState>();
 late final ProviderContainer globalProviderContainer;
+final isWindowExpandedProvider = NotifierProvider<WindowExpandedNotifier, bool>(() => WindowExpandedNotifier());
+final globalProcessingProvider = NotifierProvider<GlobalProcessingNotifier, bool>(() => GlobalProcessingNotifier());
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
@@ -63,6 +82,16 @@ void main() async {
   // Register the platform-specific native window API implementation.
   initializePlatformNativeApi();
 
+  if (Platform.isLinux) {
+    JustAudioMediaKit.ensureInitialized(linux: true);
+  }
+
+  try {
+    MediaKit.ensureInitialized();
+  } catch (e) {
+    debugPrint('MediaKit initialization failed: $e');
+  }
+
   AudioService.instance.init();
 
   await windowManager.ensureInitialized();
@@ -72,22 +101,25 @@ void main() async {
 
   final alwaysOnTop = prefs.getBool('always_on_top') ?? true;
 
-  const windowOptions = WindowOptions(
-    size: Size(
+  final windowOptions = WindowOptions(
+    size: const Size(
       WindowConstants.kDefaultWindowWidth,
       WindowConstants.kToolbarWindowHeight,
     ),
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
+    titleBarStyle: Platform.isLinux ? TitleBarStyle.normal : TitleBarStyle.hidden,
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.setAsFrameless();
-    await windowManager.setHasShadow(false);
+    if (!Platform.isLinux) {
+      await windowManager.setAsFrameless();
+      await windowManager.setHasShadow(false);
+    }
     await windowManager.setIcon('assets/desktop_new.png');
     await windowManager.setAlwaysOnTop(alwaysOnTop);
+    await windowManager.setMaximizable(false);
     await windowManager.setMinimumSize(
       const Size(
         WindowConstants.kDefaultWindowWidth,
@@ -100,6 +132,8 @@ void main() async {
   });
 
   await TrayManager.init(globalProviderContainer);
+
+
 
   runApp(
     UncontrolledProviderScope(
@@ -171,26 +205,97 @@ class SqaMultitoolsApp extends ConsumerWidget {
                 ref.watch(screenshotProvider).isOverlayVisible;
             final isRecorderVisible =
                 ref.watch(screenRecorderProvider).isOverlayVisible;
-            final isOverlayActive = isScreenshotVisible || isRecorderVisible;
+            final isExpanded = ref.watch(isWindowExpandedProvider);
+            final isOverlayActive = isScreenshotVisible || isRecorderVisible || isExpanded;
 
             final settings = ref.watch(themeSettingsProvider);
 
-            return Opacity(
-              opacity: isOverlayActive
-                  ? 1.0
-                  : (settings.isTransparencyModeEnabled
-                      ? settings.opacity
-                      : 1.0),
-              child: ClipRRect(
-                borderRadius: isOverlayActive
-                    ? BorderRadius.zero
-                    : SqaStyles.borderRadiusWindow,
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Material(
-                  color: isOverlayActive ? Colors.transparent : null,
-                  child: child ?? const SizedBox.shrink(),
+            return Stack(
+              children: [
+                Opacity(
+                  opacity: isOverlayActive
+                      ? 1.0
+                      : (settings.isTransparencyModeEnabled
+                          ? settings.opacity
+                          : 1.0),
+                  child: ClipRRect(
+                    borderRadius: isOverlayActive
+                        ? BorderRadius.zero
+                        : SqaStyles.borderRadiusWindow,
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    child: Material(
+                      color: isOverlayActive ? Colors.transparent : null,
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  ),
                 ),
-              ),
+                
+                // Global Processing Overlay
+                if (ref.watch(globalProcessingProvider))
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 300),
+                        builder: (context, value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                BackdropFilter(
+                                  filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                  child: Container(
+                                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                Center(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: SqaTokens.spacingXXLarge,
+                                        vertical: SqaTokens.spacingLarge,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surface,
+                                        borderRadius: SqaTokens.borderRadiusLarge,
+                                        border: Border.all(
+                                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.15),
+                                            blurRadius: SqaTokens.spacingLarge,
+                                            offset: Offset(0, SqaTokens.spacingSmall),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const CircularProgressIndicator(),
+                                          SizedBox(width: SqaTokens.spacingLarge),
+                                          Text(
+                                            'Processing Media...',
+                                            style: SqaTextStyles.labelBold(context).copyWith(
+                                              fontSize: SqaTokens.fontSizeMedium,
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
           home: const HotkeyInitializer(child: MainToolbar()),

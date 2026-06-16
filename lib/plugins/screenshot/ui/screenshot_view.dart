@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' as p;
+import 'package:window_manager/window_manager.dart';
 import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_card.dart';
 import '../../../ui/widgets/sqa_plugin_layout.dart';
@@ -21,6 +23,7 @@ import '../../screen_recorder/providers/screen_recorder_provider.dart';
 import 'widgets/config_snippet.dart';
 import 'widgets/capture_tile.dart';
 import '../../../ui/widgets/sqa_history_list.dart';
+import '../../../ui/widgets/media_annotator/media_annotator_view.dart';
 
 class ScreenshotView extends ConsumerStatefulWidget {
   const ScreenshotView({super.key});
@@ -56,7 +59,11 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
       ref.read(screenRecorderProvider.notifier).startLongScreenshotSession();
     } else {
       final notifier = ref.read(screenshotProvider.notifier);
-      notifier.startMonitorSelection();
+      if (Platform.isLinux) {
+        notifier.capture();
+      } else {
+        notifier.startMonitorSelection();
+      }
     }
   }
 
@@ -134,19 +141,21 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  ConfigSnippet(
-                                    icon: switch (state.captureMode) {
-                                      CaptureMode.fullScreen => Symbols.desktop_windows,
-                                      CaptureMode.area => Symbols.crop_free,
-                                      CaptureMode.scrolling => Symbols.swipe_down,
-                                    },
-                                    label: switch (state.captureMode) {
-                                      CaptureMode.fullScreen => 'Full Screen',
-                                      CaptureMode.area => 'Area Selection',
-                                      CaptureMode.scrolling => 'Long SS',
-                                    },
-                                  ),
-                                  const SizedBox(height: SqaTokens.spacingSmall),
+                                  if (!Platform.isLinux) ...[
+                                    ConfigSnippet(
+                                      icon: switch (state.captureMode) {
+                                        CaptureMode.fullScreen => Symbols.desktop_windows,
+                                        CaptureMode.area => Symbols.crop_free,
+                                        CaptureMode.scrolling => Symbols.swipe_down,
+                                      },
+                                      label: switch (state.captureMode) {
+                                        CaptureMode.fullScreen => 'Full Screen',
+                                        CaptureMode.area => 'Area Selection',
+                                        CaptureMode.scrolling => 'Long SS',
+                                      },
+                                    ),
+                                    const SizedBox(height: SqaTokens.spacingSmall),
+                                  ],
                                   ConfigSnippet(
                                     icon: Symbols.image,
                                     label: 'Format: ${state.format}',
@@ -182,7 +191,9 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                                 : Symbols.play_arrow,
                             label: state.isOverlayVisible
                                 ? 'Cancel Overlay'
-                                : 'Enter Overlay',
+                                : Platform.isLinux
+                                    ? 'Take Screenshot'
+                                    : 'Enter Overlay',
                             color: state.isOverlayVisible
                                 ? theme.colorScheme.error
                                 : null,
@@ -202,64 +213,65 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
 
               const SizedBox(height: SqaTokens.spacingXXLarge),
 
-              // Capture Mode
-              Text(
-                'CAPTURE MODE',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: SqaTokens.spacingMedium),
-              SqaSegmentedButton<CaptureMode>(
-                segments: [
-                  ButtonSegment(
-                    value: CaptureMode.fullScreen,
-                    icon: const Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: const Text('Full Screen'),
-                    tooltip: hotkeys.ssFullscreen != null
-                        ? 'Full Screen (${hotkeys.ssFullscreen})'
-                        : 'Full Screen — no hotkey assigned',
-                  ),
-                  ButtonSegment(
-                    value: CaptureMode.area,
-                    icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: const Text('Area'),
-                    tooltip: hotkeys.ssArea != null
-                        ? 'Area (${hotkeys.ssArea})'
-                        : 'Area — no hotkey assigned',
-                  ),
-                  ButtonSegment(
-                    value: CaptureMode.scrolling,
-                    icon: const Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
-                    label: const Text('Long SS'),
-                    tooltip: hotkeys.ssLong != null
-                        ? 'Long Screenshot (${hotkeys.ssLong})'
-                        : 'Long Screenshot — no hotkey assigned',
-                  ),
-                ],
-                selected: {state.captureMode},
-                onSelectionChanged: (Set<CaptureMode> set) =>
-                    notifier.setCaptureMode(set.first),
-              ),
-              const SizedBox(height: SqaTokens.spacingSmall),
-              Text(
-                switch (state.captureMode) {
-                  CaptureMode.fullScreen =>
-                    'Captures the entire primary monitor including taskbars.',
-                  CaptureMode.area =>
-                    'Allows you to draw a custom rectangle on the screen for selective capture.',
-                  CaptureMode.scrolling =>
-                    'Record a scrollable area to stitch into a single long screenshot.',
-                },
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(
-                    alpha: 0.7,
+              if (!Platform.isLinux) ...[
+                // Capture Mode
+                Text(
+                  'CAPTURE MODE',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ),
-
-              const SizedBox(height: SqaTokens.spacingXXLarge),
+                const SizedBox(height: SqaTokens.spacingMedium),
+                SqaSegmentedButton<CaptureMode>(
+                  segments: [
+                    ButtonSegment(
+                      value: CaptureMode.fullScreen,
+                      icon: const Icon(Symbols.fullscreen, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      label: const Text('Full Screen'),
+                      tooltip: hotkeys.ssFullscreen != null
+                          ? 'Full Screen (${hotkeys.ssFullscreen})'
+                          : 'Full Screen — no hotkey assigned',
+                    ),
+                    ButtonSegment(
+                      value: CaptureMode.area,
+                      icon: const Icon(Symbols.crop_free, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      label: const Text('Area'),
+                      tooltip: hotkeys.ssArea != null
+                          ? 'Area (${hotkeys.ssArea})'
+                          : 'Area — no hotkey assigned',
+                    ),
+                    ButtonSegment(
+                      value: CaptureMode.scrolling,
+                      icon: const Icon(Symbols.swipe_down, size: SqaTokens.spacingLarge + SqaTokens.spacingTiny),
+                      label: const Text('Long SS'),
+                      tooltip: hotkeys.ssLong != null
+                          ? 'Long Screenshot (${hotkeys.ssLong})'
+                          : 'Long Screenshot — no hotkey assigned',
+                    ),
+                  ],
+                  selected: {state.captureMode},
+                  onSelectionChanged: (Set<CaptureMode> set) =>
+                      notifier.setCaptureMode(set.first),
+                ),
+                const SizedBox(height: SqaTokens.spacingSmall),
+                Text(
+                  switch (state.captureMode) {
+                    CaptureMode.fullScreen =>
+                      'Captures the entire primary monitor including taskbars.',
+                    CaptureMode.area =>
+                      'Allows you to draw a custom rectangle on the screen for selective capture.',
+                    CaptureMode.scrolling =>
+                      'Record a scrollable area to stitch into a single long screenshot.',
+                  },
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: SqaTokens.spacingXXLarge),
+              ],
 
               SqaHistoryList<CaptureInfo>(
                 key: _historyListKey,
@@ -281,6 +293,28 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                       onValidate: (name) =>
                           notifier.validateNewName(name, info),
                       onOpen: () => PlatformUtils.openPath(info.file.path),
+                      onAnnotate: () async {
+                        if (!Platform.isLinux) {
+                          await windowManager.setMinimumSize(const Size(800, 600));
+                          await windowManager.setSize(const Size(1280, 720));
+                          await windowManager.center();
+                        } else {
+                          await windowManager.setMaximizable(true);
+                          await windowManager.setSize(const Size(1280, 720));
+                          await windowManager.center();
+                        }
+                        
+                        if (context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => MediaAnnotatorView(
+                                filePath: info.file.path,
+                                format: state.format,
+                              ),
+                            ),
+                          );
+                        }
+                      },
                       onOpenFolder: () =>
                           notifier.openSaveDirectory(),
                     );

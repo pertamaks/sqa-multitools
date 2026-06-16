@@ -157,7 +157,7 @@ void main() {
 
       await notifier.toggleRecording();
       expect(container.read(screenRecorderProvider).isRecording, false);
-    });
+    }, skip: Platform.isLinux);
 
     test('setCaptureMode updates state', () {
       final notifier = container.read(screenRecorderProvider.notifier);

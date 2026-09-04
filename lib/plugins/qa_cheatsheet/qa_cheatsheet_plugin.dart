@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../core/models/sqa_plugin.dart';
+import '../../core/models/sqa_coachmark_step.dart';
 import 'ui/qa_cheatsheet_view.dart';
 
 class QaCheatsheetPlugin implements SqaPlugin {
@@ -21,6 +22,26 @@ class QaCheatsheetPlugin implements SqaPlugin {
   @override
   Widget buildPluginWindow(BuildContext context) {
     return const QaCheatsheetView();
+  }
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps {
+    return [
+      SqaCoachmarkStep(
+        targetKey: QaCheatsheetView.categoryTabsKey,
+        title: 'Categorized Knowledge',
+        description:
+            'Navigate between broad testing domains — Web, Mobile, API, and Security. Each domain contains curated checklists, heuristics, and attack vectors.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: QaCheatsheetView.sectionSwitcherKey,
+        title: 'Switch Topics Quickly',
+        description:
+            'Use these tabs to dive into specific topics within a domain. The content features syntax-highlighted code blocks, tables, and copy buttons for immediate use.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+    ];
   }
 
   @override

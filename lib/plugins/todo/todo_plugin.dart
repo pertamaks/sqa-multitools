@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../core/models/sqa_plugin.dart';
+import '../../core/models/sqa_coachmark_step.dart';
 import 'providers/todo_provider.dart';
 import 'services/todo_storage_service.dart';
 import 'ui/todo_view.dart';
@@ -10,6 +11,8 @@ import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_switch.dart';
 
 class TodoPlugin implements SqaPlugin {
+  static final todoIconKey = GlobalKey(debugLabel: 'todo.toolbar_icon');
+
   @override
   String get id => 'com.sqa.plugin.todo';
 
@@ -28,6 +31,33 @@ class TodoPlugin implements SqaPlugin {
   @override
   Widget buildPluginWindow(BuildContext context) {
     return const TodoView();
+  }
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps {
+    return [
+      SqaCoachmarkStep(
+        targetKey: TodoView.todayTabKey,
+        title: 'Your Focus for Today',
+        description:
+            'Tasks are organized into time blocks aligned to your natural energy cycles — Morning, Noon, Afternoon, and Evening. Add tasks where your energy fits the work.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: TodoView.addTaskKey,
+        title: 'Add Your First Task',
+        description:
+            'Type a task and assign it a Time Block and duration. Incomplete tasks carry over automatically to the next day so nothing gets lost.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: todoIconKey,
+        title: 'Gentle Reminders on the Toolbar',
+        description:
+            'When a focus cycle peaks, a small dot appears on this icon in the toolbar. It\'s your cue to check in with your task list — without breaking your flow.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+    ];
   }
 
   @override

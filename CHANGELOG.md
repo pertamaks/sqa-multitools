@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-09-04
+
+### Added
+- **Coachmark System:** Integrated an interactive, visual walkthrough experience across SQA-Multitools. It guides users through toolbar features and individual plugin workflows using illuminated spotlight cutouts and contextual tooltip cards.
+
 ## [1.0.0] - 2026-06-16
 
 ### Added

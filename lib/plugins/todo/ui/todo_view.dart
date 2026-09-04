@@ -25,9 +25,13 @@ import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
+import '../../../core/providers/coachmark_provider.dart';
 
 class TodoView extends ConsumerStatefulWidget {
   const TodoView({super.key});
+
+  static final todayTabKey = GlobalKey(debugLabel: 'todo.today_tab');
+  static final addTaskKey = GlobalKey(debugLabel: 'todo.add_task');
 
   @override
   ConsumerState<TodoView> createState() => _TodoViewState();
@@ -88,6 +92,11 @@ class _TodoViewState extends ConsumerState<TodoView>
       onBack: showBack
           ? () => ref.read(navigationServiceProvider).goBack()
           : null,
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.todo');
+      },
       tabs: [
         Tab(
           text: DateFormat('EEEE, MMM d').format(DateTime.now()),
@@ -100,6 +109,7 @@ class _TodoViewState extends ConsumerState<TodoView>
       trailing: _tabController.index == 2
           ? null
           : SqaButton(
+              key: TodoView.addTaskKey,
               label: _tabController.index == 1 ? '' : '',
               icon: Symbols.blur_on,
               onPressed: () => _showAddTodoDialog(context),
@@ -283,6 +293,7 @@ class _TodoViewState extends ConsumerState<TodoView>
     }
 
     return SqaPluginScrollableContent(
+      key: TodoView.todayTabKey,
       child: Padding(
         padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         child: Column(

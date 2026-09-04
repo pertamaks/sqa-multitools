@@ -4,8 +4,10 @@ import 'sqa_plugin_header.dart';
 import 'sqa_tab_bar.dart';
 import 'sqa_window_size_toggle.dart';
 import 'sqa_search_filter_bar.dart';
+import 'sqa_hover_icon_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/window_provider.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 /// A standardized layout wrapper for all SQA plugins.
 ///
@@ -31,6 +33,11 @@ class SqaPluginLayout extends StatelessWidget {
   final bool isFilterActive;
   final Widget? secondaryHeader;
   final int initialTabIndex;
+  final Key? tabBarKey;
+
+  /// When non-null, a (?) help button appears in the plugin header trailing
+  /// area. Tapping it re-triggers the coachmark tour for this plugin.
+  final VoidCallback? onShowCoachmark;
 
   const SqaPluginLayout({
     super.key,
@@ -53,7 +60,32 @@ class SqaPluginLayout extends StatelessWidget {
     this.isFilterActive = false,
     this.secondaryHeader,
     this.initialTabIndex = 0,
+    this.tabBarKey,
+    this.onShowCoachmark,
   });
+
+  /// Combines the optional [trailing] widget with the (?) coachmark button.
+  Widget? _buildTrailing(BuildContext context) {
+    final helpButton = onShowCoachmark != null
+        ? SqaHoverIconButton(
+            icon: Symbols.help_outline,
+            onPressed: onShowCoachmark!,
+            tooltip: 'Show usage guide',
+            iconSize: 18,
+            padding: 4,
+          )
+        : null;
+
+    if (trailing == null && helpButton == null) return null;
+    if (trailing == null) return helpButton;
+    if (helpButton == null) return trailing;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [trailing!, const SizedBox(width: 4), helpButton],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
@@ -81,7 +113,7 @@ class SqaPluginLayout extends StatelessWidget {
                         description: description,
                         titleWidget: titleWidget,
                         color: color,
-                        trailing: trailing,
+                        trailing: _buildTrailing(context),
                         onBack: onBack,
                       ),
                     ),
@@ -125,6 +157,7 @@ class SqaPluginLayout extends StatelessWidget {
                           child: Column(
                             children: [
                               SqaTabBar(
+                                contentKey: tabBarKey,
                                 tabs: tabs!,
                                 controller: tabController,
                                 isScrollable: isTabScrollable,

@@ -18,6 +18,8 @@ import '../models/swagger_state.dart';
 class SwaggerListView extends ConsumerStatefulWidget {
   const SwaggerListView({super.key});
 
+  static final swaggerUrlKey = GlobalKey(debugLabel: 'swagger.url_input');
+
   @override
   ConsumerState<SwaggerListView> createState() => _SwaggerListViewState();
 }
@@ -73,6 +75,7 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
+                  key: SwaggerListView.swaggerUrlKey,
                   child: SqaField(
                     controller: _urlController,
                     label: '',

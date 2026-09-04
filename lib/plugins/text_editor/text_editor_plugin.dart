@@ -4,8 +4,10 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../core/models/sqa_plugin.dart';
 import 'providers/text_editor_provider.dart';
 import 'models/text_editor_state.dart';
+import 'models/text_document.dart';
 import 'ui/text_list_view.dart';
 import 'ui/text_editor_view.dart';
+import '../../core/models/sqa_coachmark_step.dart';
 
 import 'package:file_selector/file_selector.dart';
 import '../../ui/widgets/sqa_card.dart';
@@ -38,6 +40,43 @@ class TextEditorPlugin implements SqaPlugin {
 
   @override
   Future<void> dispose() async {}
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps {
+    return [
+      SqaCoachmarkStep(
+        targetKey: TextListView.listKey,
+        title: 'Your Documents',
+        description:
+            'All your saved notes and reports live here. Tap any document to open it. Pin important ones to keep them at the top.',
+        contentAlign: CoachmarkContentAlign.top,
+      ),
+      SqaCoachmarkStep(
+        targetKey: TextListView.newDocKey,
+        title: 'Start from a Template',
+        description:
+            'Create a blank note, a structured Bug Report, or a Dev Ticket — pre-filled with the right sections so you never have to format from scratch.',
+        contentAlign: CoachmarkContentAlign.top,
+        beforeStepAction: (ref) async {
+          ref
+              .read(textEditorProvider.notifier)
+              .setViewMode(TextEditorViewMode.list);
+        },
+      ),
+      SqaCoachmarkStep(
+        targetKey: TextEditorView.editorKey,
+        title: 'Write Like a Pro',
+        description:
+            'This is a live Markdown editor — bold, tables, code blocks, and links are styled as you type. Your work is auto-saved and exports to a clean .md file.',
+        contentAlign: CoachmarkContentAlign.top,
+        beforeStepAction: (ref) async {
+          ref.read(textEditorProvider.notifier).createFromTemplate(
+            TextTemplateType.empty,
+          );
+        },
+      ),
+    ];
+  }
 
   @override
   Widget buildPluginWindow(BuildContext context) {

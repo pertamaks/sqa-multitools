@@ -68,6 +68,10 @@ class PreferencesService {
   static const String keyShowTaskbarIcon = 'show_taskbar_icon';
   static const String keyLinuxSystemIntegration = 'linux_system_integration';
 
+  // --- Coachmark Persistence ---
+  static const String keyCoachmarkToolbarSeen = 'coachmark_toolbar_seen';
+  static const String keyCoachmarkPluginSeenPrefix = 'coachmark_plugin_seen_';
+
   static const String keyScreenshotSaveDir = 'screenshot_save_dir';
   static const String keyScreenshotFormat = 'screenshot_format';
   static const String keyScreenshotDelay = 'screenshot_delay';
@@ -281,6 +285,36 @@ class PreferencesService {
 
   Future<void> setFakerLocale(String locale) async {
     await _prefs.setString(keyFakerLocale, locale);
+  }
+
+  // --- Coachmark Methods ---
+
+  bool isToolbarCoachmarkSeen() {
+    return _prefs.getBool(keyCoachmarkToolbarSeen) ?? false;
+  }
+
+  Future<void> setToolbarCoachmarkSeen(bool seen) async {
+    await _prefs.setBool(keyCoachmarkToolbarSeen, seen);
+  }
+
+  bool isPluginCoachmarkSeen(String pluginId) {
+    return _prefs.getBool('$keyCoachmarkPluginSeenPrefix$pluginId') ?? false;
+  }
+
+  Future<void> setPluginCoachmarkSeen(String pluginId, bool seen) async {
+    await _prefs.setBool('$keyCoachmarkPluginSeenPrefix$pluginId', seen);
+  }
+
+  /// Clears all coachmark seen-state so tours will re-trigger.
+  Future<void> resetAllCoachmarks() async {
+    final keys = _prefs.getKeys().where(
+      (k) =>
+          k == keyCoachmarkToolbarSeen ||
+          k.startsWith(keyCoachmarkPluginSeenPrefix),
+    );
+    for (final key in keys) {
+      await _prefs.remove(key);
+    }
   }
 
   /// Migrates preferences from older versions to the current schema.

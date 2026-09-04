@@ -9,6 +9,9 @@ The SRS is split into feature-specific documents to ensure clarity and maintaina
 ### [00. Core Architecture](srs/00_core.md)
 Introduction, technology stack (Material 3, Flutter, Riverpod), and plugin contract.
 
+### [Coachmark System & Copywriting Catalog](coachmarks.md)
+Architecture, Win32 rendering engine fix, and copywriting catalog for all toolbar & plugin onboarding tours.
+
 ### Features & Plugins
 - **[Code Beautifier](srs/plugin_beautifier.md)**
 - **[cURL Requester](srs/plugin_curl_requester.md)**

@@ -6,6 +6,8 @@ import 'providers/obfuscator_provider.dart';
 import 'models/obfuscator_state.dart';
 import 'ui/obfuscator_list_view.dart';
 import 'ui/obfuscator_view.dart';
+import '../../core/models/sqa_coachmark_step.dart';
+import 'models/imported_document.dart';
 
 import '../../ui/widgets/sqa_card.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
@@ -38,6 +40,54 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
 
   @override
   Future<void> dispose() async {}
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps {
+    return [
+      SqaCoachmarkStep(
+        targetKey: ObfuscatorListView.workspaceSelectorKey,
+        title: 'Organize by Project',
+        description:
+            'Each workspace is an isolated project with its own dictionary. Create separate workspaces for different clients or products to keep substitutions clean.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: ObfuscatorDocumentView.editorKey,
+        title: 'Paste Your Requirements Here',
+        description:
+            'Paste your spec or bug report, then toggle the Obfuscate switch. The scanner automatically finds sensitive terms and replaces them with realistic-looking alternatives.',
+        contentAlign: CoachmarkContentAlign.right,
+        beforeStepAction: (ref) async {
+          final notifier = ref.read(obfuscatorProvider.notifier);
+          final dummy = ImportedDocument(
+            id: 'dummy',
+            fileName: 'Example Document',
+            content: 'Paste your content here...',
+            importedAt: DateTime.now(),
+          );
+          notifier.viewDocument(dummy);
+        },
+      ),
+      SqaCoachmarkStep(
+        targetKey: ObfuscatorListView.dictionaryPanelKey,
+        title: 'Review & Manage Substitutions',
+        description:
+            'Every detected term appears here with its replacement. You can enable, disable, or delete individual entries — or highlight any word in the document to add it manually.',
+        contentAlign: CoachmarkContentAlign.left,
+        beforeStepAction: (ref) async {
+          final notifier = ref.read(obfuscatorProvider.notifier);
+          notifier.setViewMode(ObfuscatorViewMode.list);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final context = ObfuscatorListView.workspaceSelectorKey.currentContext;
+            if (context != null) {
+              final tabController = DefaultTabController.maybeOf(context);
+              tabController?.animateTo(2); // Index 2 is Dictionary
+            }
+          });
+        },
+      ),
+    ];
+  }
 
   @override
   Widget buildPluginWindow(BuildContext context) {

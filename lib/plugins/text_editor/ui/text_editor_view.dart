@@ -42,6 +42,8 @@ import '../../../ui/widgets/sqa_markdown_viewer.dart';
 class TextEditorView extends ConsumerStatefulWidget {
   const TextEditorView({super.key});
 
+  static final editorKey = GlobalKey(debugLabel: 'text_editor.editor');
+
   @override
   ConsumerState<TextEditorView> createState() => _TextEditorViewState();
 }
@@ -1023,9 +1025,11 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                 // The global ScrollbarThemeData handles scrollbar visibility instead.
                 child: Stack(
                   children: [
-                    AppFlowyEditor(
-                      key: ValueKey(_editorState.hashCode),
-                      editorState: _editorState!,
+                    Container(
+                      key: TextEditorView.editorKey,
+                      child: AppFlowyEditor(
+                        key: ValueKey(_editorState.hashCode),
+                        editorState: _editorState!,
                       autoFocus: true,
                       focusNode: _editorFocusNode,
                       blockComponentBuilders: _buildBlockComponentBuilders(
@@ -1055,6 +1059,7 @@ class _TextEditorViewState extends ConsumerState<TextEditorView> {
                             height: 1.5,
                             color: theme.colorScheme.onSurface,
                           ),
+                        ),
                         ),
                       ),
                     ),

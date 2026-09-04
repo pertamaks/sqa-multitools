@@ -17,6 +17,8 @@ import 'dart:convert';
 class SwaggerDetailView extends ConsumerWidget {
   const SwaggerDetailView({super.key});
 
+  static final swaggerEndpointsKey = GlobalKey(debugLabel: 'swagger.endpoints');
+
   static Color _getMethodColor(String method) {
     switch (method.toUpperCase()) {
       case 'GET':
@@ -303,7 +305,7 @@ class SwaggerDetailView extends ConsumerWidget {
             )
           : null,
       child: SqaPluginScrollableContent(
-        key: PageStorageKey('swagger_detail_${schema.title}'),
+        key: SwaggerDetailView.swaggerEndpointsKey,
         center: false,
         padding: const EdgeInsets.symmetric(
           horizontal: SqaTokens.contentPaddingHorizontal,

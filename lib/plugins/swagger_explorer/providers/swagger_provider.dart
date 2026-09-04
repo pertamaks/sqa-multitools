@@ -114,6 +114,37 @@ class SwaggerNotifier extends _$SwaggerNotifier {
     state = state.copyWith(history: []);
   }
 
+  void loadDummySchema() {
+    state = state.copyWith(
+      activeSchema: const SwaggerSchemaInfo(
+        title: 'Demo API',
+        version: '1.0.0',
+        description: 'This is a demo API generated for the coachmark tour.',
+        endpoints: [
+          SwaggerEndpoint(
+            path: '/users',
+            method: 'GET',
+            summary: 'Get all users',
+            tags: ['Users'],
+            parameters: [],
+            responses: {},
+          ),
+          SwaggerEndpoint(
+            path: '/users/{id}',
+            method: 'POST',
+            summary: 'Create a user',
+            tags: ['Users'],
+            parameters: [],
+            responses: {},
+          ),
+        ],
+        securitySchemes: {},
+        baseUrl: 'http://localhost:8080',
+      ),
+      viewMode: SwaggerViewMode.detail,
+    );
+  }
+
   void setSecurityValue(String key, String value) {
     final newValues = Map<String, String>.from(state.activeSecurityValues);
     newValues[key] = value;

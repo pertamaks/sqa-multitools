@@ -12,6 +12,7 @@ import '../../../ui/widgets/sqa_toast.dart';
 import '../../../ui/widgets/sqa_switch.dart';
 import '../../../ui/widgets/sqa_plugin_header.dart';
 import '../../../ui/widgets/sqa_button.dart';
+import '../../../core/providers/coachmark_provider.dart';
 import '../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../../ui/widgets/sqa_styles.dart';
 import '../../../ui/widgets/sqa_modal.dart';
@@ -230,6 +231,25 @@ class _CoffeeShopViewState extends ConsumerState<CoffeeShopView> {
           SizedBox(
             width: double.infinity,
             child: _buildResetDonationButton(colorScheme),
+          ),
+          const SizedBox(height: SqaTokens.spacingMedium),
+          SizedBox(
+            width: double.infinity,
+            child: SqaButton.outlined(
+              onPressed: () async {
+                await ref.read(coachmarkServiceProvider.notifier).resetAll();
+                if (mounted) {
+                  SqaToast.show(
+                    context,
+                    'Coachmarks reset. Restart app or re-enter plugins to view them.',
+                    type: SqaToastType.success,
+                  );
+                }
+              },
+              icon: Symbols.restart_alt,
+              label: 'Reset Coachmarks',
+              color: colorScheme.primary,
+            ),
           ),
         ],
       ),

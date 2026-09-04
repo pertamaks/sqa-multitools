@@ -39,6 +39,11 @@ import '../models/dictionary_entry.dart';
 class ObfuscatorListView extends ConsumerStatefulWidget {
   const ObfuscatorListView({super.key});
 
+  static final workspaceSelectorKey =
+      GlobalKey(debugLabel: 'obfuscator.workspace_selector');
+  static final dictionaryPanelKey =
+      GlobalKey(debugLabel: 'obfuscator.dictionary_panel');
+
   @override
   ConsumerState<ObfuscatorListView> createState() => _ObfuscatorListViewState();
 }
@@ -114,6 +119,7 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
               ),
             ),
             Row(
+              key: ObfuscatorListView.workspaceSelectorKey,
               children: [
                 Text(
                   'Workspace: ',
@@ -225,6 +231,7 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
             const DeobfuscatorTabContent(),
             // Tab 3: Dictionary Manager
             SqaPluginScrollableContent(
+              key: ObfuscatorListView.dictionaryPanelKey,
               child: _buildDictionaryTab(
                 context,
                 state,

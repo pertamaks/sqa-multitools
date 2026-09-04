@@ -10,6 +10,7 @@ import '../../core/models/capture_mode.dart';
 import '../../core/models/screenshot_tool.dart';
 import '../../core/models/click_ripple.dart';
 import '../../core/window/window_utils.dart';
+import 'package:window_manager/window_manager.dart';
 import 'sqa_floating_bar.dart';
 import '../../core/providers/capture_key_provider.dart';
 import 'sqa_annotation_stage.dart';
@@ -60,6 +61,9 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
   Rect? _hoveredMonitorRect;
   Display? _hoveredDisplay;
+  /// Cached window position — updated every polling cycle via `windowManager.getPosition()`.
+  /// Used by synchronous methods (drag handlers, bar teleport) to avoid an async call.
+  Offset _cachedWindowPos = Offset.zero;
 
   @override
   void initState() {
@@ -147,7 +151,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             final cursor = await screenRetriever.getCursorScreenPoint();
             if (!mounted || !widget.delegate.isOverlayVisible) return;
 
-            final windowPos = WindowUtils.getAppWindowPosition();
+            final windowPos = await windowManager.getPosition();
+            _cachedWindowPos = windowPos;
             if (!mounted || !widget.delegate.isOverlayVisible) return;
             final localPos = Offset(
               cursor.dx - windowPos.dx,
@@ -226,7 +231,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
               }
 
               if (targetDisplay != null) {
-                final windowPos = WindowUtils.getAppWindowPosition();
+                final windowPos = await windowManager.getPosition();
+                _cachedWindowPos = windowPos;
                 if (!mounted || !widget.delegate.isOverlayVisible) return;
                 final localRect = Rect.fromLTWH(
                   (targetDisplay.visiblePosition?.dx ?? 0) - windowPos.dx,
@@ -278,7 +284,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     final cursor = await screenRetriever.getCursorScreenPoint();
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
-    final windowPos = WindowUtils.getAppWindowPosition();
+    final windowPos = await windowManager.getPosition();
+    _cachedWindowPos = windowPos;
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
     final delegate = widget.delegate;
@@ -354,7 +361,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     final displays = widget.delegate.availableDisplays;
     if (displays.isEmpty) return;
 
-    final windowPos = WindowUtils.getAppWindowPosition();
+    final windowPos = _cachedWindowPos;
     // Use the rect center in GLOBAL coordinates to find the display
     final globalCenter = targetRect.center.translate(
       windowPos.dx,
@@ -435,7 +442,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             widget.delegate.captureMode == CaptureMode.scrolling) &&
         !widget.delegate.isSelectingMonitor) {
       final startPos = details.localPosition;
-      final windowPos = WindowUtils.getAppWindowPosition();
+      final windowPos = _cachedWindowPos;
       final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
 
       Display? startDisplay;
@@ -475,7 +482,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       // Logical Clamping Constraint
       final lockedDisplay = widget.delegate.lockedDisplay;
       if (lockedDisplay != null) {
-        final windowPos = WindowUtils.getAppWindowPosition();
+        final windowPos = _cachedWindowPos;
         final dPos = lockedDisplay.visiblePosition ?? Offset.zero;
 
         // Logical bounds of the monitor relative to our spanning window

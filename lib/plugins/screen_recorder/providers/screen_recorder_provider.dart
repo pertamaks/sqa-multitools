@@ -936,7 +936,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 1. Identify Target Display
     Display? targetDisplay = providedDisplay;
     if (targetDisplay == null) {
-      final windowPos = WindowUtils.getAppWindowPosition();
+      final windowPos = await windowManager.getPosition();
       final center = targetRect.center.translate(windowPos.dx, windowPos.dy);
 
       for (final d in displays) {
@@ -971,7 +971,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 3. Coordinate Remapping
     // We must shift local coordinates to stay spatially consistent after the window moves.
-    final windowPos = WindowUtils.getAppWindowPosition();
+    final windowPos = await windowManager.getPosition();
     final globalSelection = state.selectionRect?.shift(windowPos);
     final newWindowPos = targetDisplayRect.topLeft;
     final newLocalSelection = globalSelection?.shift(-newWindowPos);

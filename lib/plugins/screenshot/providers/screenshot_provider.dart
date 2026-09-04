@@ -364,7 +364,12 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     // 1.5 Capture the clean desktop while our app is invisible
 
     Uint8List? frozenBytes;
-    final result = await freezeScreen();
+    final result = await freezeRegion(
+      overlayRect.left.toInt(),
+      overlayRect.top.toInt(),
+      overlayRect.width.toInt(),
+      overlayRect.height.toInt(),
+    );
     if (result is CaptureSuccess<FrozenCanvas>) {
       frozenBytes = Uint8List.fromList(result.data.bytes);
     } else if (result is CaptureFailure<FrozenCanvas>) {

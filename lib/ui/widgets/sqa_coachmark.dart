@@ -212,7 +212,7 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
       await step.beforeStepAction!(ref);
     } else {
       final targetContext = step.targetKey.currentContext;
-      if (targetContext != null) {
+      if (targetContext != null && targetContext.mounted) {
         try {
           await Scrollable.ensureVisible(
             targetContext,

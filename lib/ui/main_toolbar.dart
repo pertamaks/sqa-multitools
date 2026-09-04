@@ -174,7 +174,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
         plugin.id == 'com.sqa.plugin.security_payloads' &&
         ref.read(securityPayloadsProvider).showDisclaimer;
 
-    void _restoreDisclaimerIfNeeded() {
+    void restoreDisclaimerIfNeeded() {
       if (securityDisclaimerWasShowing) {
         ref.read(securityPayloadsProvider.notifier).restoreDisclaimer();
       }
@@ -185,11 +185,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       steps: steps,
       onFinish: () {
         service.markPluginTourSeen(plugin.id);
-        _restoreDisclaimerIfNeeded();
+        restoreDisclaimerIfNeeded();
       },
       onSkip: () {
         service.markPluginTourSeen(plugin.id);
-        _restoreDisclaimerIfNeeded();
+        restoreDisclaimerIfNeeded();
       },
     );
 

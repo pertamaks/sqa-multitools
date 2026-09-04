@@ -81,6 +81,10 @@ class SecurityPayloadsNotifier extends _$SecurityPayloadsNotifier {
     state = state.copyWith(showDisclaimer: false);
   }
 
+  void restoreDisclaimer() {
+    state = state.copyWith(showDisclaimer: true);
+  }
+
   void setSearchQuery(String query) {
     state = state.copyWith(searchQuery: query);
   }

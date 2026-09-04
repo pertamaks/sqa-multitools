@@ -24,9 +24,14 @@ import 'widgets/config_snippet.dart';
 import 'widgets/capture_tile.dart';
 import '../../../ui/widgets/sqa_history_list.dart';
 import '../../../ui/widgets/media_annotator/media_annotator_view.dart';
+import '../../../core/providers/coachmark_provider.dart';
 
 class ScreenshotView extends ConsumerStatefulWidget {
   const ScreenshotView({super.key});
+
+  static final captureModeKey = GlobalKey(debugLabel: 'screenshot.capture_mode');
+  static final captureButtonKey = GlobalKey(debugLabel: 'screenshot.capture_btn');
+  static final historyKey = GlobalKey(debugLabel: 'screenshot.history');
 
   @override
   ConsumerState<ScreenshotView> createState() => _ScreenshotViewState();
@@ -35,7 +40,6 @@ class ScreenshotView extends ConsumerStatefulWidget {
 class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
   late TextEditingController _searchController;
   late ScrollController _scrollController;
-  final GlobalKey _historyListKey = GlobalKey();
 
   @override
   void initState() {
@@ -86,7 +90,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
           // Give the UI a brief moment to layout the new item
           Future.delayed(const Duration(milliseconds: 150), () {
             if (!mounted) return;
-            final contextToScroll = _historyListKey.currentContext;
+            final contextToScroll = ScreenshotView.historyKey.currentContext;
             if (contextToScroll != null && contextToScroll.mounted) {
               Scrollable.ensureVisible(
                 contextToScroll,
@@ -106,6 +110,11 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
       title: 'Screenshot',
       description: 'Capture a region and draw directly on it.',
       color: theme.colorScheme.primary,
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.screenshot');
+      },
       searchController: _searchController,
       onSearchChanged: (val) =>
           ref.read(screenshotProvider.notifier).setSearchQuery(val),
@@ -193,6 +202,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                       children: [
                         Expanded(
                           child: SqaButton.primary(
+                            key: ScreenshotView.captureButtonKey,
                             onPressed: state.isOverlayVisible
                                 ? () => notifier.stopCapture()
                                 : () => _handleStart(),
@@ -234,6 +244,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
                 ),
                 const SizedBox(height: SqaTokens.spacingMedium),
                 SqaSegmentedButton<CaptureMode>(
+                  key: ScreenshotView.captureModeKey,
                   segments: [
                     ButtonSegment(
                       value: CaptureMode.fullScreen,
@@ -293,7 +304,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
               ],
 
               SqaHistoryList<CaptureInfo>(
-                key: _historyListKey,
+                key: ScreenshotView.historyKey,
                 items: state.recentCaptures.where((info) {
                   if (state.searchQuery.isEmpty) return true;
                   final query = state.searchQuery.toLowerCase();

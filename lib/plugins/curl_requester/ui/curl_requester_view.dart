@@ -22,9 +22,15 @@ import '../providers/environments_provider.dart';
 import '../models/environment.dart';
 import 'modals/environment_editor_modal.dart';
 import '../../../ui/widgets/sqa_text_controller.dart';
+import '../../../core/providers/coachmark_provider.dart';
 
 class CurlRequesterView extends ConsumerStatefulWidget {
   const CurlRequesterView({super.key});
+
+  static final urlInputKey = GlobalKey(debugLabel: 'curl.url_input');
+  static final showGridKey = GlobalKey(debugLabel: 'curl.show_grid');
+  static final requestTabsKey = GlobalKey(debugLabel: 'curl.request_tabs');
+  static final mainTabsKey = GlobalKey(debugLabel: 'curl.main_tabs');
 
   @override
   ConsumerState<CurlRequesterView> createState() => _CurlRequesterViewState();
@@ -308,6 +314,10 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
             ],
           ),
           description: 'Transform and execute cURL commands',
+          onShowCoachmark: () {
+            ref.read(coachmarkServiceProvider.notifier)
+               .requestPluginTour('com.sqa.plugin.curl_requester');
+          },
           onBack: ref.watch(navigationHistoryProvider) != null
               ? () {
                   ref.read(navigationServiceProvider).goBack();
@@ -339,6 +349,7 @@ class _CurlRequesterViewState extends ConsumerState<CurlRequesterView>
                     context,
                   ).colorScheme.error.withValues(alpha: 0.8),
                 ),
+          tabBarKey: CurlRequesterView.mainTabsKey,
           tabs: const [
             Tab(
               text: 'Request',

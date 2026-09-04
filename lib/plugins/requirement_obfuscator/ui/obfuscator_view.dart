@@ -39,6 +39,8 @@ import '../engine/alias_generator.dart';
 class ObfuscatorDocumentView extends ConsumerStatefulWidget {
   const ObfuscatorDocumentView({super.key});
 
+  static final editorKey = GlobalKey(debugLabel: 'obfuscator.editor');
+
   @override
   ConsumerState<ObfuscatorDocumentView> createState() =>
       _ObfuscatorDocumentViewState();
@@ -394,9 +396,11 @@ class _ObfuscatorDocumentViewState
                     // and prevent standard write transactions on a read-only document.
                     return KeyEventResult.handled;
                   },
-                  child: AppFlowyEditor(
-                    key: ValueKey(_editorState.hashCode),
-                    editorState: _editorState!,
+                  child: Container(
+                    key: ObfuscatorDocumentView.editorKey,
+                    child: AppFlowyEditor(
+                      key: ValueKey(_editorState.hashCode),
+                      editorState: _editorState!,
                     editable: false,
                     autoFocus: false,
                     blockComponentBuilders: _cachedBuilders ??=
@@ -453,6 +457,7 @@ class _ObfuscatorDocumentViewState
                         ),
                       ),
                     ),
+                  ),
                   ),
                 ),
               ),

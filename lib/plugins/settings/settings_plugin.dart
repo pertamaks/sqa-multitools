@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import '../../core/models/sqa_plugin.dart';
+import '../../core/models/sqa_coachmark_step.dart';
 import 'ui/settings_view.dart';
 
 class SettingsPlugin implements SqaPlugin {
@@ -16,6 +17,9 @@ class SettingsPlugin implements SqaPlugin {
   String? get badge => null;
   @override
   List<PermissionRequirement> get requiredPermissions => [];
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps => [];
 
   @override
   Widget buildPluginWindow(BuildContext context) {

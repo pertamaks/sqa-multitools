@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sqa_coachmark_step.dart';
 
 enum PermissionRequirement { screenRecording, accessibility, clipboard }
 
@@ -32,4 +33,11 @@ abstract class SqaPlugin {
 
   /// A list of OS capabilities this plugin needs
   List<PermissionRequirement> get requiredPermissions;
+
+  /// Coachmark tour steps for this plugin.
+  ///
+  /// Override this in each plugin to define the tour steps that guide users
+  /// through the plugin UI on first access. Returns an empty list by default
+  /// (no coachmark), which is safe for all existing plugins.
+  List<SqaCoachmarkStep> get coachmarkSteps => [];
 }

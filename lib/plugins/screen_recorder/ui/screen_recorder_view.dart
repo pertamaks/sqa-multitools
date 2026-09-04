@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
 import '../providers/screen_recorder_provider.dart';
+import '../../../core/providers/ffmpeg_provider.dart';
 import '../models/screen_recorder_state.dart';
 import '../screen_recorder_plugin.dart';
 import './widgets/config_snippet.dart';
@@ -21,13 +22,17 @@ import '../../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
 import '../../../../core/models/capture_mode.dart';
 import '../../../../core/providers/plugin_provider.dart';
-import '../../../../core/providers/ffmpeg_provider.dart';
 import '../../../../core/providers/hotkey_provider.dart';
 import '../../../../core/utils/platform_utils.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import '../../../../core/providers/coachmark_provider.dart';
 
 class ScreenRecorderView extends ConsumerStatefulWidget {
   const ScreenRecorderView({super.key});
+
+  static final captureModeKey = GlobalKey(debugLabel: 'screen_recorder.capture_mode');
+  static final recordButtonKey = GlobalKey(debugLabel: 'screen_recorder.record_btn');
+  static final historyKey = GlobalKey(debugLabel: 'screen_recorder.history');
 
   @override
   ConsumerState<ScreenRecorderView> createState() => _ScreenRecorderViewState();
@@ -36,7 +41,6 @@ class ScreenRecorderView extends ConsumerStatefulWidget {
 class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
   late TextEditingController _searchController;
   late ScrollController _scrollController;
-  final GlobalKey _historyListKey = GlobalKey();
 
   List<Display> _displays = [];
   Display? _selectedDisplay;
@@ -149,7 +153,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             next.first.file.path != previous.first.file.path) {
           Future.delayed(const Duration(milliseconds: 150), () {
             if (!mounted) return;
-            final contextToScroll = _historyListKey.currentContext;
+            final contextToScroll = ScreenRecorderView.historyKey.currentContext;
             if (contextToScroll != null && contextToScroll.mounted) {
               Scrollable.ensureVisible(
                 contextToScroll,
@@ -168,6 +172,11 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
       title: 'Screen Recorder',
       description: 'Record your screen, camera, and audio inputs.',
       searchController: _searchController,
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.screen_recorder');
+      },
       onSearchChanged: (val) =>
           ref.read(screenRecorderProvider.notifier).setSearchQuery(val),
       searchHint: 'Filter recordings...',
@@ -289,6 +298,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
                     children: [
                       Expanded(
                         child: SqaButton.primary(
+                          key: ScreenRecorderView.recordButtonKey,
                           onPressed: state.isOverlayVisible
                               ? () => notifier.cancelOverlay()
                               : () => _handleStart(context),
@@ -378,6 +388,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
               ),
               const SizedBox(height: SqaTokens.spacingMedium),
               SqaSegmentedButton<CaptureMode>(
+                key: ScreenRecorderView.captureModeKey,
                 segments: [
                   ButtonSegment(
                     value: CaptureMode.fullScreen,
@@ -430,7 +441,7 @@ class _ScreenRecorderViewState extends ConsumerState<ScreenRecorderView> {
             ],
 
             SqaHistoryList<RecordingInfo>(
-              key: _historyListKey,
+              key: ScreenRecorderView.historyKey,
               items: state.recentRecordings.where((info) {
                 if (state.searchQuery.isEmpty) return true;
                 final query = state.searchQuery.toLowerCase();

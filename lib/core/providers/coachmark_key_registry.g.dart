@@ -60,7 +60,7 @@ final class CoachmarkKeyRegistryProvider
     extends
         $NotifierProvider<
           CoachmarkKeyRegistry,
-          Map<String, GlobalKey<State<StatefulWidget>>>
+          Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>
         > {
   /// A centralized registry mapping semantic key names to [GlobalKey] instances.
   ///
@@ -104,20 +104,20 @@ final class CoachmarkKeyRegistryProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(
-    Map<String, GlobalKey<State<StatefulWidget>>> value,
+    Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>> value,
   ) {
     return $ProviderOverride(
       origin: this,
       providerOverride:
-          $SyncValueProvider<Map<String, GlobalKey<State<StatefulWidget>>>>(
-            value,
-          ),
+          $SyncValueProvider<
+            Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>
+          >(value),
     );
   }
 }
 
 String _$coachmarkKeyRegistryHash() =>
-    r'6c28e328b61940fedda6a2e720ef10d3edb9d07f';
+    r'c20d638fa852477ae5a2ece45dcd362ea1d3cd38';
 
 /// A centralized registry mapping semantic key names to [GlobalKey] instances.
 ///
@@ -143,25 +143,28 @@ String _$coachmarkKeyRegistryHash() =>
 /// ```
 
 abstract class _$CoachmarkKeyRegistry
-    extends $Notifier<Map<String, GlobalKey<State<StatefulWidget>>>> {
-  Map<String, GlobalKey<State<StatefulWidget>>> build();
+    extends
+        $Notifier<
+          Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>
+        > {
+  Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
         this.ref
             as $Ref<
-              Map<String, GlobalKey<State<StatefulWidget>>>,
-              Map<String, GlobalKey<State<StatefulWidget>>>
+              Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>,
+              Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>
             >;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                Map<String, GlobalKey<State<StatefulWidget>>>,
-                Map<String, GlobalKey<State<StatefulWidget>>>
+                Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>,
+                Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>
               >,
-              Map<String, GlobalKey<State<StatefulWidget>>>,
+              Map<String, WeakReference<GlobalKey<State<StatefulWidget>>>>,
               Object?,
               Object?
             >;

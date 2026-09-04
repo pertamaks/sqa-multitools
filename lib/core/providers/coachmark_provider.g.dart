@@ -53,7 +53,7 @@ final class CoachmarkServiceProvider
   }
 }
 
-String _$coachmarkServiceHash() => r'a5d87c89e02732b581f4c08c099fce51f3874589';
+String _$coachmarkServiceHash() => r'f27588c7968e78f4a4bcd1fa098f28ba445b5853';
 
 /// Manages the seen-state for all coachmark tours and exposes helpers for
 /// the toolbar and plugin windows to check whether to auto-show a tour.

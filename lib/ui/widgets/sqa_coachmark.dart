@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:window_manager/window_manager.dart';
 import '../../core/models/sqa_coachmark_step.dart';
 import 'sqa_design_tokens.dart';
 import 'sqa_button.dart';
@@ -25,9 +26,14 @@ typedef _InvalidateRect = int Function(int hwnd, Pointer<Void> lpRect, int bEras
 typedef _UpdateWindowC = Int32 Function(IntPtr hwnd);
 typedef _UpdateWindow = int Function(int hwnd);
 
-void _forceWindowsRepaint() {
+Future<void> _forceWindowsRepaint() async {
   if (!Platform.isWindows) return;
   try {
+    // Only attempt to force a repaint if our app window is the focused one.
+    // This prevents inadvertently forcing a repaint on another application.
+    final isFocused = await windowManager.isFocused();
+    if (!isFocused) return;
+
     final user32 = DynamicLibrary.open('user32.dll');
     final getForegroundWindow =
         user32.lookupFunction<_GetForegroundWindowC, _GetForegroundWindow>('GetForegroundWindow');
@@ -35,6 +41,7 @@ void _forceWindowsRepaint() {
         user32.lookupFunction<_InvalidateRectC, _InvalidateRect>('InvalidateRect');
     final updateWindow =
         user32.lookupFunction<_UpdateWindowC, _UpdateWindow>('UpdateWindow');
+        
     final hwnd = getForegroundWindow();
     if (hwnd != 0) {
       invalidateRect(hwnd, nullptr, 0); // Invalidate entire client area
@@ -229,9 +236,10 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     // Small additional delay for animations (scroll/tab) to finish visually
     await Future<void>.delayed(const Duration(milliseconds: 100));
 
-    // Compute target bounding box (with multi-frame retries if widget is still laying out/animating)
+    // Compute target bounding box (with retries up to 1 second if widget is still laying out/animating)
     Rect? rect;
-    for (int i = 0; i < 10; i++) {
+    final startTime = DateTime.now();
+    while (DateTime.now().difference(startTime).inMilliseconds < 1000) {
       if (!mounted) {
         _isTransitioning = false;
         return;
@@ -265,7 +273,7 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     // On Flutter Windows the compositor goes idle after long async chains and
     // won't present the new frame until WM_PAINT arrives (the same trigger
     // that an Alt-Tab / focus-change normally provides). Replicate it via FFI.
-    _forceWindowsRepaint();
+    await _forceWindowsRepaint();
 
     // Additionally schedule a Flutter frame so the engine re-registers for
     // vsync and the post-frame callback below fires promptly.
@@ -286,7 +294,9 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     final renderObject = key.currentContext?.findRenderObject();
     if (renderObject == null) return null;
     final renderBox = renderObject as RenderBox;
-    final offset = renderBox.localToGlobal(Offset.zero);
+    final overlayContext = Overlay.of(context).context;
+    final overlayRenderBox = overlayContext.findRenderObject() as RenderBox;
+    final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlayRenderBox);
     return offset & renderBox.size;
   }
 
@@ -456,8 +466,12 @@ class _CoachmarkCard extends StatelessWidget {
       right: position.right,
       bottom: position.bottom,
       width: _cardWidth,
-      child: FadeTransition(
-        opacity: fadeAnimation,
+      child: Semantics(
+        focused: true,
+        explicitChildNodes: true,
+        scopesRoute: true,
+        child: FadeTransition(
+          opacity: fadeAnimation,
         child: Material(
           color: Colors.transparent,
         child: Container(
@@ -508,27 +522,31 @@ class _CoachmarkCard extends StatelessWidget {
                     // Skip button
                     GestureDetector(
                       onTap: onSkip,
-                      child: Padding(
-                        padding: const EdgeInsets.all(
-                          SqaTokens.spacingXXSmall,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Skip',
-                              style: GoogleFonts.dmSans(
-                                fontSize: SqaTokens.fontSizeTiny,
+                      child: Semantics(
+                        button: true,
+                        label: 'Skip tutorial',
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                            SqaTokens.spacingXXSmall,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Skip',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: SqaTokens.fontSizeTiny,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(width: SqaTokens.spacingXXSmall),
+                              Icon(
+                                Symbols.close,
+                                size: 12,
                                 color: colorScheme.onSurfaceVariant,
                               ),
-                            ),
-                            const SizedBox(width: SqaTokens.spacingXXSmall),
-                            Icon(
-                              Symbols.close,
-                              size: 12,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -585,7 +603,8 @@ class _CoachmarkCard extends StatelessWidget {
             ), // Padding
           ), // Container
         ), // Material
-      ), // FadeTransition
+        ), // FadeTransition
+      ), // Semantics
     ); // Positioned
   }
 

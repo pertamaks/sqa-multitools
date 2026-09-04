@@ -51,7 +51,7 @@ The **SqaCoachmark** system delivers an interactive, visual walkthrough experien
 
 On Flutter Windows Desktop, after long asynchronous operations (e.g. multi-step tab transitions or delayed scroll animations), the Windows Desktop Window Manager (DWM) compositor may enter an idle state. Under this state, overlay repaints queued via `setState()` may fail to present visually until an external OS event (such as window unfocus/Alt-Tab) triggers `WM_PAINT`.
 
-To guarantee immediate rendering without manual user interaction, `sqa_coachmark.dart` uses Win32 FFI calls to force synchronous window repaints:
+To guarantee immediate rendering without manual user interaction, `sqa_coachmark.dart` uses Win32 FFI calls to force synchronous window repaints. This is strictly guarded by checking if the app is actively focused to prevent inadvertently repainting a background application:
 
 ```dart
 typedef _GetForegroundWindowC = IntPtr Function();
@@ -61,9 +61,13 @@ typedef _InvalidateRect = int Function(int hwnd, Pointer<Void> lpRect, int bEras
 typedef _UpdateWindowC = Int32 Function(IntPtr hwnd);
 typedef _UpdateWindow = int Function(int hwnd);
 
-void _forceWindowsRepaint() {
+Future<void> _forceWindowsRepaint() async {
   if (!Platform.isWindows) return;
   try {
+    // Prevent inadvertently forcing a repaint on another application
+    final isFocused = await windowManager.isFocused();
+    if (!isFocused) return;
+
     final user32 = DynamicLibrary.open('user32.dll');
     final getForegroundWindow =
         user32.lookupFunction<_GetForegroundWindowC, _GetForegroundWindow>('GetForegroundWindow');
@@ -71,6 +75,7 @@ void _forceWindowsRepaint() {
         user32.lookupFunction<_InvalidateRectC, _InvalidateRect>('InvalidateRect');
     final updateWindow =
         user32.lookupFunction<_UpdateWindowC, _UpdateWindow>('UpdateWindow');
+        
     final hwnd = getForegroundWindow();
     if (hwnd != 0) {
       invalidateRect(hwnd, nullptr, 0); // Invalidate client area
@@ -85,8 +90,8 @@ void _forceWindowsRepaint() {
 To handle dynamic UI elements (such as scrollable cards or tab views that mount during `beforeStepAction`), `_SqaCoachmarkOverlayState` executes a robust frame confirmation and retry lifecycle:
 
 1. **Awaits `beforeStepAction` completion.**
-2. **Executes a multi-frame retry loop (up to 10 frames / ~160ms)** calling `scheduleFrame()` and `addPostFrameCallback` on each iteration until `_getTargetRect(step.targetKey)` returns a valid non-null `Rect`.
-3. **Applies Zero-Size Center Fallback**: If the target key is unmounted or offscreen after 10 retries, `_targetRect` falls back to `Rect.fromCenter(center: Offset(width / 2, height / 3), width: 0, height: 0)`.
+2. **Executes a time-based retry loop (up to 1000ms)** calling `scheduleFrame()` and `addPostFrameCallback` on each iteration until `_getTargetRect(step.targetKey)` returns a valid non-null `Rect`.
+3. **Applies Zero-Size Center Fallback**: If the target key is unmounted or offscreen after the timeout, `_targetRect` falls back to `Rect.fromCenter(center: Offset(width / 2, height / 3), width: 0, height: 0)`.
    - `_SpotlightPainter` recognizes `width == 0 && height == 0` and paints a full dark scrim without a floating highlight box.
    - `_CoachmarkCard` recognizes `width == 0 && height == 0` and positions the tooltip card cleanly in the center of the viewport.
    - **User impact**: The tour card is *always* visible with step details and action buttons (`Next`, `Back`, `Done`), guaranteeing the app never locks into an unclickable dimmed state.

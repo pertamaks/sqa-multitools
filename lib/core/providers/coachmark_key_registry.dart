@@ -28,12 +28,12 @@ part 'coachmark_key_registry.g.dart';
 @Riverpod(keepAlive: true)
 class CoachmarkKeyRegistry extends _$CoachmarkKeyRegistry {
   @override
-  Map<String, GlobalKey> build() => {};
+  Map<String, WeakReference<GlobalKey>> build() => {};
 
   /// Registers a [key] under a [name]. Overwrites any previous key with the
   /// same name so plugin rebuilds stay current.
   void register(String name, GlobalKey key) {
-    state = {...state, name: key};
+    state = {...state, name: WeakReference(key)};
   }
 
   /// Removes a key from the registry (call from plugin dispose if needed).
@@ -42,5 +42,5 @@ class CoachmarkKeyRegistry extends _$CoachmarkKeyRegistry {
   }
 
   /// Returns the key for [name], or null if not yet registered.
-  GlobalKey? get(String name) => state[name];
+  GlobalKey? get(String name) => state[name]?.target;
 }

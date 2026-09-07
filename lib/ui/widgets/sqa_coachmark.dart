@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi' hide Size;
 import 'dart:io' show Platform;
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -268,7 +269,10 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     );
 
     // Commit the rect so the card enters the widget tree.
-    setState(() => _targetRect = effectiveRect);
+    setState(() {
+      _targetRect = effectiveRect;
+      _isTransitioning = false;
+    });
 
     // On Flutter Windows the compositor goes idle after long async chains and
     // won't present the new frame until WM_PAINT arrives (the same trigger
@@ -286,8 +290,6 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     if (mounted) {
       await _fadeController.forward();
     }
-
-    _isTransitioning = false;
   }
 
   Rect? _getTargetRect(GlobalKey key) {
@@ -342,10 +344,8 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
           ),
         ),
 
-
-
         // Tooltip card
-        if (_targetRect != null)
+        if (_targetRect != null && !_isTransitioning)
           _CoachmarkCard(
             step: step,
             targetRect: _targetRect!,

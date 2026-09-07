@@ -61,6 +61,9 @@ class SwaggerExplorerPlugin implements SqaPlugin {
         description:
             'Paste a URL to an openapi.json file (or load a local file) to natively render and explore any OpenAPI specification without leaving the app.',
         contentAlign: CoachmarkContentAlign.bottom,
+        beforeStepAction: (ref) async {
+          ref.read(swaggerProvider.notifier).setViewMode(SwaggerViewMode.list);
+        },
       ),
       SqaCoachmarkStep(
         targetKey: SwaggerDetailView.swaggerEndpointsKey,

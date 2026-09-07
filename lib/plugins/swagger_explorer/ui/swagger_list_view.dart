@@ -12,6 +12,7 @@ import '../../../../ui/widgets/sqa_history_list.dart';
 import '../../../../ui/widgets/sqa_popup_menu.dart';
 import '../../../../ui/widgets/sqa_styles.dart';
 import 'package:file_selector/file_selector.dart';
+import '../../../../core/providers/coachmark_provider.dart';
 import '../providers/swagger_provider.dart';
 import '../models/swagger_state.dart';
 
@@ -50,6 +51,11 @@ class _SwaggerListViewState extends ConsumerState<SwaggerListView> {
       description:
           'Discover API endpoints natively and send them to the cURL Requester.',
       icon: Symbols.data_object,
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.swagger_explorer');
+      },
       child: SqaPluginScrollableContent(
         center: false,
         padding: const EdgeInsets.symmetric(

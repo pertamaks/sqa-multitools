@@ -50,13 +50,31 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
         description:
             'Each workspace is an isolated project with its own dictionary. Create separate workspaces for different clients or products to keep substitutions clean.',
         contentAlign: CoachmarkContentAlign.bottom,
+        spotlightPadding: const EdgeInsets.fromLTRB(4, 0, 4, 3),
+        beforeStepAction: (ref) async {
+          final state = ref.read(obfuscatorProvider);
+          if (state.viewMode != ObfuscatorViewMode.list) {
+            ref.read(obfuscatorProvider.notifier).setViewMode(ObfuscatorViewMode.list);
+            while (ref.read(obfuscatorProvider).isLoading) {
+              await Future<void>.delayed(const Duration(milliseconds: 50));
+            }
+          }
+          final context = ObfuscatorListView.tabBarKey.currentContext;
+          if (context != null) {
+            final tabController = DefaultTabController.maybeOf(context);
+            if (tabController != null && tabController.index != 0) {
+              tabController.animateTo(0);
+              await Future<void>.delayed(const Duration(milliseconds: 300));
+            }
+          }
+        },
       ),
       SqaCoachmarkStep(
         targetKey: ObfuscatorDocumentView.editorKey,
         title: 'Paste Your Requirements Here',
         description:
             'Paste your spec or bug report, then toggle the Obfuscate switch. The scanner automatically finds sensitive terms and replaces them with realistic-looking alternatives.',
-        contentAlign: CoachmarkContentAlign.right,
+        contentAlign: CoachmarkContentAlign.top,
         beforeStepAction: (ref) async {
           final notifier = ref.read(obfuscatorProvider.notifier);
           final dummy = ImportedDocument(
@@ -73,17 +91,30 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
         title: 'Review & Manage Substitutions',
         description:
             'Every detected term appears here with its replacement. You can enable, disable, or delete individual entries — or highlight any word in the document to add it manually.',
-        contentAlign: CoachmarkContentAlign.left,
+        contentAlign: CoachmarkContentAlign.top,
         beforeStepAction: (ref) async {
-          final notifier = ref.read(obfuscatorProvider.notifier);
-          notifier.setViewMode(ObfuscatorViewMode.list);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final context = ObfuscatorListView.workspaceSelectorKey.currentContext;
-            if (context != null) {
-              final tabController = DefaultTabController.maybeOf(context);
-              tabController?.animateTo(2); // Index 2 is Dictionary
+          final state = ref.read(obfuscatorProvider);
+          if (state.viewMode != ObfuscatorViewMode.list) {
+            ref.read(obfuscatorProvider.notifier).setViewMode(ObfuscatorViewMode.list);
+            while (ref.read(obfuscatorProvider).isLoading) {
+              await Future<void>.delayed(const Duration(milliseconds: 50));
             }
-          });
+          }
+          if (ref.read(obfuscatorProvider).dictionary.isEmpty &&
+              ref.read(obfuscatorProvider).activeWorkspace != null) {
+            await ref.read(obfuscatorProvider.notifier).addDictionaryEntry(
+              original: 'Acme Corp',
+              replacement: 'Company XYZ',
+            );
+          }
+          final context = ObfuscatorListView.tabBarKey.currentContext;
+          if (context != null) {
+            final tabController = DefaultTabController.maybeOf(context);
+            if (tabController != null && tabController.index != 2) {
+              tabController.animateTo(2); // Index 2 is Dictionary
+              await Future<void>.delayed(const Duration(milliseconds: 300));
+            }
+          }
         },
       ),
     ];

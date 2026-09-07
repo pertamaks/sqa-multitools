@@ -37,6 +37,10 @@ class SqaCoachmarkStep {
   /// Where the tooltip card is positioned relative to the target widget.
   final CoachmarkContentAlign contentAlign;
 
+  /// Custom padding/inset around the target spotlight hole.
+  /// If omitted, defaults to 8.0 on all sides.
+  final EdgeInsets? spotlightPadding;
+
   /// An optional async action run *before* the spotlight renders.
   ///
   /// Typical uses:
@@ -53,6 +57,7 @@ class SqaCoachmarkStep {
     required this.title,
     required this.description,
     this.contentAlign = CoachmarkContentAlign.bottom,
+    this.spotlightPadding,
     this.beforeStepAction,
   });
 }

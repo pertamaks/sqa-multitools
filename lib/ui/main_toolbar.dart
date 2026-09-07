@@ -48,6 +48,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   final _closeButtonKey = GlobalKey(debugLabel: 'toolbar.close');
   SqaCoachmarkController? _toolbarCoachmark;
   SqaCoachmarkController? _pluginCoachmark;
+  bool _isCoachmarkLoading = false;
+
+  void _setCoachmarkLoading(bool value) {
+    if (mounted) setState(() => _isCoachmarkLoading = value);
+  }
 
   @override
   void initState() {
@@ -85,9 +90,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final settingsPlugin = ref.read(settingsPluginProvider);
     ref.read(navigationServiceProvider).togglePlugin(settingsPlugin, forceOpen: true);
 
-    // Wait for the window animation to complete before showing the overlay
+    // Show loading dots while waiting for the window animation to complete
+    _setCoachmarkLoading(true);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (!mounted) return;
+      _setCoachmarkLoading(false);
       _toolbarCoachmark = SqaCoachmarkController(
         steps: _buildToolbarSteps(),
         onFinish: () {
@@ -193,9 +200,11 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
       },
     );
 
-    // Wait a brief moment for the window to expand before showing the coachmark
+    // Show loading dots while waiting for the window to expand
+    _setCoachmarkLoading(true);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
+        _setCoachmarkLoading(false);
         _pluginCoachmark!.show(context);
       }
     });
@@ -657,6 +666,34 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 if (isRecorderVisible)
                   const Positioned.fill(
                     child: ExcludeSemantics(child: ScreenRecorderOverlay()),
+                  ),
+                if (_isCoachmarkLoading)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedOpacity(
+                        opacity: _isCoachmarkLoading ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Container(
+                          color: colorScheme.surfaceContainerLow.withValues(alpha: 0.8),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const CircularProgressIndicator(),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Preparing coachmark...',
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 if (isStitching)
                   Positioned.fill(

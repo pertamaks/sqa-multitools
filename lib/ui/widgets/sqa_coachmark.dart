@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi' hide Size;
 import 'dart:io' show Platform;
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -268,7 +269,10 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     );
 
     // Commit the rect so the card enters the widget tree.
-    setState(() => _targetRect = effectiveRect);
+    setState(() {
+      _targetRect = effectiveRect;
+      _isTransitioning = false;
+    });
 
     // On Flutter Windows the compositor goes idle after long async chains and
     // won't present the new frame until WM_PAINT arrives (the same trigger
@@ -286,8 +290,6 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
     if (mounted) {
       await _fadeController.forward();
     }
-
-    _isTransitioning = false;
   }
 
   Rect? _getTargetRect(GlobalKey key) {
@@ -333,7 +335,8 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
             painter: _SpotlightPainter(
               targetRect: _targetRect,
               scrimColor: Colors.black.withValues(alpha: 0.75),
-              spotlightPadding: SqaTokens.spacingMedium,
+              spotlightPadding: step.spotlightPadding ??
+                  const EdgeInsets.all(SqaTokens.spacingMedium),
               borderRadius: SqaTokens.radiusMedium,
               borderWidth: SqaTokens.borderWidthThick,
               borderColor: colorScheme.primary,
@@ -341,10 +344,8 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
           ),
         ),
 
-
-
         // Tooltip card
-        if (_targetRect != null)
+        if (_targetRect != null && !_isTransitioning)
           _CoachmarkCard(
             step: step,
             targetRect: _targetRect!,
@@ -367,7 +368,7 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
 class _SpotlightPainter extends CustomPainter {
   final Rect? targetRect;
   final Color scrimColor;
-  final double spotlightPadding;
+  final EdgeInsets spotlightPadding;
   final double borderRadius;
   final double borderWidth;
   final Color borderColor;
@@ -391,7 +392,12 @@ class _SpotlightPainter extends CustomPainter {
       return;
     }
 
-    final paddedRect = targetRect!.inflate(spotlightPadding);
+    final paddedRect = Rect.fromLTRB(
+      targetRect!.left - spotlightPadding.left,
+      targetRect!.top - spotlightPadding.top,
+      targetRect!.right + spotlightPadding.right,
+      targetRect!.bottom + spotlightPadding.bottom,
+    );
     final spotlightRRect = RRect.fromRectAndRadius(
       paddedRect,
       Radius.circular(borderRadius),
@@ -649,12 +655,20 @@ class _CoachmarkCard extends StatelessWidget {
 
       case CoachmarkContentAlign.left:
         top = _clampVertical(targetRect.center.dy, screenSize.height);
-        right = screenSize.width - targetRect.left + padding;
+        final preferredRight = screenSize.width - targetRect.left + padding;
+        right = preferredRight.clamp(
+          _cardMargin,
+          screenSize.width - _cardWidth - _cardMargin,
+        );
         break;
 
       case CoachmarkContentAlign.right:
         top = _clampVertical(targetRect.center.dy, screenSize.height);
-        left = targetRect.right + padding;
+        final preferredLeft = targetRect.right + padding;
+        left = preferredLeft.clamp(
+          _cardMargin,
+          screenSize.width - _cardWidth - _cardMargin,
+        );
         break;
     }
 

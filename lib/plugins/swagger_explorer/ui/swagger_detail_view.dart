@@ -8,6 +8,7 @@ import '../../../../ui/widgets/sqa_button.dart';
 import '../../../../ui/widgets/sqa_plugin_scrollable_content.dart';
 import '../../curl_requester/providers/curl_requester_provider.dart';
 import '../../../../core/providers/plugin_provider.dart';
+import '../../../../core/providers/coachmark_provider.dart';
 import '../providers/swagger_provider.dart';
 import '../models/swagger_state.dart';
 import '../providers/swagger_curl_service.dart';
@@ -286,6 +287,11 @@ class SwaggerDetailView extends ConsumerWidget {
       title: schema.title,
       onBack: () {
         ref.read(swaggerProvider.notifier).setViewMode(SwaggerViewMode.list);
+      },
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.swagger_explorer');
       },
       trailing: schema.securitySchemes.isNotEmpty
           ? SqaButton(

@@ -27,6 +27,7 @@ import '../../text_editor/ui/widgets/html_node_loader_parser.dart';
 import '../../text_editor/ui/widgets/image_node_encoder_parser.dart';
 
 import '../providers/obfuscator_provider.dart';
+import '../../../core/providers/coachmark_provider.dart';
 import '../models/obfuscator_state.dart';
 import '../models/dictionary_entry.dart';
 import '../models/obfuscator_workspace.dart';
@@ -342,6 +343,11 @@ class _ObfuscatorDocumentViewState
     return SqaPluginLayout(
       title: state.activeDocument?.fileName ?? 'Document',
       onBack: () => notifier.setViewMode(ObfuscatorViewMode.list),
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.requirement_obfuscator');
+      },
       child: Stack(
         children: [
           Positioned.fill(

@@ -38,6 +38,9 @@ class IsScreenshotProcessing extends _$IsScreenshotProcessing {
 @riverpod
 class ScreenshotNotifier extends _$ScreenshotNotifier {
   StreamSubscription<FileSystemEvent>? _watchSubscription;
+  /// True when the window was hidden (in tray) at the moment the overlay was
+  /// launched via hotkey. We restore this state when the overlay closes.
+  bool _wasHiddenBeforeOverlay = false;
 
   @override
   ScreenshotState build() {
@@ -220,7 +223,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     // Spawn spanning window without frozen background
     final coordinator = ref.read(windowTransitionProvider);
-    await WindowUtils.safeShow();
+    if (!_wasHiddenBeforeOverlay) {
+      _wasHiddenBeforeOverlay = !(await windowManager.isVisible());
+    }
+    // Show the window: if it was hidden, keep opacity 0 so it appears invisibly.
+    if (_wasHiddenBeforeOverlay) {
+      await windowManager.setOpacity(0.0);
+      await windowManager.show();
+    } else {
+      await WindowUtils.safeShow();
+    }
     await windowManager.setOpacity(0.01);
     await coordinator.waitForSync(resize: false, move: false);
 
@@ -274,7 +286,16 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     );
 
     final coordinator = ref.read(windowTransitionProvider);
-    await WindowUtils.safeShow();
+    if (!_wasHiddenBeforeOverlay) {
+      _wasHiddenBeforeOverlay = !(await windowManager.isVisible());
+    }
+    // Show the window: if it was hidden, keep opacity 0 so it appears invisibly.
+    if (_wasHiddenBeforeOverlay) {
+      await windowManager.setOpacity(0.0);
+      await windowManager.show();
+    } else {
+      await WindowUtils.safeShow();
+    }
     await windowManager.setOpacity(0.0);
     await coordinator.waitForSync(resize: false, move: false);
     if (!Platform.isLinux) await windowManager.setAsFrameless();
@@ -354,8 +375,17 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     );
 
     final coordinator = ref.read(windowTransitionProvider);
-    // 0. Ensure window is active and visible (even if from tray)
-    await WindowUtils.safeShow();
+    // 0. Remember if the window was hidden so we can restore that state later.
+    if (!_wasHiddenBeforeOverlay) {
+      _wasHiddenBeforeOverlay = !(await windowManager.isVisible());
+    }
+    // Show the window: if it was hidden, keep opacity 0 so it appears invisibly.
+    if (_wasHiddenBeforeOverlay) {
+      await windowManager.setOpacity(0.0);
+      await windowManager.show();
+    } else {
+      await WindowUtils.safeShow();
+    }
 
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
@@ -484,17 +514,22 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       _safeSetIgnoreMouseEvents(false),
     ]);
 
-    await windowManager.setOpacity(1.0);
-
-    // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
-    // when returning from frameless mode on Windows.
-    final s = await windowManager.getSize();
-    await windowManager.setSize(Size(s.width + 1, s.height));
-    await coordinator.waitForSync(resize: true, move: false, frame: false);
-    await windowManager.setSize(s);
-    await coordinator.waitForSync(resize: true, move: false, frame: true);
-
-    await windowManager.focus();
+    // If window was hidden before overlay, hide again without ever revealing.
+    // Otherwise do the normal DWM hack + reveal + focus sequence.
+    if (_wasHiddenBeforeOverlay) {
+      _wasHiddenBeforeOverlay = false;
+      await WindowUtils.safeHide();
+    } else {
+      await windowManager.setOpacity(1.0);
+      // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
+      // when returning from frameless mode on Windows.
+      final s = await windowManager.getSize();
+      await windowManager.setSize(Size(s.width + 1, s.height));
+      await coordinator.waitForSync(resize: true, move: false, frame: false);
+      await windowManager.setSize(s);
+      await coordinator.waitForSync(resize: true, move: false, frame: true);
+      await windowManager.focus();
+    }
   }
 
   Future<void> _restoreWindowInternal() async {
@@ -772,16 +807,22 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         _safeSetIgnoreMouseEvents(false),
       ]);
 
-      await windowManager.setOpacity(1.0);
-      await windowManager.focus();
-
-      // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
-      // when returning from frameless mode on Windows.
-      final s = await windowManager.getSize();
-      await windowManager.setSize(Size(s.width + 1, s.height));
-      await coordinator.waitForSync(resize: true, move: false, frame: false);
-      await windowManager.setSize(s);
-      await coordinator.waitForSync(resize: true, move: false, frame: true);
+      // If window was hidden before overlay, hide again without ever revealing.
+      // Otherwise do the normal DWM hack + reveal + focus sequence.
+      if (_wasHiddenBeforeOverlay) {
+        _wasHiddenBeforeOverlay = false;
+        await WindowUtils.safeHide();
+      } else {
+        await windowManager.setOpacity(1.0);
+        // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
+        // when returning from frameless mode on Windows.
+        final s = await windowManager.getSize();
+        await windowManager.setSize(Size(s.width + 1, s.height));
+        await coordinator.waitForSync(resize: true, move: false, frame: false);
+        await windowManager.setSize(s);
+        await coordinator.waitForSync(resize: true, move: false, frame: true);
+        await windowManager.focus();
+      }
 
       refreshRecentCaptures();
     }

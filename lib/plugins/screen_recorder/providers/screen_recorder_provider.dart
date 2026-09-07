@@ -341,10 +341,15 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     final coordinator = ref.read(windowTransitionProvider);
 
-    // 0. Remember if the window was hidden so we can restore that state later,
-    //    then ensure it is visible for the overlay (needed to expand to full screen).
+    // 0. Remember if the window was hidden so we can restore that state later.
+    //    Show the window: if it was hidden, keep opacity 0 so it appears invisibly.
     _wasHiddenBeforeOverlay = !(await windowManager.isVisible());
-    await WindowUtils.safeShow();
+    if (_wasHiddenBeforeOverlay) {
+      await windowManager.setOpacity(0.0);
+      await windowManager.show();
+    } else {
+      await WindowUtils.safeShow();
+    }
 
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
@@ -761,16 +766,18 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       setIgnoreMouseEvents(false),
     ]);
 
-    await windowManager.setOpacity(1.0);
-    // If the window was hidden (in tray) before the overlay launched, send it
-    // back to the tray instead of popping it up in the user's face.
+    // If window was hidden before overlay, hide again without ever revealing it.
+    // Otherwise reveal at full opacity and focus normally.
     if (_wasHiddenBeforeOverlay) {
       _wasHiddenBeforeOverlay = false;
       await WindowUtils.safeHide();
     } else {
+      await windowManager.setOpacity(1.0);
       await windowManager.focus();
     }
   }
+
+
 
 
   Future<void> _restoreWindowInternal() async {

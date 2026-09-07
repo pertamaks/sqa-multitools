@@ -35,6 +35,7 @@ The **SqaCoachmark** system delivers an interactive, visual walkthrough experien
    - `title`: Short title string for the step.
    - `description`: Detailed copywriting explaining the feature.
    - `contentAlign`: Position of the tooltip card relative to the target (`top`, `bottom`, `left`, `right`).
+   - `spotlightPadding`: Optional `EdgeInsets` defining custom directional padding around the cutout. Defaults to `EdgeInsets.all(8.0)`. Allows fine-tuning cutout bounding boxes (e.g. eliminating top encroachment on adjacent header titles) without altering plugin UI layouts.
    - `beforeStepAction`: Optional `Future<void> Function(WidgetRef ref)` executed **before** spotlight calculation. Used to programmatically drive state (tab switches, view mode changes, item scrolling).
 
 2. **`CoachmarkKeyRegistry`** (`lib/core/providers/coachmark_key_registry.dart`)
@@ -103,6 +104,23 @@ To handle dynamic UI elements (such as scrollable cards or tab views that mount 
 ### Scroll Ancestor Alignment
 
 For targets nested inside scrollable viewports (such as buttons inside cards inside `ListView.builder`), calling `Scrollable.ensureVisible()` directly on child keys surrounded by transform/stack containers can resolve to incorrect inner scroll ancestors. In complex plugins (e.g., `SecurityPayloads`), `beforeStepAction` targets the top-level list card context (`firstCardKey`) to ensure proper scroll alignment.
+
+### Directional Spotlight Sizing & Inset Customization (`EdgeInsets spotlightPadding`)
+
+By default, `_SpotlightPainter` applies an 8px uniform padding (`SqaTokens.spacingMedium`) around the target's bounding box. For compact widgets placed directly adjacent to titles, dividers, or headers (e.g., the workspace selector in Document Obfuscator), uniform expansion may cause the cutout to overlap neighboring text.
+
+`SqaCoachmarkStep` supports an optional `spotlightPadding: EdgeInsets` override. `_SpotlightPainter` calculates the cutout as:
+
+```dart
+final paddedRect = Rect.fromLTRB(
+  targetRect.left - spotlightPadding.left,
+  targetRect.top - spotlightPadding.top,
+  targetRect.right + spotlightPadding.right,
+  targetRect.bottom + spotlightPadding.bottom,
+);
+```
+
+This allows tour steps to configure slim, asymmetrical cutouts (such as `EdgeInsets.fromLTRB(4, 0, 4, 3)`) entirely within the coachmark configuration without requiring artificial layout adjustments or compromising plugin UI layouts.
 
 ---
 

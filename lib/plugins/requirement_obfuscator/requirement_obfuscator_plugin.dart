@@ -50,6 +50,7 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
         description:
             'Each workspace is an isolated project with its own dictionary. Create separate workspaces for different clients or products to keep substitutions clean.',
         contentAlign: CoachmarkContentAlign.bottom,
+        spotlightPadding: const EdgeInsets.fromLTRB(4, 0, 4, 3),
         beforeStepAction: (ref) async {
           final notifier = ref.read(obfuscatorProvider.notifier);
           notifier.setViewMode(ObfuscatorViewMode.list);

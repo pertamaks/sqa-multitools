@@ -131,6 +131,7 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
             ),
             Row(
               key: ObfuscatorListView.workspaceSelectorKey,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Workspace: ',

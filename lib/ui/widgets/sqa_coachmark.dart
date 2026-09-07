@@ -333,7 +333,8 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
             painter: _SpotlightPainter(
               targetRect: _targetRect,
               scrimColor: Colors.black.withValues(alpha: 0.75),
-              spotlightPadding: SqaTokens.spacingMedium,
+              spotlightPadding: step.spotlightPadding ??
+                  const EdgeInsets.all(SqaTokens.spacingMedium),
               borderRadius: SqaTokens.radiusMedium,
               borderWidth: SqaTokens.borderWidthThick,
               borderColor: colorScheme.primary,
@@ -367,7 +368,7 @@ class _SqaCoachmarkOverlayState extends ConsumerState<_SqaCoachmarkOverlay>
 class _SpotlightPainter extends CustomPainter {
   final Rect? targetRect;
   final Color scrimColor;
-  final double spotlightPadding;
+  final EdgeInsets spotlightPadding;
   final double borderRadius;
   final double borderWidth;
   final Color borderColor;
@@ -391,7 +392,12 @@ class _SpotlightPainter extends CustomPainter {
       return;
     }
 
-    final paddedRect = targetRect!.inflate(spotlightPadding);
+    final paddedRect = Rect.fromLTRB(
+      targetRect!.left - spotlightPadding.left,
+      targetRect!.top - spotlightPadding.top,
+      targetRect!.right + spotlightPadding.right,
+      targetRect!.bottom + spotlightPadding.bottom,
+    );
     final spotlightRRect = RRect.fromRectAndRadius(
       paddedRect,
       Radius.circular(borderRadius),

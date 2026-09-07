@@ -47,6 +47,7 @@ class SqaField extends StatefulWidget {
     this.highlightVariables = false,
     this.getKnownVariables,
     this.extraFloatingButtonBuilder,
+    this.copyButtonKey,
   });
 
   final String label;
@@ -87,6 +88,7 @@ class SqaField extends StatefulWidget {
   final Set<String> Function()? getKnownVariables;
   final Widget Function(TextEditingController controller)?
   extraFloatingButtonBuilder;
+  final Key? copyButtonKey;
 
   @override
   State<SqaField> createState() => _SqaFieldState();
@@ -449,6 +451,7 @@ class _SqaFieldState extends State<SqaField> {
                               ),
                             if (widget.showCopyButton)
                               SqaHoverIconButton(
+                                key: widget.copyButtonKey,
                                 icon: Symbols.content_copy,
                                 onPressed: () {
                                   Clipboard.setData(

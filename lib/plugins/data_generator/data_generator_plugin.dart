@@ -26,6 +26,8 @@ import 'models/glyphs_state.dart';
 import 'models/dev_state.dart';
 import 'package:flutter/services.dart';
 import '../../core/utils/locale_names.dart';
+import '../../core/models/sqa_coachmark_step.dart';
+import '../../core/providers/coachmark_provider.dart';
 
 class DataGeneratorPlugin implements SqaPlugin {
   @override
@@ -55,10 +57,41 @@ class DataGeneratorPlugin implements SqaPlugin {
   Future<void> initialize() async {}
   @override
   Future<void> dispose() async {}
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps {
+    return [
+      SqaCoachmarkStep(
+        targetKey: _DataGeneratorView.tabBarKey,
+        title: 'All Your Test Data, Organized',
+        description:
+            'Generate names, emails, lorem text, special characters, UUIDs, JSON, and dates — all from these four categories.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: _DataGeneratorView.generateButtonKey,
+        title: 'One Click to Generate',
+        description:
+            'Press this to instantly generate a fresh batch. Hit it again for a new result — each click is completely randomized.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: _DataGeneratorView.settingsButtonKey,
+        title: 'Change Language & Volume',
+        description:
+            'Tap the gear to switch locale (55 languages supported!) or adjust how many items to generate at once.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+    ];
+  }
 }
 
 class _DataGeneratorView extends ConsumerStatefulWidget {
   const _DataGeneratorView();
+
+  static final tabBarKey = GlobalKey(debugLabel: 'data.tab_bar');
+  static final generateButtonKey = GlobalKey(debugLabel: 'data.generate_btn');
+  static final settingsButtonKey = GlobalKey(debugLabel: 'data.settings_btn');
 
   @override
   ConsumerState<_DataGeneratorView> createState() => _DataGeneratorViewState();
@@ -228,10 +261,17 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView>
       icon: Symbols.wand_stars,
       title: 'Data Generator',
       description: 'Generate mock UUIDs, emails, numbers, and more.',
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.data_generator');
+      },
+      tabBarKey: _DataGeneratorView.tabBarKey,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           SqaHoverIconButton(
+            key: _DataGeneratorView.settingsButtonKey,
             icon: Symbols.tune,
             onPressed: () {
               ref
@@ -247,6 +287,7 @@ class _DataGeneratorViewState extends ConsumerState<_DataGeneratorView>
           ),
           const SizedBox(width: SqaTokens.spacingSmall),
           SqaButton.primary(
+            key: _DataGeneratorView.generateButtonKey,
             icon: Symbols.wand_stars,
             label: '',
             onPressed: _handleGenerate,

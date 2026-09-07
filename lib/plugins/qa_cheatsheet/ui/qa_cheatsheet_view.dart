@@ -8,9 +8,17 @@ import '../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../models/cheatsheet_models.dart';
 import '../providers/cheatsheet_provider.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../core/providers/coachmark_provider.dart';
 
 class QaCheatsheetView extends ConsumerStatefulWidget {
   const QaCheatsheetView({super.key});
+
+  static final categoryTabsKey = GlobalKey(
+    debugLabel: 'qa_cheatsheet.category_tabs',
+  );
+  static final sectionSwitcherKey = GlobalKey(
+    debugLabel: 'qa_cheatsheet.section_switcher',
+  );
 
   @override
   ConsumerState<QaCheatsheetView> createState() => _QaCheatsheetViewState();
@@ -81,6 +89,11 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
               .read<CheatsheetSearch>(cheatsheetSearchProvider.notifier)
               .setQuery(val),
           searchHint: 'Search cheatsheet...',
+          onShowCoachmark: () {
+            ref.read(coachmarkServiceProvider.notifier)
+               .requestPluginTour('com.sqa.plugin.qa_cheatsheet');
+          },
+          tabBarKey: QaCheatsheetView.categoryTabsKey,
           tabs: filteredCategories
               .map(
                 (c) => Tab(
@@ -147,6 +160,7 @@ class _QaCheatsheetViewState extends ConsumerState<QaCheatsheetView> {
               top: SqaTokens.spacingMedium,
             ),
             child: SqaSegmentedButton<String>(
+              key: QaCheatsheetView.sectionSwitcherKey,
               segments: filteredSections.map((s) {
                 return ButtonSegment<String>(
                   value: s.id,

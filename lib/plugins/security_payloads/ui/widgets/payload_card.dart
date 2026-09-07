@@ -8,8 +8,15 @@ import '../../../../ui/widgets/sqa_design_tokens.dart';
 
 class PayloadCard extends StatefulWidget {
   final SecurityPayload payload;
+  final Key? cardKey;
+  final Key? copyButtonKey;
 
-  const PayloadCard({super.key, required this.payload});
+  const PayloadCard({
+    super.key,
+    required this.payload,
+    this.cardKey,
+    this.copyButtonKey,
+  });
 
   @override
   State<PayloadCard> createState() => _PayloadCardState();
@@ -25,6 +32,7 @@ class _PayloadCardState extends State<PayloadCard> {
     final p = widget.payload;
 
     return SqaCard(
+      key: widget.cardKey,
       margin: const EdgeInsets.only(bottom: SqaTokens.spacingMedium),
       padding: const EdgeInsets.all(SqaTokens.spacingLarge),
       child: Column(
@@ -80,6 +88,7 @@ class _PayloadCardState extends State<PayloadCard> {
           ),
           const SizedBox(height: SqaTokens.spacingMedium),
           SqaField(
+            key: widget.copyButtonKey,
             label: 'PAYLOAD',
             initialValue: p.payload,
             readOnly: true,

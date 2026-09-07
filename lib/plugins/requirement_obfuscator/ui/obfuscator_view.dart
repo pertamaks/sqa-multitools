@@ -27,6 +27,7 @@ import '../../text_editor/ui/widgets/html_node_loader_parser.dart';
 import '../../text_editor/ui/widgets/image_node_encoder_parser.dart';
 
 import '../providers/obfuscator_provider.dart';
+import '../../../core/providers/coachmark_provider.dart';
 import '../models/obfuscator_state.dart';
 import '../models/dictionary_entry.dart';
 import '../models/obfuscator_workspace.dart';
@@ -38,6 +39,8 @@ import '../engine/alias_generator.dart';
 /// adapted for read-only document display with future obfuscation highlighting.
 class ObfuscatorDocumentView extends ConsumerStatefulWidget {
   const ObfuscatorDocumentView({super.key});
+
+  static final editorKey = GlobalKey(debugLabel: 'obfuscator.editor');
 
   @override
   ConsumerState<ObfuscatorDocumentView> createState() =>
@@ -340,6 +343,11 @@ class _ObfuscatorDocumentViewState
     return SqaPluginLayout(
       title: state.activeDocument?.fileName ?? 'Document',
       onBack: () => notifier.setViewMode(ObfuscatorViewMode.list),
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.requirement_obfuscator');
+      },
       child: Stack(
         children: [
           Positioned.fill(
@@ -394,9 +402,11 @@ class _ObfuscatorDocumentViewState
                     // and prevent standard write transactions on a read-only document.
                     return KeyEventResult.handled;
                   },
-                  child: AppFlowyEditor(
-                    key: ValueKey(_editorState.hashCode),
-                    editorState: _editorState!,
+                  child: Container(
+                    key: ObfuscatorDocumentView.editorKey,
+                    child: AppFlowyEditor(
+                      key: ValueKey(_editorState.hashCode),
+                      editorState: _editorState!,
                     editable: false,
                     autoFocus: false,
                     blockComponentBuilders: _cachedBuilders ??=
@@ -453,6 +463,7 @@ class _ObfuscatorDocumentViewState
                         ),
                       ),
                     ),
+                  ),
                   ),
                 ),
               ),

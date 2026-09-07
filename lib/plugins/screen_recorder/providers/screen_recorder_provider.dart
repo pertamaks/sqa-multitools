@@ -37,6 +37,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   String? _currentSavePath;
   DBusClient? _waylandDbusClient;
   StreamSubscription<FileSystemEvent>? _watchSubscription;
+  /// True when the window was hidden (in tray) at the moment the overlay was
+  /// launched via hotkey. We restore this state when the overlay closes.
+  bool _wasHiddenBeforeOverlay = false;
 
   @override
   ScreenRecorderState build() {
@@ -338,8 +341,15 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     final coordinator = ref.read(windowTransitionProvider);
 
-    // 0. Ensure window is active and visible (even if from tray)
-    await WindowUtils.safeShow();
+    // 0. Remember if the window was hidden so we can restore that state later.
+    //    Show the window: if it was hidden, keep opacity 0 so it appears invisibly.
+    _wasHiddenBeforeOverlay = !(await windowManager.isVisible());
+    if (_wasHiddenBeforeOverlay) {
+      await windowManager.setOpacity(0.0);
+      await windowManager.show();
+    } else {
+      await WindowUtils.safeShow();
+    }
 
     // 1. Ghost the window instantly and wait for OS commitment
     await windowManager.setOpacity(0.0);
@@ -756,9 +766,19 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       setIgnoreMouseEvents(false),
     ]);
 
-    await windowManager.setOpacity(1.0);
-    await windowManager.focus();
+    // If window was hidden before overlay, hide again without ever revealing it.
+    // Otherwise reveal at full opacity and focus normally.
+    if (_wasHiddenBeforeOverlay) {
+      _wasHiddenBeforeOverlay = false;
+      await WindowUtils.safeHide();
+    } else {
+      await windowManager.setOpacity(1.0);
+      await windowManager.focus();
+    }
   }
+
+
+
 
   Future<void> _restoreWindowInternal() async {
     final size = state.previousWindowSize ?? const Size(450, 500);
@@ -936,7 +956,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // 1. Identify Target Display
     Display? targetDisplay = providedDisplay;
     if (targetDisplay == null) {
-      final windowPos = WindowUtils.getAppWindowPosition();
+      final windowPos = await windowManager.getPosition();
       final center = targetRect.center.translate(windowPos.dx, windowPos.dy);
 
       for (final d in displays) {
@@ -971,7 +991,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     // 3. Coordinate Remapping
     // We must shift local coordinates to stay spatially consistent after the window moves.
-    final windowPos = WindowUtils.getAppWindowPosition();
+    final windowPos = await windowManager.getPosition();
     final globalSelection = state.selectionRect?.shift(windowPos);
     final newWindowPos = targetDisplayRect.topLeft;
     final newLocalSelection = globalSelection?.shift(-newWindowPos);

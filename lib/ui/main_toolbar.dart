@@ -19,12 +19,16 @@ import 'widgets/sqa_inline_tooltip.dart';
 import 'widgets/sqa_toast.dart';
 import '../plugins/todo/providers/todo_notification_provider.dart';
 import '../plugins/todo/providers/todo_provider.dart';
+import '../plugins/todo/todo_plugin.dart';
 import '../plugins/timer/providers/timer_provider.dart';
-
 import '../core/window/window_utils.dart';
 import '../core/window/window_constants.dart';
 import '../core/providers/ffmpeg_provider.dart';
 import 'widgets/sqa_safe_plugin_builder.dart';
+import 'widgets/sqa_coachmark.dart';
+import '../core/providers/coachmark_provider.dart';
+import '../core/models/sqa_coachmark_step.dart';
+import '../plugins/security_payloads/providers/security_payloads_provider.dart';
 import 'dart:io';
 
 class MainToolbar extends ConsumerStatefulWidget {
@@ -36,6 +40,19 @@ class MainToolbar extends ConsumerStatefulWidget {
 
 class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   late final ScrollController _scrollController;
+
+  // ── Coachmark GlobalKeys ──────────────────────────────────────────────────
+  final _pluginBarKey = GlobalKey(debugLabel: 'toolbar.plugin_bar');
+  final _settingsIconKey = GlobalKey(debugLabel: 'toolbar.settings');
+  final _dragHandleKey = GlobalKey(debugLabel: 'toolbar.drag_handle');
+  final _closeButtonKey = GlobalKey(debugLabel: 'toolbar.close');
+  SqaCoachmarkController? _toolbarCoachmark;
+  SqaCoachmarkController? _pluginCoachmark;
+  bool _isCoachmarkLoading = false;
+
+  void _setCoachmarkLoading(bool value) {
+    if (mounted) setState(() => _isCoachmarkLoading = value);
+  }
 
   @override
   void initState() {
@@ -55,9 +72,142 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
           }
         }
       });
+
+      // First-launch toolbar coachmark
+      _maybeShowToolbarCoachmark();
     });
 
     super.initState();
+  }
+
+  // ── Coachmark Helpers ─────────────────────────────────────────────────────
+
+  void _maybeShowToolbarCoachmark() {
+    final service = ref.read(coachmarkServiceProvider.notifier);
+    if (!service.shouldShowToolbarTour()) return;
+
+    // Expand the window by opening Settings so the coachmark has room to draw.
+    final settingsPlugin = ref.read(settingsPluginProvider);
+    ref.read(navigationServiceProvider).togglePlugin(settingsPlugin, forceOpen: true);
+
+    // Show loading dots while waiting for the window animation to complete
+    _setCoachmarkLoading(true);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _setCoachmarkLoading(false);
+      _toolbarCoachmark = SqaCoachmarkController(
+        steps: _buildToolbarSteps(),
+        onFinish: () {
+          ref.read(coachmarkServiceProvider.notifier).markToolbarTourSeen();
+        },
+        onSkip: () {
+          ref.read(coachmarkServiceProvider.notifier).markToolbarTourSeen();
+        },
+      );
+      _toolbarCoachmark!.show(context);
+    });
+  }
+
+  List<SqaCoachmarkStep> _buildToolbarSteps() {
+    return [
+      SqaCoachmarkStep(
+        targetKey: _pluginBarKey,
+        title: 'Welcome to SQA-Multitools',
+        description:
+            'This bar is your command center. Every icon here is a QA tool — click any one to open it instantly.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: _pluginBarKey,
+        title: 'More Tools Are Hidden Here',
+        description:
+            'Scroll or drag this bar left and right to reveal all your enabled tools. You can also reorder them in Settings → Plugins.',
+        contentAlign: CoachmarkContentAlign.bottom,
+        beforeStepAction: (ref) async {
+          if (_scrollController.hasClients) {
+            await _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        },
+      ),
+      SqaCoachmarkStep(
+        targetKey: _settingsIconKey,
+        title: 'Settings & Customization',
+        description:
+            'Open Settings to change the theme, manage which plugins appear in this bar, or unlock supporter features.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: _dragHandleKey,
+        title: 'Drag Me Anywhere',
+        description:
+            'Grab this handle to reposition the toolbar wherever it works best for your workflow. It floats above all other windows.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+      SqaCoachmarkStep(
+        targetKey: _closeButtonKey,
+        title: 'Close to Tray',
+        description:
+            'This hides the toolbar to the system tray without exiting. SQA-Multitools keeps running silently in the background.',
+        contentAlign: CoachmarkContentAlign.bottom,
+      ),
+    ];
+  }
+
+  void _maybeShowPluginCoachmark(SqaPlugin plugin) {
+    final steps = plugin.coachmarkSteps;
+    if (steps.isEmpty) return;
+
+    final service = ref.read(coachmarkServiceProvider.notifier);
+
+    // Check if it's a first-time access or a manual trigger from (?)
+    final state = ref.read(coachmarkServiceProvider);
+    final isManual = state.manualTriggerPluginId == plugin.id;
+    final isFirstAccess = service.shouldShowPluginTour(plugin.id);
+
+    if (!isFirstAccess && !isManual) return;
+
+    if (isManual) {
+      ref.read(coachmarkServiceProvider.notifier).clearManualTrigger();
+    }
+
+    // For Security Payloads: capture whether the disclaimer was showing BEFORE
+    // the coachmark hides it. If it was (user hadn't clicked 'I UNDERSTAND'),
+    // restore it after the tour completes so they still see the consent prompt.
+    final securityDisclaimerWasShowing =
+        plugin.id == 'com.sqa.plugin.security_payloads' &&
+        ref.read(securityPayloadsProvider).showDisclaimer;
+
+    void restoreDisclaimerIfNeeded() {
+      if (securityDisclaimerWasShowing) {
+        ref.read(securityPayloadsProvider.notifier).restoreDisclaimer();
+      }
+    }
+
+    _pluginCoachmark?.dismiss();
+    _pluginCoachmark = SqaCoachmarkController(
+      steps: steps,
+      onFinish: () {
+        service.markPluginTourSeen(plugin.id);
+        restoreDisclaimerIfNeeded();
+      },
+      onSkip: () {
+        service.markPluginTourSeen(plugin.id);
+        restoreDisclaimerIfNeeded();
+      },
+    );
+
+    // Show loading dots while waiting for the window to expand
+    _setCoachmarkLoading(true);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _setCoachmarkLoading(false);
+        _pluginCoachmark!.show(context);
+      }
+    });
   }
 
   @override
@@ -134,9 +284,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                             child: ScrollConfiguration(
                               behavior: const SqaMouseDragScrollBehavior(),
                               child: SingleChildScrollView(
-                                key: const PageStorageKey(
-                                  'main_toolbar_scroll',
-                                ),
+                                key: _pluginBarKey,
                                 controller: _scrollController,
                                 scrollDirection: Axis.horizontal,
                                 clipBehavior: Clip.none,
@@ -154,6 +302,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                                         right: 10.0,
                                       ),
                                       child: ToolIcon(
+                                        key: plugin.id == 'com.sqa.plugin.todo' ? TodoPlugin.todoIconKey : null,
                                         icon: plugin.icon,
                                         tooltip: _formatTooltip(
                                           plugin,
@@ -185,6 +334,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
 
                     // Drag Handle & Global Download Indicator
                     SizedBox(
+                      key: _dragHandleKey,
                       width: 36,
                       height: 48,
                       child: Center(
@@ -247,6 +397,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                     ],
 
                     ToolIcon(
+                      key: _settingsIconKey,
                       icon: settingsPlugin.icon,
                       tooltip: settingsPlugin.name,
                       isActive: activePlugin?.id == settingsPlugin.id,
@@ -267,6 +418,7 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                       SqaInlineTooltipTrigger(
                         tooltip: 'Close to Tray',
                         child: SqaHoverIconButton(
+                          key: _closeButtonKey,
                           icon: Symbols.close,
                           onPressed: () => WindowUtils.safeHide(),
                           tooltip: null,
@@ -393,6 +545,18 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
     final isOverlayActive = isScreenshotVisible || isRecorderVisible;
     final hasPlugin = activePlugin != null;
 
+    // Listen for manual coachmark triggers
+    ref.listen(coachmarkServiceProvider, (previous, next) {
+      final triggerId = next.manualTriggerPluginId;
+      if (triggerId != null && triggerId != previous?.manualTriggerPluginId) {
+        if (activePlugin?.id == triggerId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeShowPluginCoachmark(activePlugin!);
+          });
+        }
+      }
+    });
+
     // Auto-scroll to active plugin when it changes (Smart Nudge)
     ref.listen(activePluginProvider, (previous, next) {
       if (next != null && _scrollController.hasClients) {
@@ -424,6 +588,13 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
             );
           }
         }
+      }
+
+      // Plugin first-access coachmark — trigger after plugin panel renders
+      if (next != null && previous?.id != next.id) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _maybeShowPluginCoachmark(next);
+        });
       }
     });
 
@@ -495,6 +666,34 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
                 if (isRecorderVisible)
                   const Positioned.fill(
                     child: ExcludeSemantics(child: ScreenRecorderOverlay()),
+                  ),
+                if (_isCoachmarkLoading)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedOpacity(
+                        opacity: _isCoachmarkLoading ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Container(
+                          color: colorScheme.surfaceContainerLow.withValues(alpha: 0.8),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const CircularProgressIndicator(),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Preparing coachmark...',
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 if (isStitching)
                   Positioned.fill(

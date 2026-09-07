@@ -41,7 +41,7 @@ final class DevGeneratorProvider
   }
 }
 
-String _$devGeneratorHash() => r'75b96e98e348ad71ccb215917ae2c638f2a40000';
+String _$devGeneratorHash() => r'17faddb074964ada25b7340d7bab74c10b73f93d';
 
 abstract class _$DevGenerator extends $Notifier<DevState> {
   DevState build();

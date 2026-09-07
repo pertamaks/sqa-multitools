@@ -11,9 +11,21 @@ import '../../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../../ui/widgets/sqa_markdown_viewer.dart';
 import '../../../../ui/widgets/sqa_fade_wrapper.dart';
 import '../../../../ui/widgets/sqa_design_tokens.dart';
+import '../../../../core/providers/coachmark_provider.dart';
 
 class SecurityPayloadsView extends ConsumerStatefulWidget {
   const SecurityPayloadsView({super.key});
+
+  static final tabBarKey = GlobalKey(debugLabel: 'security.tab_bar');
+  static final firstCardKey = GlobalKey(debugLabel: 'security.first_card');
+  static final copyButtonKey = GlobalKey(debugLabel: 'security.copy_btn');
+
+  /// Index of the first category that has structured payload data.
+  /// Updated whenever data loads so coachmark steps can navigate to it.
+  static int firstPayloadCatIndex = 1;
+
+  /// ScrollController for the payload list view, used by coachmark steps to scroll to top.
+  static ScrollController? listScrollController;
 
   @override
   ConsumerState<SecurityPayloadsView> createState() =>
@@ -32,10 +44,14 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
       text: ref.read(securityPayloadsProvider).searchQuery,
     );
     _listScrollController = ScrollController();
+    SecurityPayloadsView.listScrollController = _listScrollController;
   }
 
   @override
   void dispose() {
+    if (SecurityPayloadsView.listScrollController == _listScrollController) {
+      SecurityPayloadsView.listScrollController = null;
+    }
     _searchController.dispose();
     _listScrollController.dispose();
     super.dispose();
@@ -52,6 +68,13 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
         dataAsync.when(
           data: (List<PayloadCategory> allCategories) {
             final searchQuery = state.searchQuery.toLowerCase();
+
+            final computedFirstPayloadCatIndex = allCategories.indexWhere((cat) =>
+                cat.sections.any((s) => s.structuredPayloads != null && s.structuredPayloads!.isNotEmpty));
+            // Publish the resolved index so plugin beforeStepActions can read it.
+            SecurityPayloadsView.firstPayloadCatIndex =
+                computedFirstPayloadCatIndex < 0 ? 1 : computedFirstPayloadCatIndex;
+            final firstPayloadCatIndex = SecurityPayloadsView.firstPayloadCatIndex;
 
             // 1. Filter categories that have matching sections
             final categories = allCategories.where((cat) {
@@ -93,18 +116,26 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
               title: 'Security Payloads',
               description:
                   'Educational lab for fuzzing and vulnerability testing.',
+              onShowCoachmark: () {
+                ref
+                    .read(coachmarkServiceProvider.notifier)
+                    .requestPluginTour('com.sqa.plugin.security_payloads');
+              },
               searchController: _searchController,
               onSearchChanged: (val) => ref
                   .read(securityPayloadsProvider.notifier)
                   .setSearchQuery(val),
               searchHint: 'Filter payloads...',
               isTabScrollable: true,
+              tabBarKey: SecurityPayloadsView.tabBarKey,
               tabs: categories
+                  .asMap()
+                  .entries
                   .map(
-                    (c) => Tab(
-                      text: c.name,
+                    (entry) => Tab(
+                      text: entry.value.name,
                       icon: Icon(
-                        c.icon,
+                        entry.value.icon,
                         size: SqaTokens.spacingLarge + SqaTokens.spacingTiny,
                       ),
                       iconMargin: const EdgeInsets.only(
@@ -116,7 +147,13 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
               child: TabBarView(
                 physics: const NeverScrollableScrollPhysics(),
                 children: categories
-                    .map((cat) => _buildCategoryView(cat, state))
+                    .asMap()
+                    .entries
+                    .map((entry) => _buildCategoryView(
+                          entry.value,
+                          state,
+                          isFirstCategory: entry.key == firstPayloadCatIndex,
+                        ))
                     .toList(),
               ),
             );
@@ -137,8 +174,9 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
 
   Widget _buildCategoryView(
     PayloadCategory category,
-    SecurityPayloadsState state,
-  ) {
+    SecurityPayloadsState state, {
+    bool isFirstCategory = false,
+  }) {
     final searchQuery = state.searchQuery.toLowerCase();
 
     // 2. Filter sections within this category
@@ -226,7 +264,11 @@ class _SecurityPayloadsViewState extends ConsumerState<SecurityPayloadsView> {
                       padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
                       itemCount: filteredPayloads.length,
                       itemBuilder: (context, index) {
-                        return PayloadCard(payload: filteredPayloads[index]);
+                        return PayloadCard(
+                          payload: filteredPayloads[index],
+                          cardKey: (isFirstCategory && index == 0) ? SecurityPayloadsView.firstCardKey : null,
+                          copyButtonKey: (isFirstCategory && index == 0) ? SecurityPayloadsView.copyButtonKey : null,
+                        );
                       },
                     ),
                   )

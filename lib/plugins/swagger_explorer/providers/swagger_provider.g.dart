@@ -41,7 +41,7 @@ final class SwaggerNotifierProvider
   }
 }
 
-String _$swaggerNotifierHash() => r'dc79ec2a7ff0e4e37e3b7ab0251ed0893ddfb517';
+String _$swaggerNotifierHash() => r'65e627bf111194c763afc831b60e573817e71065';
 
 abstract class _$SwaggerNotifier extends $Notifier<SwaggerState> {
   SwaggerState build();

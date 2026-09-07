@@ -41,12 +41,12 @@ Once approved, the following artifacts are automatically generated and attached 
 
 Before pushing a release tag, ensure the following steps are completed:
 
-- [ ] **Changelog**: Update `CHANGELOG.md` with all changes since the last release.
-- [ ] **Version Bump**: Update the version number in `pubspec.yaml`.
-- [ ] **Documentation**: Ensure all new features have a corresponding SRS document in `docs/srs/`.
-- [ ] **Analysis**: Run `dart analyze` and ensure zero warnings.
-- [ ] **Tests**: Run `flutter test` and ensure all tests pass.
-- [ ] **Single Instance**: Verify that the `main.cpp` Mutex logic is correctly configured for the current app title.
+- [x] **Changelog**: Update `CHANGELOG.md` with all changes since the last release.
+- [x] **Version Bump**: Update the version number in `pubspec.yaml`.
+- [x] **Documentation**: Ensure all new features have a corresponding SRS document in `docs/srs/`.
+- [x] **Analysis**: Run `dart analyze` and ensure zero warnings.
+- [x] **Tests**: Run `flutter test` and ensure all tests pass.
+- [x] **Single Instance**: Verify that the `main.cpp` Mutex logic is correctly configured for the current app title.
 
 ---
 

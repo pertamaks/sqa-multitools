@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-09-07
+
+### Added
+- **Coachmark System:** Integrated an interactive, visual walkthrough experience across SQA-Multitools. Guides users through toolbar features and individual plugin workflows (Document Obfuscator, Swagger Explorer, QA Oracle, etc.) using spotlight cutouts, animated pulse highlights, and contextual tooltip cards.
+- **Help Guides (? Buttons):** Added dedicated guide trigger buttons across toolbar and plugin views (Document Obfuscator, Swagger Explorer, and QA Oracle) to easily re-launch contextual coachmarks on demand.
+- **Coachmark Loading Feedback:** Added center loading spinner indicator while awaiting asynchronous UI rendering before highlighting target elements.
+
+### Fixed
+- **Multi-Monitor Coordinate Alignment:** Fixed DPI scaling calculation using DPI-correct `windowManager.getPosition()` so overlay screens precisely align with active displays across high-DPI and mixed-DPI multi-monitor configurations.
+- **Window Tray/Hidden State Preservation:** Fixed unwanted main window re-appearance and visual flashing when triggering screenshot or screen recording overlays via global hotkeys while the application was minimized to the system tray.
+- **Coachmark Target Bounds & Dynamic Resizing:** Updated coachmark spotlight holes to automatically adapt to dynamic layout changes, element resizing, and scrolling containers.
+
 ## [1.0.0] - 2026-06-16
 
 ### Added

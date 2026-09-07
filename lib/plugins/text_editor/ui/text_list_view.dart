@@ -16,17 +16,22 @@ import '../../../ui/widgets/sqa_segmented_button.dart';
 import '../../../ui/widgets/sqa_design_tokens.dart';
 import '../providers/text_editor_provider.dart';
 import '../models/text_document.dart';
+import '../../../core/providers/coachmark_provider.dart';
 
 enum TextListFilter { all, pinned, recent }
 
 class TextListView extends ConsumerStatefulWidget {
   const TextListView({super.key});
 
+  static final listKey = GlobalKey(debugLabel: 'text_editor.list');
+  static final newDocKey = GlobalKey(debugLabel: 'text_editor.new_doc');
+
   @override
   ConsumerState<TextListView> createState() => _TextListViewState();
 }
 
 class _TextListViewState extends ConsumerState<TextListView> {
+
   TextListFilter _selectedFilter = TextListFilter.all;
   late TextEditingController _searchController;
 
@@ -64,6 +69,11 @@ class _TextListViewState extends ConsumerState<TextListView> {
       icon: Symbols.edit_note,
       title: 'Text Editor',
       description: 'Manage and edit your MarkDown documents.',
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.text_editor');
+      },
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -81,6 +91,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
       onSearchChanged: (value) => notifier.setSearchQuery(value),
       searchHint: 'Search documents...',
       child: SqaPluginScrollableContent(
+        key: TextListView.listKey,
         child: state.documents.isEmpty
             ? _buildEmptyState(context, notifier)
             : Column(
@@ -391,6 +402,7 @@ class _TextListViewState extends ConsumerState<TextListView> {
       ],
       builder: (context, controller, child) {
         return SqaButton(
+          key: TextListView.newDocKey,
           label: label,
           icon: hasIcon ? Symbols.add_notes : null,
           type: type,

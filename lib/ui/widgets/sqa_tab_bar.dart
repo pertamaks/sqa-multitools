@@ -8,12 +8,14 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Tab> tabs;
   final TabController? controller;
   final bool isScrollable;
+  final Key? contentKey;
 
   const SqaTabBar({
     super.key,
     required this.tabs,
     this.controller,
     this.isScrollable = false,
+    this.contentKey,
   });
 
   @override
@@ -99,7 +101,10 @@ class SqaTabBar extends StatelessWidget implements PreferredSizeWidget {
                 axis: Axis.horizontal,
                 showStart: needsFade,
                 showEnd: needsFade,
-                child: tabBar,
+                child: KeyedSubtree(
+                  key: contentKey,
+                  child: tabBar,
+                ),
               ),
             ),
           ),

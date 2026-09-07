@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../providers/curl_requester_provider.dart';
+import '../curl_requester_view.dart';
 
 import '../../models/curl_command.dart';
 import '../components/curl_requester_grid_row.dart';
@@ -151,6 +152,7 @@ class _RequestTabState extends ConsumerState<RequestTab> {
           Row(
             children: [
               SqaHoverIconButton(
+                key: CurlRequesterView.showGridKey,
                 icon: widget.showReflector
                     ? Symbols.terminal
                     : Symbols.grid_3x3,
@@ -193,6 +195,7 @@ class _RequestTabState extends ConsumerState<RequestTab> {
 
   Widget _buildCommandDeckContent(BuildContext context) {
     return SizedBox.expand(
+      key: CurlRequesterView.urlInputKey,
       child: SqaField(
         label: '',
         showLabel: false,
@@ -216,6 +219,7 @@ class _RequestTabState extends ConsumerState<RequestTab> {
     final hasPathParams = state.currentCommand.pathParameters.isNotEmpty;
 
     return Column(
+      key: CurlRequesterView.requestTabsKey,
       children: [
         if (hasPathParams) ...[
           _buildPathParamsEditor(context, ref),

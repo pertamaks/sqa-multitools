@@ -18,9 +18,14 @@ import '../../../ui/widgets/sqa_modal.dart';
 import '../../../ui/widgets/sqa_hover_icon_button.dart';
 import '../../../ui/widgets/sqa_button.dart';
 import '../../../core/providers/plugin_provider.dart';
+import '../../../core/providers/coachmark_provider.dart';
 
 class BeautifierView extends ConsumerStatefulWidget {
   const BeautifierView({super.key});
+
+  static final languageSelectorKey = GlobalKey(debugLabel: 'beautifier.lang');
+  static final inputFieldKey = GlobalKey(debugLabel: 'beautifier.input');
+  static final formatButtonKey = GlobalKey(debugLabel: 'beautifier.format');
 
   @override
   ConsumerState<BeautifierView> createState() => _BeautifierViewState();
@@ -87,7 +92,13 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
       icon: Symbols.code_blocks,
       title: 'Beautifier',
       description: 'Clean and format source code instantly.',
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.beautifier');
+      },
       trailing: SqaButton.primary(
+        key: BeautifierView.formatButtonKey,
         icon: Symbols.auto_fix,
         label: '',
         onPressed: state.input.isEmpty
@@ -101,6 +112,7 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
         ),
         child: Center(
           child: SqaSegmentedButton<BeautifierLanguage>(
+            key: BeautifierView.languageSelectorKey,
             stretches: false,
             segments: BeautifierLanguage.values.map((lang) {
               return ButtonSegment(
@@ -130,6 +142,7 @@ class _BeautifierViewState extends ConsumerState<BeautifierView> {
             const SizedBox(height: SqaTokens.spacingMedium),
             Expanded(
               child: SqaField(
+                key: BeautifierView.inputFieldKey,
                 label: 'Raw Input',
                 showLabel: false,
                 controller: _inputController,

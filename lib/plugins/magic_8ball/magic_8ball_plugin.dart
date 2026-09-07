@@ -5,6 +5,8 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'dart:async';
 import 'dart:math';
 import '../../core/models/sqa_plugin.dart';
+import '../../core/models/sqa_coachmark_step.dart';
+import '../../core/providers/coachmark_provider.dart';
 import '../../ui/widgets/sqa_toast.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_dropdown.dart';
@@ -14,6 +16,11 @@ import '../../ui/widgets/sqa_plugin_layout.dart';
 import 'providers/magic_8ball_provider.dart';
 
 class QaOraclePlugin implements SqaPlugin {
+  static final magic8BallFocusKey = GlobalKey(debugLabel: 'qa_oracle.focus');
+  static final magic8BallFortuneKey = GlobalKey(
+    debugLabel: 'qa_oracle.fortune',
+  );
+
   @override
   String get id => 'com.sqa.magic8ball';
   @override
@@ -31,6 +38,30 @@ class QaOraclePlugin implements SqaPlugin {
   @override
   Widget buildPluginWindow(BuildContext context) {
     return const _QaOracleWindow();
+  }
+
+  @override
+  List<SqaCoachmarkStep> get coachmarkSteps {
+    return [
+      SqaCoachmarkStep(
+        targetKey: magic8BallFocusKey,
+        title: 'The QA Oracle',
+        description:
+            'Tap the magic 8-ball (or shake your device if supported) to get a randomized, sarcastic, but brutally honest answer to your pressing QA questions.',
+        contentAlign: CoachmarkContentAlign.bottom,
+        beforeStepAction: (ref) async {
+          // Trigger the animation for dramatic effect when the coachmark appears!
+          // We can't directly trigger the state from here cleanly, but tapping it works.
+        },
+      ),
+      SqaCoachmarkStep(
+        targetKey: magic8BallFortuneKey,
+        title: 'Share the Wisdom',
+        description:
+            'Tap the text answer to instantly copy it to your clipboard. Perfect for pasting into Slack when a developer asks "Is this a bug or a feature?"',
+        contentAlign: CoachmarkContentAlign.top,
+      ),
+    ];
   }
 
   @override
@@ -152,6 +183,11 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
       title: 'QA Oracle',
       description:
           'Get randomized, sarcastic but honest answers to your toughest QA questions.',
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.magic8ball');
+      },
       child: Container(
         padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         alignment: Alignment.center,
@@ -167,6 +203,7 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
                   final offset =
                       sin(_controller.value * pi * 4) * SqaTokens.spacingSmall;
                   return Transform.translate(
+                    key: QaOraclePlugin.magic8BallFocusKey,
                     offset: Offset(offset, 0),
                     child: child,
                   );
@@ -182,6 +219,7 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
             GestureDetector(
               onTap: _copyToClipboard,
               child: Tooltip(
+                key: QaOraclePlugin.magic8BallFortuneKey,
                 message: 'Click to copy advice',
                 child: Text(
                   _currentResponse,

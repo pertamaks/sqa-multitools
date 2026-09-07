@@ -50,6 +50,18 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
         description:
             'Each workspace is an isolated project with its own dictionary. Create separate workspaces for different clients or products to keep substitutions clean.',
         contentAlign: CoachmarkContentAlign.bottom,
+        beforeStepAction: (ref) async {
+          final notifier = ref.read(obfuscatorProvider.notifier);
+          notifier.setViewMode(ObfuscatorViewMode.list);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final context =
+                ObfuscatorListView.workspaceSelectorKey.currentContext;
+            if (context != null) {
+              final tabController = DefaultTabController.maybeOf(context);
+              tabController?.animateTo(0);
+            }
+          });
+        },
       ),
       SqaCoachmarkStep(
         targetKey: ObfuscatorDocumentView.editorKey,

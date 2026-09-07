@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math';
 import '../../core/models/sqa_plugin.dart';
 import '../../core/models/sqa_coachmark_step.dart';
+import '../../core/providers/coachmark_provider.dart';
 import '../../ui/widgets/sqa_toast.dart';
 import '../../ui/widgets/sqa_settings_tile.dart';
 import '../../ui/widgets/sqa_dropdown.dart';
@@ -182,6 +183,11 @@ class _QaOracleWindowState extends ConsumerState<_QaOracleWindow>
       title: 'QA Oracle',
       description:
           'Get randomized, sarcastic but honest answers to your toughest QA questions.',
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.magic8ball');
+      },
       child: Container(
         padding: const EdgeInsets.all(SqaTokens.spacingXLarge),
         alignment: Alignment.center,

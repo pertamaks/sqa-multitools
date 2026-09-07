@@ -37,6 +37,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
   String? _currentSavePath;
   DBusClient? _waylandDbusClient;
   StreamSubscription<FileSystemEvent>? _watchSubscription;
+  /// True when the window was hidden (in tray) at the moment the overlay was
+  /// launched via hotkey. We restore this state when the overlay closes.
+  bool _wasHiddenBeforeOverlay = false;
 
   @override
   ScreenRecorderState build() {
@@ -338,7 +341,9 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     final coordinator = ref.read(windowTransitionProvider);
 
-    // 0. Ensure window is active and visible (even if from tray)
+    // 0. Remember if the window was hidden so we can restore that state later,
+    //    then ensure it is visible for the overlay (needed to expand to full screen).
+    _wasHiddenBeforeOverlay = !(await windowManager.isVisible());
     await WindowUtils.safeShow();
 
     // 1. Ghost the window instantly and wait for OS commitment
@@ -757,8 +762,16 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     ]);
 
     await windowManager.setOpacity(1.0);
-    await windowManager.focus();
+    // If the window was hidden (in tray) before the overlay launched, send it
+    // back to the tray instead of popping it up in the user's face.
+    if (_wasHiddenBeforeOverlay) {
+      _wasHiddenBeforeOverlay = false;
+      await WindowUtils.safeHide();
+    } else {
+      await windowManager.focus();
+    }
   }
+
 
   Future<void> _restoreWindowInternal() async {
     final size = state.previousWindowSize ?? const Size(450, 500);

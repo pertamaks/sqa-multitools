@@ -60,7 +60,7 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
             }
           }
           final context = ObfuscatorListView.tabBarKey.currentContext;
-          if (context != null) {
+          if (context != null && context.mounted) {
             final tabController = DefaultTabController.maybeOf(context);
             if (tabController != null && tabController.index != 0) {
               tabController.animateTo(0);
@@ -108,7 +108,7 @@ class RequirementObfuscatorPlugin implements SqaPlugin {
             );
           }
           final context = ObfuscatorListView.tabBarKey.currentContext;
-          if (context != null) {
+          if (context != null && context.mounted) {
             final tabController = DefaultTabController.maybeOf(context);
             if (tabController != null && tabController.index != 2) {
               tabController.animateTo(2); // Index 2 is Dictionary

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ffi' hide Size;
 import 'dart:io' show Platform;
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';

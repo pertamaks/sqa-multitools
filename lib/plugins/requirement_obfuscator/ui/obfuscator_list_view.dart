@@ -42,6 +42,8 @@ class ObfuscatorListView extends ConsumerStatefulWidget {
 
   static final workspaceSelectorKey =
       GlobalKey(debugLabel: 'obfuscator.workspace_selector');
+  static final tabBarKey =
+      GlobalKey(debugLabel: 'obfuscator.tab_bar');
   static final dictionaryPanelKey =
       GlobalKey(debugLabel: 'obfuscator.dictionary_panel');
 
@@ -109,15 +111,14 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
       );
     }
 
-    return DefaultTabController(
-      length: 3,
-      child: SqaPluginLayout(
-        icon: Symbols.shield_lock,
-        onShowCoachmark: () {
-          ref
-              .read(coachmarkServiceProvider.notifier)
-              .requestPluginTour('com.sqa.plugin.requirement_obfuscator');
-        },
+    return SqaPluginLayout(
+      icon: Symbols.shield_lock,
+      tabBarKey: ObfuscatorListView.tabBarKey,
+      onShowCoachmark: () {
+        ref
+            .read(coachmarkServiceProvider.notifier)
+            .requestPluginTour('com.sqa.plugin.requirement_obfuscator');
+      },
         titleWidget: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -243,7 +244,6 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
             const DeobfuscatorTabContent(),
             // Tab 3: Dictionary Manager
             SqaPluginScrollableContent(
-              key: ObfuscatorListView.dictionaryPanelKey,
               child: _buildDictionaryTab(
                 context,
                 state,
@@ -254,8 +254,7 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildNoWorkspaceState(BuildContext context, Obfuscator notifier) {
@@ -280,6 +279,7 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
         ),
         const SizedBox(height: SqaTokens.spacingXLarge),
         SqaButton(
+          key: ObfuscatorListView.workspaceSelectorKey,
           label: 'Create Workspace',
           icon: Symbols.add,
           onPressed: () => _showCreateWorkspaceDialog(context, notifier),
@@ -600,12 +600,21 @@ class _ObfuscatorListViewState extends ConsumerState<ObfuscatorListView> {
           ),
         ),
         if (state.dictionary.isEmpty)
-          _buildEmptyDictionaryState(context, notifier)
+          Container(
+            key: ObfuscatorListView.dictionaryPanelKey,
+            child: _buildEmptyDictionaryState(context, notifier),
+          )
         else if (entries.isEmpty)
-          _buildNoResultsState(context)
+          Container(
+            key: ObfuscatorListView.dictionaryPanelKey,
+            child: _buildNoResultsState(context),
+          )
         else
-          ...entries.map((entry) {
+          ...entries.asMap().entries.map((indexedEntry) {
+            final index = indexedEntry.key;
+            final entry = indexedEntry.value;
             return Padding(
+              key: index == 0 ? ObfuscatorListView.dictionaryPanelKey : null,
               padding: const EdgeInsets.only(bottom: SqaTokens.spacingSmall),
               child: SqaCard(
                 child: LayoutBuilder(

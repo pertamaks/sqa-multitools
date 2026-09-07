@@ -655,12 +655,20 @@ class _CoachmarkCard extends StatelessWidget {
 
       case CoachmarkContentAlign.left:
         top = _clampVertical(targetRect.center.dy, screenSize.height);
-        right = screenSize.width - targetRect.left + padding;
+        final preferredRight = screenSize.width - targetRect.left + padding;
+        right = preferredRight.clamp(
+          _cardMargin,
+          screenSize.width - _cardWidth - _cardMargin,
+        );
         break;
 
       case CoachmarkContentAlign.right:
         top = _clampVertical(targetRect.center.dy, screenSize.height);
-        left = targetRect.right + padding;
+        final preferredLeft = targetRect.right + padding;
+        left = preferredLeft.clamp(
+          _cardMargin,
+          screenSize.width - _cardWidth - _cardMargin,
+        );
         break;
     }
 

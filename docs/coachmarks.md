@@ -187,8 +187,8 @@ Below is the complete copywriting reference for all coachmark tours in SQA-Multi
 | Step # | Title | Target Key | Alignment | Copywriting Description |
 | :---: | :--- | :--- | :---: | :--- |
 | 1 | **Organize by Project** | `ObfuscatorListView.workspaceSelectorKey` | Bottom | Each workspace is an isolated project with its own dictionary. Create separate workspaces for different clients or products to keep substitutions clean. |
-| 2 | **Paste Your Requirements Here** | `ObfuscatorDocumentView.editorKey` | Right | Paste your spec or bug report, then toggle the Obfuscate switch. The scanner automatically finds sensitive terms and replaces them with realistic-looking alternatives. |
-| 3 | **Review & Manage Substitutions** | `ObfuscatorListView.dictionaryPanelKey` | Left | Every detected term appears here with its replacement. You can enable, disable, or delete individual entries — or highlight any word in the document to add it manually. |
+| 2 | **Paste Your Requirements Here** | `ObfuscatorDocumentView.editorKey` | Top | Paste your spec or bug report, then toggle the Obfuscate switch. The scanner automatically finds sensitive terms and replaces them with realistic-looking alternatives. |
+| 3 | **Review & Manage Substitutions** | `ObfuscatorListView.dictionaryPanelKey` | Top | Every detected term appears here with its replacement. You can enable, disable, or delete individual entries — or highlight any word in the document to add it manually. |
 
 #### 8. Screenshot Tool (`com.sqa.screenshot`)
 | Step # | Title | Target Key | Alignment | Copywriting Description |

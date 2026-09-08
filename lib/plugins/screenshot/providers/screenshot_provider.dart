@@ -313,6 +313,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       previousWindowSize: savedSize,
       previousWindowPos: savedPos,
       isOverlayVisible: true,
+      lockedDisplay: activeDisplay,
       annotations: [],
       selectionRect: Rect.fromLTWH(
         0,
@@ -394,11 +395,12 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     // 1.5 Capture the clean desktop while our app is invisible
 
     Uint8List? frozenBytes;
+    final scale = (activeDisplay.scaleFactor ?? 1.0).toDouble();
     final result = await freezeRegion(
-      overlayRect.left.toInt(),
-      overlayRect.top.toInt(),
-      overlayRect.width.toInt(),
-      overlayRect.height.toInt(),
+      (overlayRect.left * scale).toInt(),
+      (overlayRect.top * scale).toInt(),
+      (overlayRect.width * scale).toInt(),
+      (overlayRect.height * scale).toInt(),
     );
     if (result is CaptureSuccess<FrozenCanvas>) {
       frozenBytes = Uint8List.fromList(result.data.bytes);
@@ -441,6 +443,7 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       previousWindowSize: savedSize,
       previousWindowPos: savedPos,
       isOverlayVisible: true,
+      lockedDisplay: activeDisplay,
       annotations: [],
       selectionRect: initialSelection,
       availableDisplays: displays,

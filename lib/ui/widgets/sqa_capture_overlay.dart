@@ -10,6 +10,7 @@ import '../../core/models/capture_mode.dart';
 import '../../core/models/screenshot_tool.dart';
 import '../../core/models/click_ripple.dart';
 import '../../core/window/window_utils.dart';
+import '../../core/window/display_utils.dart';
 import 'package:window_manager/window_manager.dart';
 import 'sqa_floating_bar.dart';
 import '../../core/providers/capture_key_provider.dart';
@@ -218,11 +219,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
               Display? targetDisplay;
               for (final d in displays) {
+                final dBounds = DisplayUtils.getDisplayFlutterBounds(
+                  d,
+                  allDisplays: displays,
+                );
                 final rect = Rect.fromLTWH(
-                  d.visiblePosition?.dx ?? 0,
-                  d.visiblePosition?.dy ?? 0,
-                  d.size.width,
-                  d.size.height,
+                  (d.visiblePosition?.dx ?? 0),
+                  (d.visiblePosition?.dy ?? 0),
+                  dBounds.width,
+                  dBounds.height,
                 );
                 if (rect.contains(cursor)) {
                   targetDisplay = d;
@@ -234,12 +239,12 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
                 final windowPos = await windowManager.getPosition();
                 _cachedWindowPos = windowPos;
                 if (!mounted || !widget.delegate.isOverlayVisible) return;
-                final localRect = Rect.fromLTWH(
-                  (targetDisplay.visiblePosition?.dx ?? 0) - windowPos.dx,
-                  (targetDisplay.visiblePosition?.dy ?? 0) - windowPos.dy,
-                  targetDisplay.size.width,
-                  targetDisplay.size.height,
+                final dBounds = DisplayUtils.getDisplayFlutterBounds(
+                  targetDisplay,
+                  originOffset: windowPos,
+                  allDisplays: displays,
                 );
+                final localRect = dBounds;
                 if (_hoveredMonitorRect != localRect) {
                   setState(() {
                     _hoveredMonitorRect = localRect;
@@ -370,12 +375,16 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
     Display? activeDisplay;
     for (final d in displays) {
+      final dBounds = DisplayUtils.getDisplayFlutterBounds(
+        d,
+        allDisplays: displays,
+      );
       final dPos = d.visiblePosition ?? Offset.zero;
       final dRect = Rect.fromLTWH(
         dPos.dx,
         dPos.dy,
-        d.size.width,
-        d.size.height,
+        dBounds.width,
+        dBounds.height,
       );
       if (dRect.contains(globalCenter)) {
         activeDisplay = d;
@@ -384,15 +393,19 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     }
 
     if (activeDisplay != null) {
-      final dPos = activeDisplay.visiblePosition ?? Offset.zero;
+      final dBounds = DisplayUtils.getDisplayFlutterBounds(
+        activeDisplay,
+        originOffset: windowPos,
+        allDisplays: displays,
+      );
       final double barWidth = _estimatedBarWidth;
       const double barHeight = SqaTokens.floatingBarHeight;
       const double gap = SqaTokens.spacingSmall;
 
       // Display bounds in local window coordinates
-      final localDisplayLeft = dPos.dx - windowPos.dx;
-      final localDisplayTop = dPos.dy - windowPos.dy;
-      final localDisplayBottom = localDisplayTop + activeDisplay.size.height;
+      final localDisplayLeft = dBounds.left;
+      final localDisplayTop = dBounds.top;
+      final localDisplayBottom = dBounds.bottom;
 
       double targetX, targetY;
 
@@ -422,7 +435,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       } else {
         // Fullscreen: anchor to bottom-center of the display
         targetX =
-            localDisplayLeft + (activeDisplay.size.width / 2) - (barWidth / 2);
+            localDisplayLeft + (dBounds.width / 2) - (barWidth / 2);
         targetY = localDisplayBottom - barHeight - SqaTokens.spacingXXXLarge;
       }
 
@@ -447,12 +460,16 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
       Display? startDisplay;
       for (final d in widget.delegate.availableDisplays) {
+        final dBounds = DisplayUtils.getDisplayFlutterBounds(
+          d,
+          allDisplays: widget.delegate.availableDisplays,
+        );
         final dPos = d.visiblePosition ?? Offset.zero;
         final dRect = Rect.fromLTWH(
           dPos.dx,
           dPos.dy,
-          d.size.width,
-          d.size.height,
+          dBounds.width,
+          dBounds.height,
         );
         if (dRect.contains(globalStart)) {
           startDisplay = d;
@@ -483,13 +500,17 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       final lockedDisplay = widget.delegate.lockedDisplay;
       if (lockedDisplay != null) {
         final windowPos = _cachedWindowPos;
-        final dPos = lockedDisplay.visiblePosition ?? Offset.zero;
+        final dBounds = DisplayUtils.getDisplayFlutterBounds(
+          lockedDisplay,
+          originOffset: windowPos,
+          allDisplays: widget.delegate.availableDisplays,
+        );
 
         // Logical bounds of the monitor relative to our spanning window
-        final localMinX = dPos.dx - windowPos.dx;
-        final localMinY = dPos.dy - windowPos.dy;
-        final localMaxX = localMinX + lockedDisplay.size.width;
-        final localMaxY = localMinY + lockedDisplay.size.height;
+        final localMinX = dBounds.left;
+        final localMinY = dBounds.top;
+        final localMaxX = dBounds.right;
+        final localMaxY = dBounds.bottom;
 
         currentPos = Offset(
           currentPos.dx.clamp(localMinX, localMaxX),
@@ -776,16 +797,20 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       minY = math.min(minY, pos.dy);
     }
 
+    final origin = Offset(minX, minY);
+
     return delegate.availableDisplays.map((display) {
-      final dPos = display.visiblePosition ?? Offset.zero;
-      final localX = dPos.dx - minX;
-      final localY = dPos.dy - minY;
+      final dBounds = DisplayUtils.getDisplayFlutterBounds(
+        display,
+        originOffset: origin,
+        allDisplays: delegate.availableDisplays,
+      );
 
       return Positioned(
-        left: localX,
-        top: localY,
-        width: display.size.width,
-        height: display.size.height,
+        left: dBounds.left,
+        top: dBounds.top,
+        width: dBounds.width,
+        height: dBounds.height,
         child: IgnorePointer(
           child: Center(
             child:

@@ -71,11 +71,11 @@ A ledger of foundational technical decisions to provide context for future devel
 * **Decision:** We migrated `WindowUtils.safeHide()` to use a true `windowManager.hide()` command across all platforms.
 * **Reasoning:** Unmapping the window (`hide()`) completely removes it from the OS Z-order stack, guaranteeing it will never intercept focus when the user is working in other apps. It also perfectly satisfies Linux/GNOME dock restrictions, allowing the app to act as a true, invisible background system daemon without being pinned to the dock.
 
-### ADR-008: Multi-Monitor Per-Display Scale Normalization in Overlay
+### ADR-008: Cursor-Aware Active-Monitor Overlay Snapping Architecture
 **Date:** 2026-09-08
-* **Context:** In multi-monitor setups with mixed DPI scaling (e.g. Primary at 125%, Secondary at 100%), overlay positioning, frozen background snapshot bounds, and toolbar anchoring were misaligned due to coordinate system divergences between Windows Virtual Screen logical space, Flutter primary-DPI widget units, and Win32 physical pixels.
-* **Decision:** We established a centralized `DisplayUtils` utility that normalizes per-display bounds into Flutter's primary-DPI logical coordinates (`d.size * (dScale / pScale)`). Furthermore, `SilentFrozenCanvasEngine` Win32 FFI capture strategy now accepts physical pixel coordinates via `CaptureRegion`, and `ScreenshotProvider.startOverlay` passes scale-adjusted physical bounds to `freezeRegion()`.
-* **Reasoning:** Flutter's top-level window rendering pipeline uses logical units derived from the primary monitor's DPI. Normalizing secondary monitor layout coordinates relative to `primaryScaleFactor` ensures that overlay UI, hover hitboxes, and floating action toolbars align precisely across monitors regardless of scale or position.
+* **Context:** In multi-monitor setups with mixed DPI scaling (e.g., Primary at 125%, Secondary at 100%), spanning a single transparent Flutter window across the entire virtual desktop caused severe coordinate distortion, shifted hitboxes, and misplaced floating toolbars because the Flutter Windows embedding assigns a single uniform DPI context to the HWND.
+* **Decision:** Instead of spanning across all monitors with virtual desktop boundaries, both the Screenshot and Screen Recorder overlays now use **Cursor-Aware Active-Monitor Overlay Snapping**. When initiated, `startOverlay()` inspects `screenRetriever.getCursorScreenPoint()` and positions the overlay window strictly within the active monitor's bounds (`activeDisplay.visiblePosition` and `activeDisplay.size`). Per-display bounds inside the active display are normalized via `DisplayUtils`.
+* **Reasoning:** Snapping the overlay strictly to the monitor containing the user's cursor completely avoids mixed-DPI cross-monitor rendering limitations in Windows Flutter apps. It ensures 1:1 pixel crispness, eliminates coordinate transformation drift, and provides seamless capture across multi-monitor setups.
 
 ---
 

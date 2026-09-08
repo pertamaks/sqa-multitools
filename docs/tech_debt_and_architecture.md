@@ -71,6 +71,12 @@ A ledger of foundational technical decisions to provide context for future devel
 * **Decision:** We migrated `WindowUtils.safeHide()` to use a true `windowManager.hide()` command across all platforms.
 * **Reasoning:** Unmapping the window (`hide()`) completely removes it from the OS Z-order stack, guaranteeing it will never intercept focus when the user is working in other apps. It also perfectly satisfies Linux/GNOME dock restrictions, allowing the app to act as a true, invisible background system daemon without being pinned to the dock.
 
+### ADR-008: Multi-Monitor Per-Display Scale Normalization in Overlay
+**Date:** 2026-09-08
+* **Context:** In multi-monitor setups with mixed DPI scaling (e.g. Primary at 125%, Secondary at 100%), overlay positioning, frozen background snapshot bounds, and toolbar anchoring were misaligned due to coordinate system divergences between Windows Virtual Screen logical space, Flutter primary-DPI widget units, and Win32 physical pixels.
+* **Decision:** We established a centralized `DisplayUtils` utility that normalizes per-display bounds into Flutter's primary-DPI logical coordinates (`d.size * (dScale / pScale)`). Furthermore, `SilentFrozenCanvasEngine` Win32 FFI capture strategy now accepts physical pixel coordinates via `CaptureRegion`, and `ScreenshotProvider.startOverlay` passes scale-adjusted physical bounds to `freezeRegion()`.
+* **Reasoning:** Flutter's top-level window rendering pipeline uses logical units derived from the primary monitor's DPI. Normalizing secondary monitor layout coordinates relative to `primaryScaleFactor` ensures that overlay UI, hover hitboxes, and floating action toolbars align precisely across monitors regardless of scale or position.
+
 ---
 
 ## 📜 Resolved Improvements Log
@@ -78,3 +84,4 @@ A ledger of foundational technical decisions to provide context for future devel
 Completed tech debt and architectural milestones are archived here for historical tracking.
 
 * *(No items resolved yet. Check off items from the roadmap above and move them here!)*
+

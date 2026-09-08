@@ -340,21 +340,34 @@ class _Win32FfiStrategy implements _CaptureStrategy {
     if (!Platform.isWindows) return CaptureFailure('Not Windows');
 
     try {
-      final point = calloc<POINT>();
-      GetCursorPos(point);
-      final hMonitor = MonitorFromPoint(point.ref, MONITOR_DEFAULTTONEAREST);
+      int left, top, width, height;
 
-      final monitorInfo = calloc<MONITORINFO>();
-      monitorInfo.ref.cbSize = sizeOf<MONITORINFO>();
-      GetMonitorInfo(hMonitor, monitorInfo);
+      if (region.isFullscreen) {
+        final point = calloc<POINT>();
+        GetCursorPos(point);
+        final hMonitor = MonitorFromPoint(point.ref, MONITOR_DEFAULTTONEAREST);
 
-      final left = monitorInfo.ref.rcMonitor.left;
-      final top = monitorInfo.ref.rcMonitor.top;
-      final width = monitorInfo.ref.rcMonitor.right - left;
-      final height = monitorInfo.ref.rcMonitor.bottom - top;
+        final monitorInfo = calloc<MONITORINFO>();
+        monitorInfo.ref.cbSize = sizeOf<MONITORINFO>();
+        GetMonitorInfo(hMonitor, monitorInfo);
 
-      free(point);
-      free(monitorInfo);
+        left = monitorInfo.ref.rcMonitor.left;
+        top = monitorInfo.ref.rcMonitor.top;
+        width = monitorInfo.ref.rcMonitor.right - left;
+        height = monitorInfo.ref.rcMonitor.bottom - top;
+
+        free(point);
+        free(monitorInfo);
+      } else {
+        left = region.x;
+        top = region.y;
+        width = region.width;
+        height = region.height;
+      }
+
+      if (width <= 0 || height <= 0) {
+        return CaptureFailure('Invalid capture dimensions: ${width}x$height');
+      }
 
       final hdcScreen = GetDC(0);
       final hdcMem = CreateCompatibleDC(hdcScreen);
@@ -417,8 +430,6 @@ class _Win32FfiStrategy implements _CaptureStrategy {
       free(bmi);
       free(bmpData);
 
-      // If they only wanted a specific region, technically we captured full screen here.
-      // But since caller passes fullscreen usually, it's fine. For now return full.
       return CaptureSuccess(out);
     } catch (e, st) {
       return CaptureFailure('Win32 FFI failed', cause: e, stack: st);

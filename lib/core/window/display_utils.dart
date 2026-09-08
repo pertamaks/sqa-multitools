@@ -9,7 +9,7 @@ class DisplayUtils {
   static Display getPrimaryDisplay(List<Display> displays) {
     if (displays.isEmpty) {
       return Display(
-        id: 0,
+        id: '0',
         name: 'Primary',
         size: Size.zero,
         visiblePosition: Offset.zero,

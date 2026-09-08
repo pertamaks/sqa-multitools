@@ -7,7 +7,7 @@ void main() {
   group('DisplayUtils', () {
     test('getPrimaryDisplay finds display at (0,0)', () {
       final primary = Display(
-        id: 1,
+        id: '1',
         name: 'Primary Display',
         size: const Size(1920, 1200),
         visiblePosition: Offset.zero,
@@ -15,7 +15,7 @@ void main() {
         scaleFactor: 1.25,
       );
       final secondary = Display(
-        id: 2,
+        id: '2',
         name: 'Secondary Display',
         size: const Size(1920, 1080),
         visiblePosition: const Offset(1920, 0),
@@ -24,12 +24,12 @@ void main() {
       );
 
       final found = DisplayUtils.getPrimaryDisplay([secondary, primary]);
-      expect(found.id, equals(1));
+      expect(found.id, equals('1'));
     });
 
     test('getDisplayFlutterBounds normalizes secondary display size relative to primary scale factor', () {
       final primary = Display(
-        id: 1,
+        id: '1',
         name: 'Primary Display (125%)',
         size: const Size(1920, 1200),
         visiblePosition: Offset.zero,
@@ -37,7 +37,7 @@ void main() {
         scaleFactor: 1.25,
       );
       final secondary = Display(
-        id: 2,
+        id: '2',
         name: 'Secondary Display (100%)',
         size: const Size(1920, 1080),
         visiblePosition: const Offset(1920, 0),

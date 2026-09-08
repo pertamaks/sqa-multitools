@@ -19,6 +19,12 @@ analyzer:
     - "web-landing/**"
     - "brain/**"
     - "build/**"
+    - android/**
+    - ios/**
+    - web/**
+    - macos/**
+    - linux/**
+    - windows/**
   language:
     strict-casts: true
     strict-inference: true

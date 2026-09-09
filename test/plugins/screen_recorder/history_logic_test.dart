@@ -76,6 +76,17 @@ void main() {
                 ],
               };
             }
+            if (call.method == 'getCursorScreenPoint') {
+              return {'dx': 100.0, 'dy': 100.0};
+            }
+            if (call.method == 'getPrimaryDisplay') {
+              return {
+                'id': '1',
+                'name': 'Screen 1',
+                'size': {'width': 1920.0, 'height': 1080.0},
+                'scaleFactor': 1.0,
+              };
+            }
             return null;
           },
         );
@@ -91,6 +102,9 @@ void main() {
           }
           if (call.method == 'getPosition') {
             return {'x': 0.0, 'y': 0.0};
+          }
+          if (call.method == 'isVisible') {
+            return true;
           }
           return true;
         });
@@ -174,5 +188,7 @@ void main() {
     // Verify physical file exists with new name
     final renamedFile = File(p.join(recordingsDir.path, 'SQA_RENAMED.mp4'));
     expect(await renamedFile.exists(), isTrue);
+
+    container.dispose();
   });
 }

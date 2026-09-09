@@ -46,7 +46,17 @@ class MockFfmpeg extends Ffmpeg {
   }
 }
 
+class MockIOSink extends Fake implements IOSink {
+  @override
+  void writeln([Object? obj = '']) {}
+}
+
 class MockProcess extends Fake implements Process {
+  final _stdin = MockIOSink();
+
+  @override
+  IOSink get stdin => _stdin;
+
   @override
   Future<int> get exitCode async => 0;
 
@@ -102,6 +112,17 @@ void main() {
                   ],
                 };
               }
+              if (call.method == 'getCursorScreenPoint') {
+                return {'dx': 100.0, 'dy': 100.0};
+              }
+              if (call.method == 'getPrimaryDisplay') {
+                return {
+                  'id': '1',
+                  'name': 'Screen 1',
+                  'size': {'width': 1920.0, 'height': 1080.0},
+                  'scaleFactor': 1.0,
+                };
+              }
               return null;
             },
           );
@@ -117,6 +138,9 @@ void main() {
             }
             if (call.method == 'getPosition') {
               return {'x': 0.0, 'y': 0.0};
+            }
+            if (call.method == 'isVisible') {
+              return true;
             }
             return true;
           });

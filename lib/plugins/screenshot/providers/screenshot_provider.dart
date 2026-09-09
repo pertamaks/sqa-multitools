@@ -167,9 +167,22 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     if (!ref.mounted) return;
     if (await saveDir.exists()) {
-      _watchSubscription = saveDir.watch().listen((event) {
-        refreshRecentCaptures();
-      });
+      try {
+        final stream = saveDir.watch();
+        _watchSubscription = stream.handleError((e) {
+          debugPrint('[Screenshot] Directory watcher error: $e');
+        }).listen(
+          (event) {
+            refreshRecentCaptures();
+          },
+          onError: (e) {
+            debugPrint('[Screenshot] Directory watcher error: $e');
+          },
+          cancelOnError: true,
+        );
+      } catch (e) {
+        debugPrint('[Screenshot] Could not watch directory: $e');
+      }
     }
   }
 

@@ -771,10 +771,20 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       setIgnoreMouseEvents(false),
     ]);
 
-    // If window was hidden before overlay, hide again without ever revealing it.
-    // Otherwise reveal at full opacity and focus normally.
+    // DWM 1-pixel resize hack: ALWAYS flush the swap chain after returning from
+    // a (potentially different-DPI) overlay window. Without this, the Flutter
+    // renderer keeps the wrong pixel-ratio and the toolbar UI is visually
+    // distorted the next time the window is shown.
+    final s = await windowManager.getSize();
+    await windowManager.setSize(Size(s.width + 1, s.height));
+    await coordinator.waitForSync(resize: true, move: false, frame: false);
+    await windowManager.setSize(s);
+    await coordinator.waitForSync(resize: true, move: false, frame: true);
+
+    // Now either re-hide (if window was hidden before overlay) or reveal.
     if (_wasHiddenBeforeOverlay) {
       _wasHiddenBeforeOverlay = false;
+      await windowManager.setOpacity(0.0);
       await WindowUtils.safeHide();
     } else {
       await windowManager.setOpacity(1.0);

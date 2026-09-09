@@ -167,9 +167,22 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
 
     if (!ref.mounted) return;
     if (await saveDir.exists()) {
-      _watchSubscription = saveDir.watch().listen((event) {
-        refreshRecentCaptures();
-      });
+      try {
+        final stream = saveDir.watch();
+        _watchSubscription = stream.handleError((e) {
+          debugPrint('[Screenshot] Directory watcher error: $e');
+        }).listen(
+          (event) {
+            refreshRecentCaptures();
+          },
+          onError: (e) {
+            debugPrint('[Screenshot] Directory watcher error: $e');
+          },
+          cancelOnError: true,
+        );
+      } catch (e) {
+        debugPrint('[Screenshot] Could not watch directory: $e');
+      }
     }
   }
 
@@ -507,20 +520,23 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
       _safeSetIgnoreMouseEvents(false),
     ]);
 
-    // If window was hidden before overlay, hide again without ever revealing.
-    // Otherwise do the normal DWM hack + reveal + focus sequence.
+    // Now either re-hide (if window was hidden before overlay) or reveal.
     if (_wasHiddenBeforeOverlay) {
       _wasHiddenBeforeOverlay = false;
+      await windowManager.setOpacity(0.0);
       await WindowUtils.safeHide();
     } else {
-      await windowManager.setOpacity(1.0);
-      // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
-      // when returning from frameless mode on Windows.
+      // DWM 1-pixel resize hack: ALWAYS flush the swap chain after returning from
+      // a (potentially different-DPI) overlay window. Without this, the Flutter
+      // renderer keeps the wrong pixel-ratio and the toolbar UI is visually
+      // distorted the next time the window is shown.
       final s = await windowManager.getSize();
       await windowManager.setSize(Size(s.width + 1, s.height));
       await coordinator.waitForSync(resize: true, move: false, frame: false);
       await windowManager.setSize(s);
       await coordinator.waitForSync(resize: true, move: false, frame: true);
+
+      await windowManager.setOpacity(1.0);
       await windowManager.focus();
     }
   }
@@ -783,20 +799,23 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
         _safeSetIgnoreMouseEvents(false),
       ]);
 
-      // If window was hidden before overlay, hide again without ever revealing.
-      // Otherwise do the normal DWM hack + reveal + focus sequence.
+      // Now either re-hide (if window was hidden before overlay) or reveal.
       if (_wasHiddenBeforeOverlay) {
         _wasHiddenBeforeOverlay = false;
+        await windowManager.setOpacity(0.0);
         await WindowUtils.safeHide();
       } else {
-        await windowManager.setOpacity(1.0);
-        // DWM 1-pixel resize hack to force Flutter to re-render the swap chain
-        // when returning from frameless mode on Windows.
+        // DWM 1-pixel resize hack: ALWAYS flush the swap chain after returning from
+        // a (potentially different-DPI) overlay window. Without this, the Flutter
+        // renderer keeps the wrong pixel-ratio and the toolbar UI is visually
+        // distorted the next time the window is shown.
         final s = await windowManager.getSize();
         await windowManager.setSize(Size(s.width + 1, s.height));
         await coordinator.waitForSync(resize: true, move: false, frame: false);
         await windowManager.setSize(s);
         await coordinator.waitForSync(resize: true, move: false, frame: true);
+
+        await windowManager.setOpacity(1.0);
         await windowManager.focus();
       }
 

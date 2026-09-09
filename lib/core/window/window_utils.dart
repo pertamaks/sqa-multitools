@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart' as window_manager;
 import 'window_native_api.dart';
@@ -26,11 +27,24 @@ class WindowUtils {
   }
 
   /// Restores the window from its "safe hide" state.
+  /// On Windows, also issues a 1-pixel resize nudge to flush the DWM swap
+  /// chain — without this the Flutter renderer may display a stale frame
+  /// with the wrong DPI when the window is re-shown after an overlay session.
   static Future<void> safeShow() async {
     final wm = window_manager.windowManager;
     await wm.setOpacity(1.0);
     await wm.show();
     await wm.focus();
+    if (!Platform.isWindows) return;
+    // DWM 1-pixel nudge: force re-rasterisation at the correct pixel ratio.
+    try {
+      final s = await wm.getSize();
+      await wm.setSize(Size(s.width + 1, s.height));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      await wm.setSize(s);
+    } catch (_) {
+      // Non-critical: ignore if the size cannot be read (e.g. window minimised).
+    }
   }
 
   // ---------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart'
     show Color, Rect, Size, Offset, Colors, Alignment;
@@ -105,9 +104,22 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
 
     if (!ref.mounted) return;
     if (await saveDir.exists()) {
-      _watchSubscription = saveDir.watch().listen((event) {
-        refreshRecentRecordings();
-      });
+      try {
+        final stream = saveDir.watch();
+        _watchSubscription = stream.handleError((Object e) {
+          debugPrint('[ScreenRecorder] Directory watcher error: $e');
+        }).listen(
+          (event) {
+            refreshRecentRecordings();
+          },
+          onError: (Object e) {
+            debugPrint('[ScreenRecorder] Directory watcher error: $e');
+          },
+          cancelOnError: true,
+        );
+      } catch (e) {
+        debugPrint('[ScreenRecorder] Could not watch directory: $e');
+      }
     }
   }
 
@@ -320,23 +332,30 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       overlayRect = targetBounds;
       captureRect = targetBounds;
     } else {
-      // No target specified — span the entire virtual desktop
-      // This allows Window/Area mode to target windows on any monitor
-      double minX = 0;
-      double minY = 0;
-      double maxX = 0;
-      double maxY = 0;
-
+      // Snap overlay to the active display where the cursor is located
+      final cursor = await screenRetriever.getCursorScreenPoint();
+      Display? activeDisplay;
       for (final display in displays) {
-        final pos = display.visiblePosition ?? Offset.zero;
-        final size = display.size;
-        minX = math.min(minX, pos.dx);
-        minY = math.min(minY, pos.dy);
-        maxX = math.max(maxX, pos.dx + size.width);
-        maxY = math.max(maxY, pos.dy + size.height);
+        final rect = Rect.fromLTWH(
+          display.visiblePosition?.dx ?? 0,
+          display.visiblePosition?.dy ?? 0,
+          display.size.width,
+          display.size.height,
+        );
+        if (rect.contains(cursor)) {
+          activeDisplay = display;
+          break;
+        }
       }
-      overlayRect = Rect.fromLTRB(minX, minY, maxX, maxY);
-      // captureRect stays null — it will be set when the user selects a window or draws an area
+      activeDisplay ??= await screenRetriever.getPrimaryDisplay();
+
+      overlayRect = Rect.fromLTWH(
+        activeDisplay.visiblePosition?.dx ?? 0,
+        activeDisplay.visiblePosition?.dy ?? 0,
+        activeDisplay.size.width,
+        activeDisplay.size.height,
+      );
+      captureRect = state.captureMode == CaptureMode.fullScreen ? overlayRect : null;
     }
 
     final coordinator = ref.read(windowTransitionProvider);
@@ -351,16 +370,26 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       await WindowUtils.safeShow();
     }
 
-    // 1. Ghost the window instantly and wait for OS commitment
+    // 1. Ghost the window instantly
     await windowManager.setOpacity(0.0);
-    await coordinator.waitForSync(resize: false, move: false);
 
     // 2. Prepare the background state while invisible
     await windowManager.setAsFrameless();
     await windowManager.setHasShadow(false);
     await windowManager.setBackgroundColor(Colors.transparent);
 
-    // 3. Update state early so Flutter starts building the transparent overlay UI
+    // 3. Move and expand the invisible window to the target display FIRST
+    // This forces Windows DWM to send WM_DPICHANGED and adapt Flutter viewport to the target display's DPI
+    await windowManager.setBounds(overlayRect);
+    await coordinator.waitForSync(
+      resize: true,
+      move: true,
+      frame: false,
+      targetSize: overlayRect.size,
+      targetOffset: overlayRect.topLeft,
+    );
+
+    // 4. Update state so Flutter builds the overlay UI with the correct viewport
     state = state.copyWith(
       previousWindowSize: currentSize,
       previousWindowPos: currentPos,
@@ -370,24 +399,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       lockedDisplay: null,
     );
 
-    // Wait for Flutter to commit the first frame of the overlay
+    // Wait for Flutter to commit the first frame of the overlay on the new DPI context
     await coordinator.waitForSync(resize: false, move: false, frame: true);
 
-    // 4. Expand the window while it is ghosted and Flutter is ready
+    // 5. Ensure bounds, set always on top, and reveal
     await windowManager.setBounds(overlayRect);
     await windowManager.setAlwaysOnTop(true);
     await windowManager.setIgnoreMouseEvents(false);
-
-    // 5. Robust sync delay for Windows DWM buffer allocation
-    await coordinator.waitForSync(
-      resize: true,
-      move: true,
-      frame: false,
-      targetSize: overlayRect.size,
-      targetOffset: overlayRect.topLeft,
-    );
-
-    // 6. Finally reveal and focus
     await windowManager.setOpacity(1.0);
     await windowManager.focus();
   }
@@ -766,12 +784,22 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       setIgnoreMouseEvents(false),
     ]);
 
-    // If window was hidden before overlay, hide again without ever revealing it.
-    // Otherwise reveal at full opacity and focus normally.
+    // Now either re-hide (if window was hidden before overlay) or reveal.
     if (_wasHiddenBeforeOverlay) {
       _wasHiddenBeforeOverlay = false;
+      await windowManager.setOpacity(0.0);
       await WindowUtils.safeHide();
     } else {
+      // DWM 1-pixel resize hack: ALWAYS flush the swap chain after returning from
+      // a (potentially different-DPI) overlay window. Without this, the Flutter
+      // renderer keeps the wrong pixel-ratio and the toolbar UI is visually
+      // distorted the next time the window is shown.
+      final s = await windowManager.getSize();
+      await windowManager.setSize(Size(s.width + 1, s.height));
+      await coordinator.waitForSync(resize: true, move: false, frame: false);
+      await windowManager.setSize(s);
+      await coordinator.waitForSync(resize: true, move: false, frame: true);
+
       await windowManager.setOpacity(1.0);
       await windowManager.focus();
     }

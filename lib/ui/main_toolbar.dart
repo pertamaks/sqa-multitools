@@ -211,8 +211,12 @@ class _MainToolbarState extends ConsumerState<MainToolbar> with WindowListener {
   }
 
   @override
-  void onWindowFocus() {
-    WindowUtils.safeShow();
+  void onWindowFocus() async {
+    // Only refresh or reveal if the window is already supposed to be visible.
+    // Prevents inadvertent showing when returning focus to background/hidden window.
+    if (await windowManager.isVisible()) {
+      WindowUtils.safeShow();
+    }
   }
 
   @override

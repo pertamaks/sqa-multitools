@@ -10,6 +10,7 @@ import '../../core/models/capture_mode.dart';
 import '../../core/models/screenshot_tool.dart';
 import '../../core/models/click_ripple.dart';
 import '../../core/window/window_utils.dart';
+import '../../core/window/display_utils.dart';
 import 'package:window_manager/window_manager.dart';
 import 'sqa_floating_bar.dart';
 import '../../core/providers/capture_key_provider.dart';
@@ -61,9 +62,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
   Rect? _hoveredMonitorRect;
   Display? _hoveredDisplay;
-  /// Cached window position — updated every polling cycle via `windowManager.getPosition()`.
-  /// Used by synchronous methods (drag handlers, bar teleport) to avoid an async call.
-  Offset _cachedWindowPos = Offset.zero;
 
   @override
   void initState() {
@@ -152,7 +150,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             if (!mounted || !widget.delegate.isOverlayVisible) return;
 
             final windowPos = await windowManager.getPosition();
-            _cachedWindowPos = windowPos;
             if (!mounted || !widget.delegate.isOverlayVisible) return;
             final localPos = Offset(
               cursor.dx - windowPos.dx,
@@ -218,11 +215,15 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
               Display? targetDisplay;
               for (final d in displays) {
+                final dBounds = DisplayUtils.getDisplayFlutterBounds(
+                  d,
+                  allDisplays: displays,
+                );
                 final rect = Rect.fromLTWH(
-                  d.visiblePosition?.dx ?? 0,
-                  d.visiblePosition?.dy ?? 0,
-                  d.size.width,
-                  d.size.height,
+                  (d.visiblePosition?.dx ?? 0),
+                  (d.visiblePosition?.dy ?? 0),
+                  dBounds.width,
+                  dBounds.height,
                 );
                 if (rect.contains(cursor)) {
                   targetDisplay = d;
@@ -232,14 +233,13 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
               if (targetDisplay != null) {
                 final windowPos = await windowManager.getPosition();
-                _cachedWindowPos = windowPos;
-                if (!mounted || !widget.delegate.isOverlayVisible) return;
-                final localRect = Rect.fromLTWH(
-                  (targetDisplay.visiblePosition?.dx ?? 0) - windowPos.dx,
-                  (targetDisplay.visiblePosition?.dy ?? 0) - windowPos.dy,
-                  targetDisplay.size.width,
-                  targetDisplay.size.height,
+                    if (!mounted || !widget.delegate.isOverlayVisible) return;
+                final dBounds = DisplayUtils.getDisplayFlutterBounds(
+                  targetDisplay,
+                  originOffset: windowPos,
+                  allDisplays: displays,
                 );
+                final localRect = dBounds;
                 if (_hoveredMonitorRect != localRect) {
                   setState(() {
                     _hoveredMonitorRect = localRect;
@@ -285,7 +285,6 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
     final windowPos = await windowManager.getPosition();
-    _cachedWindowPos = windowPos;
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
     final delegate = widget.delegate;
@@ -358,80 +357,38 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
 
   void _teleportBarToRect(Rect targetRect) {
     if (!mounted) return;
-    final displays = widget.delegate.availableDisplays;
-    if (displays.isEmpty) return;
+    final size = MediaQuery.of(context).size;
+    final double barWidth = _estimatedBarWidth;
+    const double barHeight = SqaTokens.floatingBarHeight;
+    const double gap = SqaTokens.spacingSmall;
 
-    final windowPos = _cachedWindowPos;
-    // Use the rect center in GLOBAL coordinates to find the display
-    final globalCenter = targetRect.center.translate(
-      windowPos.dx,
-      windowPos.dy,
-    );
+    double targetX, targetY;
+    final mode = widget.delegate.captureMode;
+    if (mode == CaptureMode.area || mode == CaptureMode.scrolling) {
+      targetX = targetRect.center.dx - barWidth / 2;
+      final belowY = targetRect.bottom + gap;
+      final aboveY = targetRect.top - gap - barHeight;
 
-    Display? activeDisplay;
-    for (final d in displays) {
-      final dPos = d.visiblePosition ?? Offset.zero;
-      final dRect = Rect.fromLTWH(
-        dPos.dx,
-        dPos.dy,
-        d.size.width,
-        d.size.height,
-      );
-      if (dRect.contains(globalCenter)) {
-        activeDisplay = d;
-        break;
-      }
-    }
-
-    if (activeDisplay != null) {
-      final dPos = activeDisplay.visiblePosition ?? Offset.zero;
-      final double barWidth = _estimatedBarWidth;
-      const double barHeight = SqaTokens.floatingBarHeight;
-      const double gap = SqaTokens.spacingSmall;
-
-      // Display bounds in local window coordinates
-      final localDisplayLeft = dPos.dx - windowPos.dx;
-      final localDisplayTop = dPos.dy - windowPos.dy;
-      final localDisplayBottom = localDisplayTop + activeDisplay.size.height;
-
-      double targetX, targetY;
-
-      final mode = widget.delegate.captureMode;
-      if (mode == CaptureMode.area || mode == CaptureMode.scrolling) {
-        // Position relative to the selection rect
-        targetX = targetRect.center.dx - barWidth / 2;
-
-        final belowY = targetRect.bottom + gap;
-        final aboveY = targetRect.top - gap - barHeight;
-
-        if (belowY + barHeight <= localDisplayBottom) {
-          targetY = belowY;
-        } else if (aboveY >= localDisplayTop) {
-          targetY = aboveY;
-        } else {
-          // Neither fits perfectly, prefer the side with more space
-          final spaceBelow = localDisplayBottom - targetRect.bottom;
-          final spaceAbove = targetRect.top - localDisplayTop;
-          targetY = spaceBelow >= spaceAbove
-              ? (localDisplayBottom - barHeight).clamp(
-                  localDisplayTop,
-                  localDisplayBottom,
-                )
-              : localDisplayTop;
-        }
+      if (belowY + barHeight <= size.height) {
+        targetY = belowY;
+      } else if (aboveY >= 0) {
+        targetY = aboveY;
       } else {
-        // Fullscreen: anchor to bottom-center of the display
-        targetX =
-            localDisplayLeft + (activeDisplay.size.width / 2) - (barWidth / 2);
-        targetY = localDisplayBottom - barHeight - SqaTokens.spacingXXXLarge;
+        final spaceBelow = size.height - targetRect.bottom;
+        final spaceAbove = targetRect.top;
+        targetY = spaceBelow >= spaceAbove
+            ? (size.height - barHeight).clamp(0.0, size.height)
+            : 0.0;
       }
-
-      final targetOffset = Offset(targetX, targetY);
-
-      final size = MediaQuery.of(context).size;
-      _barOffsetNotifier.value = _clampOffset(targetOffset, size);
-      widget.onBarOffsetChanged?.call(_barOffsetNotifier.value);
+    } else {
+      // Fullscreen: anchor to bottom-center of the screen
+      targetX = (size.width / 2) - (barWidth / 2);
+      targetY = size.height - barHeight - SqaTokens.spacingXXXLarge;
     }
+
+    final targetOffset = Offset(targetX, targetY);
+    _barOffsetNotifier.value = _clampOffset(targetOffset, size);
+    widget.onBarOffsetChanged?.call(_barOffsetNotifier.value);
   }
 
   void _onAreaDragStart(DragStartDetails details) {
@@ -442,26 +399,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
             widget.delegate.captureMode == CaptureMode.scrolling) &&
         !widget.delegate.isSelectingMonitor) {
       final startPos = details.localPosition;
-      final windowPos = _cachedWindowPos;
-      final globalStart = startPos.translate(windowPos.dx, windowPos.dy);
-
-      Display? startDisplay;
-      for (final d in widget.delegate.availableDisplays) {
-        final dPos = d.visiblePosition ?? Offset.zero;
-        final dRect = Rect.fromLTWH(
-          dPos.dx,
-          dPos.dy,
-          d.size.width,
-          d.size.height,
-        );
-        if (dRect.contains(globalStart)) {
-          startDisplay = d;
-          break;
-        }
-      }
-
-      // Notify Logical Lock (First-Touch)
-      widget.delegate.setSelection(null, startDisplay);
+      widget.delegate.setSelection(null, widget.delegate.lockedDisplay);
 
       setState(() {
         _startPos = startPos;
@@ -477,26 +415,7 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if ((widget.delegate.captureMode == CaptureMode.area ||
             widget.delegate.captureMode == CaptureMode.scrolling) &&
         !widget.delegate.isSelectingMonitor) {
-      var currentPos = details.localPosition;
-
-      // Logical Clamping Constraint
-      final lockedDisplay = widget.delegate.lockedDisplay;
-      if (lockedDisplay != null) {
-        final windowPos = _cachedWindowPos;
-        final dPos = lockedDisplay.visiblePosition ?? Offset.zero;
-
-        // Logical bounds of the monitor relative to our spanning window
-        final localMinX = dPos.dx - windowPos.dx;
-        final localMinY = dPos.dy - windowPos.dy;
-        final localMaxX = localMinX + lockedDisplay.size.width;
-        final localMaxY = localMinY + lockedDisplay.size.height;
-
-        currentPos = Offset(
-          currentPos.dx.clamp(localMinX, localMaxX),
-          currentPos.dy.clamp(localMinY, localMaxY),
-        );
-      }
-
+      final currentPos = details.localPosition;
       setState(() {
         _currentPos = Offset(
           currentPos.dx.roundToDouble(),
@@ -605,9 +524,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
               textHasBackground: delegate.textHasBackground,
             ),
 
-            // Multi-monitor Instructions
-            if (showInstruction && !delegate.isCapturing)
-              ..._buildMultiMonitorInstructions(),
+            // Instructions
+            if (showInstruction && !delegate.isCapturing) _buildInstruction(),
 
             // Floating Bar
             ValueListenableBuilder<Offset?>(
@@ -767,40 +685,23 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     );
   }
 
-  List<Widget> _buildMultiMonitorInstructions() {
+  Widget _buildInstruction() {
     final delegate = widget.delegate;
-    double minX = 0, minY = 0;
-    for (final d in delegate.availableDisplays) {
-      final pos = d.visiblePosition ?? Offset.zero;
-      minX = math.min(minX, pos.dx);
-      minY = math.min(minY, pos.dy);
-    }
-
-    return delegate.availableDisplays.map((display) {
-      final dPos = display.visiblePosition ?? Offset.zero;
-      final localX = dPos.dx - minX;
-      final localY = dPos.dy - minY;
-
-      return Positioned(
-        left: localX,
-        top: localY,
-        width: display.size.width,
-        height: display.size.height,
-        child: IgnorePointer(
-          child: Center(
-            child:
-                widget.instructionBuilder?.call(
-                  context,
-                  delegate.captureMode,
-                ) ??
-                _DefaultInstruction(
-                  mode: delegate.captureMode,
-                  isSelectingMonitor: delegate.isSelectingMonitor,
-                ),
-          ),
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child:
+              widget.instructionBuilder?.call(
+                context,
+                delegate.captureMode,
+              ) ??
+              _DefaultInstruction(
+                mode: delegate.captureMode,
+                isSelectingMonitor: delegate.isSelectingMonitor,
+              ),
         ),
-      );
-    }).toList();
+      ),
+    );
   }
 }
 

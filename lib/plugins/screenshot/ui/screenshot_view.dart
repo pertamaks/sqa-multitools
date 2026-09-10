@@ -66,7 +66,7 @@ class _ScreenshotViewState extends ConsumerState<ScreenshotView> {
       if (Platform.isLinux) {
         notifier.capture();
       } else {
-        notifier.startMonitorSelection();
+        notifier.startOverlay();
       }
     }
   }

@@ -71,6 +71,21 @@ A ledger of foundational technical decisions to provide context for future devel
 * **Decision:** We migrated `WindowUtils.safeHide()` to use a true `windowManager.hide()` command across all platforms.
 * **Reasoning:** Unmapping the window (`hide()`) completely removes it from the OS Z-order stack, guaranteeing it will never intercept focus when the user is working in other apps. It also perfectly satisfies Linux/GNOME dock restrictions, allowing the app to act as a true, invisible background system daemon without being pinned to the dock.
 
+### ADR-008: Cursor-Aware Active-Monitor Overlay Snapping Architecture
+**Date:** 2026-09-08
+* **Context:** In multi-monitor setups with mixed DPI scaling (e.g., Primary at 125%, Secondary at 100%), spanning a single transparent Flutter window across the entire virtual desktop caused severe coordinate distortion, shifted hitboxes, and misplaced floating toolbars because the Flutter Windows embedding assigns a single uniform DPI context to the HWND.
+* **Decision:** Instead of spanning across all monitors with virtual desktop boundaries, both the Screenshot and Screen Recorder overlays now use **Cursor-Aware Active-Monitor Overlay Snapping**. When initiated, `startOverlay()` inspects `screenRetriever.getCursorScreenPoint()` and positions the overlay window strictly within the active monitor's bounds (`activeDisplay.visiblePosition` and `activeDisplay.size`). Per-display bounds inside the active display are normalized via `DisplayUtils`.
+* **Reasoning:** Snapping the overlay strictly to the monitor containing the user's cursor completely avoids mixed-DPI cross-monitor rendering limitations in Windows Flutter apps. It ensures 1:1 pixel crispness, eliminates coordinate transformation drift, and provides seamless capture across multi-monitor setups.
+
+### ADR-009: Ghost-First DPI Nudge & Silent Restore Sequence
+**Date:** 2026-09-09
+* **Context:** When the application transitions from an overlay session on a monitor with a different DPI scale factor back to the main toolbar, Windows DWM and Flutter's rendering pipeline can retain a stale device pixel ratio. This causes visual distortion of the UI and misplaced hitboxes. Performing resize operations while the window is visible can also cause visible window flashing when the action was triggered while the app was hidden/in tray.
+* **Decision:** We established a strict **Ghost-First Restore Sequence**:
+  1. The window is rendered invisible (`opacity = 0.0`) before restoring toolbar bounds.
+  2. If the window was previously hidden, it immediately calls `safeHide()` without resizing or gaining focus, preserving complete background silence.
+  3. If the window was visible (or when `safeShow()` is triggered), a 1-pixel resize nudge (`width + 1` then back to original width) forces DWM and the Flutter engine to re-rasterize the swap chain at the target display's DPI before restoring full opacity (`1.0`) and focus.
+* **Reasoning:** Decoupling the DWM swap chain flush from the background/hidden path eliminates visual flashing and guarantees crisp, non-distorted rendering every time the main toolbar is shown.
+
 ---
 
 ## 📜 Resolved Improvements Log
@@ -78,3 +93,4 @@ A ledger of foundational technical decisions to provide context for future devel
 Completed tech debt and architectural milestones are archived here for historical tracking.
 
 * *(No items resolved yet. Check off items from the roadmap above and move them here!)*
+

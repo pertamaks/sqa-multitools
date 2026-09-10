@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-09-09
+
+### Fixed
+- **Multi-Monitor Coordinate Alignment & Scaling (ADR-008):** Resolved cross-monitor offset drift during screen recording and screenshot capture on multi-monitor setups with mixed DPI. The overlay now reliably snaps to the active monitor with 1:1 pixel crispness.
+- **Capture Area Selection Centering & UI Sync:** Fixed visual alignment issues where the selection bounding box, selection wording, and capture icons were misaligned with the actual cropped bitmap section.
+- **Main Window DPI Distortion on Restore:** Fixed rendering distortion and displaced hitboxes on the main toolbar after returning from an overlay session on secondary displays with different DPI ratios by ensuring DWM swap chain flushes occur cleanly on show.
+- **Background Mode Window Re-Appearance:** Fixed brief flashes/re-appearance of the main toolbar when triggering captures via hotkey while the app was minimized or hidden in the system tray.
+- **Filesystem Watcher Stability:** Gracefully handled Windows directory watcher socket access-denied errors when scanning capture and recording history folders.
+
 ## [1.1.0] - 2026-09-07
 
 ### Added

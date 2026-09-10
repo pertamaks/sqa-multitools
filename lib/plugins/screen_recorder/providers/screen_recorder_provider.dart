@@ -106,13 +106,13 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     if (await saveDir.exists()) {
       try {
         final stream = saveDir.watch();
-        _watchSubscription = stream.handleError((e) {
+        _watchSubscription = stream.handleError((Object e) {
           debugPrint('[ScreenRecorder] Directory watcher error: $e');
         }).listen(
           (event) {
             refreshRecentRecordings();
           },
-          onError: (e) {
+          onError: (Object e) {
             debugPrint('[ScreenRecorder] Directory watcher error: $e');
           },
           cancelOnError: true,

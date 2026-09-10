@@ -169,13 +169,13 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
     if (await saveDir.exists()) {
       try {
         final stream = saveDir.watch();
-        _watchSubscription = stream.handleError((e) {
+        _watchSubscription = stream.handleError((Object e) {
           debugPrint('[Screenshot] Directory watcher error: $e');
         }).listen(
           (event) {
             refreshRecentCaptures();
           },
-          onError: (e) {
+          onError: (Object e) {
             debugPrint('[Screenshot] Directory watcher error: $e');
           },
           cancelOnError: true,

@@ -80,6 +80,7 @@ CLAUDE.md
 *.txt
 !README.txt
 !LICENSE.txt
+!CMakeLists.txt
 /tmp/
 stitching-approach.md
 

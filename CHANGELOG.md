@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-10-30
+
+### Added
+- **OmniConverter Plugin:** All-in-one data transformation and token inspection suite for QA engineers and developers:
+  - Multi-encoding support: Base64 (Standard & URL-safe with auto-padding), URL encode/decode, HTML entities, Hexadecimal, and 8-bit Binary.
+  - Serialization conversions: Bi-directional JSON ↔ YAML and JSON ↔ XML with syntax error notifications.
+  - JWT (JSON Web Token) live decoder and inspector with expiration detection (`ACTIVE`/`EXPIRED` badges), issued-at, subject, and algorithm breakdown.
+  - Cryptographic hash generators: Instant MD5, SHA-1, SHA-256, and SHA-512 calculation with one-click copying.
+  - Text case transformers: `camelCase`, `PascalCase`, `snake_case`, `kebab-case`, `CONSTANT_CASE`, and `Title Case`.
+  - String utilities: Duplicate line removal, alphabetical sorting, and line whitespace trimming.
+  - Comprehensive unit test suite covering converters, encodings, and JWT analysis.
+- **Sequential Pairwise Long Screenshot Stitching (Anti-Drift):** Overhauled long screenshot stitching engine to use frame-to-frame sequential normalized cross-correlation (NCC) and active central region projection, drastically improving reliability and preventing drift on long pages with repetitive backgrounds.
+- **In-Memory Pipe Processing:** Replaced mass temporary PNG disk file writes during frame extraction with FFmpeg in-memory pipe streaming (`-f image2pipe pipe:1`), eliminating disk churn and false-positive antivirus / ransomware behavioral alarms.
+
+### Changed
+- **Capture Overlay Interaction:** Immediate mouse passthrough when an area selection is completed, allowing users to scroll and interact with background content without waiting for recording start.
+- **Monitor Discovery Optimization:** Removed PowerShell process spawning (`Get-CimInstance Win32_PnPEntity`) and temporary thumbnail disk files in Windows native monitor discovery.
+
+### Fixed
+- **FFmpeg Pipe Conversion Deadlock:** Fixed UI hanging indefinitely on "Stitching Long Screenshot..." by ensuring concurrent draining of stdout and stderr streams during non-PNG format conversions.
+- **Long Screenshot Overlay Cleanup:** Ensured clean window state restoration and temporary intermediate video file cleanup upon stitching completion or cancellation.
+
 ## [1.1.1] - 2026-09-09
 
 ### Fixed

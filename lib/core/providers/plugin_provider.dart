@@ -17,6 +17,7 @@ import '../../plugins/todo/todo_plugin.dart';
 import '../../plugins/qa_cheatsheet/qa_cheatsheet_plugin.dart';
 import '../../plugins/curl_requester/curl_requester_plugin.dart';
 import '../../plugins/swagger_explorer/swagger_explorer_plugin.dart';
+import '../../plugins/omniconverter/omniconverter_plugin.dart';
 import '../services/preferences_service.dart';
 import '../services/coffee_shop_service.dart';
 import '../services/logging_service.dart';
@@ -39,8 +40,10 @@ List<SqaPlugin> availablePlugins(Ref ref) {
     QaCheatsheetPlugin(),
     CurlRequesterPlugin(),
     SwaggerExplorerPlugin(),
+    OmniConverterPlugin(),
     if (ref.watch(supporterTierProvider) >= 2) QaOraclePlugin(),
   ];
+
 
   // Proactively initialize plugins for warm-up (Rule 6)
   final logger = ref.read(loggingServiceProvider.notifier);

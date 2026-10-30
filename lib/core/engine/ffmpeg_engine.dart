@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -622,6 +623,45 @@ class FfmpegEngine {
       return result.exitCode == 0;
     } catch (e) {
       debugPrint('[FfmpegEngine] Compositing failed: $e');
+      return false;
+    }
+  }
+
+  /// Converts image bytes directly into a target file using FFmpeg stdin pipe (zero disk temporary file).
+  static Future<bool> convertImageFromBytes({
+    required Uint8List bytes,
+    required String outputPath,
+  }) async {
+    final executable = await getExecutablePath();
+    if (executable == null) return false;
+
+    try {
+      final process = await Process.start(executable, [
+        '-y',
+        '-f',
+        'image2pipe',
+        '-i',
+        'pipe:0',
+        outputPath,
+      ]);
+
+      // Must drain stdout and stderr to prevent pipe buffer from filling up and hanging
+      final stdoutDrain = process.stdout.drain<void>();
+      final stderrDrain = process.stderr.drain<void>();
+
+      process.stdin.add(bytes);
+      await process.stdin.flush();
+      await process.stdin.close();
+
+      final results = await Future.wait([
+        process.exitCode.timeout(const Duration(seconds: 15)),
+        stdoutDrain,
+        stderrDrain,
+      ]);
+      final exitCode = results[0] as int;
+      return exitCode == 0;
+    } catch (e) {
+      debugPrint('[FfmpegEngine] Convert image from bytes failed: $e');
       return false;
     }
   }

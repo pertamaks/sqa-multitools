@@ -288,7 +288,8 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
     if (!mounted || !widget.delegate.isOverlayVisible) return;
 
     final delegate = widget.delegate;
-    if (!delegate.isRecording || !delegate.isOverlayVisible || !mounted) {
+    final canPassthrough = delegate.isRecording || delegate.selectionRect != null;
+    if (!canPassthrough || !delegate.isOverlayVisible || !mounted) {
       if (_isIgnoring) {
         _isIgnoring = false;
         await delegate.setIgnoreMouseEvents(false);
@@ -323,13 +324,13 @@ class _SqaCaptureOverlayState extends ConsumerState<SqaCaptureOverlay>
       height,
     );
 
-    final hoverRect = barRect.inflate(10);
+    final hoverRect = barRect.inflate(12);
     final isHovering = hoverRect.contains(cursor);
 
     if (isHovering && _isIgnoring) {
       _isIgnoring = false;
       await delegate.setIgnoreMouseEvents(false);
-    } else if (!isHovering && !_isIgnoring && delegate.isRecording) {
+    } else if (!isHovering && !_isIgnoring && canPassthrough) {
       _isIgnoring = true;
       await delegate.setIgnoreMouseEvents(true);
     }

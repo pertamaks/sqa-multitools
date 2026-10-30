@@ -720,21 +720,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
           if (state.format.toLowerCase() == 'png') {
             await File(savePath).writeAsBytes(pngBytes);
           } else {
-            final tempDir = await getTemporaryDirectory();
-            final tempFile = File(
-              p.join(
-                tempDir.path,
-                'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png',
-              ),
-            );
-            await tempFile.writeAsBytes(pngBytes);
-
-            final success = await FfmpegEngine.convertImage(
-              inputPath: tempFile.path,
+            final success = await FfmpegEngine.convertImageFromBytes(
+              bytes: pngBytes,
               outputPath: savePath,
             );
-
-            if (await tempFile.exists()) await tempFile.delete();
 
             if (!success) {
               // Fallback to saving as PNG if conversion fails
@@ -857,21 +846,10 @@ class ScreenshotNotifier extends _$ScreenshotNotifier {
           if (state.format.toLowerCase() == 'png') {
             await File(savePath).writeAsBytes(pngBytes);
           } else {
-            final tempDir = await getTemporaryDirectory();
-            final tempFile = File(
-              p.join(
-                tempDir.path,
-                'sqa_ss_temp_${DateTime.now().millisecondsSinceEpoch}.png',
-              ),
-            );
-            await tempFile.writeAsBytes(pngBytes);
-
-            final success = await FfmpegEngine.convertImage(
-              inputPath: tempFile.path,
+            final success = await FfmpegEngine.convertImageFromBytes(
+              bytes: pngBytes,
               outputPath: savePath,
             );
-
-            if (await tempFile.exists()) await tempFile.delete();
 
             if (!success) {
               final fallbackPath = savePath.replaceAll(

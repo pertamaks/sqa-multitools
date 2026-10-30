@@ -40,8 +40,6 @@ abstract class ScreenRecorderState with _$ScreenRecorderState {
     Rect? selectionRect,
     Rect? captureRect,
     @Default([]) List<Display> availableDisplays,
-    @Default({}) Map<String, String> monitorNames, // id -> friendlyName
-    @Default({}) Map<String, String> displayThumbnails, // id -> filePath
     String? primaryDisplayId,
     @Default([]) List<RecordingInfo> recentRecordings,
     Display? lockedDisplay,

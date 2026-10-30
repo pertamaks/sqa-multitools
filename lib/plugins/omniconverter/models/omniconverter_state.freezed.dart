@@ -25,12 +25,12 @@ $OmniConverterStateCopyWith<OmniConverterState> get copyWith => _$OmniConverterS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OmniConverterState&&(identical(other.category, category) || other.category == category)&&(identical(other.encodingMode, encodingMode) || other.encodingMode == encodingMode)&&(identical(other.formatMode, formatMode) || other.formatMode == formatMode)&&(identical(other.textCaseMode, textCaseMode) || other.textCaseMode == textCaseMode)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.wrapText, wrapText) || other.wrapText == wrapText)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.isProcessing, isProcessing) || other.isProcessing == isProcessing)&&const DeepCollectionEquality().equals(other.hashes, hashes)&&(identical(other.jwtInfo, jwtInfo) || other.jwtInfo == jwtInfo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OmniConverterState&&(identical(other.category, category) || other.category == category)&&(identical(other.encodingMode, encodingMode) || other.encodingMode == encodingMode)&&(identical(other.formatMode, formatMode) || other.formatMode == formatMode)&&(identical(other.textCaseMode, textCaseMode) || other.textCaseMode == textCaseMode)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.wrapText, wrapText) || other.wrapText == wrapText)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.isProcessing, isProcessing) || other.isProcessing == isProcessing)&&const DeepCollectionEquality().equals(other.hashes, hashes)&&const DeepCollectionEquality().equals(other.jwtInfo, jwtInfo));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,category,encodingMode,formatMode,textCaseMode,direction,input,output,wrapText,errorMessage,isProcessing,const DeepCollectionEquality().hash(hashes),jwtInfo);
+int get hashCode => Object.hash(runtimeType,category,encodingMode,formatMode,textCaseMode,direction,input,output,wrapText,errorMessage,isProcessing,const DeepCollectionEquality().hash(hashes),const DeepCollectionEquality().hash(jwtInfo));
 
 @override
 String toString() {
@@ -249,12 +249,12 @@ _$OmniConverterStateCopyWith<_OmniConverterState> get copyWith => __$OmniConvert
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OmniConverterState&&(identical(other.category, category) || other.category == category)&&(identical(other.encodingMode, encodingMode) || other.encodingMode == encodingMode)&&(identical(other.formatMode, formatMode) || other.formatMode == formatMode)&&(identical(other.textCaseMode, textCaseMode) || other.textCaseMode == textCaseMode)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.wrapText, wrapText) || other.wrapText == wrapText)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.isProcessing, isProcessing) || other.isProcessing == isProcessing)&&const DeepCollectionEquality().equals(other._hashes, _hashes)&&(identical(other.jwtInfo, jwtInfo) || other.jwtInfo == jwtInfo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OmniConverterState&&(identical(other.category, category) || other.category == category)&&(identical(other.encodingMode, encodingMode) || other.encodingMode == encodingMode)&&(identical(other.formatMode, formatMode) || other.formatMode == formatMode)&&(identical(other.textCaseMode, textCaseMode) || other.textCaseMode == textCaseMode)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.input, input) || other.input == input)&&(identical(other.output, output) || other.output == output)&&(identical(other.wrapText, wrapText) || other.wrapText == wrapText)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.isProcessing, isProcessing) || other.isProcessing == isProcessing)&&const DeepCollectionEquality().equals(other._hashes, _hashes)&&const DeepCollectionEquality().equals(other.jwtInfo, jwtInfo));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,category,encodingMode,formatMode,textCaseMode,direction,input,output,wrapText,errorMessage,isProcessing,const DeepCollectionEquality().hash(_hashes),jwtInfo);
+int get hashCode => Object.hash(runtimeType,category,encodingMode,formatMode,textCaseMode,direction,input,output,wrapText,errorMessage,isProcessing,const DeepCollectionEquality().hash(_hashes),const DeepCollectionEquality().hash(jwtInfo));
 
 @override
 String toString() {

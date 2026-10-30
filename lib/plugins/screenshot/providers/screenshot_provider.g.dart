@@ -95,7 +95,7 @@ final class ScreenshotNotifierProvider
 }
 
 String _$screenshotNotifierHash() =>
-    r'8122e3801b65ab9cc37c78c3feaa23482fe6faff';
+    r'8cb3f8135c0b53563e5689bd5b3a710ab2c4c477';
 
 abstract class _$ScreenshotNotifier extends $Notifier<ScreenshotState> {
   ScreenshotState build();

@@ -42,7 +42,7 @@ final class OmniConverterNotifierProvider
 }
 
 String _$omniConverterNotifierHash() =>
-    r'b5b5fd32b4f7d514cc72a7e17139400091dcf64b';
+    r'f1e4abb7f6e0ccd7f01232c4cd172ef6342d4bd8';
 
 abstract class _$OmniConverterNotifier extends $Notifier<OmniConverterState> {
   OmniConverterState build();

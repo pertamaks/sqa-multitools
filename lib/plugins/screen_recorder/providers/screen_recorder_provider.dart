@@ -123,62 +123,18 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     }
   }
 
-  /// Refreshes the list of available monitors and their friendly names.
+  /// Refreshes the list of available monitors.
   Future<void> refreshMonitors() async {
     final displays = await screenRetriever.getAllDisplays();
-    final names = await WindowUtils.getFriendlyMonitorNames();
     final primary = await screenRetriever.getPrimaryDisplay();
-
-    final Map<String, String> monitorNames = {};
-
-    // 2. Simple Mapping: Trust discovery order + Thumbnail for identification
-    for (int i = 0; i < displays.length; i++) {
-      final display = displays[i];
-      monitorNames[display.id] = names.length > i
-          ? names[i]
-          : 'Monitor ${i + 1}';
-    }
 
     state = state.copyWith(
       availableDisplays: displays,
-      monitorNames: monitorNames,
       primaryDisplayId: primary.id,
     );
-
-    // Trigger visual thumbnail refresh
-    await refreshThumbnails();
   }
 
-  /// Manually refreshes the visual snapshots of all monitors.
-  Future<void> refreshThumbnails() async {
-    final engineReady = ref.read(ffmpegProvider).isReady;
-    if (!engineReady) return;
 
-    final Map<String, String> newThumbnails = Map.from(state.displayThumbnails);
-
-    // Capture each display SEQUENTIALLY to avoid GDI race conditions
-    for (final display in state.availableDisplays) {
-      final bounds = Rect.fromLTWH(
-        display.visiblePosition?.dx ?? 0,
-        display.visiblePosition?.dy ?? 0,
-        display.size.width,
-        display.size.height,
-      );
-
-      /* debugPrint(
-        '[ScreenRecorder] Capturing thumbnail for ${display.id}: bounds=$bounds',
-      ); */
-      final file = await FfmpegEngine.captureDisplayThumbnail(
-        bounds,
-        state.availableDisplays,
-      );
-      if (file != null) {
-        newThumbnails[display.id] = file.path;
-      }
-    }
-
-    state = state.copyWith(displayThumbnails: newThumbnails);
-  }
 
   /// Refreshes the list of available audio input devices.
   Future<void> refreshAudioDevices() async {
@@ -1090,18 +1046,10 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
           await File(savePath).writeAsBytes(finalImage);
           debugPrint('Long Screenshot: Saved to $savePath');
         } else {
-          final tempDir = await getTemporaryDirectory();
-          final tempFile = File(
-            p.join(tempDir.path, 'sqa_long_ss_temp_$timestamp.png'),
-          );
-          await tempFile.writeAsBytes(finalImage);
-
-          final success = await FfmpegEngine.convertImage(
-            inputPath: tempFile.path,
+          final success = await FfmpegEngine.convertImageFromBytes(
+            bytes: finalImage,
             outputPath: savePath,
           );
-
-          if (await tempFile.exists()) await tempFile.delete();
 
           if (success) {
             debugPrint('Long Screenshot: Converted and saved to $savePath');

@@ -75,23 +75,6 @@ class WindowNativeApiWindows implements WindowNativeApi {
 
   @override
   Future<List<String>> getFriendlyMonitorNames() async {
-    if (!Platform.isWindows) return [];
-
-    try {
-      final result = await Process.run('powershell', [
-        '-Command',
-        '(Get-CimInstance Win32_PnPEntity | Where-Object { \$_.Service -eq "monitor" }).Name',
-      ]);
-
-      if (result.exitCode == 0) {
-        return const LineSplitter()
-            .convert(result.stdout.toString())
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
-      }
-    } catch (_) {}
-
     return [];
   }
 

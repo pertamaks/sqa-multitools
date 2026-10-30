@@ -1015,7 +1015,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       );
 
       if (finalImage != null) {
-        debugPrint('Long Screenshot: Stitching complete! Saving to disk...');
+        debugPrint('[LongScreenshot] Stitching complete! Saving to disk... (bytes: ${finalImage.length})');
 
         final documentsDir = await getApplicationDocumentsDirectory();
         final dir = ref
@@ -1041,18 +1041,21 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
             .replaceAll(' ', '_');
         final filename = 'SQA_LONG_SS_$timestamp.${format.toLowerCase()}';
         final savePath = p.join(saveDir.path, filename);
+        debugPrint('[LongScreenshot] Target format: $format, savePath: $savePath');
 
         if (format.toLowerCase() == 'png') {
+          debugPrint('[LongScreenshot] Writing PNG bytes to $savePath...');
           await File(savePath).writeAsBytes(finalImage);
-          debugPrint('Long Screenshot: Saved to $savePath');
+          debugPrint('[LongScreenshot] Saved to $savePath');
         } else {
+          debugPrint('[LongScreenshot] Converting image to $format...');
           final success = await FfmpegEngine.convertImageFromBytes(
             bytes: finalImage,
             outputPath: savePath,
           );
 
           if (success) {
-            debugPrint('Long Screenshot: Converted and saved to $savePath');
+            debugPrint('[LongScreenshot] Converted and saved to $savePath');
           } else {
             final fallbackPath = savePath.replaceAll(
               RegExp(r'\.[^.]+$'),
@@ -1060,29 +1063,35 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
             );
             await File(fallbackPath).writeAsBytes(finalImage);
             debugPrint(
-              'Long Screenshot: Conversion to $format failed. Saved as PNG instead: $fallbackPath',
+              '[LongScreenshot] Conversion to $format failed. Saved as PNG instead: $fallbackPath',
             );
           }
         }
 
-        // We don't hand off to the overlay since a long screenshot is usually much taller
-        // than the screen and would be distorted. Just refresh the recordings/screenshots view.
-        ref.read(screenshotProvider.notifier).refreshRecentCaptures();
-        // Alternatively, you can open the folder or show a toast here.
+        debugPrint('[LongScreenshot] Refreshing recent captures...');
+        try {
+          await ref.read(screenshotProvider.notifier).refreshRecentCaptures();
+          debugPrint('[LongScreenshot] Recent captures refreshed.');
+        } catch (e, stack) {
+          debugPrint('[LongScreenshot] Error refreshing captures: $e\n$stack');
+        }
       } else {
-        debugPrint('Long Screenshot: Stitching failed or no output.');
+        debugPrint('[LongScreenshot] Stitching returned null or failed.');
       }
+    } catch (e, stack) {
+      debugPrint('[LongScreenshot] Unexpected error in _processLongScreenshot: $e\n$stack');
     } finally {
+      debugPrint('[LongScreenshot] Resetting isStitching to false');
       state = state.copyWith(isStitching: false);
       // Clean up the temporary video file — it's no longer needed
       try {
         final videoFile = File(videoPath);
         if (await videoFile.exists()) {
           await videoFile.delete();
-          debugPrint('Long Screenshot: Cleaned up temp video at $videoPath');
+          debugPrint('[LongScreenshot] Cleaned up temp video at $videoPath');
         }
       } catch (e) {
-        debugPrint('Long Screenshot: Failed to clean up temp video: $e');
+        debugPrint('[LongScreenshot] Failed to clean up temp video: $e');
       }
     }
   }

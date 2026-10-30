@@ -645,13 +645,20 @@ class FfmpegEngine {
         outputPath,
       ]);
 
+      // Must drain stdout and stderr to prevent pipe buffer from filling up and hanging
+      final stdoutDrain = process.stdout.drain<void>();
+      final stderrDrain = process.stderr.drain<void>();
+
       process.stdin.add(bytes);
       await process.stdin.flush();
       await process.stdin.close();
 
-      final exitCode = await process.exitCode.timeout(
-        const Duration(seconds: 15),
-      );
+      final results = await Future.wait([
+        process.exitCode.timeout(const Duration(seconds: 15)),
+        stdoutDrain,
+        stderrDrain,
+      ]);
+      final exitCode = results[0] as int;
       return exitCode == 0;
     } catch (e) {
       debugPrint('[FfmpegEngine] Convert image from bytes failed: $e');

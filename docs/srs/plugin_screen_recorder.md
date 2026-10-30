@@ -38,7 +38,7 @@ This is a modular plugin for SQA-Multitools, utilizing the standard `SqaPlugin` 
 ### Capture Modes
 - **Full Screen**: Capture any selected monitor in its entirety.
 - **Selected Area**: User-defined rectangular region of the desktop.
-- **Scrolling Capture (Long Screenshot)**: Record a scrollable area and stitch frames into a single long screenshot. Supports both vertical and horizontal scroll directions with manual toggle.
+- **Scrolling Capture (Long Screenshot)**: Record a scrollable area and stitch frames into a single high-fidelity long screenshot. Uses sequential pairwise normalized cross-correlation (NCC) to eliminate drift, central active region projections, zero-disk in-memory frame extraction (`-f image2pipe`), and immediate mouse passthrough for seamless background scrolling. Supports both vertical and horizontal scroll directions.
 
 ### Recording Controls
 - **Description**: Standard Start, Stop, and Pause controls. Use of a Draggable Floating Bar during active recording.

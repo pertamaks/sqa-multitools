@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
 import '../../../core/engine/ffmpeg_engine.dart';
 
 enum StitchAxis { vertical, horizontal }
@@ -21,34 +20,31 @@ class LongScreenshotStitcher {
     String videoPath, {
     StitchAxis? direction,
   }) async {
-    final tempDir = await Directory.systemTemp.createTemp('sqa_stitching_');
     try {
-      // Phase 1: Extract frames
-      debugPrint(
-        '[LongScreenshotStitcher] Extracting frames to ${tempDir.path}...',
-      );
-      final framePaths = await _extractFrames(videoPath, tempDir.path);
-      if (framePaths.isEmpty) {
+      // Phase 1: Extract frames in-memory via stdout pipe at 20 FPS (prevents temporal gap/drift)
+      debugPrint('[LongScreenshotStitcher] Extracting frames in-memory via pipe (20 FPS)...');
+      final framesBytes = await _extractFramesInMemory(videoPath);
+      if (framesBytes.isEmpty) {
         debugPrint('[LongScreenshotStitcher] No frames extracted.');
         return null;
       }
 
       // Phase 2: Compute projections (on main thread to allow dart:ui)
       debugPrint(
-        '[LongScreenshotStitcher] Computing projections on main thread...',
+        '[LongScreenshotStitcher] Computing multi-strip projections on main thread...',
       );
       final rowProjections = <Float32List>[];
       final colProjections = <Float32List>[];
+      final filteredFrames = <Uint8List>[];
       int frameWidth = 0;
       int frameHeight = 0;
 
-      for (int i = 0; i < framePaths.length; i++) {
-        final bytes = await File(framePaths[i]).readAsBytes();
-        final codec = await ui.instantiateImageCodec(bytes);
+      for (int i = 0; i < framesBytes.length; i++) {
+        final codec = await ui.instantiateImageCodec(framesBytes[i]);
         final frameInfo = await codec.getNextFrame();
         final image = frameInfo.image;
 
-        if (i == 0) {
+        if (filteredFrames.isEmpty) {
           frameWidth = image.width;
           frameHeight = image.height;
         }
@@ -61,29 +57,61 @@ class LongScreenshotStitcher {
           final colProj = Float32List(frameWidth);
           final rawBytes = rgbaData.buffer.asUint8List();
 
-          // Single pass: accumulate row and column luminance sums simultaneously
+          // Focus on active 20%-80% center region to avoid scrollbars/margins
+          final startX = (frameWidth * 0.15).toInt();
+          final endX = (frameWidth * 0.85).toInt();
+          final activeWidth = math.max(1, endX - startX);
+
+          final startY = (frameHeight * 0.15).toInt();
+          final endY = (frameHeight * 0.85).toInt();
+          final activeHeight = math.max(1, endY - startY);
+
           for (int y = 0; y < frameHeight; y++) {
             double rowSum = 0;
             final rowOffset = y * frameWidth * 4;
-            for (int x = 0; x < frameWidth; x++) {
+            for (int x = startX; x < endX; x++) {
               final idx = rowOffset + (x * 4);
               final gray =
                   0.2126 * rawBytes[idx] +
                   0.7152 * rawBytes[idx + 1] +
                   0.0722 * rawBytes[idx + 2];
               rowSum += gray;
-              colProj[x] += gray;
             }
-            rowProj[y] = rowSum / frameWidth;
+            rowProj[y] = rowSum / activeWidth;
           }
 
-          // Normalize column projections by frame height
           for (int x = 0; x < frameWidth; x++) {
-            colProj[x] /= frameHeight;
+            double colSum = 0;
+            for (int y = startY; y < endY; y++) {
+              final idx = (y * frameWidth + x) * 4;
+              final gray =
+                  0.2126 * rawBytes[idx] +
+                  0.7152 * rawBytes[idx + 1] +
+                  0.0722 * rawBytes[idx + 2];
+              colSum += gray;
+            }
+            colProj[x] = colSum / activeHeight;
           }
 
-          rowProjections.add(rowProj);
-          colProjections.add(colProj);
+          // Duplicate detection against previous frame
+          bool isDuplicate = false;
+          if (rowProjections.isNotEmpty) {
+            final prevRow = rowProjections.last;
+            double diff = 0;
+            for (int k = 0; k < frameHeight; k += 4) {
+              diff += (rowProj[k] - prevRow[k]).abs();
+            }
+            final avgDiff = diff / (frameHeight / 4);
+            if (avgDiff < 0.5) {
+              isDuplicate = true;
+            }
+          }
+
+          if (!isDuplicate || filteredFrames.isEmpty) {
+            rowProjections.add(rowProj);
+            colProjections.add(colProj);
+            filteredFrames.add(framesBytes[i]);
+          }
         }
         image.dispose();
 
@@ -96,6 +124,10 @@ class LongScreenshotStitcher {
         debugPrint('[LongScreenshotStitcher] No projections calculated.');
         return null;
       }
+
+      debugPrint(
+        '[LongScreenshotStitcher] Processed ${filteredFrames.length} unique frames out of ${framesBytes.length}.',
+      );
 
       // Phase 3 & 4: Compute offsets (in isolate, pure math)
       final StitchAxis axis;
@@ -141,7 +173,7 @@ class LongScreenshotStitcher {
         '[LongScreenshotStitcher] Compositing frames on main thread...',
       );
       final finalImageBytes = await _compositeFrames(
-        framePaths,
+        filteredFrames,
         offsets,
         axis: axis,
       );
@@ -151,55 +183,106 @@ class LongScreenshotStitcher {
     } catch (e, stack) {
       debugPrint('[LongScreenshotStitcher] Error during stitching: $e\n$stack');
       return null;
-    } finally {
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
     }
   }
 
-  static Future<List<String>> _extractFrames(
-    String videoPath,
-    String outDir,
-  ) async {
+  /// Extracts video frames as PNG bytes directly into memory via FFmpeg stdout pipe.
+  /// Avoids writing and deleting hundreds of image files to disk.
+  static Future<List<Uint8List>> _extractFramesInMemory(String videoPath) async {
     final executable = await FfmpegEngine.getExecutablePath();
     if (executable == null) throw Exception("FFmpeg not found");
 
-    final outPattern = p.join(outDir, 'frame_%04d.png');
-
-    final result = await Process.run(executable, [
+    final process = await Process.start(executable, [
       '-i',
       videoPath,
       '-vf',
-      'fps=10',
-      outPattern,
+      'fps=20',
+      '-f',
+      'image2pipe',
+      '-vcodec',
+      'png',
+      'pipe:1',
     ]);
 
-    if (result.exitCode != 0) {
-      debugPrint(
-        '[LongScreenshotStitcher] FFmpeg extract failed: ${result.stderr}',
-      );
+    final List<int> accumulatedBytes = [];
+    final List<Uint8List> frames = [];
+
+    // PNG standard header: 89 50 4E 47 0D 0A 1A 0A
+    final pngHeader = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    // PNG IEND chunk trailer: 49 45 4E 44 AE 42 60 82 (IEND + 4-byte CRC)
+    final pngIend = [0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82];
+
+    final stdoutFuture = process.stdout.forEach((chunk) {
+      accumulatedBytes.addAll(chunk);
+
+      // Extract complete PNG frames from buffer as they arrive
+      while (accumulatedBytes.isNotEmpty) {
+        final startIdx = _indexOfSubsequence(accumulatedBytes, pngHeader);
+        if (startIdx == -1) {
+          accumulatedBytes.clear();
+          break;
+        }
+
+        final endIdx = _indexOfSubsequence(
+          accumulatedBytes,
+          pngIend,
+          startIndex: startIdx + pngHeader.length,
+        );
+        if (endIdx == -1) {
+          // Frame not yet complete; wait for more data
+          if (startIdx > 0) {
+            accumulatedBytes.removeRange(0, startIdx);
+          }
+          break;
+        }
+
+        final frameLength = (endIdx + pngIend.length) - startIdx;
+        final frameBytes = Uint8List.fromList(
+          accumulatedBytes.sublist(startIdx, startIdx + frameLength),
+        );
+        frames.add(frameBytes);
+
+        accumulatedBytes.removeRange(0, startIdx + frameLength);
+      }
+    });
+
+    final stderrFuture = process.stderr.drain<void>();
+
+    await Future.wait([stdoutFuture, stderrFuture]);
+    final exitCode = await process.exitCode;
+
+    if (exitCode != 0 && frames.isEmpty) {
+      debugPrint('[LongScreenshotStitcher] FFmpeg in-memory extract failed with code $exitCode');
       return [];
     }
 
-    final dir = Directory(outDir);
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.png'))
-        .toList();
-
-    files.sort((a, b) => a.path.compareTo(b.path));
-
-    return files.map((f) => f.path).toList();
+    return frames;
   }
 
-  /// Computes 1D global offsets via Normalized Cross-Correlation.
+  static int _indexOfSubsequence(
+    List<int> source,
+    List<int> target, {
+    int startIndex = 0,
+  }) {
+    if (target.isEmpty) return startIndex;
+    if (source.length - startIndex < target.length) return -1;
+
+    for (int i = startIndex; i <= source.length - target.length; i++) {
+      bool match = true;
+      for (int j = 0; j < target.length; j++) {
+        if (source[i + j] != target[j]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) return i;
+    }
+    return -1;
+  }
+
+  /// Computes 1D global offsets via Sequential Pairwise Normalized Cross-Correlation (Anti-Drift).
   ///
-  /// [projections] is a list of [Float32List], one per frame.
-  /// [frameDimension] is the length of each projection (frameHeight for
-  /// vertical, frameWidth for horizontal).
-  ///
+  /// Matches Frame[i] against Frame[i-1] directly, then accumulates verified deltas.
   /// Returns a map with:
   ///   'offsets'  — `List<int>` of global pixel offsets for each frame
   ///   'avgNcc'   — `double`, average NCC score across all matched pairs
@@ -213,89 +296,85 @@ class LongScreenshotStitcher {
     }
 
     final globalOffsets = <int>[0];
-    final canvasProj = List<double>.from(projections[0]);
+    int cumulativeOffset = 0;
     double totalNcc = 0.0;
     int pairCount = 0;
 
+    // Minimum template size to match (30% of frame dimension)
+    final templateSize = math.max(10, (frameDimension * 0.35).toInt());
+    // Margin to avoid sticky headers or footers
+    final topMargin = (frameDimension * 0.10).toInt();
+    final bottomMargin = (frameDimension * 0.10).toInt();
+
     for (int i = 1; i < projections.length; i++) {
-      final currentProj = projections[i];
-      final canvasHeight = canvasProj.length;
+      final prevProj = projections[i - 1];
+      final currProj = projections[i];
 
-      // Ignore top/bottom 15% to avoid static headers/footers matching
-      final margin = (frameDimension * 0.15).toInt();
-      final querySize = (frameDimension * 0.25).toInt();
+      // Template taken from the lower section of prevProj
+      final templateStart = math.max(0, frameDimension - bottomMargin - templateSize);
+      final template = prevProj.sublist(templateStart, templateStart + templateSize);
 
-      final queryStart = math.max(0, canvasHeight - margin - querySize);
-
-      final query = canvasProj.sublist(queryStart, queryStart + querySize);
-
-      final minSearchOffset = margin;
-      final maxSearchOffset = frameDimension - margin - querySize;
+      // Search template inside currProj (from topMargin down to bottomMargin)
+      final minSearch = topMargin;
+      final maxSearch = frameDimension - bottomMargin - templateSize;
 
       double bestNcc = -1.0;
-      int bestLocalOffset = minSearchOffset;
+      int bestOffset = templateStart;
 
-      // Query statistics
-      double queryMean = 0;
-      for (final v in query) {
-        queryMean += v;
+      // Calculate template statistics
+      double tMean = 0;
+      for (final v in template) {
+        tMean += v;
       }
-      queryMean /= query.length;
+      tMean /= template.length;
 
-      double queryStd = 0;
-      for (final v in query) {
-        queryStd += math.pow(v - queryMean, 2);
+      double tStd = 0;
+      for (final v in template) {
+        tStd += math.pow(v - tMean, 2);
       }
-      queryStd = math.sqrt(queryStd / query.length);
-      if (queryStd < 0.001) queryStd = 1.0;
+      tStd = math.sqrt(tStd / template.length);
+      if (tStd < 0.001) tStd = 1.0;
 
-      for (int offset = minSearchOffset; offset <= maxSearchOffset; offset++) {
-        double localMean = 0;
-        for (int k = 0; k < query.length; k++) {
-          localMean += currentProj[offset + k];
+      for (int offset = minSearch; offset <= maxSearch; offset++) {
+        double cMean = 0;
+        for (int k = 0; k < templateSize; k++) {
+          cMean += currProj[offset + k];
         }
-        localMean /= query.length;
+        cMean /= templateSize;
 
-        double localStd = 0;
-        for (int k = 0; k < query.length; k++) {
-          localStd += math.pow(currentProj[offset + k] - localMean, 2);
+        double cStd = 0;
+        for (int k = 0; k < templateSize; k++) {
+          cStd += math.pow(currProj[offset + k] - cMean, 2);
         }
-        localStd = math.sqrt(localStd / query.length);
-        if (localStd < 0.001) localStd = 1.0;
+        cStd = math.sqrt(cStd / templateSize);
+        if (cStd < 0.001) cStd = 1.0;
 
         double ncc = 0;
-        for (int k = 0; k < query.length; k++) {
-          ncc += (query[k] - queryMean) * (currentProj[offset + k] - localMean);
+        for (int k = 0; k < templateSize; k++) {
+          ncc += (template[k] - tMean) * (currProj[offset + k] - cMean);
         }
-        ncc /= (queryStd * localStd * query.length);
+        ncc /= (tStd * cStd * templateSize);
 
         if (ncc > bestNcc) {
           bestNcc = ncc;
-          bestLocalOffset = offset;
+          bestOffset = offset;
         }
       }
 
-      totalNcc += bestNcc;
+      totalNcc += math.max(0.0, bestNcc);
       pairCount++;
 
-      // newFrame[bestLocalOffset] aligns with canvas[queryStart]
-      // Therefore newFrame[0] aligns with canvas[queryStart - bestLocalOffset]
-      int newGlobalOffset = queryStart - bestLocalOffset;
+      // Shift delta between consecutive frames:
+      // prev[templateStart] aligned with curr[bestOffset] => delta = templateStart - bestOffset
+      int delta = templateStart - bestOffset;
 
-      // Constrain scroll direction: monotonically increasing offsets
-      if (newGlobalOffset < globalOffsets.last) {
-        newGlobalOffset = globalOffsets.last;
+      // In downward/forward scroll, delta must be >= 0
+      if (delta < 0 || bestNcc < _minNccThreshold) {
+        delta = 0;
       }
 
-      globalOffsets.add(newGlobalOffset);
-
-      // Expand the canvas projection with the new non-overlapping content
-      final startK = canvasHeight - newGlobalOffset;
-      if (startK > 0 && startK < frameDimension) {
-        for (int k = startK; k < frameDimension; k++) {
-          canvasProj.add(currentProj[k]);
-        }
-      }
+      cumulativeOffset += delta;
+      globalOffsets.add(cumulativeOffset);
     }
 
     final avgNcc = pairCount > 0 ? totalNcc / pairCount : 0.0;
@@ -365,14 +444,14 @@ class LongScreenshotStitcher {
   }
 
   static Future<Uint8List> _compositeFrames(
-    List<String> framePaths,
+    List<Uint8List> framesBytes,
     List<int> globalOffsets, {
     StitchAxis axis = StitchAxis.vertical,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
 
-    final firstFrame = await _loadImage(framePaths[0]);
+    final firstFrame = await _loadImage(framesBytes[0]);
     final frameWidth = firstFrame.width;
     final frameHeight = firstFrame.height;
     firstFrame.dispose();
@@ -396,8 +475,8 @@ class LongScreenshotStitcher {
 
     int currentPos = 0;
 
-    for (int i = 0; i < framePaths.length; i++) {
-      final frame = await _loadImage(framePaths[i]);
+    for (int i = 0; i < framesBytes.length; i++) {
+      final frame = await _loadImage(framesBytes[i]);
 
       if (i == 0) {
         canvas.drawImage(frame, ui.Offset.zero, ui.Paint());
@@ -454,8 +533,7 @@ class LongScreenshotStitcher {
     return bytes!.buffer.asUint8List();
   }
 
-  static Future<ui.Image> _loadImage(String path) async {
-    final bytes = await File(path).readAsBytes();
+  static Future<ui.Image> _loadImage(Uint8List bytes) async {
     final codec = await ui.instantiateImageCodec(bytes);
     final frameInfo = await codec.getNextFrame();
     return frameInfo.image;

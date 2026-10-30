@@ -49,7 +49,7 @@ final class AvailablePluginsProvider
   }
 }
 
-String _$availablePluginsHash() => r'00081619b6e6b8676dd3151386bcea9b5ac44a08';
+String _$availablePluginsHash() => r'521480643bd7dfc392319d04a7aaf5c9ea4242e2';
 
 /// Provides all available plugins in their user-defined order
 

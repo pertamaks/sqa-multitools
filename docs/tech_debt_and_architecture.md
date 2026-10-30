@@ -86,11 +86,21 @@ A ledger of foundational technical decisions to provide context for future devel
   3. If the window was visible (or when `safeShow()` is triggered), a 1-pixel resize nudge (`width + 1` then back to original width) forces DWM and the Flutter engine to re-rasterize the swap chain at the target display's DPI before restoring full opacity (`1.0`) and focus.
 * **Reasoning:** Decoupling the DWM swap chain flush from the background/hidden path eliminates visual flashing and guarantees crisp, non-distorted rendering every time the main toolbar is shown.
 
+### ADR-010: Zero-Disk-Churn In-Memory Media Streaming & Pipe Transcoding
+**Date:** 2026-10-30
+* **Context:** Extracting hundreds of video frames to temporary folders (`frame_%04d.png`) and generating temporary non-PNG image files for conversion triggered severe false-positive antivirus / behavioral ransomware alarms (e.g., Trend Micro T1485, T1486) on corporate endpoint machines. In addition, rapid sequential disk deletion caused I/O bottlenecks and permission locks.
+* **Decision:** We migrated image conversion and frame extraction to **zero-disk-churn in-memory streaming**:
+  1. `LongScreenshotStitcher` reads video frames directly through FFmpeg stdout pipe (`-f image2pipe -vcodec png pipe:1`), streaming PNG chunks into memory and demuxing via PNG standard magic header (`89 50 4E 47 0D 0A 1A 0A`) and IEND chunk trailer.
+  2. `FfmpegEngine.convertImageFromBytes` pipes in-memory image bytes via stdin (`pipe:0`) directly to target files while concurrently draining `stdout` and `stderr` to prevent OS pipe deadlocks.
+  3. Replaced PowerShell child process execution for monitor discovery with native Windows Display API structures.
+* **Reasoning:** Eliminating mass temporary file creation completely prevents enterprise antivirus behavioral heuristics from flagging SQA-Multitools as suspicious/ransomware activity, improves processing throughput, and eliminates orphaned disk files.
+
 ---
 
 ## 📜 Resolved Improvements Log
 
 Completed tech debt and architectural milestones are archived here for historical tracking.
 
-* *(No items resolved yet. Check off items from the roadmap above and move them here!)*
+* **OmniConverter Plugin Integration (2026-10-30):** Full multi-format converter suite with 100% test coverage.
+* **Long Screenshot Engine Overhaul (2026-10-30):** Sequential pairwise NCC algorithm and zero-disk in-memory extraction.
 

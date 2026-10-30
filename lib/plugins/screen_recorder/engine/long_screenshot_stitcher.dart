@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
 import '../../../core/engine/ffmpeg_engine.dart';
 
 enum StitchAxis { vertical, horizontal }
@@ -21,14 +20,11 @@ class LongScreenshotStitcher {
     String videoPath, {
     StitchAxis? direction,
   }) async {
-    final tempDir = await Directory.systemTemp.createTemp('sqa_stitching_');
     try {
-      // Phase 1: Extract frames
-      debugPrint(
-        '[LongScreenshotStitcher] Extracting frames to ${tempDir.path}...',
-      );
-      final framePaths = await _extractFrames(videoPath, tempDir.path);
-      if (framePaths.isEmpty) {
+      // Phase 1: Extract frames in-memory via stdout pipe (no disk I/O, prevents AV T1485/T1486)
+      debugPrint('[LongScreenshotStitcher] Extracting frames in-memory via pipe...');
+      final framesBytes = await _extractFramesInMemory(videoPath);
+      if (framesBytes.isEmpty) {
         debugPrint('[LongScreenshotStitcher] No frames extracted.');
         return null;
       }
@@ -42,9 +38,8 @@ class LongScreenshotStitcher {
       int frameWidth = 0;
       int frameHeight = 0;
 
-      for (int i = 0; i < framePaths.length; i++) {
-        final bytes = await File(framePaths[i]).readAsBytes();
-        final codec = await ui.instantiateImageCodec(bytes);
+      for (int i = 0; i < framesBytes.length; i++) {
+        final codec = await ui.instantiateImageCodec(framesBytes[i]);
         final frameInfo = await codec.getNextFrame();
         final image = frameInfo.image;
 
@@ -141,7 +136,7 @@ class LongScreenshotStitcher {
         '[LongScreenshotStitcher] Compositing frames on main thread...',
       );
       final finalImageBytes = await _compositeFrames(
-        framePaths,
+        framesBytes,
         offsets,
         axis: axis,
       );
@@ -151,47 +146,101 @@ class LongScreenshotStitcher {
     } catch (e, stack) {
       debugPrint('[LongScreenshotStitcher] Error during stitching: $e\n$stack');
       return null;
-    } finally {
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
     }
   }
 
-  static Future<List<String>> _extractFrames(
-    String videoPath,
-    String outDir,
-  ) async {
+  /// Extracts video frames as PNG bytes directly into memory via FFmpeg stdout pipe.
+  /// Avoids writing and deleting hundreds of image files to disk.
+  static Future<List<Uint8List>> _extractFramesInMemory(String videoPath) async {
     final executable = await FfmpegEngine.getExecutablePath();
     if (executable == null) throw Exception("FFmpeg not found");
 
-    final outPattern = p.join(outDir, 'frame_%04d.png');
-
-    final result = await Process.run(executable, [
+    final process = await Process.start(executable, [
       '-i',
       videoPath,
       '-vf',
       'fps=10',
-      outPattern,
+      '-f',
+      'image2pipe',
+      '-vcodec',
+      'png',
+      'pipe:1',
     ]);
 
-    if (result.exitCode != 0) {
-      debugPrint(
-        '[LongScreenshotStitcher] FFmpeg extract failed: ${result.stderr}',
-      );
+    final List<int> accumulatedBytes = [];
+    final List<Uint8List> frames = [];
+
+    // PNG standard header: 89 50 4E 47 0D 0A 1A 0A
+    final pngHeader = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    // PNG IEND chunk trailer: 49 45 4E 44 AE 42 60 82 (IEND + 4-byte CRC)
+    final pngIend = [0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82];
+
+    final stdoutFuture = process.stdout.forEach((chunk) {
+      accumulatedBytes.addAll(chunk);
+
+      // Extract complete PNG frames from buffer as they arrive
+      while (accumulatedBytes.isNotEmpty) {
+        final startIdx = _indexOfSubsequence(accumulatedBytes, pngHeader);
+        if (startIdx == -1) {
+          accumulatedBytes.clear();
+          break;
+        }
+
+        final endIdx = _indexOfSubsequence(
+          accumulatedBytes,
+          pngIend,
+          startIndex: startIdx + pngHeader.length,
+        );
+        if (endIdx == -1) {
+          // Frame not yet complete; wait for more data
+          if (startIdx > 0) {
+            accumulatedBytes.removeRange(0, startIdx);
+          }
+          break;
+        }
+
+        final frameLength = (endIdx + pngIend.length) - startIdx;
+        final frameBytes = Uint8List.fromList(
+          accumulatedBytes.sublist(startIdx, startIdx + frameLength),
+        );
+        frames.add(frameBytes);
+
+        accumulatedBytes.removeRange(0, startIdx + frameLength);
+      }
+    });
+
+    final stderrFuture = process.stderr.drain<void>();
+
+    await Future.wait([stdoutFuture, stderrFuture]);
+    final exitCode = await process.exitCode;
+
+    if (exitCode != 0 && frames.isEmpty) {
+      debugPrint('[LongScreenshotStitcher] FFmpeg in-memory extract failed with code $exitCode');
       return [];
     }
 
-    final dir = Directory(outDir);
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.png'))
-        .toList();
+    return frames;
+  }
 
-    files.sort((a, b) => a.path.compareTo(b.path));
+  static int _indexOfSubsequence(
+    List<int> source,
+    List<int> target, {
+    int startIndex = 0,
+  }) {
+    if (target.isEmpty) return startIndex;
+    if (source.length - startIndex < target.length) return -1;
 
-    return files.map((f) => f.path).toList();
+    for (int i = startIndex; i <= source.length - target.length; i++) {
+      bool match = true;
+      for (int j = 0; j < target.length; j++) {
+        if (source[i + j] != target[j]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) return i;
+    }
+    return -1;
   }
 
   /// Computes 1D global offsets via Normalized Cross-Correlation.
@@ -365,14 +414,14 @@ class LongScreenshotStitcher {
   }
 
   static Future<Uint8List> _compositeFrames(
-    List<String> framePaths,
+    List<Uint8List> framesBytes,
     List<int> globalOffsets, {
     StitchAxis axis = StitchAxis.vertical,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
 
-    final firstFrame = await _loadImage(framePaths[0]);
+    final firstFrame = await _loadImage(framesBytes[0]);
     final frameWidth = firstFrame.width;
     final frameHeight = firstFrame.height;
     firstFrame.dispose();
@@ -396,8 +445,8 @@ class LongScreenshotStitcher {
 
     int currentPos = 0;
 
-    for (int i = 0; i < framePaths.length; i++) {
-      final frame = await _loadImage(framePaths[i]);
+    for (int i = 0; i < framesBytes.length; i++) {
+      final frame = await _loadImage(framesBytes[i]);
 
       if (i == 0) {
         canvas.drawImage(frame, ui.Offset.zero, ui.Paint());
@@ -454,8 +503,7 @@ class LongScreenshotStitcher {
     return bytes!.buffer.asUint8List();
   }
 
-  static Future<ui.Image> _loadImage(String path) async {
-    final bytes = await File(path).readAsBytes();
+  static Future<ui.Image> _loadImage(Uint8List bytes) async {
     final codec = await ui.instantiateImageCodec(bytes);
     final frameInfo = await codec.getNextFrame();
     return frameInfo.image;

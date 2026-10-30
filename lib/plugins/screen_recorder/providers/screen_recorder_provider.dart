@@ -504,9 +504,14 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
     // Construct save path
     final String savePath;
     if (state.isLongScreenshotSession) {
-      // Long screenshot video is a temporary intermediate artifact — use temp dir
-      final tempDir = await Directory.systemTemp.createTemp('sqa_long_ss_');
-      savePath = p.join(tempDir.path, 'capture.${state.format.toLowerCase()}');
+      // Long screenshot video is a temporary intermediate artifact in application cache directory
+      final cacheDir = await getTemporaryDirectory();
+      final tempFolder = Directory(p.join(cacheDir.path, 'sqa_long_ss'));
+      if (!await tempFolder.exists()) {
+        await tempFolder.create(recursive: true);
+      }
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      savePath = p.join(tempFolder.path, 'capture_$timestamp.${state.format.toLowerCase()}');
     } else {
       final documentsDir = await getApplicationDocumentsDirectory();
       final saveDirPath =
@@ -726,10 +731,6 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
           final file = File(_currentSavePath!);
           if (await file.exists()) {
             await file.delete();
-            // If it was a long screenshot, clean up the temp directory
-            if (state.isLongScreenshotSession && await file.parent.exists()) {
-              await file.parent.delete(recursive: true);
-            }
           }
         } catch (_) {}
         _currentSavePath = null;
@@ -1129,8 +1130,7 @@ class ScreenRecorderNotifier extends _$ScreenRecorderNotifier {
       try {
         final videoFile = File(videoPath);
         if (await videoFile.exists()) {
-          // Delete the parent temp directory (contains only the capture file)
-          await videoFile.parent.delete(recursive: true);
+          await videoFile.delete();
           debugPrint('Long Screenshot: Cleaned up temp video at $videoPath');
         }
       } catch (e) {

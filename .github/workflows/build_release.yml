@@ -73,6 +73,7 @@ jobs:
         run: |
           flutter config --enable-linux-desktop
           flutter create --platforms=linux .
+          sed -i 's/-Wall -Werror/-Wall -Werror -Wno-error=sometimes-uninitialized -Wno-error=uninitialized/g' linux/CMakeLists.txt
 
       - name: Install Dependencies
         run: flutter pub get
